@@ -33,9 +33,13 @@ export async function GET(request: Request) {
     const presetWords = getWordsByRangeId(rangeId);
     const supabase = await createClient();
 
-    const { data: learningRows } = await supabase
+    const { data: learningRows, error: learningError } = await supabase
       .from("user_learning")
       .select("word, status");
+
+    if (learningError) {
+      console.warn("user_learning fetch skipped:", learningError.message);
+    }
 
     const masteredWords = new Set(
       (learningRows ?? [])

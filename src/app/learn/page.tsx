@@ -46,8 +46,9 @@ export default function LearnPage() {
         throw new Error(data.details ?? data.error ?? "Không thể tải danh sách từ");
       }
 
+      const wordsFromApi = (data.words ?? []) as VocabWord[];
       const fetched = mergeLocalLearning(
-        (data.words ?? []).map((w: VocabWord) => ({
+        wordsFromApi.map((w) => ({
           ...w,
           importance_tier: w.importance_tier ?? getImportanceTier(w.rank),
         })),

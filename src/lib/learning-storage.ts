@@ -28,7 +28,7 @@ export function mergeLocalLearning<T extends { word: string; learning_status: Le
   words: T[],
 ): T[] {
   const map = readLocalLearning();
-  return words.map((w) => {
+  return words.map((w): T => {
     const local = map[w.word];
     if (!local) return w;
     return {
