@@ -241,7 +241,7 @@ export default function LearnPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-slate-100 via-primary-50/60 to-white">
+    <main className="min-h-screen bg-gradient-to-b from-neutral-100 via-neutral-50 to-white">
       <header className="border-b border-white/60 bg-white/80 backdrop-blur-md">
         <div className="mx-auto max-w-2xl px-4 py-4">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -302,7 +302,7 @@ export default function LearnPage() {
         </div>
 
         {error && (
-          <p className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">
+          <p className="mt-4 rounded-xl border border-neutral-300 bg-neutral-100 px-4 py-3 text-sm text-neutral-800">
             {error}
           </p>
         )}
@@ -361,7 +361,7 @@ export default function LearnPage() {
                 type="button"
                 disabled={updating || !currentWord}
                 onClick={() => updateStatus("need_review")}
-                className="rounded-xl border-2 border-amber-200 bg-amber-50 py-3.5 font-semibold text-amber-800 transition hover:bg-amber-100 disabled:opacity-50"
+                className="rounded-xl border-2 border-neutral-300 bg-neutral-100 py-3.5 font-semibold text-neutral-800 transition hover:bg-neutral-200 disabled:opacity-50"
               >
                 Cần ôn lại
               </button>
@@ -369,7 +369,7 @@ export default function LearnPage() {
                 type="button"
                 disabled={updating || !currentWord}
                 onClick={() => updateStatus("mastered")}
-                className="rounded-xl bg-emerald-600 py-3.5 font-semibold text-white shadow-sm transition hover:bg-emerald-700 disabled:opacity-50"
+                className="rounded-xl bg-neutral-900 py-3.5 font-semibold text-white shadow-sm transition hover:bg-black disabled:opacity-50"
               >
                 Đã thuộc
               </button>

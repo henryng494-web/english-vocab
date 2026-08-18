@@ -3,8 +3,8 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
-  --primary: #ff7900;
-  --primary-hover: #e66d00;
+  --primary: #171717;
+  --primary-hover: #000000;
 }
 
 @theme inline {
@@ -12,20 +12,22 @@
   --color-foreground: var(--foreground);
   --font-sans: Nunito, "Segoe UI", system-ui, sans-serif;
 
-  --color-primary: #ff7900;
-  --color-primary-hover: #e66d00;
-  --color-primary-50: #fff4e6;
-  --color-primary-100: #ffe4cc;
-  --color-primary-200: #ffd4a8;
-  --color-primary-300: #ffb866;
-  --color-primary-700: #cc6200;
-  --color-primary-800: #994a00;
+  --color-primary: #171717;
+  --color-primary-hover: #000000;
+  --color-primary-50: #f5f5f5;
+  --color-primary-100: #e5e5e5;
+  --color-primary-200: #d4d4d4;
+  --color-primary-300: #a3a3a3;
+  --color-primary-700: #404040;
+  --color-primary-800: #262626;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
+    --primary: #ededed;
+    --primary-hover: #ffffff;
   }
 }
 

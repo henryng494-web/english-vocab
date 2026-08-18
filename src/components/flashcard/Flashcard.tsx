@@ -30,7 +30,7 @@ function FlashcardImage({ word }: { word: VocabWord }) {
   }, [word.word, word.image_url]);
 
   return (
-    <div className="relative h-44 w-full shrink-0 bg-gradient-to-br from-primary via-[#FF8F20] to-primary-hover">
+    <div className="relative h-44 w-full shrink-0 bg-gradient-to-br from-neutral-200 via-neutral-300 to-neutral-400">
       <Image
         src={src}
         alt={word.word}

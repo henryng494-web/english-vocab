@@ -302,7 +302,7 @@ export default function DiscoverPage() {
   );
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-slate-100 via-primary-50/50 to-white">
+    <main className="min-h-screen bg-gradient-to-b from-neutral-100 via-neutral-50 to-white">
       <header className="border-b border-white/60 bg-white/80 backdrop-blur-md">
         <div className="mx-auto max-w-2xl px-4 py-4">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -341,7 +341,7 @@ export default function DiscoverPage() {
         </div>
 
         {error && (
-          <p className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">
+          <p className="mt-4 rounded-xl border border-neutral-300 bg-neutral-100 px-4 py-3 text-sm text-neutral-800">
             {error}
           </p>
         )}
