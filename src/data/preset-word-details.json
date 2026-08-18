@@ -1,0 +1,866 @@
+{
+  "the": {
+    "pos": "article",
+    "ipa": "/ðə/",
+    "vietnamese": "mạo từ chỉ định",
+    "definition": "Used to refer to a specific person or thing.",
+    "examples": ["The book on the table is mine.", "She opened the door quietly."],
+    "rank": 1
+  },
+  "be": {
+    "pos": "verb",
+    "ipa": "/bi/",
+    "vietnamese": "là, thì, ở",
+    "definition": "To exist or have a specific quality or state.",
+    "examples": ["I want to be a doctor.", "The weather is cold today."],
+    "rank": 2
+  },
+  "to": {
+    "pos": "preposition",
+    "ipa": "/tu/",
+    "vietnamese": "đến, để",
+    "definition": "Used to indicate direction, purpose, or relation.",
+    "examples": ["She went to the store.", "I need to finish this work."],
+    "rank": 3
+  },
+  "of": {
+    "pos": "preposition",
+    "ipa": "/ʌv/",
+    "vietnamese": "của",
+    "definition": "Used to show possession, origin, or relation.",
+    "examples": ["The color of the sky is blue.", "A friend of mine called."],
+    "rank": 4
+  },
+  "and": {
+    "pos": "conjunction",
+    "ipa": "/ænd/",
+    "vietnamese": "và",
+    "definition": "Used to connect words, phrases, or clauses.",
+    "examples": ["Bread and butter are on the table.", "She sings and dances well."],
+    "rank": 5
+  },
+  "a": {
+    "pos": "article",
+    "ipa": "/ə/",
+    "vietnamese": "một, một cái",
+    "definition": "Used before singular nouns to mean one or any.",
+    "examples": ["I saw a bird in the garden.", "She wants a new phone."],
+    "rank": 6
+  },
+  "in": {
+    "pos": "preposition",
+    "ipa": "/ɪn/",
+    "vietnamese": "trong, ở",
+    "definition": "Located inside or within something.",
+    "examples": ["The keys are in my bag.", "We live in Hanoi."],
+    "rank": 7
+  },
+  "that": {
+    "pos": "pronoun",
+    "ipa": "/ðæt/",
+    "vietnamese": "cái đó, rằng",
+    "definition": "Used to point to a specific thing or introduce a clause.",
+    "examples": ["That is my favorite song.", "I believe that he is right."],
+    "rank": 8
+  },
+  "have": {
+    "pos": "verb",
+    "ipa": "/hæv/",
+    "vietnamese": "có",
+    "definition": "To possess, hold, or experience something.",
+    "examples": ["I have two brothers.", "We have lunch at noon every day."],
+    "rank": 9
+  },
+  "i": {
+    "pos": "pronoun",
+    "ipa": "/aɪ/",
+    "vietnamese": "tôi",
+    "definition": "The speaker or writer referring to themselves.",
+    "examples": ["I am learning English.", "I will call you later."],
+    "rank": 10
+  },
+  "it": {
+    "pos": "pronoun",
+    "ipa": "/ɪt/",
+    "vietnamese": "nó",
+    "definition": "Used to refer to a thing, animal, or situation.",
+    "examples": ["It is raining outside.", "I bought a laptop and it works well."],
+    "rank": 11
+  },
+  "for": {
+    "pos": "preposition",
+    "ipa": "/fɔːr/",
+    "vietnamese": "cho, vì",
+    "definition": "Intended to benefit or because of someone or something.",
+    "examples": ["This gift is for you.", "She studied hard for the exam."],
+    "rank": 12
+  },
+  "not": {
+    "pos": "adverb",
+    "ipa": "/nɒt/",
+    "vietnamese": "không",
+    "definition": "Used to make a word or statement negative.",
+    "examples": ["I am not tired.", "He did not answer the question."],
+    "rank": 13
+  },
+  "on": {
+    "pos": "preposition",
+    "ipa": "/ɒn/",
+    "vietnamese": "trên",
+    "definition": "Physically in contact with and supported by a surface.",
+    "examples": ["The book is on the desk.", "She put her coat on the chair."],
+    "rank": 14
+  },
+  "with": {
+    "pos": "preposition",
+    "ipa": "/wɪð/",
+    "vietnamese": "với",
+    "definition": "In company of or having something.",
+    "examples": ["She went to the cinema with her friends.", "Coffee with milk is my favorite."],
+    "rank": 15
+  },
+  "he": {
+    "pos": "pronoun",
+    "ipa": "/hi/",
+    "vietnamese": "anh ấy, ông ấy",
+    "definition": "Used to refer to a male person or animal.",
+    "examples": ["He is my older brother.", "He works at a bank."],
+    "rank": 16
+  },
+  "as": {
+    "pos": "conjunction",
+    "ipa": "/æz/",
+    "vietnamese": "như, khi",
+    "definition": "Used to compare or indicate role or time.",
+    "examples": ["She works as a nurse.", "As I was leaving, it started to rain."],
+    "rank": 17
+  },
+  "you": {
+    "pos": "pronoun",
+    "ipa": "/ju/",
+    "vietnamese": "bạn, anh/chị/em",
+    "definition": "Used to refer to the person being addressed.",
+    "examples": ["You are very kind.", "Can you help me with this?"],
+    "rank": 18
+  },
+  "do": {
+    "pos": "verb",
+    "ipa": "/du/",
+    "vietnamese": "làm",
+    "definition": "To perform an action or activity.",
+    "examples": ["What do you do on weekends?", "I do my homework after school."],
+    "rank": 19
+  },
+  "at": {
+    "pos": "preposition",
+    "ipa": "/æt/",
+    "vietnamese": "tại, ở",
+    "definition": "Used to show a point in space or time.",
+    "examples": ["We meet at the café at 3 p.m.", "She is at home now."],
+    "rank": 20
+  },
+  "this": {
+    "pos": "pronoun",
+    "ipa": "/ðɪs/",
+    "vietnamese": "cái này, đây",
+    "definition": "Used to identify something close to the speaker.",
+    "examples": ["This is my new car.", "This book is very interesting."],
+    "rank": 21
+  },
+  "but": {
+    "pos": "conjunction",
+    "ipa": "/bʌt/",
+    "vietnamese": "nhưng",
+    "definition": "Used to introduce an idea that contrasts with the previous one.",
+    "examples": ["She is small but very strong.", "I wanted to go, but I was busy."],
+    "rank": 22
+  },
+  "his": {
+    "pos": "pronoun",
+    "ipa": "/hɪz/",
+    "vietnamese": "của anh ấy",
+    "definition": "Belonging to or associated with a male person.",
+    "examples": ["His phone is on the table.", "This is his favorite restaurant."],
+    "rank": 23
+  },
+  "by": {
+    "pos": "preposition",
+    "ipa": "/baɪ/",
+    "vietnamese": "bởi, qua",
+    "definition": "Near, through, or during the action of someone.",
+    "examples": ["The novel was written by a famous author.", "She walked by the river."],
+    "rank": 24
+  },
+  "from": {
+    "pos": "preposition",
+    "ipa": "/frɒm/",
+    "vietnamese": "từ",
+    "definition": "Indicating the point in space or time at which something starts.",
+    "examples": ["She comes from Vietnam.", "The shop is open from 9 to 5."],
+    "rank": 25
+  },
+  "they": {
+    "pos": "pronoun",
+    "ipa": "/ðeɪ/",
+    "vietnamese": "họ",
+    "definition": "Used to refer to two or more people or things.",
+    "examples": ["They are my classmates.", "They arrived early this morning."],
+    "rank": 26
+  },
+  "we": {
+    "pos": "pronoun",
+    "ipa": "/wi/",
+    "vietnamese": "chúng tôi, chúng ta",
+    "definition": "Used by a speaker to refer to themselves and others.",
+    "examples": ["We are going to the beach tomorrow.", "We need more time to finish."],
+    "rank": 27
+  },
+  "say": {
+    "pos": "verb",
+    "ipa": "/seɪ/",
+    "vietnamese": "nói",
+    "definition": "To utter words in order to express thoughts or information.",
+    "examples": ["What did she say?", "He said he would be late."],
+    "rank": 28
+  },
+  "her": {
+    "pos": "pronoun",
+    "ipa": "/hər/",
+    "vietnamese": "cô ấy, của cô ấy",
+    "definition": "Used as the object of a verb or to show possession for a female.",
+    "examples": ["I gave her the book.", "Her smile is beautiful."],
+    "rank": 29
+  },
+  "she": {
+    "pos": "pronoun",
+    "ipa": "/ʃi/",
+    "vietnamese": "cô ấy, chị ấy",
+    "definition": "Used to refer to a female person or animal.",
+    "examples": ["She is a talented musician.", "She lives near the school."],
+    "rank": 30
+  },
+  "or": {
+    "pos": "conjunction",
+    "ipa": "/ɔːr/",
+    "vietnamese": "hoặc",
+    "definition": "Used to link alternatives.",
+    "examples": ["Tea or coffee?", "You can call or text me."],
+    "rank": 31
+  },
+  "an": {
+    "pos": "article",
+    "ipa": "/æn/",
+    "vietnamese": "một",
+    "definition": "The form of a used before words beginning with a vowel sound.",
+    "examples": ["She ate an apple.", "He is an honest man."],
+    "rank": 32
+  },
+  "will": {
+    "pos": "verb",
+    "ipa": "/wɪl/",
+    "vietnamese": "sẽ",
+    "definition": "Used to express future tense or willingness.",
+    "examples": ["I will help you tomorrow.", "Will you join us for dinner?"],
+    "rank": 33
+  },
+  "my": {
+    "pos": "pronoun",
+    "ipa": "/maɪ/",
+    "vietnamese": "của tôi",
+    "definition": "Belonging to or associated with the speaker.",
+    "examples": ["My parents live in the countryside.", "This is my first time here."],
+    "rank": 34
+  },
+  "one": {
+    "pos": "number",
+    "ipa": "/wʌn/",
+    "vietnamese": "một",
+    "definition": "The number 1; a single person or thing.",
+    "examples": ["I have one sister.", "One of the windows is broken."],
+    "rank": 35
+  },
+  "all": {
+    "pos": "pronoun",
+    "ipa": "/ɔːl/",
+    "vietnamese": "tất cả",
+    "definition": "The whole quantity or extent of something.",
+    "examples": ["All students must wear uniforms.", "She ate all the cookies."],
+    "rank": 36
+  },
+  "would": {
+    "pos": "verb",
+    "ipa": "/wʊd/",
+    "vietnamese": "sẽ (giả định)",
+    "definition": "Used to express conditional mood or polite requests.",
+    "examples": ["I would like a glass of water.", "What would you do in that situation?"],
+    "rank": 37
+  },
+  "there": {
+    "pos": "adverb",
+    "ipa": "/ðeər/",
+    "vietnamese": "ở đó, ở đây",
+    "definition": "In, at, or to that place or position.",
+    "examples": ["There is a park near my house.", "Put the bags over there."],
+    "rank": 38
+  },
+  "their": {
+    "pos": "pronoun",
+    "ipa": "/ðeər/",
+    "vietnamese": "của họ",
+    "definition": "Belonging to or associated with people or things previously mentioned.",
+    "examples": ["Their house is very big.", "The children love their teacher."],
+    "rank": 39
+  },
+  "what": {
+    "pos": "pronoun",
+    "ipa": "/wʌt/",
+    "vietnamese": "cái gì, gì",
+    "definition": "Used to ask for information about something.",
+    "examples": ["What is your name?", "What time does the meeting start?"],
+    "rank": 40
+  },
+  "so": {
+    "pos": "adverb",
+    "ipa": "/soʊ/",
+    "vietnamese": "vậy, rất",
+    "definition": "To such a great extent; therefore.",
+    "examples": ["She was so tired that she fell asleep.", "I was hungry, so I ate a sandwich."],
+    "rank": 41
+  },
+  "up": {
+    "pos": "adverb",
+    "ipa": "/ʌp/",
+    "vietnamese": "lên",
+    "definition": "Toward a higher place or position.",
+    "examples": ["Look up at the stars.", "She climbed up the hill."],
+    "rank": 42
+  },
+  "out": {
+    "pos": "adverb",
+    "ipa": "/aʊt/",
+    "vietnamese": "ra, ngoài",
+    "definition": "Away from the inside or center.",
+    "examples": ["He went out for a walk.", "Take the trash out, please."],
+    "rank": 43
+  },
+  "if": {
+    "pos": "conjunction",
+    "ipa": "/ɪf/",
+    "vietnamese": "nếu",
+    "definition": "On the condition that; supposing that.",
+    "examples": ["If it rains, we will stay home.", "Call me if you need help."],
+    "rank": 44
+  },
+  "about": {
+    "pos": "preposition",
+    "ipa": "/əˈbaʊt/",
+    "vietnamese": "về, khoảng",
+    "definition": "On the subject of; approximately.",
+    "examples": ["We talked about our plans.", "It costs about ten dollars."],
+    "rank": 45
+  },
+  "who": {
+    "pos": "pronoun",
+    "ipa": "/hu/",
+    "vietnamese": "ai",
+    "definition": "Used to ask or talk about which person.",
+    "examples": ["Who is that man?", "I wonder who called me."],
+    "rank": 46
+  },
+  "get": {
+    "pos": "verb",
+    "ipa": "/ɡet/",
+    "vietnamese": "nhận, lấy, được",
+    "definition": "To obtain, receive, or become something.",
+    "examples": ["I need to get some milk.", "She got a new job last month."],
+    "rank": 47
+  },
+  "which": {
+    "pos": "pronoun",
+    "ipa": "/wɪtʃ/",
+    "vietnamese": "cái nào",
+    "definition": "Used to ask or talk about one or more possibilities.",
+    "examples": ["Which color do you prefer?", "This is the book which I recommended."],
+    "rank": 48
+  },
+  "go": {
+    "pos": "verb",
+    "ipa": "/ɡoʊ/",
+    "vietnamese": "đi",
+    "definition": "To move or travel from one place to another.",
+    "examples": ["Let's go to the park.", "She goes to work by bus."],
+    "rank": 49
+  },
+  "me": {
+    "pos": "pronoun",
+    "ipa": "/mi/",
+    "vietnamese": "tôi (làm đối tượng)",
+    "definition": "Used as the object when the speaker is involved.",
+    "examples": ["Can you hear me?", "She gave me a beautiful gift."],
+    "rank": 50
+  },
+  "when": {
+    "pos": "conjunction",
+    "ipa": "/wen/",
+    "vietnamese": "khi",
+    "definition": "At the time that something happens.",
+    "examples": ["When I arrived, everyone was waiting.", "Call me when you are ready."],
+    "rank": 51
+  },
+  "make": {
+    "pos": "verb",
+    "ipa": "/meɪk/",
+    "vietnamese": "làm, tạo ra",
+    "definition": "To create, produce, or cause something to happen.",
+    "examples": ["She makes delicious cakes.", "This news made me happy."],
+    "rank": 52
+  },
+  "can": {
+    "pos": "verb",
+    "ipa": "/kæn/",
+    "vietnamese": "có thể",
+    "definition": "To be able to; to have permission to.",
+    "examples": ["I can speak three languages.", "Can you open the window?"],
+    "rank": 53
+  },
+  "like": {
+    "pos": "verb",
+    "ipa": "/laɪk/",
+    "vietnamese": " thích, giống như",
+    "definition": "To enjoy or find pleasant; similar to.",
+    "examples": ["I like reading novels.", "She looks like her mother."],
+    "rank": 54
+  },
+  "time": {
+    "pos": "noun",
+    "ipa": "/taɪm/",
+    "vietnamese": "thời gian",
+    "definition": "The continuous passage of existence; a particular moment.",
+    "examples": ["We don't have much time left.", "What time is the meeting?"],
+    "rank": 55
+  },
+  "no": {
+    "pos": "adverb",
+    "ipa": "/noʊ/",
+    "vietnamese": "không",
+    "definition": "Used to give a negative response.",
+    "examples": ["No, I don't agree.", "There is no milk in the fridge."],
+    "rank": 56
+  },
+  "just": {
+    "pos": "adverb",
+    "ipa": "/dʒʌst/",
+    "vietnamese": "chỉ, vừa",
+    "definition": "Only; exactly; very recently.",
+    "examples": ["I just finished my homework.", "That's just what I needed."],
+    "rank": 57
+  },
+  "him": {
+    "pos": "pronoun",
+    "ipa": "/hɪm/",
+    "vietnamese": "anh ấy (đối tượng)",
+    "definition": "Used as the object form of he.",
+    "examples": ["I saw him at the library.", "Give him the message, please."],
+    "rank": 58
+  },
+  "know": {
+    "pos": "verb",
+    "ipa": "/noʊ/",
+    "vietnamese": "biết",
+    "definition": "To have information or understanding about something.",
+    "examples": ["I know the answer.", "Do you know where she lives?"],
+    "rank": 59
+  },
+  "take": {
+    "pos": "verb",
+    "ipa": "/teɪk/",
+    "vietnamese": "lấy, mang",
+    "definition": "To get hold of something; to carry or accept.",
+    "examples": ["Take a seat, please.", "It takes about an hour to get there."],
+    "rank": 60
+  },
+  "people": {
+    "pos": "noun",
+    "ipa": "/ˈpiːpəl/",
+    "vietnamese": "người, mọi người",
+    "definition": "Human beings in general or a group of persons.",
+    "examples": ["Many people attended the festival.", "People from many countries live here."],
+    "rank": 61
+  },
+  "into": {
+    "pos": "preposition",
+    "ipa": "/ˈɪntu/",
+    "vietnamese": "vào trong",
+    "definition": "Moving to the inside of something.",
+    "examples": ["She walked into the room.", "Pour the water into the glass."],
+    "rank": 62
+  },
+  "year": {
+    "pos": "noun",
+    "ipa": "/jɪr/",
+    "vietnamese": "năm",
+    "definition": "A period of twelve months.",
+    "examples": ["This year has been very busy.", "She traveled abroad last year."],
+    "rank": 63
+  },
+  "your": {
+    "pos": "pronoun",
+    "ipa": "/jʊr/",
+    "vietnamese": "của bạn",
+    "definition": "Belonging to the person being addressed.",
+    "examples": ["Is this your bag?", "Your idea sounds great."],
+    "rank": 64
+  },
+  "good": {
+    "pos": "adjective",
+    "ipa": "/ɡʊd/",
+    "vietnamese": "tốt",
+    "definition": "Of high quality or morally right.",
+    "examples": ["She is a good student.", "This restaurant has good food."],
+    "rank": 65
+  },
+  "some": {
+    "pos": "pronoun",
+    "ipa": "/sʌm/",
+    "vietnamese": "một vài, một số",
+    "definition": "An unspecified amount or number.",
+    "examples": ["Some people prefer tea over coffee.", "Can I have some water?"],
+    "rank": 66
+  },
+  "could": {
+    "pos": "verb",
+    "ipa": "/kʊd/",
+    "vietnamese": "có thể (quá khứ/giả định)",
+    "definition": "Used to indicate possibility or polite request.",
+    "examples": ["Could you help me, please?", "I could hear birds singing."],
+    "rank": 67
+  },
+  "them": {
+    "pos": "pronoun",
+    "ipa": "/ðem/",
+    "vietnamese": "họ (đối tượng)",
+    "definition": "Used as the object form of they.",
+    "examples": ["I invited them to the party.", "Give them some time to think."],
+    "rank": 68
+  },
+  "see": {
+    "pos": "verb",
+    "ipa": "/si/",
+    "vietnamese": "nhìn, thấy",
+    "definition": "To perceive with the eyes; to understand.",
+    "examples": ["I can see the mountains from here.", "See you tomorrow!"],
+    "rank": 69
+  },
+  "other": {
+    "pos": "adjective",
+    "ipa": "/ˈʌðər/",
+    "vietnamese": "khác",
+    "definition": "Different from the one already mentioned.",
+    "examples": ["One hand washes the other.", "Do you have any other questions?"],
+    "rank": 70
+  },
+  "than": {
+    "pos": "conjunction",
+    "ipa": "/ðæn/",
+    "vietnamese": "hơn",
+    "definition": "Used in comparisons.",
+    "examples": ["She is taller than her brother.", "It's better than I expected."],
+    "rank": 71
+  },
+  "then": {
+    "pos": "adverb",
+    "ipa": "/ðen/",
+    "vietnamese": "sau đó, thì",
+    "definition": "At that time; next in order.",
+    "examples": ["We had dinner, then watched a movie.", "If you're ready, then let's start."],
+    "rank": 72
+  },
+  "now": {
+    "pos": "adverb",
+    "ipa": "/naʊ/",
+    "vietnamese": "bây giờ",
+    "definition": "At the present time.",
+    "examples": ["I am busy now.", "Now is the time to act."],
+    "rank": 73
+  },
+  "look": {
+    "pos": "verb",
+    "ipa": "/lʊk/",
+    "vietnamese": "nhìn, trông",
+    "definition": "To direct your eyes toward something; to appear.",
+    "examples": ["Look at that beautiful sunset.", "You look tired today."],
+    "rank": 74
+  },
+  "only": {
+    "pos": "adverb",
+    "ipa": "/ˈoʊnli/",
+    "vietnamese": "chỉ",
+    "definition": "No more than; solely.",
+    "examples": ["I only have five minutes.", "She is the only child in her family."],
+    "rank": 75
+  },
+  "come": {
+    "pos": "verb",
+    "ipa": "/kʌm/",
+    "vietnamese": "đến",
+    "definition": "To move toward or arrive at a place.",
+    "examples": ["Come here, please.", "Spring comes after winter."],
+    "rank": 76
+  },
+  "its": {
+    "pos": "pronoun",
+    "ipa": "/ɪts/",
+    "vietnamese": "của nó",
+    "definition": "Belonging to or associated with a thing or animal.",
+    "examples": ["The dog wagged its tail.", "The company changed its policy."],
+    "rank": 77
+  },
+  "over": {
+    "pos": "preposition",
+    "ipa": "/ˈoʊvər/",
+    "vietnamese": "qua, trên",
+    "definition": "Above or across something; more than.",
+    "examples": ["The plane flew over the city.", "She is over twenty years old."],
+    "rank": 78
+  },
+  "think": {
+    "pos": "verb",
+    "ipa": "/θɪŋk/",
+    "vietnamese": "nghĩ",
+    "definition": "To use the mind to form ideas or opinions.",
+    "examples": ["I think this plan will work.", "Think carefully before you answer."],
+    "rank": 79
+  },
+  "also": {
+    "pos": "adverb",
+    "ipa": "/ˈɔːlsoʊ/",
+    "vietnamese": "cũng",
+    "definition": "In addition; as well.",
+    "examples": ["She speaks French and also German.", "I also want to join the trip."],
+    "rank": 80
+  },
+  "back": {
+    "pos": "adverb",
+    "ipa": "/bæk/",
+    "vietnamese": "lại, trở lại",
+    "definition": "To or toward the rear; returning to a previous state.",
+    "examples": ["She came back home late.", "Give me my book back."],
+    "rank": 81
+  },
+  "after": {
+    "pos": "preposition",
+    "ipa": "/ˈæftər/",
+    "vietnamese": "sau",
+    "definition": "Following in time or place.",
+    "examples": ["We went for a walk after dinner.", "Call me after the meeting."],
+    "rank": 82
+  },
+  "use": {
+    "pos": "verb",
+    "ipa": "/juːz/",
+    "vietnamese": "sử dụng",
+    "definition": "To employ something for a purpose.",
+    "examples": ["I use my laptop for work.", "Can I use your phone?"],
+    "rank": 83
+  },
+  "two": {
+    "pos": "number",
+    "ipa": "/tu/",
+    "vietnamese": "hai",
+    "definition": "The number 2.",
+    "examples": ["I have two cats.", "They waited for two hours."],
+    "rank": 84
+  },
+  "how": {
+    "pos": "adverb",
+    "ipa": "/haʊ/",
+    "vietnamese": "như thế nào",
+    "definition": "In what way or manner.",
+    "examples": ["How do you spell your name?", "How was your trip?"],
+    "rank": 85
+  },
+  "our": {
+    "pos": "pronoun",
+    "ipa": "/ˈaʊər/",
+    "vietnamese": "của chúng tôi/ta",
+    "definition": "Belonging to the speaker and others.",
+    "examples": ["Our team won the match.", "This is our new office."],
+    "rank": 86
+  },
+  "work": {
+    "pos": "verb",
+    "ipa": "/wɜːrk/",
+    "vietnamese": "làm việc",
+    "definition": "To do a job or task; to function properly.",
+    "examples": ["She works at a hospital.", "My computer doesn't work today."],
+    "rank": 87
+  },
+  "first": {
+    "pos": "adjective",
+    "ipa": "/fɜːrst/",
+    "vietnamese": "đầu tiên",
+    "definition": "Coming before all others in time or order.",
+    "examples": ["This is my first visit to Japan.", "She won first prize."],
+    "rank": 88
+  },
+  "well": {
+    "pos": "adverb",
+    "ipa": "/wel/",
+    "vietnamese": "tốt, khỏe",
+    "definition": "In a good way; in good health.",
+    "examples": ["She speaks English very well.", "I hope you feel well soon."],
+    "rank": 89
+  },
+  "way": {
+    "pos": "noun",
+    "ipa": "/weɪ/",
+    "vietnamese": "cách, đường",
+    "definition": "A method, manner, or path.",
+    "examples": ["This is the best way to learn.", "Is this the way to the station?"],
+    "rank": 90
+  },
+  "even": {
+    "pos": "adverb",
+    "ipa": "/ˈiːvən/",
+    "vietnamese": "ngay cả, thậm chí",
+    "definition": "Used to emphasize something surprising or extreme.",
+    "examples": ["Even children can use this app.", "He didn't even say goodbye."],
+    "rank": 91
+  },
+  "new": {
+    "pos": "adjective",
+    "ipa": "/nu/",
+    "vietnamese": "mới",
+    "definition": "Not existing before; recently made or discovered.",
+    "examples": ["She bought a new car.", "We moved to a new apartment."],
+    "rank": 92
+  },
+  "want": {
+    "pos": "verb",
+    "ipa": "/wɒnt/",
+    "vietnamese": "muốn",
+    "definition": "To desire or wish for something.",
+    "examples": ["I want to learn Spanish.", "Do you want some tea?"],
+    "rank": 93
+  },
+  "because": {
+    "pos": "conjunction",
+    "ipa": "/bɪˈkɒz/",
+    "vietnamese": "bởi vì",
+    "definition": "For the reason that.",
+    "examples": ["I stayed home because I was sick.", "Because it was late, we left early."],
+    "rank": 94
+  },
+  "any": {
+    "pos": "pronoun",
+    "ipa": "/ˈeni/",
+    "vietnamese": "bất kỳ",
+    "definition": "One or some of a thing, no matter which.",
+    "examples": ["Do you have any questions?", "You can choose any color."],
+    "rank": 95
+  },
+  "these": {
+    "pos": "pronoun",
+    "ipa": "/ðiːz/",
+    "vietnamese": "những cái này",
+    "definition": "Used to refer to things near the speaker.",
+    "examples": ["These shoes are too small.", "These are my favorite photos."],
+    "rank": 96
+  },
+  "give": {
+    "pos": "verb",
+    "ipa": "/ɡɪv/",
+    "vietnamese": "cho, tặng",
+    "definition": "To hand over or provide something to someone.",
+    "examples": ["Please give me your address.", "She gave him a warm smile."],
+    "rank": 97
+  },
+  "day": {
+    "pos": "noun",
+    "ipa": "/deɪ/",
+    "vietnamese": "ngày",
+    "definition": "A period of twenty-four hours.",
+    "examples": ["Have a nice day!", "We spent the whole day at the beach."],
+    "rank": 98
+  },
+  "most": {
+    "pos": "adverb",
+    "ipa": "/moʊst/",
+    "vietnamese": "hầu hết, nhất",
+    "definition": "The greatest amount or to the greatest degree.",
+    "examples": ["Most people enjoy music.", "She is the most talented singer here."],
+    "rank": 99
+  },
+  "us": {
+    "pos": "pronoun",
+    "ipa": "/ʌs/",
+    "vietnamese": "chúng tôi (đối tượng)",
+    "definition": "Used as the object form of we.",
+    "examples": ["They invited us to dinner.", "Can you help us with this project?"],
+    "rank": 100
+  },
+  "forest": {
+    "pos": "noun",
+    "ipa": "/ˈfɒrɪst/",
+    "vietnamese": "khu rừng",
+    "definition": "A large area covered chiefly with trees and undergrowth.",
+    "examples": ["We walked through the forest for hours.", "Many animals live in the forest."],
+    "rank": 388
+  },
+  "happy": {
+    "pos": "adjective",
+    "ipa": "/ˈhæpi/",
+    "vietnamese": "vui vẻ, hạnh phúc",
+    "definition": "Feeling or showing pleasure and contentment.",
+    "examples": ["She was happy to see her friends.", "Happy birthday!"],
+    "rank": 512
+  },
+  "learn": {
+    "pos": "verb",
+    "ipa": "/lɜːrn/",
+    "vietnamese": "học",
+    "definition": "To gain knowledge or skill through study or experience.",
+    "examples": ["Children learn quickly.", "I want to learn how to cook."],
+    "rank": 148
+  },
+  "school": {
+    "pos": "noun",
+    "ipa": "/skuːl/",
+    "vietnamese": "trường học",
+    "definition": "A place where children go to be educated.",
+    "examples": ["She walks to school every day.", "Our school has a large library."],
+    "rank": 148
+  },
+  "water": {
+    "pos": "noun",
+    "ipa": "/ˈwɔːtər/",
+    "vietnamese": "nước",
+    "definition": "A clear liquid essential for life.",
+    "examples": ["Please drink more water.", "The water in the lake is clean."],
+    "rank": 200
+  },
+  "friend": {
+    "pos": "noun",
+    "ipa": "/frend/",
+    "vietnamese": "bạn bè",
+    "definition": "A person you know well and like.",
+    "examples": ["She is my best friend.", "We met an old friend at the café."],
+    "rank": 258
+  },
+  "house": {
+    "pos": "noun",
+    "ipa": "/haʊs/",
+    "vietnamese": "nhà",
+    "definition": "A building where people live.",
+    "examples": ["They bought a new house.", "Welcome to my house."],
+    "rank": 146
+  },
+  "world": {
+    "pos": "noun",
+    "ipa": "/wɜːrld/",
+    "vietnamese": "thế giới",
+    "definition": "The earth and all the people and things on it.",
+    "examples": ["Travel helps you see the world.", "The whole world watched the event."],
+    "rank": 139
+  }
+}

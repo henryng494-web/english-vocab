@@ -1,0 +1,17 @@
+{
+  "name": "english-vocab",
+  "install": "npm install",
+  "terminals": [
+    {
+      "name": "Next.js dev server",
+      "command": "npm run dev",
+      "description": "Runs the Next.js app at http://localhost:3000 for UI and API testing."
+    }
+  ],
+  "ports": [
+    {
+      "name": "web",
+      "port": 3000
+    }
+  ]
+}
