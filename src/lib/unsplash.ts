@@ -132,6 +132,8 @@ export function resolveWordImageUrl(
   _searchKeyword?: string | null,
   _pos?: string | null,
 ): string {
+  void _searchKeyword;
+  void _pos;
   const trimmed = imageUrl?.trim();
   if (
     trimmed &&
