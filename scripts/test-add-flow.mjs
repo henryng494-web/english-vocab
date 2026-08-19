@@ -16,7 +16,7 @@ const headers = {
 const word = "resilient" + Date.now();
 
 const genAI = new GoogleGenerativeAI(geminiKey);
-const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+const model = genAI.getGenerativeModel({ model: process.env.GEMINI_MODEL ?? "gemini-3.6-flash" });
 const prompt = `For "${word}", respond ONLY JSON: {"englishDefinition":"...","vietnameseMeaning":"...","examples":"...","phonetic":"...","wordType":"...","collocations":null}`;
 const result = await model.generateContent(prompt);
 const parsed = JSON.parse(result.response.text().match(/\{[\s\S]*\}/)[0]);
