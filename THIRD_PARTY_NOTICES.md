@@ -18,9 +18,13 @@ their listed inflected/variant forms) under that license.
 
 ## SUBTLEX-US spoken-word frequencies
 
-`src/data/spoken-frequency-ranks.ts` contains frequency-rank facts derived
-from [`subtlex-word-frequencies`](https://github.com/words/subtlex-word-frequencies)
-version 2.0.0 (ISC license). That package republishes data from SUBTLEX-US:
+This app depends on [`subtlex-word-frequencies`](https://github.com/words/subtlex-word-frequencies)
+version 2.0.0 (ISC license) at runtime, in `src/lib/full-word-frequency.ts`,
+to give any word a real frequency rank (used as a fallback for words typed
+into "Add word" that aren't part of the curated preset vocabulary or the
+NGSL). `src/data/spoken-frequency-ranks.ts` contains a pre-computed subset of
+the same data for the app's discover inventory. That package republishes data
+from SUBTLEX-US:
 
 > Brysbaert, M., & New, B. (2009). Moving beyond Kučera and Francis: A
 > critical evaluation of current word frequency norms and the introduction of
@@ -28,4 +32,4 @@ version 2.0.0 (ISC license). That package republishes data from SUBTLEX-US:
 > Research Methods, 41*(4), 977–990.
 
 The rank map includes the full learnable-word SUBTLEX-US frequency table
-(74,260 words). Regenerate with \`npm run generate:subtlex\`; do not hand-edit.
+(74,260 words). Regenerate with `npm run generate:subtlex`; do not hand-edit.
