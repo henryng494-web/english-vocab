@@ -50,42 +50,42 @@ export function buildNaturalExamples(
   const byPos: Record<string, VocabExample[]> = {
     noun: [
       {
-        en: `There is a ${w} in my pocket.`,
-        vi: `Có một ${viWord} trong túi quần của tôi.`,
+        en: `I saw a ${w} on the table.`,
+        vi: `Tôi thấy một ${viWord} trên bàn.`,
       },
       {
-        en: `I found a ${w} in the garden.`,
-        vi: `Tôi tìm thấy một ${viWord} trong vườn.`,
+        en: `The ${w} is in the kitchen.`,
+        vi: `${capitalizeFirst(viWord)} ở trong bếp.`,
       },
     ],
     verb: [
       {
-        en: `Please ${w} the door for me.`,
-        vi: `Làm ơn ${viWord} cửa giúp tôi.`,
+        en: `She ${w} the door every morning.`,
+        vi: `Cô ấy ${viWord} cửa mỗi sáng.`,
       },
       {
-        en: `They ${w} after dinner.`,
-        vi: `Họ ${viWord} sau bữa tối.`,
+        en: `He ${w} it before he leaves.`,
+        vi: `Anh ấy ${viWord} nó trước khi đi.`,
       },
     ],
     adjective: [
       {
-        en: `The sky looks ${w} today.`,
-        vi: `Bầu trời hôm nay trông ${viWord}.`,
+        en: `The room looks ${w} in this light.`,
+        vi: `Căn phòng trông ${viWord} trong ánh sáng này.`,
       },
       {
-        en: `She wore a ${w} dress.`,
-        vi: `Cô ấy mặc một chiếc váy ${viWord}.`,
+        en: `It feels ${w} outside today.`,
+        vi: `Hôm nay ngoài trời cảm thấy ${viWord}.`,
       },
     ],
     adverb: [
       {
-        en: `Please speak ${w} to them.`,
-        vi: `Hãy nói ${viWord} với họ.`,
+        en: `She spoke ${w} to the whole class.`,
+        vi: `Cô ấy nói ${viWord} với cả lớp.`,
       },
       {
-        en: `He walked ${w} down the street.`,
-        vi: `Anh ấy đi ${viWord} trên phố.`,
+        en: `He finished the race ${w}.`,
+        vi: `Anh ấy chạy xong cuộc đua ${viWord}.`,
       },
     ],
     number: [
@@ -163,12 +163,12 @@ export function buildNaturalExamples(
   return (
     byPos[type] ?? [
       {
-        en: `There is a ${w} near the door.`,
-        vi: `Có một ${viWord} gần cửa.`,
+        en: `I noticed the ${w} on my walk.`,
+        vi: `Tôi để ý ${viWord} khi đi bộ.`,
       },
       {
-        en: `She talked about the ${w}.`,
-        vi: `Cô ấy nói về ${viWord}.`,
+        en: `We talked about the ${w} at lunch.`,
+        vi: `Chúng tôi nói về ${viWord} trong bữa trưa.`,
       },
     ]
   );

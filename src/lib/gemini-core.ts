@@ -4,6 +4,7 @@ import { getPresetRank } from "@/data/preset-word-details";
 import { buildDefinitionFromVietnameseMeaning } from "@/lib/translate-vi";
 import { normalizeWordType } from "@/lib/word-type";
 import { getImportanceTier } from "@/lib/word-rank";
+import { formatIpa, isPlaceholderPhonetic } from "@/lib/phonetic";
 import { keepNaturalExamples } from "@/lib/example-fallback";
 import type { VocabExample } from "@/lib/parse-examples";
 
@@ -78,6 +79,7 @@ Rules:
 - Vietnamese translations must be natural (not word-by-word).
 - NEVER write meta lines like "I learned the word...", "Please use ... in a sentence", "This is a sentence with...".
 - pos: noun|verb|adjective|adverb|pronoun|preposition|conjunction|article|number|interjection|determiner
+- phonetic: American English IPA in slashes (e.g. spent → /spɛnt/, opens → /ˈoʊpənz/) — NEVER repeat the spelling like /spent/
 - searchKeyword: 2–4 English words for a CLEAR stock photo a beginner instantly links to the primary meaning. Use a visible object, person doing an action, or everyday scene — NOT the vocabulary word alone when it is abstract.
   Examples: hole → "hole in ground", organic → "organic vegetables garden", run → "person running", happy → "smiling person", think → "person thinking".
 
@@ -136,8 +138,9 @@ function parseGeminiResponse(text: string, word: string): WordEnrichment {
   const frequencyRank = clampFrequencyRank(
     getPresetRank(word) || Number(parsed.rank) || 5000,
   );
-  const phonetic =
+  const phoneticRaw =
     parsed.phonetic?.trim() || parsed.ipa?.trim() || `/${word}/`;
+  const phonetic = formatIpa(phoneticRaw, word);
   const searchKeyword =
     parsed.searchKeyword?.trim().toLowerCase() || word;
 
@@ -145,9 +148,7 @@ function parseGeminiResponse(text: string, word: string): WordEnrichment {
     englishDefinition: capitalizeFirst(definition),
     vietnameseMeaning: capitalizeFirst(meaningRaw),
     examples,
-    phonetic: phonetic.startsWith("/") || phonetic.startsWith("[")
-      ? phonetic
-      : `/${phonetic}/`,
+    phonetic,
     wordType,
     collocations: null,
     searchKeyword,
@@ -268,6 +269,32 @@ ONLY JSON:
     return examples.slice(0, 2);
   } catch (error) {
     console.warn(`Gemini examples failed for "${word}":`, error);
+    return null;
+  }
+}
+
+/** Gemini — IPA only when full enrich omits or echoes the spelling. */
+export async function generatePhoneticWithGemini(
+  word: string,
+): Promise<string | null> {
+  if (!process.env.GEMINI_API_KEY?.trim()) return null;
+
+  const genAI = getGeminiClient();
+  const prompt = `English word: "${word}".
+
+Reply with ONLY the American English IPA pronunciation in slashes.
+Example: spent → /spɛnt/, opens → /ˈoʊpənz/
+Do NOT repeat the spelling (wrong: /spent/). No other text.`;
+
+  const modelName = FALLBACK_MODELS[0];
+  try {
+    const model = genAI.getGenerativeModel({ model: modelName });
+    const result = await model.generateContent(prompt);
+    const text = result.response.text().trim().replace(/^["']|["']$/g, "");
+    if (!text || isPlaceholderPhonetic(word, text)) return null;
+    return formatIpa(text, word);
+  } catch (error) {
+    console.warn(`Gemini phonetic failed for "${word}":`, error);
     return null;
   }
 }

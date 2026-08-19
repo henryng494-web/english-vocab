@@ -1,5 +1,6 @@
 import type { WordDetail } from "@/types/database";
 import { hasQualityExamples } from "@/lib/example-quality";
+import { isPlaceholderPhonetic } from "@/lib/phonetic";
 import { parseExamples } from "@/lib/parse-examples";
 import {
   isOutdatedSemanticImageUrl,
@@ -14,7 +15,7 @@ export function isPersistedWordDetailComplete(
 ): boolean {
   if (!detail) return false;
   if (detail.word.toLowerCase() !== word.toLowerCase()) return false;
-  if (!detail.phonetic?.trim() || detail.phonetic.trim() === `/${word}/`) {
+  if (isPlaceholderPhonetic(word, detail.phonetic)) {
     return false;
   }
   if (!detail.vietnamese_meaning?.trim()) return false;

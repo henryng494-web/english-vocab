@@ -6,8 +6,9 @@ import {
   hasQualityExamples,
   keepNaturalExamples,
 } from "@/lib/example-fallback";
-import { generateExamplesWithGemini, enrichWithGemini, type WordEnrichment } from "@/lib/gemini-core";
+import { generateExamplesWithGemini, enrichWithGemini, generatePhoneticWithGemini, type WordEnrichment } from "@/lib/gemini-core";
 import { getStaticVietnamese } from "@/lib/static-vietnamese";
+import { formatIpa, isPlaceholderPhonetic } from "@/lib/phonetic";
 import {
   buildDefinitionFromVietnameseMeaning,
   isMissingDefinition,
@@ -36,15 +37,16 @@ function normalizeTier(rank: number): WordEnrichment["importanceTier"] {
   return getImportanceTier(rank) as WordEnrichment["importanceTier"];
 }
 
-function formatIpa(ipa: string, word: string): string {
-  const trimmed = ipa.trim();
-  if (!trimmed) return `/${word}/`;
-  if (trimmed.startsWith("/") || trimmed.startsWith("[")) return trimmed;
-  return `/${trimmed}/`;
-}
-
 function displayWordType(word: string, pos: string | null | undefined): string {
   return normalizeWordType(pos, word) ?? "unknown";
+}
+
+async function finalizePhonetic(word: string, phonetic?: string | null): Promise<string> {
+  const formatted = formatIpa(phonetic ?? "", word);
+  if (!isPlaceholderPhonetic(word, formatted)) return formatted;
+  const fromGemini = await generatePhoneticWithGemini(word);
+  if (fromGemini && !isPlaceholderPhonetic(word, fromGemini)) return fromGemini;
+  return formatted;
 }
 
 function simpleKeyword(word: string): string {
@@ -117,7 +119,7 @@ async function standardToEnrichment(
     englishDefinition: entry.definition,
     vietnameseMeaning: entry.meaning,
     examples,
-    phonetic: formatIpa(entry.phonetic, word),
+    phonetic: await finalizePhonetic(word, entry.phonetic),
     wordType,
     collocations: null,
     searchKeyword: entry.searchKeyword || simpleKeyword(word),
@@ -239,6 +241,10 @@ export async function enrichWord(
         geminiResult.wordType,
         geminiResult.vietnameseMeaning,
         true,
+      );
+      geminiResult.phonetic = await finalizePhonetic(
+        normalized,
+        geminiResult.phonetic,
       );
       return geminiResult;
     } catch (error) {
