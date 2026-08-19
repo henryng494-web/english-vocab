@@ -7,10 +7,15 @@ import { getImportanceTier } from "@/lib/word-rank";
 import { keepNaturalExamples } from "@/lib/example-fallback";
 import type { VocabExample } from "@/lib/parse-examples";
 
+/**
+ * "-latest" lite alias has the most generous free-tier quota; heavier/preview
+ * models (e.g. gemini-3.6-flash) cap out at ~20 requests/day and exhaust
+ * instantly once multiple calls run per word. Keep the fallback list short so
+ * a 429 on one model doesn't burn through several more requests per word.
+ */
 const FALLBACK_MODELS = [
-  process.env.GEMINI_MODEL ?? "gemini-3.6-flash",
-  "gemini-2.5-flash-lite",
-  "gemini-2.0-flash",
+  process.env.GEMINI_MODEL ?? "gemini-flash-lite-latest",
+  "gemini-3.1-flash-lite",
 ];
 
 export type WordEnrichment = {
