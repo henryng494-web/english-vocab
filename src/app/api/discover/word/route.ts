@@ -2,6 +2,7 @@ import { hasQualityStandardVocab } from "@/data/standard-vocab";
 import { createClient } from "@/lib/supabase/server";
 import { enrichmentToDiscoverWord } from "@/lib/enrichment-helpers";
 import { enrichWord } from "@/lib/enrich-word";
+import { appendFileSync } from "node:fs";
 import {
   fetchWordImageUrl,
   isStalePresetFallbackUrl,
@@ -23,6 +24,9 @@ async function resolveImageUrl(
   pos?: string | null,
 ): Promise<string> {
   const trimmed = existingUrl?.trim();
+  // #region agent log
+  appendFileSync("/opt/cursor/logs/debug.log", `${JSON.stringify({ hypothesisId: "A", location: "src/app/api/discover/word/route.ts:resolveImageUrl", message: "image resolution branch", data: { word, existingUrl: trimmed ?? null, reuseExisting: Boolean(trimmed?.startsWith("http") && !isStalePresetFallbackUrl(trimmed)), searchKeyword: searchKeyword ?? null, pos: pos ?? null }, timestamp: Date.now() })}\n`);
+  // #endregion
   if (trimmed?.startsWith("http") && !isStalePresetFallbackUrl(trimmed)) {
     return trimmed;
   }
@@ -38,10 +42,13 @@ async function persistImageUrlIfChanged(
 ): Promise<void> {
   if (previousUrl?.trim() === resolvedUrl) return;
   try {
-    await supabase
+    const { error } = await supabase
       .from("word_details")
       .update({ image_url: resolvedUrl })
       .eq("word", word);
+    // #region agent log
+    appendFileSync("/opt/cursor/logs/debug.log", `${JSON.stringify({ hypothesisId: "E", location: "src/app/api/discover/word/route.ts:persistImageUrlIfChanged", message: "image persistence result", data: { word, changed: true, succeeded: !error, errorCode: error?.code ?? null }, timestamp: Date.now() })}\n`);
+    // #endregion
   } catch (error) {
     console.warn(`Failed to persist refreshed image_url for "${word}":`, error);
   }
@@ -76,6 +83,9 @@ export async function GET(request: Request) {
       rank,
       skipGemini,
     });
+    // #region agent log
+    appendFileSync("/opt/cursor/logs/debug.log", `${JSON.stringify({ hypothesisId: "A,B,C", location: "src/app/api/discover/word/route.ts:GET", message: "database and enrichment image inputs", data: { word, hasDbDetail: Boolean(dbDetail), dbImageUrl: dbDetail?.image_url ?? null, searchKeyword: enrichment.searchKeyword, pos: enrichment.wordType }, timestamp: Date.now() })}\n`);
+    // #endregion
 
     const imageUrl = await resolveImageUrl(
       word,

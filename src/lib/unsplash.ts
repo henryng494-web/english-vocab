@@ -2,6 +2,7 @@ import {
   buildImageSearchQueries,
   resolveImageSearchKeyword,
 } from "@/lib/image-keyword";
+import { appendFileSync } from "node:fs";
 
 export type UnsplashPhoto = {
   id: string;
@@ -161,13 +162,21 @@ export async function fetchWordImageUrl(
   pos?: string | null,
 ): Promise<string> {
   const queries = buildImageSearchQueries(word, { searchKeyword, pos });
+  // #region agent log
+  appendFileSync("/opt/cursor/logs/debug.log", `${JSON.stringify({ hypothesisId: "B,D", location: "src/lib/unsplash.ts:fetchWordImageUrl", message: "generated image search queries", data: { word, searchKeyword: searchKeyword ?? null, pos: pos ?? null, queries, provider: process.env.UNSPLASH_ACCESS_KEY?.trim() ? "unsplash" : "loremflickr" }, timestamp: Date.now() })}\n`);
+  // #endregion
   if (queries.length === 0) return getLoremFlickrImageUrl("vocabulary");
 
   if (process.env.UNSPLASH_ACCESS_KEY?.trim()) {
     for (const keyword of queries) {
       try {
         const photos = await searchPhotos(keyword, 1);
-        if (photos[0]?.url) return photos[0].url;
+        if (photos[0]?.url) {
+          // #region agent log
+          appendFileSync("/opt/cursor/logs/debug.log", `${JSON.stringify({ hypothesisId: "D", location: "src/lib/unsplash.ts:fetchWordImageUrl:unsplash", message: "provider selected photo", data: { word, keyword, photoId: photos[0].id, alt: photos[0].alt, url: photos[0].url }, timestamp: Date.now() })}\n`);
+          // #endregion
+          return photos[0].url;
+        }
       } catch (error) {
         console.warn(`Unsplash API skipped for "${keyword}":`, error);
         break;
@@ -175,5 +184,8 @@ export async function fetchWordImageUrl(
     }
   }
 
+  // #region agent log
+  appendFileSync("/opt/cursor/logs/debug.log", `${JSON.stringify({ hypothesisId: "D", location: "src/lib/unsplash.ts:fetchWordImageUrl:fallback", message: "fallback image selected", data: { word, keyword: queries[0], url: getLoremFlickrImageUrl(queries[0]) }, timestamp: Date.now() })}\n`);
+  // #endregion
   return getLoremFlickrImageUrl(queries[0]);
 }
