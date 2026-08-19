@@ -47,7 +47,7 @@ const PRELOAD_AHEAD = 5;
 function listItemToDiscoverData(item: DiscoverListItem): DiscoverWordData {
   const base = stubFromListItem(item);
   const preview = item.preview;
-  if (!preview?.phonetic?.trim() || !preview.vietnamese_meaning?.trim()) {
+  if (!preview?.vietnamese_meaning?.trim()) {
     return base;
   }
   return {
@@ -189,9 +189,7 @@ export default function DiscoverPage() {
 
       const cleanStub = listItemToDiscoverData(item);
       setCurrentWord(cleanStub);
-      const hasTextPreview =
-        Boolean(cleanStub.phonetic?.trim()) &&
-        Boolean(cleanStub.vietnamese_meaning?.trim());
+      const hasTextPreview = Boolean(cleanStub.vietnamese_meaning?.trim());
       setLoadingWord(!hasTextPreview);
 
       const cached = wordCache.current.get(item.word);

@@ -8,7 +8,7 @@ import {
 import { requiresSafeImageOnly } from "@/lib/safe-image-search";
 
 /** Bump when ranking, image quality, or enrichment output shape changes. */
-export const DISCOVER_WORD_CACHE_VERSION = 24;
+export const DISCOVER_WORD_CACHE_VERSION = 25;
 
 const STORAGE_KEY = `discover-word-cache-v${DISCOVER_WORD_CACHE_VERSION}`;
 
@@ -33,6 +33,7 @@ const LEGACY_STORAGE_KEYS = [
   "discover-word-cache-v21",
   "discover-word-cache-v22",
   "discover-word-cache-v23",
+  "discover-word-cache-v24",
 ];
 
 const MAX_ENTRIES = 250;
@@ -41,9 +42,7 @@ export function isWordDetailComplete(
   data: DiscoverWordData | undefined,
   expectedWord?: string,
 ): boolean {
-  if (!data?.phonetic?.trim()) return false;
-  if (data.phonetic.trim() === `/${data.word}/`) return false;
-  if (!data.vietnamese_meaning?.trim()) return false;
+  if (!data?.vietnamese_meaning?.trim()) return false;
   if (!data.image_url?.trim()) return false;
   if (requiresSafeImageOnly(data.word) && data.image_url.trim().startsWith("http")) {
     return false;

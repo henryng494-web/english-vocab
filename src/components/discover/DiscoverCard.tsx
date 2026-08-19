@@ -6,6 +6,7 @@ import { WordCardHeader } from "@/components/flashcard/WordCardHeader";
 import { VocabExampleList } from "@/components/flashcard/VocabExampleList";
 import { capitalizeFirst } from "@/lib/format-text";
 import { parseExamples } from "@/lib/parse-examples";
+import { displayPhonetic } from "@/lib/phonetic";
 import {
   getDefaultLearningImageDataUrl,
   resolveWordImageUrl,
@@ -83,8 +84,9 @@ function DetailSkeleton() {
 }
 
 export function DiscoverCard({ data, loading }: DiscoverCardProps) {
-  const detailsLoading = loading && !data.phonetic?.trim();
+  const detailsLoading = loading && !data.vietnamese_meaning?.trim();
   const examples = detailsLoading ? [] : parseExamples(data.examples);
+  const phonetic = displayPhonetic(data.word, data.phonetic);
 
   return (
     <div className="mx-auto w-full max-w-md overflow-hidden rounded-2xl border-2 border-primary-200 bg-white shadow-lg">
@@ -98,9 +100,9 @@ export function DiscoverCard({ data, loading }: DiscoverCardProps) {
       <div className="space-y-4 p-6">
         <WordCardHeader
           word={data.word}
-          phonetic={data.phonetic}
+          phonetic={phonetic}
           wordType={data.word_type}
-          loadingPhonetic={detailsLoading}
+          loadingPhonetic={detailsLoading && !phonetic}
         />
 
         {detailsLoading ? (

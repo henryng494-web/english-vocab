@@ -9,6 +9,8 @@ import {
 } from "@/lib/example-fallback";
 import { hasQualityExamples } from "@/lib/example-quality";
 import { isPersistedWordDetailComplete } from "@/lib/persisted-word-detail";
+import { generatePhoneticWithGemini } from "@/lib/gemini-core";
+import { isPlaceholderPhonetic, formatIpa } from "@/lib/phonetic";
 import { parseExamples, serializeExamples } from "@/lib/parse-examples";
 import { getImportanceTier } from "@/lib/word-rank";
 import {
@@ -102,6 +104,36 @@ async function repairExamplesIfNeeded(
   return serializeExamples(finalExamples);
 }
 
+async function repairPhoneticIfNeeded(
+  word: string,
+  phonetic?: string | null,
+): Promise<string> {
+  const formatted = formatIpa(phonetic ?? "", word);
+  if (!isPlaceholderPhonetic(word, formatted)) return formatted;
+  const fromGemini = await generatePhoneticWithGemini(word);
+  if (fromGemini && !isPlaceholderPhonetic(word, fromGemini)) return fromGemini;
+  return formatted;
+}
+
+async function repairPersistedPhoneticIfNeeded(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  word: string,
+  detail: WordDetail,
+): Promise<string> {
+  const repaired = await repairPhoneticIfNeeded(word, detail.phonetic);
+  if (repaired !== detail.phonetic) {
+    try {
+      await supabase
+        .from("word_details")
+        .update({ phonetic: repaired })
+        .eq("word", word);
+    } catch (error) {
+      console.warn(`Failed to persist repaired phonetic for "${word}":`, error);
+    }
+  }
+  return repaired;
+}
+
 async function repairPersistedExamplesIfNeeded(
   supabase: Awaited<ReturnType<typeof createClient>>,
   word: string,
@@ -190,30 +222,40 @@ export async function GET(request: Request) {
 
     const frequencyRank = rank ?? getPresetRank(word) ?? 5000;
 
-    if (isPersistedWordDetailComplete(dbDetail, word)) {
+    let repairedDbDetail = dbDetail ?? null;
+    if (dbDetail) {
       const examples = await repairPersistedExamplesIfNeeded(
         supabase,
         word,
-        dbDetail!,
+        dbDetail,
       );
+      const phonetic = await repairPersistedPhoneticIfNeeded(
+        supabase,
+        word,
+        { ...dbDetail, examples },
+      );
+      repairedDbDetail = { ...dbDetail, examples, phonetic };
+    }
+
+    if (isPersistedWordDetailComplete(repairedDbDetail, word)) {
       const imageUrl = await resolveImageUrl(
         word,
-        dbDetail!.image_url,
+        repairedDbDetail!.image_url,
         word,
-        dbDetail!.word_type,
+        repairedDbDetail!.word_type,
       );
-      if (dbDetail!.image_url !== imageUrl) {
+      if (repairedDbDetail!.image_url !== imageUrl) {
         await persistImageUrlIfChanged(
           supabase,
           word,
-          dbDetail!.image_url,
+          repairedDbDetail!.image_url,
           imageUrl,
         );
       }
       return NextResponse.json({
         word: persistedDetailToDiscoverWord(
           word,
-          { ...dbDetail!, examples },
+          repairedDbDetail!,
           frequencyRank,
           imageUrl,
         ),
@@ -253,9 +295,10 @@ export async function GET(request: Request) {
       responseWord.word_type,
       responseWord.vietnamese_meaning,
     );
+    const phonetic = await repairPhoneticIfNeeded(word, responseWord.phonetic);
 
     void persistEnrichedWordDetail(supabase, word, {
-      phonetic: responseWord.phonetic ?? `/${word}/`,
+      phonetic: phonetic ?? `/${word}/`,
       word_type: responseWord.word_type ?? "unknown",
       vietnamese_meaning: responseWord.vietnamese_meaning ?? word,
       english_definition: responseWord.english_definition ?? "",
@@ -277,6 +320,7 @@ export async function GET(request: Request) {
       word: {
         ...responseWord,
         examples,
+        phonetic,
         from_cache: hasQualityStandardVocab(word),
       },
     });
