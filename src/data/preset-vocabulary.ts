@@ -31,11 +31,11 @@ export const WORD_RANGES: WordRange[] = [
 ];
 
 /**
- * Ranking priority: NGSL headwords (1-2801), curriculum overrides, then each
- * remaining learnable SUBTLEX word keeps its real corpus rank (lower = more
- * common). Previously ranks 2802-5000 were filled sequentially, which pushed
- * common words like "goodbye" (SUBTLEX #682) into the 3001-5000 band (#3014)
- * even though they are everyday vocabulary.
+ * Build the discover inventory: sort all learnable words by corpus importance
+ * (NGSL headword rank, curriculum override, or SUBTLEX rank), then assign
+ * exactly (max − min + 1) words to each WORD_RANGES band so Rank 1-100 always
+ * has 100 words, Rank 501-1000 always has 500, etc. Each word's rank number
+ * is its slot within the global frequency order (1 = most important).
  */
 const CURRICULUM_RANK_OVERRIDES: Readonly<Record<string, number>> = {
   thirteen: 3700,
@@ -109,7 +109,7 @@ function isLearnableWord(word: string): boolean {
   return /^[a-z]+$/.test(word) && word.length > 1 && !isProfaneWord(word);
 }
 
-/** One NGSL headword per rank; first listed form in the generated NGSL table. */
+/** NGSL headword → rank (one word per NGSL slot 1..2801). */
 function buildNgslHeadwordRanks(): Map<string, number> {
   const rankToWord = new Map<number, string>();
   for (const [word, rank] of Object.entries(NGSL_FREQUENCY_RANKS)) {
@@ -125,27 +125,63 @@ function buildNgslHeadwordRanks(): Map<string, number> {
   return wordToRank;
 }
 
-/** Assign each remaining SUBTLEX word its measured corpus rank. */
-function addSubtlexCorpusRanks(wordToRank: Map<string, number>): void {
-  for (const [word, rank] of Object.entries(SPOKEN_FREQUENCY_RANKS)) {
-    if (!isLearnableWord(word)) continue;
-    if (wordToRank.has(word)) continue;
-    wordToRank.set(word, rank);
+/** Lower sort key = more important / should appear earlier in discover bands. */
+function frequencySortKey(
+  word: string,
+  ngslHeadwords: Map<string, number>,
+): number {
+  const override = CURRICULUM_RANK_OVERRIDES[word];
+  if (override !== undefined) return override;
+  const subtlex = SPOKEN_FREQUENCY_RANKS[word];
+  if (subtlex !== undefined) return subtlex;
+  const ngsl = ngslHeadwords.get(word);
+  if (ngsl !== undefined) return ngsl;
+  return Number.MAX_SAFE_INTEGER;
+}
+
+function collectLearnableWords(ngslHeadwords: Map<string, number>): string[] {
+  const words = new Set<string>();
+  for (const word of ngslHeadwords.keys()) {
+    if (isLearnableWord(word)) words.add(word);
   }
+  for (const word of Object.keys(CURRICULUM_RANK_OVERRIDES)) {
+    if (isLearnableWord(word)) words.add(word);
+  }
+  for (const word of Object.keys(SPOKEN_FREQUENCY_RANKS)) {
+    if (isLearnableWord(word)) words.add(word);
+  }
+  return [...words].sort(
+    (a, b) =>
+      frequencySortKey(a, ngslHeadwords) - frequencySortKey(b, ngslHeadwords) ||
+      a.localeCompare(b),
+  );
 }
 
 function buildPresetWordInventory(): PresetWord[] {
-  const wordToRank = buildNgslHeadwordRanks();
+  const ngslHeadwords = buildNgslHeadwordRanks();
+  const sortedWords = collectLearnableWords(ngslHeadwords);
+  const assigned = new Map<string, number>();
 
-  for (const [word, rank] of Object.entries(CURRICULUM_RANK_OVERRIDES)) {
-    if (isProfaneWord(word)) continue;
-    wordToRank.set(word, rank);
+  let cursor = 0;
+  for (const range of WORD_RANGES) {
+    if (range.max === Number.MAX_SAFE_INTEGER) {
+      let rank = range.min;
+      while (cursor < sortedWords.length) {
+        assigned.set(sortedWords[cursor], rank);
+        cursor++;
+        rank++;
+      }
+      break;
+    }
+
+    const capacity = range.max - range.min + 1;
+    for (let slot = 0; slot < capacity && cursor < sortedWords.length; slot++) {
+      assigned.set(sortedWords[cursor], range.min + slot);
+      cursor++;
+    }
   }
 
-  addSubtlexCorpusRanks(wordToRank);
-
-  return [...wordToRank.entries()]
-    .filter(([word]) => !isProfaneWord(word))
+  return [...assigned.entries()]
     .map(([word, rank]) => ({ word, rank }))
     .sort((a, b) => a.rank - b.rank || a.word.localeCompare(b.word));
 }
