@@ -32,6 +32,7 @@ const CURATED_VISUAL_KEYWORDS: Record<string, string> = {
   time: "wall clock",
   money: "coins cash",
   work: "office desk laptop",
+  make: "hands making pottery",
   home: "cozy house exterior",
   food: "healthy food plate",
   water: "clear water glass",
@@ -41,6 +42,10 @@ const CURATED_VISUAL_KEYWORDS: Record<string, string> = {
   clean: "clean tidy room",
   dirty: "dirty muddy shoes",
 };
+
+export function hasCuratedVisualKeyword(word: string): boolean {
+  return Boolean(CURATED_VISUAL_KEYWORDS[cleanPhrase(word)]);
+}
 
 const ABSTRACT_POS = new Set([
   "verb",
@@ -111,11 +116,14 @@ export function buildImageSearchQueries(
   const normalizedWord = cleanPhrase(word) || "vocabulary";
   const queries = new Set<string>([primary]);
 
-  if (primary !== normalizedWord) {
+  const pos = options.pos?.trim().toLowerCase();
+  if (
+    primary !== normalizedWord &&
+    (!pos || !ABSTRACT_POS.has(pos))
+  ) {
     queries.add(normalizedWord);
   }
 
-  const pos = options.pos?.trim().toLowerCase();
   if (pos === "noun" && !primary.includes(" ")) {
     queries.add(`${primary} object`);
   }

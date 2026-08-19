@@ -1,4 +1,7 @@
-import { buildImageSearchQueries } from "@/lib/image-keyword";
+import {
+  buildImageSearchQueries,
+  hasCuratedVisualKeyword,
+} from "@/lib/image-keyword";
 
 export type UnsplashPhoto = {
   id: string;
@@ -37,6 +40,18 @@ const GENERIC_QUERY_TOKENS = new Set([
   "photography",
   "scene",
 ]);
+
+const NON_CONCRETE_POS = new Set([
+  "adjective",
+  "adverb",
+  "conjunction",
+  "determiner",
+  "preposition",
+  "pronoun",
+  "verb",
+]);
+
+const SEMANTIC_IMAGE_VERSION = "2";
 
 function hashWord(word: string): number {
   let hash = 0;
@@ -106,13 +121,30 @@ export function isUntrustedRandomImageUrl(
   }
 }
 
+export function isOutdatedOpenverseImageUrl(
+  url: string | null | undefined,
+): boolean {
+  const trimmed = url?.trim();
+  if (!trimmed) return false;
+  try {
+    const parsed = new URL(trimmed);
+    return (
+      parsed.hostname === "api.openverse.org" &&
+      parsed.searchParams.get("semantic") !== SEMANTIC_IMAGE_VERSION
+    );
+  } catch {
+    return false;
+  }
+}
+
 export function shouldRefreshImageUrl(
   url: string | null | undefined,
 ): boolean {
   return (
     !url?.trim() ||
     isStalePresetFallbackUrl(url) ||
-    isUntrustedRandomImageUrl(url)
+    isUntrustedRandomImageUrl(url) ||
+    isOutdatedOpenverseImageUrl(url)
   );
 }
 
@@ -161,7 +193,8 @@ export function resolveWordImageUrl(
     trimmed &&
     trimmed.startsWith("http") &&
     !isStalePresetFallbackUrl(trimmed) &&
-    !isUntrustedRandomImageUrl(trimmed)
+    !isUntrustedRandomImageUrl(trimmed) &&
+    !isOutdatedOpenverseImageUrl(trimmed)
   ) {
     return trimmed;
   }
@@ -213,7 +246,16 @@ function semanticTokens(value: string): Set<string> {
       .toLowerCase()
       .replace(/[^a-z0-9\s-]/g, " ")
       .split(/\s+/)
-      .map((token) => token.replace(/(?:ies|es|s)$/, ""))
+      .filter((token) => !GENERIC_QUERY_TOKENS.has(token))
+      .map((token) => {
+        if (token.endsWith("ing") && token.length > 5) {
+          let stem = token.slice(0, -3);
+          if (stem.at(-1) === stem.at(-2)) stem = stem.slice(0, -1);
+          if (stem === "mak" || stem === "tak") stem += "e";
+          return stem;
+        }
+        return token.replace(/(?:ies|es|s)$/, "");
+      })
       .filter((token) => token.length > 2 && !GENERIC_QUERY_TOKENS.has(token)),
   );
 }
@@ -283,7 +325,10 @@ export async function searchOpenversePhoto(
       if (!best || score > best.score) best = { url, score };
     }
 
-    return best?.url ?? null;
+    if (!best) return null;
+    const versionedUrl = new URL(best.url);
+    versionedUrl.searchParams.set("semantic", SEMANTIC_IMAGE_VERSION);
+    return versionedUrl.toString();
   } catch {
     return null;
   }
@@ -317,7 +362,13 @@ export async function fetchWordImageUrl(
     }
   }
 
+  const normalizedPos = pos?.trim().toLowerCase();
+  const requiresConcretePhrase =
+    Boolean(normalizedPos && NON_CONCRETE_POS.has(normalizedPos)) &&
+    !hasCuratedVisualKeyword(word);
+
   for (const keyword of queries) {
+    if (requiresConcretePhrase && semanticTokens(keyword).size < 2) continue;
     const openverseUrl = await searchOpenversePhoto(word, keyword);
     if (openverseUrl) return openverseUrl;
   }
