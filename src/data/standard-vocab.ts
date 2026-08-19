@@ -494,6 +494,57 @@ const CURATED: Record<string, RawEntry> = {
     ],
     keyword: "train station",
   },
+  prove: {
+    pos: "verb",
+    ipa: "/pruːv/",
+    meaning: "Chứng tỏ",
+    definition: "Cho thấy điều gì đó là đúng bằng bằng chứng hoặc hành động.",
+    examples: [
+      {
+        en: "Can you prove that you were there?",
+        vi: "Bạn có chứng minh được là bạn đã ở đó không?",
+      },
+      {
+        en: "The test results prove he was right.",
+        vi: "Kết quả xét nghiệm chứng tỏ anh ấy đã đúng.",
+      },
+    ],
+    keyword: "proof evidence document",
+  },
+  sleep: {
+    pos: "verb",
+    ipa: "/sliːp/",
+    meaning: "Ngủ",
+    definition: "Nghỉ ngơi với mắt nhắm và ý thức tạm tắt.",
+    examples: [
+      {
+        en: "I need to sleep early tonight.",
+        vi: "Tối nay tôi cần đi ngủ sớm.",
+      },
+      {
+        en: "The baby slept through the night.",
+        vi: "Em bé đã ngủ suốt đêm.",
+      },
+    ],
+    keyword: "person sleeping bed",
+  },
+  sit: {
+    pos: "verb",
+    ipa: "/sɪt/",
+    meaning: "Ngồi",
+    definition: "Đặt mông xuống ghế hoặc bề mặt và giữ tư thế đó.",
+    examples: [
+      {
+        en: "Please sit down and relax.",
+        vi: "Mời bạn ngồi xuống và thư giãn.",
+      },
+      {
+        en: "We sit together every morning.",
+        vi: "Chúng tôi ngồi cùng nhau mỗi sáng.",
+      },
+    ],
+    keyword: "person sitting chair",
+  },
   week: {
     pos: "noun",
     ipa: "/wiːk/",

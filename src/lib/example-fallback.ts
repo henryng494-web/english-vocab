@@ -1,5 +1,6 @@
 import { capitalizeFirst } from "@/lib/format-text";
 import type { VocabExample } from "@/lib/parse-examples";
+import { fetchMyMemoryTranslation } from "@/lib/translate-vi";
 import { normalizeWordType } from "@/lib/word-type";
 
 const TARGET_COUNT = 2;
@@ -235,6 +236,22 @@ export function buildNaturalExamples(
       },
     ]
   );
+}
+
+/** Fill missing Vietnamese lines via free EN→VI lookup (static preset cards). */
+export async function fillExampleTranslations(
+  examples: VocabExample[],
+): Promise<VocabExample[]> {
+  const filled: VocabExample[] = [];
+  for (const item of examples) {
+    const en = item.en?.trim() ?? "";
+    if (!en) continue;
+    const existingVi = item.vi?.trim() ?? "";
+    const vi = existingVi || (await fetchMyMemoryTranslation(en)) || "";
+    if (!vi) continue;
+    filled.push({ en, vi });
+  }
+  return filled;
 }
 
 /** Keep natural examples; fill with everyday sentences only — never study-meta templates. */

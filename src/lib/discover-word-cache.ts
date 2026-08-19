@@ -3,7 +3,7 @@ import { hasQualityExamples } from "@/lib/example-fallback";
 import { parseExamples } from "@/lib/parse-examples";
 
 /** Bump when example quality rules or enrichment output shape changes. */
-export const DISCOVER_WORD_CACHE_VERSION = 7;
+export const DISCOVER_WORD_CACHE_VERSION = 8;
 
 const STORAGE_KEY = `discover-word-cache-v${DISCOVER_WORD_CACHE_VERSION}`;
 
@@ -11,6 +11,7 @@ const LEGACY_STORAGE_KEYS = [
   "discover-word-cache-v4",
   "discover-word-cache-v5",
   "discover-word-cache-v6",
+  "discover-word-cache-v7",
 ];
 
 const MAX_ENTRIES = 250;

@@ -1,6 +1,11 @@
 import { getPresetRank } from "@/data/preset-word-details";
 import { getStandardVocab } from "@/data/standard-vocab";
-import { ensureExamples, hasQualityExamples, keepNaturalExamples } from "@/lib/example-fallback";
+import {
+  ensureExamples,
+  fillExampleTranslations,
+  hasQualityExamples,
+  keepNaturalExamples,
+} from "@/lib/example-fallback";
 import { generateExamplesWithGemini, enrichWithGemini, type WordEnrichment } from "@/lib/gemini-core";
 import { getStaticVietnamese } from "@/lib/static-vietnamese";
 import {
@@ -69,7 +74,23 @@ async function finalizeExamples(
     }
   }
 
-  return ensureExamples(word, existing, pos, meaning);
+  const naturalOnly = keepNaturalExamples(word, existing);
+  if (naturalOnly.length >= 2) {
+    const translated = await fillExampleTranslations(naturalOnly);
+    if (hasQualityExamples(word, translated)) {
+      return translated.slice(0, 2);
+    }
+  }
+
+  const ensured = ensureExamples(word, existing, pos, meaning);
+  if (hasQualityExamples(word, ensured)) return ensured.slice(0, 2);
+
+  const translatedEnsured = await fillExampleTranslations(ensured);
+  if (hasQualityExamples(word, translatedEnsured)) {
+    return translatedEnsured.slice(0, 2);
+  }
+
+  return translatedEnsured.length ? translatedEnsured.slice(0, 2) : ensured;
 }
 
 async function standardToEnrichment(

@@ -30,7 +30,7 @@ Configure these in **Cursor Dashboard → Cloud Agents → Secrets** (never comm
 | `NEXT_PUBLIC_SUPABASE_URL` | Yes | Supabase project URL |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Yes | Supabase anon key |
 | `UNSPLASH_ACCESS_KEY` | No | Primary image search; falls back to LoremFlickr |
-| `GEMINI_MODEL` | No | Defaults to `gemini-2.5-flash` |
+| `GEMINI_MODEL` | No | Defaults to `gemini-3.6-flash` |
 
 Local dev uses `.env.local` (gitignored). Cloud agents only see dashboard secrets.
 
