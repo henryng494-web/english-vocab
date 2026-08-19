@@ -3,8 +3,13 @@ import { getPresetRank } from "@/data/preset-word-details";
 import { createClient } from "@/lib/supabase/server";
 import { enrichmentToDiscoverWord } from "@/lib/enrichment-helpers";
 import { enrichWord } from "@/lib/enrich-word";
+import {
+  ensureExamples,
+  fillExampleTranslations,
+} from "@/lib/example-fallback";
+import { hasQualityExamples } from "@/lib/example-quality";
 import { isPersistedWordDetailComplete } from "@/lib/persisted-word-detail";
-import { serializeExamples } from "@/lib/parse-examples";
+import { parseExamples, serializeExamples } from "@/lib/parse-examples";
 import { getImportanceTier } from "@/lib/word-rank";
 import {
   fetchWordImageUrl,
@@ -78,6 +83,49 @@ async function persistImageUrlIfChanged(
   }
 }
 
+async function repairExamplesIfNeeded(
+  word: string,
+  examples: string | null | undefined,
+  wordType?: string | null,
+  meaning?: string | null,
+): Promise<string> {
+  const parsed = parseExamples(examples);
+  if (hasQualityExamples(word, parsed)) {
+    return examples?.trim() ? examples : serializeExamples(parsed);
+  }
+
+  const ensured = ensureExamples(word, parsed, wordType, meaning);
+  const translated = await fillExampleTranslations(ensured);
+  const finalExamples = hasQualityExamples(word, translated)
+    ? translated
+    : ensured;
+  return serializeExamples(finalExamples);
+}
+
+async function repairPersistedExamplesIfNeeded(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  word: string,
+  detail: WordDetail,
+): Promise<string> {
+  const repaired = await repairExamplesIfNeeded(
+    word,
+    detail.examples,
+    detail.word_type,
+    detail.vietnamese_meaning,
+  );
+  if (repaired !== detail.examples) {
+    try {
+      await supabase
+        .from("word_details")
+        .update({ examples: repaired })
+        .eq("word", word);
+    } catch (error) {
+      console.warn(`Failed to persist repaired examples for "${word}":`, error);
+    }
+  }
+  return repaired;
+}
+
 async function persistEnrichedWordDetail(
   supabase: Awaited<ReturnType<typeof createClient>>,
   word: string,
@@ -143,6 +191,11 @@ export async function GET(request: Request) {
     const frequencyRank = rank ?? getPresetRank(word) ?? 5000;
 
     if (isPersistedWordDetailComplete(dbDetail, word)) {
+      const examples = await repairPersistedExamplesIfNeeded(
+        supabase,
+        word,
+        dbDetail!,
+      );
       const imageUrl = await resolveImageUrl(
         word,
         dbDetail!.image_url,
@@ -160,7 +213,7 @@ export async function GET(request: Request) {
       return NextResponse.json({
         word: persistedDetailToDiscoverWord(
           word,
-          dbDetail!,
+          { ...dbDetail!, examples },
           frequencyRank,
           imageUrl,
         ),
@@ -194,13 +247,19 @@ export async function GET(request: Request) {
     }
 
     const responseWord = enrichmentToDiscoverWord(word, enrichment, imageUrl);
+    const examples = await repairExamplesIfNeeded(
+      word,
+      responseWord.examples,
+      responseWord.word_type,
+      responseWord.vietnamese_meaning,
+    );
 
     void persistEnrichedWordDetail(supabase, word, {
       phonetic: responseWord.phonetic ?? `/${word}/`,
       word_type: responseWord.word_type ?? "unknown",
       vietnamese_meaning: responseWord.vietnamese_meaning ?? word,
       english_definition: responseWord.english_definition ?? "",
-      examples: responseWord.examples ?? serializeExamples(enrichment.examples),
+      examples,
       collocations: responseWord.collocations ?? null,
       image_url: imageUrl,
     });
@@ -217,6 +276,7 @@ export async function GET(request: Request) {
     return NextResponse.json({
       word: {
         ...responseWord,
+        examples,
         from_cache: hasQualityStandardVocab(word),
       },
     });

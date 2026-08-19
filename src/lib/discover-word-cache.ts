@@ -3,13 +3,12 @@ import { hasQualityExamples } from "@/lib/example-quality";
 import { parseExamples } from "@/lib/parse-examples";
 import {
   isOutdatedSemanticImageUrl,
-  isPlaceholderIllustrationUrl,
   isUntrustedRandomImageUrl,
 } from "@/lib/unsplash";
 import { requiresSafeImageOnly } from "@/lib/safe-image-search";
 
 /** Bump when ranking, image quality, or enrichment output shape changes. */
-export const DISCOVER_WORD_CACHE_VERSION = 23;
+export const DISCOVER_WORD_CACHE_VERSION = 24;
 
 const STORAGE_KEY = `discover-word-cache-v${DISCOVER_WORD_CACHE_VERSION}`;
 
@@ -33,6 +32,7 @@ const LEGACY_STORAGE_KEYS = [
   "discover-word-cache-v20",
   "discover-word-cache-v21",
   "discover-word-cache-v22",
+  "discover-word-cache-v23",
 ];
 
 const MAX_ENTRIES = 250;
@@ -40,7 +40,6 @@ const MAX_ENTRIES = 250;
 export function isWordDetailComplete(
   data: DiscoverWordData | undefined,
   expectedWord?: string,
-  expectedRank?: number,
 ): boolean {
   if (!data?.phonetic?.trim()) return false;
   if (data.phonetic.trim() === `/${data.word}/`) return false;
@@ -51,25 +50,23 @@ export function isWordDetailComplete(
   }
   if (isUntrustedRandomImageUrl(data.image_url)) return false;
   if (isOutdatedSemanticImageUrl(data.image_url)) return false;
-  if (isPlaceholderIllustrationUrl(data.image_url)) return false;
+  // SVG placeholders from resolveWordImageUrl are valid display images.
   if (!hasQualityExamples(data.word, parseExamples(data.examples))) {
     return false;
   }
   if (expectedWord && data.word.toLowerCase() !== expectedWord.toLowerCase()) {
     return false;
   }
-  if (expectedRank !== undefined && data.rank !== expectedRank) return false;
   return true;
 }
 
 export function isCacheEntryValid(
   data: DiscoverWordData | undefined,
   expectedWord: string,
-  expectedRank?: number,
 ): boolean {
   if (!data) return false;
   if (data.word.toLowerCase() !== expectedWord.toLowerCase()) return false;
-  return isWordDetailComplete(data, expectedWord, expectedRank);
+  return isWordDetailComplete(data, expectedWord);
 }
 
 /** Drop legacy sessionStorage keys so stale template examples cannot persist. */

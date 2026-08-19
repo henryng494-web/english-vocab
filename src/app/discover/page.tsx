@@ -124,8 +124,10 @@ export default function DiscoverPage() {
         throw new Error(data.details ?? data.error ?? "Không thể tải từ");
       }
       const loaded = mapApiWord(item, data.word);
-      if (!isCacheEntryValid(loaded, item.word, item.rank)) {
-        throw new Error(`Ví dụ cho "${item.word}" chưa đủ chất lượng — thử lại sau.`);
+      if (!isCacheEntryValid(loaded, item.word)) {
+        throw new Error(
+          `Dữ liệu cho "${item.word}" chưa đầy đủ — thử tải lại sau.`,
+        );
       }
       return loaded;
     },
@@ -135,7 +137,7 @@ export default function DiscoverPage() {
   const ensureWordFetched = useCallback(
     async (item: DiscoverListItem): Promise<DiscoverWordData> => {
       const cached = wordCache.current.get(item.word);
-      if (isWordDetailComplete(cached, item.word, item.rank)) {
+      if (isWordDetailComplete(cached, item.word)) {
         return cached!;
       }
       wordCache.current.delete(item.word);
@@ -145,7 +147,7 @@ export default function DiscoverPage() {
 
       const promise = fetchWordFromApi(item)
         .then((loaded) => {
-          if (!isCacheEntryValid(loaded, item.word, item.rank)) {
+          if (!isCacheEntryValid(loaded, item.word)) {
             throw new Error(`Dữ liệu không khớp cho "${item.word}"`);
           }
           wordCache.current.set(item.word, loaded);
@@ -171,7 +173,7 @@ export default function DiscoverPage() {
         const item = items[startIndex + offset];
         if (!item) break;
         const cached = wordCache.current.get(item.word);
-        if (isWordDetailComplete(cached, item.word, item.rank)) {
+        if (isWordDetailComplete(cached, item.word)) {
           preloadImageUrl(cached!.image_url);
           continue;
         }
@@ -193,11 +195,11 @@ export default function DiscoverPage() {
       setLoadingWord(!hasTextPreview);
 
       const cached = wordCache.current.get(item.word);
-      if (cached && !isCacheEntryValid(cached, item.word, item.rank)) {
+      if (cached && !isCacheEntryValid(cached, item.word)) {
         wordCache.current.delete(item.word);
       }
 
-      if (isWordDetailComplete(cached, item.word, item.rank)) {
+      if (isWordDetailComplete(cached, item.word)) {
         setCurrentWord(cached!);
         setLoadingWord(false);
         preloadImageUrl(cached!.image_url);
