@@ -41,26 +41,7 @@ const GENERIC_QUERY_TOKENS = new Set([
   "scene",
 ]);
 
-const NON_CONCRETE_POS = new Set([
-  "adjective",
-  "adverb",
-  "conjunction",
-  "determiner",
-  "preposition",
-  "pronoun",
-  "verb",
-]);
-
-const NON_VISUAL_FUNCTION_POS = new Set([
-  "adverb",
-  "article",
-  "conjunction",
-  "determiner",
-  "preposition",
-  "pronoun",
-]);
-
-const SEMANTIC_IMAGE_VERSION = "5";
+const SEMANTIC_IMAGE_VERSION = "6";
 
 function hashWord(word: string): number {
   let hash = 0;
@@ -149,6 +130,12 @@ export function isOutdatedSemanticImageUrl(
   }
 }
 
+export function isPlaceholderIllustrationUrl(
+  url: string | null | undefined,
+): boolean {
+  return Boolean(url?.trim().startsWith("data:image/svg+xml"));
+}
+
 export function shouldRefreshImageUrl(
   url: string | null | undefined,
 ): boolean {
@@ -156,7 +143,8 @@ export function shouldRefreshImageUrl(
     !url?.trim() ||
     isStalePresetFallbackUrl(url) ||
     isUntrustedRandomImageUrl(url) ||
-    isOutdatedSemanticImageUrl(url)
+    isOutdatedSemanticImageUrl(url) ||
+    isPlaceholderIllustrationUrl(url)
   );
 }
 
@@ -254,7 +242,8 @@ export function resolveWordImageUrl(
     trimmed.startsWith("http") &&
     !isStalePresetFallbackUrl(trimmed) &&
     !isUntrustedRandomImageUrl(trimmed) &&
-    !isOutdatedSemanticImageUrl(trimmed)
+    !isOutdatedSemanticImageUrl(trimmed) &&
+    !isPlaceholderIllustrationUrl(trimmed)
   ) {
     return trimmed;
   }
@@ -404,10 +393,9 @@ export async function searchOpenversePhoto(
 }
 
 /**
- * Fetch a semantically relevant image. Unsplash is preferred when configured;
- * a validated public-domain Openverse image is the safe fallback. If neither
- * source can produce a confident match, use the neutral local illustration
- * rather than showing a misleading random photo.
+ * Always prefer a real photo. Curated everyday scenes are used for abstract
+ * words so Unsplash/Openverse can return a concrete picture instead of a
+ * random mismatch. Local SVG is only used if every photo source fails.
  */
 export async function fetchWordImageUrl(
   word: string,
@@ -416,15 +404,7 @@ export async function fetchWordImageUrl(
 ): Promise<string> {
   const queries = buildImageSearchQueries(word, { searchKeyword, pos });
   if (queries.length === 0) return getDefaultLearningImageDataUrl(word, pos);
-  const normalizedPos = pos?.trim().toLowerCase();
   const hasCuratedKeyword = hasCuratedVisualKeyword(word);
-  if (
-    normalizedPos &&
-    NON_VISUAL_FUNCTION_POS.has(normalizedPos) &&
-    !hasCuratedKeyword
-  ) {
-    return getDefaultLearningImageDataUrl(word, pos);
-  }
 
   if (process.env.UNSPLASH_ACCESS_KEY?.trim()) {
     for (const keyword of queries) {
@@ -440,12 +420,7 @@ export async function fetchWordImageUrl(
     }
   }
 
-  const requiresConcretePhrase =
-    Boolean(normalizedPos && NON_CONCRETE_POS.has(normalizedPos)) &&
-    !hasCuratedKeyword;
-
   for (const keyword of queries) {
-    if (requiresConcretePhrase && semanticTokens(keyword).size < 2) continue;
     const openverseUrl = await searchOpenversePhoto(
       word,
       keyword,
