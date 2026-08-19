@@ -20,14 +20,12 @@ export function WordCardHeader({
   const wordTypeVi = wordTypeLabelVi(wordType, word);
 
   return (
-    <div className="flex items-center justify-between gap-3">
-      <h2
-        className="shrink-0 border-b border-primary-200 pb-1 text-3xl font-bold tracking-tight text-foreground"
-      >
+    <div className="flex w-full flex-wrap items-center gap-x-3 gap-y-2">
+      <h2 className="min-w-0 break-words border-b border-primary-200 pb-1 text-3xl font-bold tracking-tight text-foreground">
         {capitalizeFirst(word)}
       </h2>
 
-      <div className="flex shrink-0 items-center gap-2">
+      <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
         <SpeakButton text={word} variant="light" iconOnly />
 
         {phonetic ? (
