@@ -135,12 +135,65 @@ const VOCABULARY_GROUPS: string[][] = [
   ],
 ];
 
+/**
+ * SUBTLEX-US measures spoken-conversation frequency from movie/TV subtitles,
+ * which systematically undercounts two closed word classes that this app's
+ * curriculum still needs to teach early:
+ *
+ * 1. Spelled-out numbers and month names — subtitle transcribers usually
+ *    write dates/quantities as digits ("14", "Dec. 25") rather than spelling
+ *    them out, so words like "fourteen" or "december" look far rarer than
+ *    they actually are in spoken English.
+ * 2. Basic grammar/math terms ("noun", "verb", "vowel", "consonant",
+ *    "syllable", "numeral", "decimal", "fraction", "multiply", "divide",
+ *    "equate") — these are genuinely rare in casual conversation, but they
+ *    are exactly the vocabulary a structured English course introduces
+ *    early to describe the language and counting system itself, so ranking
+ *    them as "rare/advanced" alongside topic-specific words like "colony"
+ *    or "insect" is misleading for a learner.
+ * 3. "triangle" — the app already ranks its usual companions "circle" and
+ *    "square" as common (below 3000), so leaving the third basic shape at
+ *    rank 7592 made the trio inconsistent for no good pedagogical reason.
+ * 4. "length" — its close synonyms "size" (961), "weight" (1665) and
+ *    "measure" (4221) all rank far lower; "length" is a clear outlier
+ *    within its own word family rather than a genuinely rarer concept.
+ *
+ * These overrides only touch that narrow, well-defined set of closed-class
+ * curriculum words; every other word keeps its real SUBTLEX-derived rank.
+ */
+const CURRICULUM_RANK_OVERRIDES: Readonly<Record<string, number>> = {
+  thirteen: 3700,
+  fourteen: 3800,
+  seventeen: 4200,
+  eighteen: 4300,
+  nineteen: 4900,
+  january: 3950,
+  february: 4150,
+  december: 4950,
+  verb: 3050,
+  noun: 3150,
+  fraction: 3250,
+  multiply: 3350,
+  divide: 3450,
+  vowel: 3550,
+  syllable: 3650,
+  decimal: 3750,
+  numeral: 3850,
+  equate: 3950,
+  consonant: 4050,
+  triangle: 2650,
+  length: 1750,
+};
+
 export const PRESET_WORDS: PresetWord[] = [
   ...new Set(VOCABULARY_GROUPS.flat()),
 ]
   .map((word) => ({
     word,
-    rank: SPOKEN_FREQUENCY_RANKS[word] ?? Number.MAX_SAFE_INTEGER,
+    rank:
+      CURRICULUM_RANK_OVERRIDES[word] ??
+      SPOKEN_FREQUENCY_RANKS[word] ??
+      Number.MAX_SAFE_INTEGER,
   }))
   .sort((a, b) => a.rank - b.rank || a.word.localeCompare(b.word));
 
