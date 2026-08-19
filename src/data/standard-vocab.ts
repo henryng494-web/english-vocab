@@ -539,8 +539,8 @@ const CURATED: Record<string, RawEntry> = {
         vi: "Mời bạn ngồi xuống và thư giãn.",
       },
       {
-        en: "We sat by the window and talked.",
-        vi: "Chúng tôi ngồi cạnh cửa sổ và trò chuyện.",
+        en: "We sit together every morning.",
+        vi: "Chúng tôi ngồi cùng nhau mỗi sáng.",
       },
     ],
     keyword: "person sitting chair",
