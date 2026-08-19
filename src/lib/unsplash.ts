@@ -1,8 +1,4 @@
-import {
-  buildImageSearchQueries,
-  resolveImageSearchKeyword,
-} from "@/lib/image-keyword";
-import { appendFileSync } from "node:fs";
+import { buildImageSearchQueries } from "@/lib/image-keyword";
 
 export type UnsplashPhoto = {
   id: string;
@@ -66,6 +62,39 @@ export function isStalePresetFallbackUrl(url: string | null | undefined): boolea
 }
 
 /**
+ * Random-photo providers cannot guarantee that the returned image depicts the
+ * requested word. Treat their URLs as stale instead of presenting an unrelated
+ * photo as learning content.
+ */
+export function isUntrustedRandomImageUrl(
+  url: string | null | undefined,
+): boolean {
+  const trimmed = url?.trim();
+  if (!trimmed) return false;
+  try {
+    const hostname = new URL(trimmed).hostname.toLowerCase();
+    return (
+      hostname === "loremflickr.com" ||
+      hostname.endsWith(".loremflickr.com") ||
+      hostname === "picsum.photos" ||
+      hostname.endsWith(".picsum.photos")
+    );
+  } catch {
+    return false;
+  }
+}
+
+export function shouldRefreshImageUrl(
+  url: string | null | undefined,
+): boolean {
+  return (
+    !url?.trim() ||
+    isStalePresetFallbackUrl(url) ||
+    isUntrustedRandomImageUrl(url)
+  );
+}
+
+/**
  * Local, network-free illustration — the guaranteed last resort so a card
  * never shows a broken-image icon even if every remote image host is down.
  */
@@ -98,18 +127,21 @@ export function getDefaultLearningImageDataUrl(): string {
 
 /** Always returns a displayable image URL for a vocabulary word. */
 export function resolveWordImageUrl(
-  word: string,
+  _word: string,
   imageUrl?: string | null,
-  searchKeyword?: string | null,
-  pos?: string | null,
+  _searchKeyword?: string | null,
+  _pos?: string | null,
 ): string {
   const trimmed = imageUrl?.trim();
-  if (trimmed && trimmed.startsWith("http")) return trimmed;
-  const keyword = resolveImageSearchKeyword(word, {
-    searchKeyword,
-    pos,
-  });
-  return getLoremFlickrImageUrl(keyword);
+  if (
+    trimmed &&
+    trimmed.startsWith("http") &&
+    !isStalePresetFallbackUrl(trimmed) &&
+    !isUntrustedRandomImageUrl(trimmed)
+  ) {
+    return trimmed;
+  }
+  return getDefaultLearningImageDataUrl();
 }
 
 export async function searchPhotos(
@@ -162,19 +194,13 @@ export async function fetchWordImageUrl(
   pos?: string | null,
 ): Promise<string> {
   const queries = buildImageSearchQueries(word, { searchKeyword, pos });
-  // #region agent log
-  appendFileSync("/opt/cursor/logs/debug.log", `${JSON.stringify({ hypothesisId: "B,D", location: "src/lib/unsplash.ts:fetchWordImageUrl", message: "generated image search queries", data: { word, searchKeyword: searchKeyword ?? null, pos: pos ?? null, queries, provider: process.env.UNSPLASH_ACCESS_KEY?.trim() ? "unsplash" : "loremflickr" }, timestamp: Date.now() })}\n`);
-  // #endregion
-  if (queries.length === 0) return getLoremFlickrImageUrl("vocabulary");
+  if (queries.length === 0) return getDefaultLearningImageDataUrl();
 
   if (process.env.UNSPLASH_ACCESS_KEY?.trim()) {
     for (const keyword of queries) {
       try {
         const photos = await searchPhotos(keyword, 1);
         if (photos[0]?.url) {
-          // #region agent log
-          appendFileSync("/opt/cursor/logs/debug.log", `${JSON.stringify({ hypothesisId: "D", location: "src/lib/unsplash.ts:fetchWordImageUrl:unsplash", message: "provider selected photo", data: { word, keyword, photoId: photos[0].id, alt: photos[0].alt, url: photos[0].url }, timestamp: Date.now() })}\n`);
-          // #endregion
           return photos[0].url;
         }
       } catch (error) {
@@ -184,8 +210,5 @@ export async function fetchWordImageUrl(
     }
   }
 
-  // #region agent log
-  appendFileSync("/opt/cursor/logs/debug.log", `${JSON.stringify({ hypothesisId: "D", location: "src/lib/unsplash.ts:fetchWordImageUrl:fallback", message: "fallback image selected", data: { word, keyword: queries[0], url: getLoremFlickrImageUrl(queries[0]) }, timestamp: Date.now() })}\n`);
-  // #endregion
-  return getLoremFlickrImageUrl(queries[0]);
+  return getDefaultLearningImageDataUrl();
 }

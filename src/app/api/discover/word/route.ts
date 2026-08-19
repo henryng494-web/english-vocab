@@ -5,7 +5,7 @@ import { enrichWord } from "@/lib/enrich-word";
 import { appendFileSync } from "node:fs";
 import {
   fetchWordImageUrl,
-  isStalePresetFallbackUrl,
+  shouldRefreshImageUrl,
 } from "@/lib/unsplash";
 import { NextResponse } from "next/server";
 
@@ -25,12 +25,20 @@ async function resolveImageUrl(
 ): Promise<string> {
   const trimmed = existingUrl?.trim();
   // #region agent log
-  appendFileSync("/opt/cursor/logs/debug.log", `${JSON.stringify({ hypothesisId: "A", location: "src/app/api/discover/word/route.ts:resolveImageUrl", message: "image resolution branch", data: { word, existingUrl: trimmed ?? null, reuseExisting: Boolean(trimmed?.startsWith("http") && !isStalePresetFallbackUrl(trimmed)), searchKeyword: searchKeyword ?? null, pos: pos ?? null }, timestamp: Date.now() })}\n`);
+  appendFileSync("/opt/cursor/logs/debug.log", `${JSON.stringify({ hypothesisId: "A,D", location: "src/app/api/discover/word/route.ts:resolveImageUrl", message: "image resolution branch", data: { word, existingUrl: trimmed ?? null, reuseExisting: Boolean(trimmed?.startsWith("http") && !shouldRefreshImageUrl(trimmed)), searchKeyword: searchKeyword ?? null, pos: pos ?? null }, timestamp: Date.now() })}\n`);
   // #endregion
-  if (trimmed?.startsWith("http") && !isStalePresetFallbackUrl(trimmed)) {
+  if (trimmed?.startsWith("http") && !shouldRefreshImageUrl(trimmed)) {
     return trimmed;
   }
-  return fetchWordImageUrl(word, searchKeyword ?? word, pos);
+  const resolvedUrl = await fetchWordImageUrl(
+    word,
+    searchKeyword ?? word,
+    pos,
+  );
+  // #region agent log
+  appendFileSync("/opt/cursor/logs/debug.log", `${JSON.stringify({ hypothesisId: "D", location: "src/app/api/discover/word/route.ts:resolveImageUrl:provider", message: "provider image result", data: { word, provider: resolvedUrl.startsWith("https://images.unsplash.com/") ? "unsplash" : "local-placeholder", isRemote: resolvedUrl.startsWith("http") }, timestamp: Date.now() })}\n`);
+  // #endregion
+  return resolvedUrl;
 }
 
 /** Self-heal: persist a freshly regenerated image URL so it's fixed for good. */

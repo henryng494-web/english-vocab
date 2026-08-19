@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { enrichWord } from "@/lib/enrich-word";
 import { serializeExamples } from "@/lib/parse-examples";
-import { fetchWordImageUrl, isStalePresetFallbackUrl } from "@/lib/unsplash";
+import { fetchWordImageUrl, shouldRefreshImageUrl } from "@/lib/unsplash";
 import { NextResponse } from "next/server";
 
 function errorMessage(error: unknown): string {
@@ -38,7 +38,7 @@ export async function POST(request: Request) {
 
       const standard = await enrichWord(trimmedWord);
       let imageUrl = existingDetails.image_url;
-      if (!imageUrl?.trim() || isStalePresetFallbackUrl(imageUrl)) {
+      if (shouldRefreshImageUrl(imageUrl)) {
         imageUrl = await fetchWordImageUrl(
           trimmedWord,
           standard.searchKeyword,

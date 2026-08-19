@@ -8,7 +8,6 @@ import { capitalizeFirst } from "@/lib/format-text";
 import { parseExamples } from "@/lib/parse-examples";
 import {
   getDefaultLearningImageDataUrl,
-  getPicsumFallbackImageUrl,
   resolveWordImageUrl,
 } from "@/lib/unsplash";
 
@@ -48,7 +47,6 @@ function CardImage({
     searchKeyword,
     wordType,
   );
-  const secondarySrc = getPicsumFallbackImageUrl(searchKeyword || word);
   const finalSrc = getDefaultLearningImageDataUrl();
   const [src, setSrc] = useState(primarySrc);
 
@@ -67,8 +65,7 @@ function CardImage({
         priority
         unoptimized
         onError={() => {
-          if (src === primarySrc) setSrc(secondarySrc);
-          else if (src === secondarySrc) setSrc(finalSrc);
+          if (src !== finalSrc) setSrc(finalSrc);
         }}
       />
     </div>
