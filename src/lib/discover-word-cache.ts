@@ -1,9 +1,10 @@
 import type { DiscoverWordData } from "@/components/discover/DiscoverCard";
 import { hasQualityExamples } from "@/lib/example-fallback";
 import { parseExamples } from "@/lib/parse-examples";
+import { isUntrustedRandomImageUrl } from "@/lib/unsplash";
 
-/** Bump when example quality rules or enrichment output shape changes. */
-export const DISCOVER_WORD_CACHE_VERSION = 8;
+/** Bump when example/image quality rules or enrichment output shape changes. */
+export const DISCOVER_WORD_CACHE_VERSION = 9;
 
 const STORAGE_KEY = `discover-word-cache-v${DISCOVER_WORD_CACHE_VERSION}`;
 
@@ -12,6 +13,7 @@ const LEGACY_STORAGE_KEYS = [
   "discover-word-cache-v5",
   "discover-word-cache-v6",
   "discover-word-cache-v7",
+  "discover-word-cache-v8",
 ];
 
 const MAX_ENTRIES = 250;
@@ -23,6 +25,8 @@ export function isWordDetailComplete(
   if (!data?.phonetic?.trim()) return false;
   if (data.phonetic.trim() === `/${data.word}/`) return false;
   if (!data.vietnamese_meaning?.trim()) return false;
+  if (!data.image_url?.trim()) return false;
+  if (isUntrustedRandomImageUrl(data.image_url)) return false;
   if (!hasQualityExamples(data.word, parseExamples(data.examples))) {
     return false;
   }

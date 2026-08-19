@@ -16,6 +16,28 @@ type UnsplashSearchResponse = {
   }>;
 };
 
+type OpenverseSearchResponse = {
+  results?: Array<{
+    id?: string;
+    title?: string | null;
+    description?: string | null;
+    thumbnail?: string | null;
+    tags?: Array<{ name?: string | null }>;
+  }>;
+};
+
+const GENERIC_QUERY_TOKENS = new Set([
+  "action",
+  "everyday",
+  "moment",
+  "object",
+  "outdoors",
+  "person",
+  "photo",
+  "photography",
+  "scene",
+]);
+
 function hashWord(word: string): number {
   let hash = 0;
   for (const char of word.trim().toLowerCase()) {
@@ -185,10 +207,93 @@ export async function searchPhotos(
   }));
 }
 
+function semanticTokens(value: string): Set<string> {
+  return new Set(
+    value
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, " ")
+      .split(/\s+/)
+      .map((token) => token.replace(/(?:ies|es|s)$/, ""))
+      .filter((token) => token.length > 2 && !GENERIC_QUERY_TOKENS.has(token)),
+  );
+}
+
+function overlapCount(left: Set<string>, right: Set<string>): number {
+  let count = 0;
+  for (const token of left) {
+    if (right.has(token)) count += 1;
+  }
+  return count;
+}
+
 /**
- * Fetch word image via Unsplash API (if configured), then a deterministic,
- * keyword-relevant LoremFlickr photo unique to `searchKeyword` / `word`.
- * Never returns null.
+ * Public-domain fallback with semantic validation. Openverse may return broad
+ * full-text matches, so only accept a result whose title/tags overlap both the
+ * vocabulary word and the concrete search phrase.
+ */
+export async function searchOpenversePhoto(
+  word: string,
+  query: string,
+): Promise<string | null> {
+  const params = new URLSearchParams({
+    q: query,
+    page_size: "20",
+    license: "cc0,pdm",
+    mature: "false",
+    aspect_ratio: "wide",
+  });
+
+  try {
+    const response = await fetch(
+      `https://api.openverse.org/v1/images/?${params}`,
+      {
+        headers: { "User-Agent": "EnglishVocabApp/1.0" },
+        next: { revalidate: 86400 },
+      },
+    );
+    if (!response.ok) return null;
+
+    const data = (await response.json()) as OpenverseSearchResponse;
+    const wordTokens = semanticTokens(word);
+    const queryTokens = semanticTokens(query);
+    let best: { url: string; score: number } | null = null;
+
+    for (const result of data.results ?? []) {
+      const url = result.thumbnail?.trim();
+      if (!url?.startsWith("https://")) continue;
+
+      const titleTokens = semanticTokens(result.title ?? "");
+      const metadataTokens = semanticTokens(
+        [
+          result.title,
+          result.description,
+          ...(result.tags ?? []).map((tag) => tag.name),
+        ]
+          .filter(Boolean)
+          .join(" "),
+      );
+      if (overlapCount(wordTokens, metadataTokens) === 0) continue;
+
+      const queryMatches = overlapCount(queryTokens, metadataTokens);
+      const requiredMatches = queryTokens.size > 1 ? 2 : 1;
+      if (queryMatches < requiredMatches) continue;
+
+      const score =
+        overlapCount(queryTokens, titleTokens) * 4 + queryMatches;
+      if (!best || score > best.score) best = { url, score };
+    }
+
+    return best?.url ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Fetch a semantically relevant image. Unsplash is preferred when configured;
+ * a validated public-domain Openverse image is the safe fallback. If neither
+ * source can produce a confident match, use the neutral local illustration
+ * rather than showing a misleading random photo.
  */
 export async function fetchWordImageUrl(
   word: string,
@@ -210,6 +315,11 @@ export async function fetchWordImageUrl(
         break;
       }
     }
+  }
+
+  for (const keyword of queries) {
+    const openverseUrl = await searchOpenversePhoto(word, keyword);
+    if (openverseUrl) return openverseUrl;
   }
 
   return getDefaultLearningImageDataUrl();
