@@ -3,8 +3,8 @@ import { hasQualityExamples } from "@/lib/example-fallback";
 import { parseExamples } from "@/lib/parse-examples";
 import { isUntrustedRandomImageUrl } from "@/lib/unsplash";
 
-/** Bump when example/image quality rules or enrichment output shape changes. */
-export const DISCOVER_WORD_CACHE_VERSION = 9;
+/** Bump when ranking, image quality, or enrichment output shape changes. */
+export const DISCOVER_WORD_CACHE_VERSION = 11;
 
 const STORAGE_KEY = `discover-word-cache-v${DISCOVER_WORD_CACHE_VERSION}`;
 
@@ -14,6 +14,8 @@ const LEGACY_STORAGE_KEYS = [
   "discover-word-cache-v6",
   "discover-word-cache-v7",
   "discover-word-cache-v8",
+  "discover-word-cache-v9",
+  "discover-word-cache-v10",
 ];
 
 const MAX_ENTRIES = 250;
@@ -21,6 +23,7 @@ const MAX_ENTRIES = 250;
 export function isWordDetailComplete(
   data: DiscoverWordData | undefined,
   expectedWord?: string,
+  expectedRank?: number,
 ): boolean {
   if (!data?.phonetic?.trim()) return false;
   if (data.phonetic.trim() === `/${data.word}/`) return false;
@@ -33,16 +36,18 @@ export function isWordDetailComplete(
   if (expectedWord && data.word.toLowerCase() !== expectedWord.toLowerCase()) {
     return false;
   }
+  if (expectedRank !== undefined && data.rank !== expectedRank) return false;
   return true;
 }
 
 export function isCacheEntryValid(
   data: DiscoverWordData | undefined,
   expectedWord: string,
+  expectedRank?: number,
 ): boolean {
   if (!data) return false;
   if (data.word.toLowerCase() !== expectedWord.toLowerCase()) return false;
-  return isWordDetailComplete(data, expectedWord);
+  return isWordDetailComplete(data, expectedWord, expectedRank);
 }
 
 /** Drop legacy sessionStorage keys so stale template examples cannot persist. */
