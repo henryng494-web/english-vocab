@@ -2,6 +2,7 @@ import {
   buildImageSearchQueries,
   isConcretePhrase,
 } from "@/lib/image-keyword";
+import { isUnsafeImageMetadata } from "@/lib/safe-image-metadata";
 import { requiresSafeImageOnly } from "@/lib/safe-image-search";
 
 export type UnsplashPhoto = {
@@ -60,7 +61,7 @@ const GENERIC_QUERY_TOKENS = new Set([
   "scene",
 ]);
 
-const SEMANTIC_IMAGE_VERSION = "7";
+const SEMANTIC_IMAGE_VERSION = "8";
 
 function hashWord(word: string): number {
   let hash = 0;
@@ -412,6 +413,15 @@ export async function searchOpenversePhoto(
       const url = result.thumbnail?.trim();
       if (!url?.startsWith("https://")) continue;
 
+      const metadataText = [
+        result.title,
+        result.description,
+        ...(result.tags ?? []).map((tag) => tag.name),
+      ]
+        .filter(Boolean)
+        .join(" ");
+      if (isUnsafeImageMetadata(metadataText)) continue;
+
       const titleTokens = semanticTokens(result.title ?? "");
       const metadataTokens = semanticTokens(
         [
@@ -503,8 +513,11 @@ export async function searchWikimediaPhoto(
         continue;
       }
 
+      const titleText = (page.title ?? "").replace(/^file:/i, "");
+      if (isUnsafeImageMetadata(titleText)) continue;
+
       const titleTokens = semanticTokens(
-        (page.title ?? "").replace(/^file:/i, "").replace(/\.[a-z0-9]+$/i, ""),
+        titleText.replace(/\.[a-z0-9]+$/i, ""),
       );
       if (
         effectiveRequireWordMatch &&

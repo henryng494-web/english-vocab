@@ -1,4 +1,4 @@
-import { hasQualityStandardVocab } from "@/data/standard-vocab";
+import { hasQualityStandardVocab, getStandardSearchKeyword } from "@/data/standard-vocab";
 import { getPresetRank } from "@/data/preset-word-details";
 import { createClient } from "@/lib/supabase/server";
 import { enrichmentToDiscoverWord } from "@/lib/enrichment-helpers";
@@ -13,6 +13,7 @@ import { generatePhoneticWithGemini } from "@/lib/gemini-core";
 import { isPlaceholderPhonetic, formatIpa } from "@/lib/phonetic";
 import { parseExamples, serializeExamples } from "@/lib/parse-examples";
 import { getImportanceTier } from "@/lib/word-rank";
+import { resolveImageSearchKeyword } from "@/lib/image-keyword";
 import {
   fetchWordImageUrl,
   shouldRefreshImageUrl,
@@ -42,11 +43,24 @@ async function resolveImageUrl(
   return fetchWordImageUrl(word, searchKeyword ?? word, pos);
 }
 
+function imageSearchKeyword(
+  word: string,
+  pos?: string | null,
+  meaning?: string | null,
+): string {
+  return resolveImageSearchKeyword(word, {
+    searchKeyword: getStandardSearchKeyword(word),
+    pos,
+    meaning,
+  });
+}
+
 function persistedDetailToDiscoverWord(
   word: string,
   detail: WordDetail,
   rank: number,
   imageUrl: string,
+  searchKeyword: string,
 ) {
   return {
     word,
@@ -63,7 +77,7 @@ function persistedDetailToDiscoverWord(
     from_static: false,
     from_cache: true,
     source: "database" as const,
-    search_keyword: word,
+    search_keyword: searchKeyword,
   };
 }
 
@@ -238,10 +252,15 @@ export async function GET(request: Request) {
     }
 
     if (isPersistedWordDetailComplete(repairedDbDetail, word)) {
+      const searchKeyword = imageSearchKeyword(
+        word,
+        repairedDbDetail!.word_type,
+        repairedDbDetail!.vietnamese_meaning,
+      );
       const imageUrl = await resolveImageUrl(
         word,
         repairedDbDetail!.image_url,
-        word,
+        searchKeyword,
         repairedDbDetail!.word_type,
       );
       if (repairedDbDetail!.image_url !== imageUrl) {
@@ -258,15 +277,21 @@ export async function GET(request: Request) {
           repairedDbDetail!,
           frequencyRank,
           imageUrl,
+          searchKeyword,
         ),
       });
     }
 
+    const searchKeyword = imageSearchKeyword(
+      word,
+      dbDetail?.word_type,
+      dbDetail?.vietnamese_meaning,
+    );
     const enrichmentPromise = enrichWord(word, { rank: frequencyRank, skipGemini });
     const imagePromise = resolveImageUrl(
       word,
       dbDetail?.image_url ?? null,
-      word,
+      searchKeyword,
       dbDetail?.word_type ?? null,
     );
     const [enrichment, imageUrlInitial] = await Promise.all([

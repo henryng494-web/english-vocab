@@ -8,7 +8,7 @@ import {
 import { requiresSafeImageOnly } from "@/lib/safe-image-search";
 
 /** Bump when ranking, image quality, or enrichment output shape changes. */
-export const DISCOVER_WORD_CACHE_VERSION = 25;
+export const DISCOVER_WORD_CACHE_VERSION = 26;
 
 const STORAGE_KEY = `discover-word-cache-v${DISCOVER_WORD_CACHE_VERSION}`;
 
@@ -34,6 +34,7 @@ const LEGACY_STORAGE_KEYS = [
   "discover-word-cache-v22",
   "discover-word-cache-v23",
   "discover-word-cache-v24",
+  "discover-word-cache-v25",
 ];
 
 const MAX_ENTRIES = 250;
