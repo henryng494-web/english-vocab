@@ -52,10 +52,10 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
-      <div className="w-full max-w-md rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
-        <h1 className="text-2xl font-bold text-slate-900">Đăng nhập</h1>
-        <p className="mt-2 text-sm text-slate-600">
+    <main className="flex min-h-screen items-center justify-center bg-black px-4">
+      <div className="w-full max-w-md rounded-xl border border-neutral-800 bg-neutral-900 p-8 shadow-sm">
+        <h1 className="text-2xl font-bold text-white">Đăng nhập</h1>
+        <p className="mt-2 text-sm text-neutral-400">
           Sử dụng tài khoản Supabase Auth để lưu tiến trình học
         </p>
 
@@ -63,7 +63,7 @@ export default function LoginPage() {
           <div>
             <label
               htmlFor="email"
-              className="block text-sm font-medium text-slate-700"
+              className="block text-sm font-medium text-neutral-300"
             >
               Email
             </label>
@@ -73,13 +73,13 @@ export default function LoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+              className="mt-1 w-full rounded-lg border border-neutral-700 bg-black px-3 py-2 text-white placeholder:text-neutral-500 focus:border-white focus:outline-none focus:ring-1 focus:ring-white"
             />
           </div>
           <div>
             <label
               htmlFor="password"
-              className="block text-sm font-medium text-slate-700"
+              className="block text-sm font-medium text-neutral-300"
             >
               Mật khẩu
             </label>
@@ -90,12 +90,12 @@ export default function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
               required
               minLength={6}
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+              className="mt-1 w-full rounded-lg border border-neutral-700 bg-black px-3 py-2 text-white placeholder:text-neutral-500 focus:border-white focus:outline-none focus:ring-1 focus:ring-white"
             />
           </div>
 
           {message && (
-            <p className="text-sm text-neutral-700 bg-neutral-100 rounded-lg px-3 py-2">
+            <p className="rounded-lg bg-neutral-800 px-3 py-2 text-sm text-neutral-300">
               {message}
             </p>
           )}
@@ -104,7 +104,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 rounded-lg bg-primary px-4 py-2 font-medium text-white hover:bg-primary-hover disabled:opacity-50"
+              className="flex-1 rounded-lg bg-white px-4 py-2 font-medium text-black hover:bg-neutral-200 disabled:opacity-50"
             >
               {loading ? "Đang xử lý..." : "Đăng nhập"}
             </button>
@@ -112,7 +112,7 @@ export default function LoginPage() {
               type="button"
               disabled={loading}
               onClick={handleSignUp}
-              className="flex-1 rounded-lg border border-slate-300 px-4 py-2 font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+              className="flex-1 rounded-lg border border-neutral-600 px-4 py-2 font-medium text-white hover:bg-neutral-800 disabled:opacity-50"
             >
               Đăng ký
             </button>
@@ -121,7 +121,7 @@ export default function LoginPage() {
 
         <Link
           href="/"
-          className="mt-6 block text-center text-sm text-slate-500 hover:text-slate-700"
+          className="mt-6 block text-center text-sm text-neutral-500 hover:text-white"
         >
           ← Quay lại trang chủ
         </Link>

@@ -7,7 +7,7 @@ const NAV_ITEMS = [
 
 export function AppNav({ active }: { active: "learn" | "discover" }) {
   return (
-    <nav className="flex gap-1 rounded-xl bg-neutral-100 p-1">
+    <nav className="flex gap-1 rounded-xl bg-neutral-900 p-1">
       {NAV_ITEMS.map((item) => {
         const isActive =
           active === "learn"
@@ -19,8 +19,8 @@ export function AppNav({ active }: { active: "learn" | "discover" }) {
             href={item.href}
             className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
               isActive
-                ? "bg-white text-primary shadow-sm"
-                : "text-neutral-600 hover:text-neutral-900"
+                ? "bg-white text-black shadow-sm"
+                : "text-neutral-400 hover:text-white"
             }`}
           >
             {item.label}

@@ -30,7 +30,7 @@ function FlashcardImage({ word }: { word: VocabWord }) {
   }, [word.word, word.image_url]);
 
   return (
-    <div className="relative h-44 w-full shrink-0 bg-gradient-to-br from-neutral-200 via-neutral-300 to-neutral-400">
+    <div className="relative h-44 w-full shrink-0 bg-gradient-to-br from-neutral-800 via-neutral-700 to-neutral-900">
       <Image
         src={src}
         alt={word.word}
@@ -68,7 +68,7 @@ function FlashcardBody({
       {showDetails ? (
         <div className="mt-4 space-y-3">
           {word.vietnamese_meaning && (
-            <p className="text-lg font-semibold text-primary-700">
+            <p className="text-lg font-semibold text-white">
               {capitalizeFirst(word.vietnamese_meaning)}
             </p>
           )}
@@ -82,7 +82,7 @@ function FlashcardBody({
           />
         </div>
       ) : (
-        <p className="mt-6 text-center text-xs text-slate-400">Nhấn để lật</p>
+        <p className="mt-6 text-center text-xs text-neutral-500">Nhấn để lật</p>
       )}
     </div>
   );
@@ -107,14 +107,14 @@ export function Flashcard({ word, isFlipped, onFlip }: FlashcardProps) {
         aria-label={isFlipped ? "Xem mặt trước" : "Xem mặt sau"}
       >
         <div className="flashcard-face flashcard-front">
-          <div className="flex h-full flex-col overflow-hidden rounded-2xl bg-white">
+          <div className="flex h-full flex-col overflow-hidden rounded-2xl bg-neutral-900">
             <FlashcardImage word={word} />
             <FlashcardBody word={word} showDetails={false} />
           </div>
         </div>
 
         <div className="flashcard-face flashcard-back">
-          <div className="flex h-full flex-col overflow-hidden rounded-2xl bg-white">
+          <div className="flex h-full flex-col overflow-hidden rounded-2xl bg-neutral-900">
             <FlashcardImage word={word} />
             <FlashcardBody word={word} showDetails={true} />
           </div>

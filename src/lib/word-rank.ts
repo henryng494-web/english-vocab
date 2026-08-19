@@ -23,12 +23,12 @@ export function getTierSortValue(tier: ImportanceTier): number {
 export function tierBadgeColor(tier: ImportanceTier): string {
   switch (tier) {
     case "Top 1000":
-      return "bg-neutral-900 text-white border-neutral-700";
+      return "bg-white text-black border-neutral-300";
     case "Top 3000":
-      return "bg-neutral-700 text-white border-neutral-600";
+      return "bg-neutral-300 text-black border-neutral-400";
     case "Top 5000":
-      return "bg-neutral-300 text-neutral-900 border-neutral-400";
+      return "bg-neutral-600 text-white border-neutral-500";
     default:
-      return "bg-neutral-100 text-neutral-600 border-neutral-200";
+      return "bg-neutral-800 text-neutral-300 border-neutral-700";
   }
 }

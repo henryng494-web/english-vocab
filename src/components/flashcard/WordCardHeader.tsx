@@ -22,7 +22,7 @@ export function WordCardHeader({
   return (
     <div className="flex items-center justify-between gap-3">
       <h2
-        className="shrink-0 border-b border-black/10 pb-1 text-3xl font-bold tracking-tight text-slate-900"
+        className="shrink-0 border-b border-white/10 pb-1 text-3xl font-bold tracking-tight text-white"
       >
         {capitalizeFirst(word)}
       </h2>
@@ -31,16 +31,16 @@ export function WordCardHeader({
         <SpeakButton text={word} variant="light" iconOnly />
 
         {phonetic ? (
-          <span className="text-base text-slate-500">{phonetic}</span>
+          <span className="text-base text-neutral-400">{phonetic}</span>
         ) : loadingPhonetic ? (
           <span
-            className="h-5 w-16 animate-pulse rounded bg-slate-100"
+            className="h-5 w-16 animate-pulse rounded bg-neutral-800"
             aria-hidden
           />
         ) : null}
 
         {wordTypeVi && (
-          <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-500">
+          <span className="rounded-full bg-neutral-800 px-3 py-1 text-xs font-medium text-neutral-400">
             {wordTypeVi}
           </span>
         )}

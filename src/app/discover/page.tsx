@@ -302,13 +302,13 @@ export default function DiscoverPage() {
   );
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-neutral-100 via-neutral-50 to-white">
-      <header className="border-b border-white/60 bg-white/80 backdrop-blur-md">
+    <main className="min-h-screen bg-black">
+      <header className="border-b border-neutral-800 bg-black/80 backdrop-blur-md">
         <div className="mx-auto max-w-2xl px-4 py-4">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h1 className="text-xl font-bold text-slate-900">Knowledge Map</h1>
-              <p className="text-sm text-slate-500">
+              <h1 className="text-xl font-bold text-white">Knowledge Map</h1>
+              <p className="text-sm text-neutral-400">
                 Khám phá từ — tải trước để chuyển thẻ mượt hơn
               </p>
             </div>
@@ -319,14 +319,14 @@ export default function DiscoverPage() {
 
       <div className="mx-auto max-w-2xl px-4 py-6">
         <div className="flex flex-wrap items-center gap-3">
-          <label className="text-sm font-medium text-slate-600" htmlFor="range">
+          <label className="text-sm font-medium text-neutral-400" htmlFor="range">
             Dải từ:
           </label>
           <select
             id="range"
             value={rangeId}
             onChange={(e) => setRangeId(e.target.value)}
-            className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+            className="rounded-xl border border-neutral-700 bg-neutral-900 px-4 py-2.5 text-sm font-medium text-neutral-300 shadow-sm focus:border-white focus:outline-none focus:ring-2 focus:ring-white/20"
           >
             {WORD_RANGES.map((range) => (
               <option key={range.id} value={range.id}>
@@ -334,34 +334,34 @@ export default function DiscoverPage() {
               </option>
             ))}
           </select>
-          <span className="text-sm text-slate-500">
+          <span className="text-sm text-neutral-400">
             {rangeLabel} · {queue.length} từ còn lại
             {stats.hidden > 0 && ` · ${stats.hidden} đã biết`}
           </span>
         </div>
 
         {error && (
-          <p className="mt-4 rounded-xl border border-neutral-300 bg-neutral-100 px-4 py-3 text-sm text-neutral-800">
+          <p className="mt-4 rounded-xl border border-neutral-700 bg-neutral-900 px-4 py-3 text-sm text-neutral-300">
             {error}
           </p>
         )}
 
         {loadingList ? (
           <div className="mt-12 flex justify-center">
-            <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary-200 border-t-primary" />
+            <div className="h-10 w-10 animate-spin rounded-full border-4 border-neutral-700 border-t-white" />
           </div>
         ) : queue.length === 0 ? (
           <div className="mt-12 text-center">
-            <p className="text-slate-600">
+            <p className="text-neutral-300">
               Đã xem hết từ trong dải này hoặc bạn đã đánh dấu tất cả là &ldquo;Đã biết&rdquo;.
             </p>
-            <p className="mt-2 text-sm text-slate-500">
+            <p className="mt-2 text-sm text-neutral-500">
               Hãy chọn dải từ khác hoặc sang trang Học từ để ôn tập.
             </p>
           </div>
         ) : (
           <div className="mt-8">
-            <p className="mb-4 text-center text-sm text-slate-500">
+            <p className="mb-4 text-center text-sm text-neutral-400">
               Từ {currentIndex + 1} / {queue.length} trong dải
             </p>
 
@@ -375,14 +375,14 @@ export default function DiscoverPage() {
               <button
                 type="button"
                 onClick={() => updateStatus("new")}
-                className="rounded-xl bg-primary py-3.5 font-semibold text-white shadow-sm transition hover:bg-primary-hover"
+                className="rounded-xl bg-white py-3.5 font-semibold text-black shadow-sm transition hover:bg-neutral-200"
               >
                 Nên học
               </button>
               <button
                 type="button"
                 onClick={() => updateStatus("mastered")}
-                className="rounded-xl border-2 border-slate-200 bg-white py-3.5 font-semibold text-slate-700 transition hover:bg-slate-50"
+                className="rounded-xl border-2 border-neutral-600 bg-neutral-900 py-3.5 font-semibold text-white transition hover:bg-neutral-800"
               >
                 Đã biết
               </button>
@@ -393,7 +393,7 @@ export default function DiscoverPage() {
                 type="button"
                 disabled={currentIndex === 0}
                 onClick={() => goToIndex(currentIndex - 1)}
-                className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm text-slate-600 disabled:opacity-40"
+                className="rounded-lg border border-neutral-700 bg-neutral-900 px-4 py-2 text-sm text-neutral-300 disabled:opacity-40"
               >
                 ← Trước
               </button>
@@ -401,7 +401,7 @@ export default function DiscoverPage() {
                 type="button"
                 disabled={currentIndex >= queue.length - 1}
                 onClick={() => goToIndex(currentIndex + 1)}
-                className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm text-slate-600 disabled:opacity-40"
+                className="rounded-lg border border-neutral-700 bg-neutral-900 px-4 py-2 text-sm text-neutral-300 disabled:opacity-40"
               >
                 Sau →
               </button>

@@ -67,20 +67,20 @@ export function getDefaultLearningImageDataUrl(): string {
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="600" height="350" viewBox="0 0 600 350">
     <defs>
       <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0%" stop-color="#404040"/>
-        <stop offset="100%" stop-color="#737373"/>
+        <stop offset="0%" stop-color="#262626"/>
+        <stop offset="100%" stop-color="#404040"/>
       </linearGradient>
     </defs>
     <rect width="600" height="350" fill="url(#bg)"/>
     <g fill="#ffffff" opacity="0.95">
       <rect x="220" y="150" width="160" height="110" rx="10"/>
-      <rect x="230" y="165" width="140" height="10" rx="4" fill="#404040"/>
-      <rect x="230" y="185" width="110" height="8" rx="4" fill="#404040"/>
-      <rect x="230" y="201" width="120" height="8" rx="4" fill="#404040"/>
-      <rect x="230" y="217" width="90" height="8" rx="4" fill="#404040"/>
+      <rect x="230" y="165" width="140" height="10" rx="4" fill="#737373"/>
+      <rect x="230" y="185" width="110" height="8" rx="4" fill="#737373"/>
+      <rect x="230" y="201" width="120" height="8" rx="4" fill="#737373"/>
+      <rect x="230" y="217" width="90" height="8" rx="4" fill="#737373"/>
       <circle cx="300" cy="110" r="34" fill="#ffffff"/>
-      <path d="M300 90 l40 18 -40 18 -40 -18 z" fill="#404040"/>
-      <rect x="278" y="112" width="6" height="26" fill="#404040"/>
+      <path d="M300 90 l40 18 -40 18 -40 -18 z" fill="#737373"/>
+      <rect x="278" y="112" width="6" height="26" fill="#737373"/>
     </g>
   </svg>`;
   const base64 =

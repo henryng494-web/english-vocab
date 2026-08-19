@@ -18,7 +18,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="vi">
+    <html lang="vi" className="dark">
       <body className={`${nunito.className} antialiased`}>
         {children}
       </body>
