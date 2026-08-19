@@ -169,6 +169,16 @@ const CURATED_VISUAL_KEYWORDS: Record<string, string> = {
   keep: "person holding treasure box",
   suggest: "people brainstorming with sticky notes",
   decide: "person choosing between two doors",
+  prove: "legal proof document certificate",
+  evidence: "court evidence folder documents",
+  score: "sports scoreboard game",
+  strip: "colorful paper strip",
+  bang: "fireworks celebration night",
+  touch: "hand touching soft fabric",
+  hard: "hard rock stone surface",
+  wet: "wet rain umbrella",
+  suck: "straw drinking juice",
+  blow: "person blowing birthday candles",
 };
 
 export function hasCuratedVisualKeyword(word: string): boolean {
@@ -270,7 +280,7 @@ export function buildImageSearchQueries(
   if (
     primary !== normalizedWord &&
     !hasCuratedKeyword &&
-    (!pos || !ABSTRACT_POS.has(pos))
+    pos === "noun"
   ) {
     queries.add(normalizedWord);
   }
