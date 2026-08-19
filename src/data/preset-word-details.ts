@@ -18,10 +18,10 @@ export function getStaticWordDetail(word: string): StaticWordDetail | undefined 
 }
 
 export function getPresetRank(word: string): number | undefined {
-  const staticRank = PRESET_WORD_DETAILS[word.toLowerCase()]?.rank;
-  if (staticRank) return staticRank;
-  const preset = PRESET_WORDS.find((w) => w.word === word.toLowerCase());
-  return preset?.rank;
+  const normalized = word.toLowerCase();
+  const preset = PRESET_WORDS.find((w) => w.word === normalized);
+  if (preset) return preset.rank;
+  return PRESET_WORD_DETAILS[normalized]?.rank;
 }
 
 export function hasStaticWordDetail(word: string): boolean {

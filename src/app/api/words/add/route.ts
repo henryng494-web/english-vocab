@@ -1,3 +1,4 @@
+import { getPresetRank } from "@/data/preset-word-details";
 import { createClient } from "@/lib/supabase/server";
 import { enrichWord } from "@/lib/enrich-word";
 import { serializeExamples } from "@/lib/parse-examples";
@@ -30,13 +31,9 @@ export async function POST(request: Request) {
       .maybeSingle();
 
     if (existingDetails) {
-      const { data: bankRow } = await supabase
-        .from("word_bank")
-        .select("rank")
-        .eq("word", trimmedWord)
-        .maybeSingle();
-
       const standard = await enrichWord(trimmedWord);
+      const frequencyRank =
+        getPresetRank(trimmedWord) ?? standard.frequencyRank ?? 10000;
       let imageUrl = existingDetails.image_url;
       if (!imageUrl?.trim() || isStalePresetFallbackUrl(imageUrl)) {
         imageUrl = await fetchWordImageUrl(
@@ -58,6 +55,11 @@ export async function POST(request: Request) {
         })
         .eq("word", trimmedWord);
 
+      await supabase
+        .from("word_bank")
+        .update({ rank: frequencyRank })
+        .eq("word", trimmedWord);
+
       return NextResponse.json({
         word: {
           ...existingDetails,
@@ -67,7 +69,7 @@ export async function POST(request: Request) {
           vietnamese_meaning: standard.vietnameseMeaning,
           examples: serializeExamples(standard.examples),
           image_url: imageUrl,
-          rank: bankRow?.rank ?? standard.frequencyRank ?? 10000,
+          rank: frequencyRank,
         },
       });
     }
