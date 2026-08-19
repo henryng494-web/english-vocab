@@ -1,3 +1,5 @@
+import { SPOKEN_FREQUENCY_RANKS } from "@/data/spoken-frequency-ranks";
+
 export type WordRange = {
   id: string;
   label: string;
@@ -18,11 +20,17 @@ export const WORD_RANGES: WordRange[] = [
   { id: "501-1000", label: "Rank 501 - 1000", min: 501, max: 1000 },
   { id: "1001-3000", label: "Rank 1001 - 3000", min: 1001, max: 3000 },
   { id: "3001-5000", label: "Rank 3001 - 5000", min: 3001, max: 5000 },
+  {
+    id: "5001-plus",
+    label: "Rank 5001+",
+    min: 5001,
+    max: Number.MAX_SAFE_INTEGER,
+  },
 ];
 
-/** Segments ordered by COCA/Oxford frequency with foundation words in ranks 1–300. */
-const SEGMENTS: string[][] = [
-  // Rank 1-100 — highest-frequency function & content words (COCA core)
+/** Vocabulary inventory. Frequency ranks are assigned from SUBTLEX-US below. */
+const VOCABULARY_GROUPS: string[][] = [
+  // Foundation words
   [
     "the", "be", "to", "of", "and", "a", "in", "that", "have", "i",
     "it", "for", "not", "on", "with", "he", "as", "you", "do", "at",
@@ -35,7 +43,7 @@ const SEGMENTS: string[][] = [
     "back", "after", "use", "two", "how", "our", "work", "first", "well", "way",
     "even", "new", "want", "because", "any", "these", "give", "day", "most", "us",
   ],
-  // Rank 101-200 — numbers 3–20, colors, days of week
+  // Numbers, colors, days, and common words
   [
     "three", "four", "five", "six", "seven", "eight", "nine", "ten",
     "red", "white", "blue", "green", "yellow", "black", "orange", "brown", "color",
@@ -49,7 +57,7 @@ const SEGMENTS: string[][] = [
     "house", "picture", "try", "again", "animal", "point", "mother", "world", "near",
     "father", "head", "stand",
   ],
-  // Rank 201-300 — months, larger numbers, more colors
+  // Months, larger numbers, and common words
   [
     "january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december",
     "thirty", "forty", "fifty", "hundred", "thousand", "pink", "purple", "gray",
@@ -65,7 +73,7 @@ const SEGMENTS: string[][] = [
     "short", "numeral", "class", "wind", "question", "happen", "complete", "ship", "area", "half",
     "rock", "order", "fire", "south", "problem",
   ],
-  // Rank 301-500
+  // Extended vocabulary
   [
     "top", "whole", "king", "space", "heard", "best", "hour", "better", "during", "state",
     "remember", "step", "early", "hold", "west", "ground", "interest", "reach", "fast", "keep",
@@ -91,7 +99,7 @@ const SEGMENTS: string[][] = [
     "leg", "exercise", "sat", "written", "wild", "school", "grow", "study", "still", "learn",
     "plant", "cover", "food",
   ],
-  // Rank 501-1000
+  // Extended vocabulary
   [
     "sign", "visit", "past", "soft", "fun", "bright", "gas", "weather", "million",
     "bear", "finish", "happy", "hope", "flower", "clothe", "strange", "gone", "jump", "baby",
@@ -105,7 +113,7 @@ const SEGMENTS: string[][] = [
     "method", "organ", "pay", "age", "section", "dress", "cloud", "surprise", "quiet", "stone",
     "tiny", "climb", "cool", "design", "poor", "lot", "experiment", "bottom", "key", "iron",
   ],
-  // Rank 1001-3000
+  // Extended vocabulary
   [
     "single", "stick", "flat", "skin", "smile", "crease", "hole", "trade", "melody",
     "trip", "office", "receive", "row", "mouth", "exact", "symbol", "die", "least", "trouble",
@@ -116,7 +124,7 @@ const SEGMENTS: string[][] = [
     "woman", "captain", "practice", "separate", "difficult", "doctor", "please", "protect", "noon", "whose",
     "locate", "ring", "character", "insect", "caught", "period", "indicate", "radio", "spoke", "atom",
   ],
-  // Rank 3001-5000 (sample 60 words)
+  // Extended vocabulary
   [
     "human", "history", "effect", "electric", "expect", "crop", "modern", "element", "hit", "student",
     "corner", "party", "supply", "bone", "rail", "imagine", "provide", "agree", "thus", "capital",
@@ -127,15 +135,14 @@ const SEGMENTS: string[][] = [
   ],
 ];
 
-const SEGMENT_START_RANKS = [1, 101, 201, 301, 501, 1001, 3001];
-
-export const PRESET_WORDS: PresetWord[] = SEGMENTS.flatMap((words, segmentIndex) => {
-  const startRank = SEGMENT_START_RANKS[segmentIndex];
-  return words.map((word, i) => ({
+export const PRESET_WORDS: PresetWord[] = [
+  ...new Set(VOCABULARY_GROUPS.flat()),
+]
+  .map((word) => ({
     word,
-    rank: startRank + i,
-  }));
-});
+    rank: SPOKEN_FREQUENCY_RANKS[word] ?? Number.MAX_SAFE_INTEGER,
+  }))
+  .sort((a, b) => a.rank - b.rank || a.word.localeCompare(b.word));
 
 export function getRangeById(id: string): WordRange | undefined {
   return WORD_RANGES.find((r) => r.id === id);

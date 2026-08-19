@@ -1,3 +1,4 @@
+import { getPresetRank } from "@/data/preset-word-details";
 import { createClient } from "@/lib/supabase/server";
 import { getImportanceTier } from "@/lib/word-rank";
 import type { LearningStatus, VocabWord } from "@/types/database";
@@ -47,7 +48,8 @@ export async function GET(request: Request) {
     );
 
     let words: VocabWord[] = (details ?? []).map((detail) => {
-      const rank = rankByWord.get(detail.word) ?? 10000;
+      const rank =
+        getPresetRank(detail.word) ?? rankByWord.get(detail.word) ?? 10000;
       const learning = learningByWord.get(detail.word);
       return {
         ...detail,
