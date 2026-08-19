@@ -246,11 +246,11 @@ export default function LearnPage() {
         <div className="mx-auto max-w-2xl px-4 py-4">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h1 className="text-xl font-bold text-foreground">English Vocab</h1>
-              <p className="text-sm text-foreground/60">WordUp-style flashcards</p>
+              <h1 className="text-xl font-bold text-foreground">Ôn tập</h1>
+              <p className="text-sm text-foreground/60">Flashcard từ đã lưu</p>
             </div>
             <div className="flex flex-col items-end gap-2 sm:flex-row sm:items-center">
-              <AppNav active="learn" />
+              <AppNav active="review" />
               <div className="text-right text-sm text-foreground/60">
                 <p>{words.length} từ · {studyQueue.length} cần học</p>
               </div>

@@ -2,6 +2,7 @@ import {
   buildImageSearchQueries,
   isConcretePhrase,
 } from "@/lib/image-keyword";
+import { requiresSafeImageOnly } from "@/lib/safe-image-search";
 
 export type UnsplashPhoto = {
   id: string;
@@ -157,7 +158,12 @@ export function isPlaceholderIllustrationUrl(
 
 export function shouldRefreshImageUrl(
   url: string | null | undefined,
+  word?: string | null,
 ): boolean {
+  if (word && requiresSafeImageOnly(word)) {
+    const trimmed = url?.trim();
+    if (trimmed?.startsWith("http")) return true;
+  }
   return (
     !url?.trim() ||
     isStalePresetFallbackUrl(url) ||
@@ -255,6 +261,9 @@ export function resolveWordImageUrl(
   pos?: string | null,
 ): string {
   void _searchKeyword;
+  if (requiresSafeImageOnly(word)) {
+    return getDefaultLearningImageDataUrl(word, pos);
+  }
   const trimmed = imageUrl?.trim();
   if (
     trimmed &&
@@ -282,6 +291,7 @@ export async function searchPhotos(
     query,
     per_page: String(perPage),
     orientation: "landscape",
+    content_filter: "high",
   });
 
   const response = await fetch(
@@ -535,6 +545,9 @@ export async function fetchWordImageUrl(
   searchKeyword?: string | null,
   pos?: string | null,
 ): Promise<string> {
+  if (requiresSafeImageOnly(word)) {
+    return getDefaultLearningImageDataUrl(word, pos);
+  }
   const queries = buildImageSearchQueries(word, { searchKeyword, pos });
   if (queries.length === 0) return getDefaultLearningImageDataUrl(word, pos);
 

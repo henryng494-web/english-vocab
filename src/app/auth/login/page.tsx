@@ -25,7 +25,7 @@ export default function LoginPage() {
     if (error) {
       setMessage(error.message);
     } else {
-      window.location.href = "/learn";
+      window.location.href = "/discover";
     }
     setLoading(false);
   }

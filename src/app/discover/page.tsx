@@ -329,12 +329,12 @@ export default function DiscoverPage() {
         <div className="mx-auto max-w-2xl px-4 py-4">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h1 className="text-xl font-bold text-foreground">Knowledge Map</h1>
+              <h1 className="text-xl font-bold text-foreground">Tra từ</h1>
               <p className="text-sm text-foreground/60">
-                Khám phá từ — tải trước để chuyển thẻ mượt hơn
+                Duyệt và tra nghĩa theo dải tần suất
               </p>
             </div>
-            <AppNav active="discover" />
+            <AppNav active="lookup" />
           </div>
         </div>
       </header>
@@ -378,7 +378,7 @@ export default function DiscoverPage() {
               Đã xem hết từ trong dải này hoặc bạn đã đánh dấu tất cả là &ldquo;Đã biết&rdquo;.
             </p>
             <p className="mt-2 text-sm text-foreground/60">
-              Hãy chọn dải từ khác hoặc sang trang Học từ để ôn tập.
+              Hãy chọn dải từ khác hoặc sang trang Ôn tập.
             </p>
           </div>
         ) : (

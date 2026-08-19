@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { enrichWord } from "@/lib/enrich-word";
 import { serializeExamples } from "@/lib/parse-examples";
 import { fetchWordImageUrl, shouldRefreshImageUrl } from "@/lib/unsplash";
+import { isProfaneWord } from "@/lib/safe-image-search";
 import { NextResponse } from "next/server";
 
 function errorMessage(error: unknown): string {
@@ -24,6 +25,13 @@ export async function POST(request: Request) {
 
     const trimmedWord = word.trim().toLowerCase();
 
+    if (isProfaneWord(trimmedWord)) {
+      return NextResponse.json(
+        { error: "Word not available in this app" },
+        { status: 400 },
+      );
+    }
+
     const { data: existingDetails } = await supabase
       .from("word_details")
       .select("*")
@@ -35,7 +43,7 @@ export async function POST(request: Request) {
       const frequencyRank =
         getPresetRank(trimmedWord) ?? standard.frequencyRank ?? 10000;
       let imageUrl = existingDetails.image_url;
-      if (shouldRefreshImageUrl(imageUrl)) {
+      if (shouldRefreshImageUrl(imageUrl, trimmedWord)) {
         imageUrl = await fetchWordImageUrl(
           trimmedWord,
           standard.searchKeyword,

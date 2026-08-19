@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "generate:subtlex": "node scripts/generate-subtlex-ranks.mjs"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.0",
@@ -24,6 +25,7 @@
     "@types/react-dom": "^19.0.4",
     "eslint": "^9.23.0",
     "eslint-config-next": "^15.2.4",
+    "subtlex-word-frequencies": "^2.0.0",
     "tailwindcss": "^4.1.3",
     "typescript": "^5.8.2"
   }

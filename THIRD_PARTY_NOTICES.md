@@ -27,5 +27,5 @@ version 2.0.0 (ISC license). That package republishes data from SUBTLEX-US:
 > a new and improved word frequency measure for American English. *Behavior
 > Research Methods, 41*(4), 977–990.
 
-The rank map includes only the words used by this application, not the full
-SUBTLEX-US dataset.
+The rank map includes the full learnable-word SUBTLEX-US frequency table
+(74,260 words). Regenerate with \`npm run generate:subtlex\`; do not hand-edit.

@@ -6,6 +6,7 @@ import {
   fetchWordImageUrl,
   shouldRefreshImageUrl,
 } from "@/lib/unsplash";
+import { isProfaneWord } from "@/lib/safe-image-search";
 import { NextResponse } from "next/server";
 
 function errorMessage(error: unknown): string {
@@ -23,7 +24,7 @@ async function resolveImageUrl(
   pos?: string | null,
 ): Promise<string> {
   const trimmed = existingUrl?.trim();
-  if (trimmed?.startsWith("http") && !shouldRefreshImageUrl(trimmed)) {
+  if (trimmed?.startsWith("http") && !shouldRefreshImageUrl(trimmed, word)) {
     return trimmed;
   }
   const resolvedUrl = await fetchWordImageUrl(
@@ -68,6 +69,13 @@ export async function GET(request: Request) {
 
     if (!word) {
       return NextResponse.json({ error: "Word is required" }, { status: 400 });
+    }
+
+    if (isProfaneWord(word)) {
+      return NextResponse.json(
+        { error: "Word not available in this app" },
+        { status: 404 },
+      );
     }
 
     const supabase = await createClient();

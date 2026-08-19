@@ -1,18 +1,17 @@
 import Link from "next/link";
 
-const NAV_ITEMS = [
-  { href: "/learn", label: "Học từ" },
-  { href: "/discover", label: "Knowledge Map" },
+export type AppNavSection = "lookup" | "review";
+
+const NAV_ITEMS: { href: string; section: AppNavSection; label: string }[] = [
+  { href: "/discover", section: "lookup", label: "Tra từ" },
+  { href: "/learn", section: "review", label: "Ôn tập" },
 ];
 
-export function AppNav({ active }: { active: "learn" | "discover" }) {
+export function AppNav({ active }: { active: AppNavSection }) {
   return (
     <nav className="flex gap-1 rounded-xl bg-primary-50 p-1">
       {NAV_ITEMS.map((item) => {
-        const isActive =
-          active === "learn"
-            ? item.href === "/learn"
-            : item.href === "/discover";
+        const isActive = item.section === active;
         return (
           <Link
             key={item.href}

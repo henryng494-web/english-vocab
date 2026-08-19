@@ -6,9 +6,10 @@ import {
   isPlaceholderIllustrationUrl,
   isUntrustedRandomImageUrl,
 } from "@/lib/unsplash";
+import { requiresSafeImageOnly } from "@/lib/safe-image-search";
 
 /** Bump when ranking, image quality, or enrichment output shape changes. */
-export const DISCOVER_WORD_CACHE_VERSION = 20;
+export const DISCOVER_WORD_CACHE_VERSION = 21;
 
 const STORAGE_KEY = `discover-word-cache-v${DISCOVER_WORD_CACHE_VERSION}`;
 
@@ -29,6 +30,7 @@ const LEGACY_STORAGE_KEYS = [
   "discover-word-cache-v17",
   "discover-word-cache-v18",
   "discover-word-cache-v19",
+  "discover-word-cache-v20",
 ];
 
 const MAX_ENTRIES = 250;
@@ -42,6 +44,9 @@ export function isWordDetailComplete(
   if (data.phonetic.trim() === `/${data.word}/`) return false;
   if (!data.vietnamese_meaning?.trim()) return false;
   if (!data.image_url?.trim()) return false;
+  if (requiresSafeImageOnly(data.word) && data.image_url.trim().startsWith("http")) {
+    return false;
+  }
   if (isUntrustedRandomImageUrl(data.image_url)) return false;
   if (isOutdatedSemanticImageUrl(data.image_url)) return false;
   if (isPlaceholderIllustrationUrl(data.image_url)) return false;
