@@ -51,7 +51,7 @@ const NON_CONCRETE_POS = new Set([
   "verb",
 ]);
 
-const SEMANTIC_IMAGE_VERSION = "2";
+const SEMANTIC_IMAGE_VERSION = "4";
 
 function hashWord(word: string): number {
   let hash = 0;
@@ -121,15 +121,18 @@ export function isUntrustedRandomImageUrl(
   }
 }
 
-export function isOutdatedOpenverseImageUrl(
+export function isOutdatedSemanticImageUrl(
   url: string | null | undefined,
 ): boolean {
   const trimmed = url?.trim();
   if (!trimmed) return false;
   try {
     const parsed = new URL(trimmed);
+    const requiresSemanticVersion =
+      parsed.hostname === "api.openverse.org" ||
+      parsed.hostname === "images.unsplash.com";
     return (
-      parsed.hostname === "api.openverse.org" &&
+      requiresSemanticVersion &&
       parsed.searchParams.get("semantic") !== SEMANTIC_IMAGE_VERSION
     );
   } catch {
@@ -144,7 +147,7 @@ export function shouldRefreshImageUrl(
     !url?.trim() ||
     isStalePresetFallbackUrl(url) ||
     isUntrustedRandomImageUrl(url) ||
-    isOutdatedOpenverseImageUrl(url)
+    isOutdatedSemanticImageUrl(url)
   );
 }
 
@@ -194,7 +197,7 @@ export function resolveWordImageUrl(
     trimmed.startsWith("http") &&
     !isStalePresetFallbackUrl(trimmed) &&
     !isUntrustedRandomImageUrl(trimmed) &&
-    !isOutdatedOpenverseImageUrl(trimmed)
+    !isOutdatedSemanticImageUrl(trimmed)
   ) {
     return trimmed;
   }
@@ -268,6 +271,12 @@ function overlapCount(left: Set<string>, right: Set<string>): number {
   return count;
 }
 
+function markSemanticImageUrl(url: string): string {
+  const versionedUrl = new URL(url);
+  versionedUrl.searchParams.set("semantic", SEMANTIC_IMAGE_VERSION);
+  return versionedUrl.toString();
+}
+
 /**
  * Public-domain fallback with semantic validation. Openverse may return broad
  * full-text matches, so only accept a result whose title/tags overlap both the
@@ -276,6 +285,7 @@ function overlapCount(left: Set<string>, right: Set<string>): number {
 export async function searchOpenversePhoto(
   word: string,
   query: string,
+  requireWordMatch = true,
 ): Promise<string | null> {
   const params = new URLSearchParams({
     q: query,
@@ -308,13 +318,17 @@ export async function searchOpenversePhoto(
       const metadataTokens = semanticTokens(
         [
           result.title,
-          result.description,
           ...(result.tags ?? []).map((tag) => tag.name),
         ]
           .filter(Boolean)
           .join(" "),
       );
-      if (overlapCount(wordTokens, metadataTokens) === 0) continue;
+      if (
+        requireWordMatch &&
+        overlapCount(wordTokens, metadataTokens) === 0
+      ) {
+        continue;
+      }
 
       const queryMatches = overlapCount(queryTokens, metadataTokens);
       const requiredMatches = queryTokens.size > 1 ? 2 : 1;
@@ -326,9 +340,7 @@ export async function searchOpenversePhoto(
     }
 
     if (!best) return null;
-    const versionedUrl = new URL(best.url);
-    versionedUrl.searchParams.set("semantic", SEMANTIC_IMAGE_VERSION);
-    return versionedUrl.toString();
+    return markSemanticImageUrl(best.url);
   } catch {
     return null;
   }
@@ -353,7 +365,7 @@ export async function fetchWordImageUrl(
       try {
         const photos = await searchPhotos(keyword, 1);
         if (photos[0]?.url) {
-          return photos[0].url;
+          return markSemanticImageUrl(photos[0].url);
         }
       } catch (error) {
         console.warn(`Unsplash API skipped for "${keyword}":`, error);
@@ -363,13 +375,18 @@ export async function fetchWordImageUrl(
   }
 
   const normalizedPos = pos?.trim().toLowerCase();
+  const hasCuratedKeyword = hasCuratedVisualKeyword(word);
   const requiresConcretePhrase =
     Boolean(normalizedPos && NON_CONCRETE_POS.has(normalizedPos)) &&
-    !hasCuratedVisualKeyword(word);
+    !hasCuratedKeyword;
 
   for (const keyword of queries) {
     if (requiresConcretePhrase && semanticTokens(keyword).size < 2) continue;
-    const openverseUrl = await searchOpenversePhoto(word, keyword);
+    const openverseUrl = await searchOpenversePhoto(
+      word,
+      keyword,
+      !hasCuratedKeyword,
+    );
     if (openverseUrl) return openverseUrl;
   }
 

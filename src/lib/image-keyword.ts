@@ -30,6 +30,7 @@ const CURATED_VISUAL_KEYWORDS: Record<string, string> = {
   slow: "snail slow",
   color: "colorful paint palette",
   time: "wall clock",
+  way: "road path direction",
   money: "coins cash",
   work: "office desk laptop",
   make: "hands making pottery",
@@ -115,10 +116,12 @@ export function buildImageSearchQueries(
   const primary = resolveImageSearchKeyword(word, options);
   const normalizedWord = cleanPhrase(word) || "vocabulary";
   const queries = new Set<string>([primary]);
+  const hasCuratedKeyword = hasCuratedVisualKeyword(normalizedWord);
 
   const pos = options.pos?.trim().toLowerCase();
   if (
     primary !== normalizedWord &&
+    !hasCuratedKeyword &&
     (!pos || !ABSTRACT_POS.has(pos))
   ) {
     queries.add(normalizedWord);

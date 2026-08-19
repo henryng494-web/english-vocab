@@ -2,12 +2,12 @@ import type { DiscoverWordData } from "@/components/discover/DiscoverCard";
 import { hasQualityExamples } from "@/lib/example-fallback";
 import { parseExamples } from "@/lib/parse-examples";
 import {
-  isOutdatedOpenverseImageUrl,
+  isOutdatedSemanticImageUrl,
   isUntrustedRandomImageUrl,
 } from "@/lib/unsplash";
 
 /** Bump when ranking, image quality, or enrichment output shape changes. */
-export const DISCOVER_WORD_CACHE_VERSION = 12;
+export const DISCOVER_WORD_CACHE_VERSION = 15;
 
 const STORAGE_KEY = `discover-word-cache-v${DISCOVER_WORD_CACHE_VERSION}`;
 
@@ -20,6 +20,9 @@ const LEGACY_STORAGE_KEYS = [
   "discover-word-cache-v9",
   "discover-word-cache-v10",
   "discover-word-cache-v11",
+  "discover-word-cache-v12",
+  "discover-word-cache-v13",
+  "discover-word-cache-v14",
 ];
 
 const MAX_ENTRIES = 250;
@@ -34,7 +37,7 @@ export function isWordDetailComplete(
   if (!data.vietnamese_meaning?.trim()) return false;
   if (!data.image_url?.trim()) return false;
   if (isUntrustedRandomImageUrl(data.image_url)) return false;
-  if (isOutdatedOpenverseImageUrl(data.image_url)) return false;
+  if (isOutdatedSemanticImageUrl(data.image_url)) return false;
   if (!hasQualityExamples(data.word, parseExamples(data.examples))) {
     return false;
   }
