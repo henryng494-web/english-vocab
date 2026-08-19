@@ -101,5 +101,6 @@ Login uses Supabase auth (`src/app/auth/login`). For flows requiring a session, 
 ### PR expectations
 
 - Work on a feature branch; cloud agents push and open PRs automatically.
+- After tests pass and the task is complete, **merge the PR into `main` automatically** — do not leave PRs open waiting for manual merge unless the user says otherwise.
 - Keep diffs focused; do not refactor unrelated code.
 - Do not commit `.env.local` or API keys.
