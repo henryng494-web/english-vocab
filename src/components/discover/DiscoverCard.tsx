@@ -47,7 +47,7 @@ function CardImage({
     searchKeyword,
     wordType,
   );
-  const finalSrc = getDefaultLearningImageDataUrl();
+  const finalSrc = getDefaultLearningImageDataUrl(word, wordType);
   const [src, setSrc] = useState(primarySrc);
 
   useEffect(() => {

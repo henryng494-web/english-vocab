@@ -7,7 +7,7 @@ import {
 } from "@/lib/unsplash";
 
 /** Bump when ranking, image quality, or enrichment output shape changes. */
-export const DISCOVER_WORD_CACHE_VERSION = 16;
+export const DISCOVER_WORD_CACHE_VERSION = 17;
 
 const STORAGE_KEY = `discover-word-cache-v${DISCOVER_WORD_CACHE_VERSION}`;
 
@@ -24,6 +24,7 @@ const LEGACY_STORAGE_KEYS = [
   "discover-word-cache-v13",
   "discover-word-cache-v14",
   "discover-word-cache-v15",
+  "discover-word-cache-v16",
 ];
 
 const MAX_ENTRIES = 250;

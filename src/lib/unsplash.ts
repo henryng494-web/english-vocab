@@ -161,10 +161,63 @@ export function shouldRefreshImageUrl(
 }
 
 /**
- * Local, network-free illustration — the guaranteed last resort so a card
- * never shows a broken-image icon even if every remote image host is down.
+ * Local, word-specific illustration for concepts that stock photos cannot
+ * represent reliably (especially prepositions and function words).
  */
-export function getDefaultLearningImageDataUrl(): string {
+export function getDefaultLearningImageDataUrl(
+  word = "word",
+  pos?: string | null,
+): string {
+  const normalizedWord =
+    word.trim().toLowerCase().replace(/[^a-z0-9'-]/g, "") || "word";
+  const safeWord = normalizedWord
+    .toUpperCase()
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+  const safePos = (pos?.trim().toUpperCase() || "VOCABULARY")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+
+  const relationGraphic = (() => {
+    if (["over", "above"].includes(normalizedWord)) {
+      return `<rect x="230" y="205" width="140" height="22" rx="11"/><circle cx="300" cy="125" r="34"/><path d="M300 170v-24m-12 12 12-12 12 12" fill="none" stroke="#fff" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>`;
+    }
+    if (["under", "below"].includes(normalizedWord)) {
+      return `<rect x="230" y="95" width="140" height="22" rx="11"/><circle cx="300" cy="195" r="34"/><path d="M300 145v24m-12-12 12 12 12-12" fill="none" stroke="#fff" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>`;
+    }
+    if (["in", "inside", "into"].includes(normalizedWord)) {
+      return `<rect x="215" y="85" width="170" height="150" rx="20" fill="none" stroke="#fff" stroke-width="12"/><circle cx="300" cy="160" r="38"/>`;
+    }
+    if (["on", "upon"].includes(normalizedWord)) {
+      return `<rect x="215" y="195" width="170" height="24" rx="12"/><circle cx="300" cy="151" r="36"/>`;
+    }
+    if (["near", "beside", "by", "with"].includes(normalizedWord)) {
+      return `<circle cx="245" cy="160" r="42"/><rect x="330" y="118" width="84" height="84" rx="16"/><path d="M292 160h28" fill="none" stroke="#fff" stroke-width="8" stroke-linecap="round"/>`;
+    }
+    if (normalizedWord === "between") {
+      return `<rect x="165" y="115" width="80" height="90" rx="16"/><circle cx="300" cy="160" r="36"/><rect x="355" y="115" width="80" height="90" rx="16"/>`;
+    }
+    if (["through", "across"].includes(normalizedWord)) {
+      return `<circle cx="300" cy="160" r="72" fill="none" stroke="#fff" stroke-width="14"/><path d="M175 160h250m-28-24 28 24-28 24" fill="none" stroke="#fff" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>`;
+    }
+    if (normalizedWord === "too") {
+      return `<rect x="175" y="205" width="250" height="14" rx="7" opacity=".6"/><rect x="205" y="165" width="42" height="40" rx="8"/><rect x="279" y="125" width="42" height="80" rx="8"/><rect x="353" y="70" width="42" height="135" rx="8"/><path d="M374 58l18 18m-18-18-18 18" fill="none" stroke="#fff" stroke-width="8" stroke-linecap="round"/>`;
+    }
+    if (pos?.toLowerCase() === "pronoun") {
+      return `<circle cx="220" cy="125" r="30" opacity=".55"/><circle cx="300" cy="110" r="38"/><circle cx="380" cy="125" r="30" opacity=".55"/><path d="M170 220c8-50 34-72 50-72s42 22 50 72m-30 0c8-64 38-90 60-90s52 26 60 90m-30 0c8-50 34-72 50-72s42 22 50 72" fill="none" stroke="#fff" stroke-width="14" stroke-linecap="round" opacity=".9"/>`;
+    }
+    if (
+      ["conjunction", "determiner", "article"].includes(
+        pos?.toLowerCase() ?? "",
+      )
+    ) {
+      return `<rect x="150" y="105" width="125" height="105" rx="18"/><rect x="325" y="105" width="125" height="105" rx="18"/><path d="M275 158h50" fill="none" stroke="#fff" stroke-width="12" stroke-linecap="round"/><circle cx="300" cy="158" r="12" fill="#6B7F5E"/>`;
+    }
+    return `<circle cx="230" cy="160" r="48"/><circle cx="370" cy="160" r="48" opacity=".65"/><path d="M284 160h66m-18-18 18 18-18 18" fill="none" stroke="#fff" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>`;
+  })();
+
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="600" height="350" viewBox="0 0 600 350">
     <defs>
       <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
@@ -173,16 +226,12 @@ export function getDefaultLearningImageDataUrl(): string {
       </linearGradient>
     </defs>
     <rect width="600" height="350" fill="url(#bg)"/>
-    <g fill="#ffffff" opacity="0.95">
-      <rect x="220" y="150" width="160" height="110" rx="10"/>
-      <rect x="230" y="165" width="140" height="10" rx="4" fill="#6B7F5E"/>
-      <rect x="230" y="185" width="110" height="8" rx="4" fill="#6B7F5E"/>
-      <rect x="230" y="201" width="120" height="8" rx="4" fill="#6B7F5E"/>
-      <rect x="230" y="217" width="90" height="8" rx="4" fill="#6B7F5E"/>
-      <circle cx="300" cy="110" r="34" fill="#ffffff"/>
-      <path d="M300 90 l40 18 -40 18 -40 -18 z" fill="#6B7F5E"/>
-      <rect x="278" y="112" width="6" height="26" fill="#6B7F5E"/>
+    <rect x="24" y="22" width="128" height="30" rx="15" fill="#6B7F5E" opacity=".82"/>
+    <text x="88" y="43" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="700" fill="#fff">${safePos}</text>
+    <g fill="#ffffff" opacity="0.94">
+      ${relationGraphic}
     </g>
+    <text x="300" y="310" text-anchor="middle" font-family="Arial,sans-serif" font-size="34" font-weight="800" letter-spacing="3" fill="#fff">${safeWord}</text>
   </svg>`;
   const base64 =
     typeof Buffer !== "undefined"
@@ -193,13 +242,12 @@ export function getDefaultLearningImageDataUrl(): string {
 
 /** Always returns a displayable image URL for a vocabulary word. */
 export function resolveWordImageUrl(
-  _word: string,
+  word: string,
   imageUrl?: string | null,
   _searchKeyword?: string | null,
-  _pos?: string | null,
+  pos?: string | null,
 ): string {
   void _searchKeyword;
-  void _pos;
   const trimmed = imageUrl?.trim();
   if (
     trimmed &&
@@ -210,7 +258,7 @@ export function resolveWordImageUrl(
   ) {
     return trimmed;
   }
-  return getDefaultLearningImageDataUrl();
+  return getDefaultLearningImageDataUrl(word, pos);
 }
 
 export async function searchPhotos(
@@ -367,7 +415,7 @@ export async function fetchWordImageUrl(
   pos?: string | null,
 ): Promise<string> {
   const queries = buildImageSearchQueries(word, { searchKeyword, pos });
-  if (queries.length === 0) return getDefaultLearningImageDataUrl();
+  if (queries.length === 0) return getDefaultLearningImageDataUrl(word, pos);
   const normalizedPos = pos?.trim().toLowerCase();
   const hasCuratedKeyword = hasCuratedVisualKeyword(word);
   if (
@@ -375,7 +423,7 @@ export async function fetchWordImageUrl(
     NON_VISUAL_FUNCTION_POS.has(normalizedPos) &&
     !hasCuratedKeyword
   ) {
-    return getDefaultLearningImageDataUrl();
+    return getDefaultLearningImageDataUrl(word, pos);
   }
 
   if (process.env.UNSPLASH_ACCESS_KEY?.trim()) {
@@ -406,5 +454,5 @@ export async function fetchWordImageUrl(
     if (openverseUrl) return openverseUrl;
   }
 
-  return getDefaultLearningImageDataUrl();
+  return getDefaultLearningImageDataUrl(word, pos);
 }
