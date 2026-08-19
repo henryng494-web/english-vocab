@@ -97,7 +97,7 @@ export default function DiscoverPage() {
         throw new Error(data.details ?? data.error ?? "Không thể tải từ");
       }
       const loaded = mapApiWord(item, data.word);
-      if (!isCacheEntryValid(loaded, item.word)) {
+      if (!isCacheEntryValid(loaded, item.word, item.rank)) {
         throw new Error(`Ví dụ cho "${item.word}" chưa đủ chất lượng — thử lại sau.`);
       }
       return loaded;
@@ -108,7 +108,7 @@ export default function DiscoverPage() {
   const ensureWordFetched = useCallback(
     async (item: DiscoverListItem): Promise<DiscoverWordData> => {
       const cached = wordCache.current.get(item.word);
-      if (isWordDetailComplete(cached, item.word)) {
+      if (isWordDetailComplete(cached, item.word, item.rank)) {
         return cached!;
       }
       wordCache.current.delete(item.word);
@@ -118,7 +118,7 @@ export default function DiscoverPage() {
 
       const promise = fetchWordFromApi(item)
         .then((loaded) => {
-          if (!isCacheEntryValid(loaded, item.word)) {
+          if (!isCacheEntryValid(loaded, item.word, item.rank)) {
             throw new Error(`Dữ liệu không khớp cho "${item.word}"`);
           }
           wordCache.current.set(item.word, loaded);
@@ -144,7 +144,7 @@ export default function DiscoverPage() {
         const item = items[startIndex + offset];
         if (!item) break;
         const cached = wordCache.current.get(item.word);
-        if (isWordDetailComplete(cached, item.word)) {
+        if (isWordDetailComplete(cached, item.word, item.rank)) {
           preloadImageUrl(cached!.image_url);
           continue;
         }
@@ -163,11 +163,11 @@ export default function DiscoverPage() {
       setLoadingWord(true);
 
       const cached = wordCache.current.get(item.word);
-      if (cached && !isCacheEntryValid(cached, item.word)) {
+      if (cached && !isCacheEntryValid(cached, item.word, item.rank)) {
         wordCache.current.delete(item.word);
       }
 
-      if (isWordDetailComplete(cached, item.word)) {
+      if (isWordDetailComplete(cached, item.word, item.rank)) {
         setCurrentWord(cached!);
         setLoadingWord(false);
         preloadImageUrl(cached!.image_url);
@@ -196,7 +196,13 @@ export default function DiscoverPage() {
     setError(null);
     inflight.current.clear();
     try {
-      const res = await fetch(`/api/discover?range=${rangeId}`);
+      const params = new URLSearchParams({
+        range: rangeId,
+        cacheVersion: String(DISCOVER_WORD_CACHE_VERSION),
+      });
+      const res = await fetch(`/api/discover?${params}`, {
+        cache: "no-store",
+      });
       const data = await res.json();
       if (!res.ok) {
         throw new Error(data.details ?? data.error ?? "Không thể tải kho từ");
