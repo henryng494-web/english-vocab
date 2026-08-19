@@ -3,11 +3,12 @@ import { hasQualityExamples } from "@/lib/example-fallback";
 import { parseExamples } from "@/lib/parse-examples";
 import {
   isOutdatedSemanticImageUrl,
+  isPlaceholderIllustrationUrl,
   isUntrustedRandomImageUrl,
 } from "@/lib/unsplash";
 
 /** Bump when ranking, image quality, or enrichment output shape changes. */
-export const DISCOVER_WORD_CACHE_VERSION = 18;
+export const DISCOVER_WORD_CACHE_VERSION = 19;
 
 const STORAGE_KEY = `discover-word-cache-v${DISCOVER_WORD_CACHE_VERSION}`;
 
@@ -26,6 +27,7 @@ const LEGACY_STORAGE_KEYS = [
   "discover-word-cache-v15",
   "discover-word-cache-v16",
   "discover-word-cache-v17",
+  "discover-word-cache-v18",
 ];
 
 const MAX_ENTRIES = 250;
@@ -41,6 +43,7 @@ export function isWordDetailComplete(
   if (!data.image_url?.trim()) return false;
   if (isUntrustedRandomImageUrl(data.image_url)) return false;
   if (isOutdatedSemanticImageUrl(data.image_url)) return false;
+  if (isPlaceholderIllustrationUrl(data.image_url)) return false;
   if (!hasQualityExamples(data.word, parseExamples(data.examples))) {
     return false;
   }

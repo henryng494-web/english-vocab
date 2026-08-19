@@ -1,6 +1,6 @@
 import {
   buildImageSearchQueries,
-  hasCuratedVisualKeyword,
+  isConcretePhrase,
 } from "@/lib/image-keyword";
 
 export type UnsplashPhoto = {
@@ -29,6 +29,24 @@ type OpenverseSearchResponse = {
   }>;
 };
 
+type WikimediaSearchResponse = {
+  query?: {
+    pages?: Record<
+      string,
+      {
+        title?: string;
+        imageinfo?: Array<{
+          thumburl?: string;
+          url?: string;
+          mime?: string;
+          width?: number;
+          height?: number;
+        }>;
+      }
+    >;
+  };
+};
+
 const GENERIC_QUERY_TOKENS = new Set([
   "action",
   "everyday",
@@ -41,7 +59,7 @@ const GENERIC_QUERY_TOKENS = new Set([
   "scene",
 ]);
 
-const SEMANTIC_IMAGE_VERSION = "6";
+const SEMANTIC_IMAGE_VERSION = "7";
 
 function hashWord(word: string): number {
   let hash = 0;
@@ -120,7 +138,8 @@ export function isOutdatedSemanticImageUrl(
     const parsed = new URL(trimmed);
     const requiresSemanticVersion =
       parsed.hostname === "api.openverse.org" ||
-      parsed.hostname === "images.unsplash.com";
+      parsed.hostname === "images.unsplash.com" ||
+      parsed.hostname === "upload.wikimedia.org";
     return (
       requiresSemanticVersion &&
       parsed.searchParams.get("semantic") !== SEMANTIC_IMAGE_VERSION
@@ -392,10 +411,96 @@ export async function searchOpenversePhoto(
   }
 }
 
+const WIKIMEDIA_ALLOWED_MIME_TYPES = new Set(["image/jpeg", "image/png"]);
+const WIKIMEDIA_MIN_WIDTH = 400;
+const WIKIMEDIA_MIN_HEIGHT = 300;
+
+/**
+ * Wikimedia Commons has a much larger, keyless, generously-rate-limited photo
+ * catalog than Openverse's CC0/PDM-only subset — useful as a second real-photo
+ * fallback when Unsplash's quota is exhausted and Openverse has no match.
+ * Results are still validated against the search phrase to avoid unrelated
+ * full-text matches (e.g. TV show titles matching a bare word like "how").
+ */
+export async function searchWikimediaPhoto(
+  word: string,
+  query: string,
+  requireWordMatch = true,
+): Promise<string | null> {
+  const params = new URLSearchParams({
+    action: "query",
+    format: "json",
+    generator: "search",
+    gsrnamespace: "6",
+    gsrsearch: `${query} filetype:bitmap`,
+    gsrlimit: "15",
+    prop: "imageinfo",
+    iiprop: "url|mime|size",
+    iiurlwidth: "1080",
+    origin: "*",
+  });
+
+  try {
+    const response = await fetch(
+      `https://commons.wikimedia.org/w/api.php?${params}`,
+      {
+        headers: { "User-Agent": "EnglishVocabApp/1.0 (education flashcards)" },
+        next: { revalidate: 86400 },
+      },
+    );
+    if (!response.ok) return null;
+
+    const data = (await response.json()) as WikimediaSearchResponse;
+    const pages = Object.values(data.query?.pages ?? {});
+    const wordTokens = semanticTokens(word);
+    const queryTokens = semanticTokens(query);
+    let best: { url: string; score: number } | null = null;
+
+    for (const page of pages) {
+      const info = page.imageinfo?.[0];
+      const url = info?.thumburl?.trim() || info?.url?.trim();
+      if (!url?.startsWith("https://")) continue;
+      if (!info?.mime || !WIKIMEDIA_ALLOWED_MIME_TYPES.has(info.mime)) continue;
+      if (
+        (info.width ?? 0) < WIKIMEDIA_MIN_WIDTH ||
+        (info.height ?? 0) < WIKIMEDIA_MIN_HEIGHT
+      ) {
+        continue;
+      }
+
+      const titleTokens = semanticTokens(
+        (page.title ?? "").replace(/^file:/i, "").replace(/\.[a-z0-9]+$/i, ""),
+      );
+      if (requireWordMatch && overlapCount(wordTokens, titleTokens) === 0) {
+        continue;
+      }
+
+      const queryMatches = overlapCount(queryTokens, titleTokens);
+      const requiredMatches = queryTokens.size > 1 ? 2 : 1;
+      if (queryMatches < requiredMatches) continue;
+
+      const score = queryMatches * 4;
+      if (!best || score > best.score) best = { url, score };
+    }
+
+    if (!best) return null;
+    return markSemanticImageUrl(best.url);
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Always prefer a real photo. Curated everyday scenes are used for abstract
- * words so Unsplash/Openverse can return a concrete picture instead of a
- * random mismatch. Local SVG is only used if every photo source fails.
+ * words so image search can return a concrete picture instead of a random
+ * mismatch. Local SVG is only used if every photo source fails.
+ *
+ * Unsplash's free-tier quota is very low (50 requests/hour, shared by every
+ * visitor), so it is only tried once per word with the single best query to
+ * avoid exhausting it on words that will fall through anyway. Openverse and
+ * Wikimedia Commons are keyless with generous limits, so every query variant
+ * (including shortened 2-3 word slices) is tried against them before giving
+ * up and showing a local illustration.
  */
 export async function fetchWordImageUrl(
   word: string,
@@ -404,29 +509,41 @@ export async function fetchWordImageUrl(
 ): Promise<string> {
   const queries = buildImageSearchQueries(word, { searchKeyword, pos });
   if (queries.length === 0) return getDefaultLearningImageDataUrl(word, pos);
-  const hasCuratedKeyword = hasCuratedVisualKeyword(word);
 
   if (process.env.UNSPLASH_ACCESS_KEY?.trim()) {
-    for (const keyword of queries) {
-      try {
-        const photos = await searchPhotos(keyword, 1);
-        if (photos[0]?.url) {
-          return markSemanticImageUrl(photos[0].url);
-        }
-      } catch (error) {
-        console.warn(`Unsplash API skipped for "${keyword}":`, error);
-        break;
+    try {
+      const photos = await searchPhotos(queries[0], 1);
+      if (photos[0]?.url) {
+        return markSemanticImageUrl(photos[0].url);
       }
+    } catch (error) {
+      console.warn(`Unsplash API skipped for "${queries[0]}":`, error);
     }
   }
 
+  // A multi-word scene description (curated or Gemini-provided) already
+  // encodes a deliberate, concrete meaning, and the query-token overlap
+  // check below confirms the photo actually matches that scene. Only a
+  // bare single-word query — with no other semantic signal — needs the
+  // word itself to also appear in the photo's metadata.
   for (const keyword of queries) {
+    const requireWordMatch = !isConcretePhrase(keyword, word);
     const openverseUrl = await searchOpenversePhoto(
       word,
       keyword,
-      !hasCuratedKeyword,
+      requireWordMatch,
     );
     if (openverseUrl) return openverseUrl;
+  }
+
+  for (const keyword of queries) {
+    const requireWordMatch = !isConcretePhrase(keyword, word);
+    const wikimediaUrl = await searchWikimediaPhoto(
+      word,
+      keyword,
+      requireWordMatch,
+    );
+    if (wikimediaUrl) return wikimediaUrl;
   }
 
   return getDefaultLearningImageDataUrl(word, pos);

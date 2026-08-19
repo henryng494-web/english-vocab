@@ -134,6 +134,37 @@ const CURATED_VISUAL_KEYWORDS: Record<string, string> = {
   first: "gold medal first place",
   well: "person drinking from a well",
   now: "digital clock showing time now",
+  it: "small dog sitting on rug",
+  its: "dog wagging its own tail",
+  his: "man holding his own wallet",
+  us: "friends taking a group selfie",
+  because: "child asking parent why question",
+  any: "person choosing any apple from basket",
+  each: "person handing out one gift each",
+  every: "calendar marked every single day",
+  several: "several apples in a row",
+  many: "many colorful balloons together",
+  much: "large pile of autumn leaves",
+  such: "amazed person pointing at rainbow",
+  whom: "person addressing an envelope",
+  whose: "lost umbrella with a name tag",
+  itself: "cat grooming itself",
+  myself: "person taking a selfie",
+  himself: "man looking at himself in mirror",
+  herself: "woman looking at herself in mirror",
+  yourself: "person looking in bathroom mirror",
+  ourselves: "friends taking a selfie together",
+  themselves: "kids admiring their own drawing",
+  quickly: "person running fast on track",
+  slowly: "person walking slowly with cane",
+  never: "clock with crossed out red circle",
+  always: "sunrise every single morning",
+  often: "person watering plants routine",
+  sometimes: "half full half empty glass",
+  again: "person redoing a puzzle",
+  very: "extremely tall skyscraper building",
+  more: "second helping of food on plate",
+  most: "largest slice of pizza on plate",
 };
 
 export function hasCuratedVisualKeyword(word: string): boolean {
@@ -159,7 +190,7 @@ function cleanPhrase(value: string): string {
     .trim();
 }
 
-function isConcretePhrase(phrase: string, word: string): boolean {
+export function isConcretePhrase(phrase: string, word: string): boolean {
   const tokens = phrase.split(/\s+/).filter(Boolean);
   if (tokens.length >= 2) return true;
   return tokens.length === 1 && tokens[0] !== word;
@@ -199,6 +230,27 @@ export function resolveImageSearchKeyword(
 }
 
 /**
+ * A long, specific stock-photo phrase (e.g. "hand pointing at nearby
+ * object") rarely appears verbatim in a photo's title/tags, so full-text
+ * image search engines (Openverse, Wikimedia Commons) often return zero
+ * results for it even though a real photo exists. Shorter 2-word slices of
+ * the same phrase — which usually keep the core subject + action — match
+ * far more reliably. Returns the slices in an order most likely to preserve
+ * the meaning of the original phrase.
+ */
+function shortenPhraseVariants(phrase: string): string[] {
+  const tokens = phrase.split(/\s+/).filter(Boolean);
+  if (tokens.length <= 2) return [];
+
+  const variants: string[] = [];
+  variants.push(tokens.slice(0, 2).join(" "));
+  if (tokens.length >= 3) variants.push(tokens.slice(0, 3).join(" "));
+  variants.push(tokens.slice(-2).join(" "));
+
+  return [...new Set(variants)].filter((variant) => variant !== phrase);
+}
+
+/**
  * Ordered fallbacks when the first Unsplash query returns nothing useful.
  */
 export function buildImageSearchQueries(
@@ -221,6 +273,10 @@ export function buildImageSearchQueries(
 
   if (pos === "noun" && !primary.includes(" ")) {
     queries.add(`${primary} object`);
+  }
+
+  for (const variant of shortenPhraseVariants(primary)) {
+    queries.add(variant);
   }
 
   return [...queries];
