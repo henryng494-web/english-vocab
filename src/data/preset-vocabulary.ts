@@ -31,8 +31,11 @@ export const WORD_RANGES: WordRange[] = [
 ];
 
 /**
- * Ranking priority: NGSL headwords (1-2801), curriculum overrides, SUBTLEX-US
- * fill for ranks 2802-5000, then remaining SUBTLEX words for rank 5001+.
+ * Ranking priority: NGSL headwords (1-2801), curriculum overrides, then each
+ * remaining learnable SUBTLEX word keeps its real corpus rank (lower = more
+ * common). Previously ranks 2802-5000 were filled sequentially, which pushed
+ * common words like "goodbye" (SUBTLEX #682) into the 3001-5000 band (#3014)
+ * even though they are everyday vocabulary.
  */
 const CURRICULUM_RANK_OVERRIDES: Readonly<Record<string, number>> = {
   thirteen: 3700,
@@ -101,7 +104,6 @@ const CURRICULUM_RANK_OVERRIDES: Readonly<Record<string, number>> = {
 };
 
 const NGSL_MAX_RANK = 2801;
-const SUBTLEX_CORE_MAX_RANK = 5000;
 
 function isLearnableWord(word: string): boolean {
   return /^[a-z]+$/.test(word) && word.length > 1 && !isProfaneWord(word);
@@ -123,29 +125,9 @@ function buildNgslHeadwordRanks(): Map<string, number> {
   return wordToRank;
 }
 
-/** Fill rank slots minRank..maxRank with next SUBTLEX words not already used. */
-function fillSubtlexRankBand(
-  wordToRank: Map<string, number>,
-  minRank: number,
-  maxRank: number,
-): void {
-  const subtlexByFrequency = Object.entries(SPOKEN_FREQUENCY_RANKS)
-    .filter(([word]) => isLearnableWord(word))
-    .sort((a, b) => a[1] - b[1]);
-
-  let nextRank = minRank;
-  for (const [word] of subtlexByFrequency) {
-    if (nextRank > maxRank) break;
-    if (wordToRank.has(word)) continue;
-    wordToRank.set(word, nextRank);
-    nextRank++;
-  }
-}
-
-/** Add remaining SUBTLEX words using their corpus rank (for 5001+ band). */
-function addSubtlexBeyondCore(wordToRank: Map<string, number>): void {
+/** Assign each remaining SUBTLEX word its measured corpus rank. */
+function addSubtlexCorpusRanks(wordToRank: Map<string, number>): void {
   for (const [word, rank] of Object.entries(SPOKEN_FREQUENCY_RANKS)) {
-    if (rank <= SUBTLEX_CORE_MAX_RANK) continue;
     if (!isLearnableWord(word)) continue;
     if (wordToRank.has(word)) continue;
     wordToRank.set(word, rank);
@@ -160,8 +142,7 @@ function buildPresetWordInventory(): PresetWord[] {
     wordToRank.set(word, rank);
   }
 
-  fillSubtlexRankBand(wordToRank, NGSL_MAX_RANK + 1, SUBTLEX_CORE_MAX_RANK);
-  addSubtlexBeyondCore(wordToRank);
+  addSubtlexCorpusRanks(wordToRank);
 
   return [...wordToRank.entries()]
     .filter(([word]) => !isProfaneWord(word))
