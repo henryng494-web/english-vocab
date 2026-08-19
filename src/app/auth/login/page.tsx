@@ -52,10 +52,10 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-black px-4">
-      <div className="w-full max-w-md rounded-xl border border-neutral-800 bg-neutral-900 p-8 shadow-sm">
-        <h1 className="text-2xl font-bold text-white">Đăng nhập</h1>
-        <p className="mt-2 text-sm text-neutral-400">
+    <main className="flex min-h-screen items-center justify-center bg-background px-4">
+      <div className="w-full max-w-md rounded-xl border border-primary-200 bg-white p-8 shadow-sm">
+        <h1 className="text-2xl font-bold text-foreground">Đăng nhập</h1>
+        <p className="mt-2 text-sm text-foreground/60">
           Sử dụng tài khoản Supabase Auth để lưu tiến trình học
         </p>
 
@@ -63,7 +63,7 @@ export default function LoginPage() {
           <div>
             <label
               htmlFor="email"
-              className="block text-sm font-medium text-neutral-300"
+              className="block text-sm font-medium text-foreground/80"
             >
               Email
             </label>
@@ -73,13 +73,13 @@ export default function LoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="mt-1 w-full rounded-lg border border-neutral-700 bg-black px-3 py-2 text-white placeholder:text-neutral-500 focus:border-white focus:outline-none focus:ring-1 focus:ring-white"
+              className="mt-1 w-full rounded-lg border border-primary-200 bg-background px-3 py-2 text-foreground placeholder:text-foreground/40 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
             />
           </div>
           <div>
             <label
               htmlFor="password"
-              className="block text-sm font-medium text-neutral-300"
+              className="block text-sm font-medium text-foreground/80"
             >
               Mật khẩu
             </label>
@@ -90,12 +90,12 @@ export default function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
               required
               minLength={6}
-              className="mt-1 w-full rounded-lg border border-neutral-700 bg-black px-3 py-2 text-white placeholder:text-neutral-500 focus:border-white focus:outline-none focus:ring-1 focus:ring-white"
+              className="mt-1 w-full rounded-lg border border-primary-200 bg-background px-3 py-2 text-foreground placeholder:text-foreground/40 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
             />
           </div>
 
           {message && (
-            <p className="rounded-lg bg-neutral-800 px-3 py-2 text-sm text-neutral-300">
+            <p className="rounded-lg bg-primary-50 px-3 py-2 text-sm text-primary-800">
               {message}
             </p>
           )}
@@ -104,7 +104,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 rounded-lg bg-white px-4 py-2 font-medium text-black hover:bg-neutral-200 disabled:opacity-50"
+              className="flex-1 rounded-lg bg-primary px-4 py-2 font-medium text-white hover:bg-primary-hover disabled:opacity-50"
             >
               {loading ? "Đang xử lý..." : "Đăng nhập"}
             </button>
@@ -112,7 +112,7 @@ export default function LoginPage() {
               type="button"
               disabled={loading}
               onClick={handleSignUp}
-              className="flex-1 rounded-lg border border-neutral-600 px-4 py-2 font-medium text-white hover:bg-neutral-800 disabled:opacity-50"
+              className="flex-1 rounded-lg border border-primary-200 px-4 py-2 font-medium text-primary-800 hover:bg-primary-50 disabled:opacity-50"
             >
               Đăng ký
             </button>
@@ -121,7 +121,7 @@ export default function LoginPage() {
 
         <Link
           href="/"
-          className="mt-6 block text-center text-sm text-neutral-500 hover:text-white"
+          className="mt-6 block text-center text-sm text-foreground/60 hover:text-primary-700"
         >
           ← Quay lại trang chủ
         </Link>

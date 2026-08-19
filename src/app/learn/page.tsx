@@ -241,17 +241,17 @@ export default function LearnPage() {
   }
 
   return (
-    <main className="min-h-screen bg-black">
-      <header className="border-b border-neutral-800 bg-black/80 backdrop-blur-md">
+    <main className="min-h-screen bg-background">
+      <header className="border-b border-primary-100 bg-white/80 backdrop-blur-md">
         <div className="mx-auto max-w-2xl px-4 py-4">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h1 className="text-xl font-bold text-white">English Vocab</h1>
-              <p className="text-sm text-neutral-400">WordUp-style flashcards</p>
+              <h1 className="text-xl font-bold text-foreground">English Vocab</h1>
+              <p className="text-sm text-foreground/60">WordUp-style flashcards</p>
             </div>
             <div className="flex flex-col items-end gap-2 sm:flex-row sm:items-center">
               <AppNav active="learn" />
-              <div className="text-right text-sm text-neutral-400">
+              <div className="text-right text-sm text-foreground/60">
                 <p>{words.length} từ · {studyQueue.length} cần học</p>
               </div>
             </div>
@@ -266,12 +266,12 @@ export default function LearnPage() {
             value={newWord}
             onChange={(e) => setNewWord(e.target.value)}
             placeholder="Thêm từ mới — Gemini sẽ phân tích độ phổ biến"
-            className="flex-1 rounded-xl border border-neutral-700 bg-neutral-900 px-4 py-3 text-white shadow-sm placeholder:text-neutral-500 focus:border-white focus:outline-none focus:ring-2 focus:ring-white/20"
+            className="flex-1 rounded-xl border border-primary-200 bg-white px-4 py-3 text-foreground shadow-sm placeholder:text-foreground/40 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
           />
           <button
             type="submit"
             disabled={adding || !newWord.trim()}
-            className="rounded-xl bg-white px-5 py-3 font-medium text-black shadow-sm transition hover:bg-neutral-200 disabled:opacity-50"
+            className="rounded-xl bg-primary px-5 py-3 font-medium text-white shadow-sm transition hover:bg-primary-hover disabled:opacity-50"
           >
             {adding ? "..." : "Thêm"}
           </button>
@@ -281,7 +281,7 @@ export default function LearnPage() {
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as SortOption)}
-            className="rounded-lg border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm text-neutral-300 shadow-sm"
+            className="rounded-lg border border-primary-200 bg-white px-3 py-2 text-sm text-foreground shadow-sm"
           >
             <option value="importance">Sắp xếp: Độ quan trọng</option>
             <option value="alphabetical">Sắp xếp: A → Z</option>
@@ -291,7 +291,7 @@ export default function LearnPage() {
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value as FilterOption)}
-            className="rounded-lg border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm text-neutral-300 shadow-sm"
+            className="rounded-lg border border-primary-200 bg-white px-3 py-2 text-sm text-foreground shadow-sm"
           >
             <option value="all">Tất cả trạng thái</option>
             <option value="new">Mới</option>
@@ -302,27 +302,27 @@ export default function LearnPage() {
         </div>
 
         {error && (
-          <p className="mt-4 rounded-xl border border-neutral-700 bg-neutral-900 px-4 py-3 text-sm text-neutral-300">
+          <p className="mt-4 rounded-xl border border-primary-200 bg-primary-50 px-4 py-3 text-sm text-primary-800">
             {error}
           </p>
         )}
 
         {loading ? (
           <div className="mt-12 flex justify-center">
-            <div className="h-10 w-10 animate-spin rounded-full border-4 border-neutral-700 border-t-white" />
+            <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary-100 border-t-primary" />
           </div>
         ) : words.length === 0 ? (
-          <p className="mt-12 text-center text-neutral-400">
+          <p className="mt-12 text-center text-foreground/60">
             Chưa có từ vựng. Hãy thêm từ đầu tiên!
           </p>
         ) : (
           <div className="mt-8">
-            <div className="mb-4 flex items-center justify-between text-sm text-neutral-400">
+            <div className="mb-4 flex items-center justify-between text-sm text-foreground/60">
               <span>
                 Thẻ {currentIndex + 1} / {words.length}
               </span>
               {currentWord && (
-                <span className="rounded-full bg-neutral-800 px-3 py-1 text-neutral-300 shadow-sm">
+                <span className="rounded-full bg-primary-50 px-3 py-1 text-primary-800 shadow-sm">
                   {STATUS_LABELS[currentWord.learning_status]}
                 </span>
               )}
@@ -342,7 +342,7 @@ export default function LearnPage() {
                 type="button"
                 onClick={goPrev}
                 disabled={currentIndex === 0}
-                className="rounded-xl border border-neutral-700 bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-300 shadow-sm disabled:opacity-40"
+                className="rounded-xl border border-primary-200 bg-white px-4 py-2 text-sm font-medium text-foreground/80 shadow-sm disabled:opacity-40"
               >
                 ← Trước
               </button>
@@ -350,7 +350,7 @@ export default function LearnPage() {
                 type="button"
                 onClick={goNext}
                 disabled={currentIndex >= words.length - 1}
-                className="rounded-xl border border-neutral-700 bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-300 shadow-sm disabled:opacity-40"
+                className="rounded-xl border border-primary-200 bg-white px-4 py-2 text-sm font-medium text-foreground/80 shadow-sm disabled:opacity-40"
               >
                 Sau →
               </button>
@@ -361,7 +361,7 @@ export default function LearnPage() {
                 type="button"
                 disabled={updating || !currentWord}
                 onClick={() => updateStatus("need_review")}
-                className="rounded-xl border-2 border-neutral-600 bg-neutral-900 py-3.5 font-semibold text-white transition hover:bg-neutral-800 disabled:opacity-50"
+                className="rounded-xl border-2 border-primary-200 bg-primary-50 py-3.5 font-semibold text-primary-800 transition hover:bg-primary-100 disabled:opacity-50"
               >
                 Cần ôn lại
               </button>
@@ -369,14 +369,14 @@ export default function LearnPage() {
                 type="button"
                 disabled={updating || !currentWord}
                 onClick={() => updateStatus("mastered")}
-                className="rounded-xl bg-white py-3.5 font-semibold text-black shadow-sm transition hover:bg-neutral-200 disabled:opacity-50"
+                className="rounded-xl bg-primary py-3.5 font-semibold text-white shadow-sm transition hover:bg-primary-hover disabled:opacity-50"
               >
                 Đã thuộc
               </button>
             </div>
 
             <div className="mt-8">
-              <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-neutral-500">
+              <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-foreground/50">
                 Danh sách theo độ quan trọng
               </h2>
               <ul className="space-y-2">
@@ -387,23 +387,23 @@ export default function LearnPage() {
                       onClick={() => goTo(index)}
                       className={`flex w-full items-center justify-between rounded-xl border px-4 py-3 text-left transition ${
                         index === currentIndex
-                          ? "border-neutral-500 bg-neutral-800 shadow-sm"
-                          : "border-neutral-800 bg-neutral-900 hover:border-neutral-600"
+                          ? "border-primary bg-primary-50 shadow-sm"
+                          : "border-primary-100 bg-white hover:border-primary-200"
                       }`}
                     >
                       <div className="flex items-center gap-3">
-                        <span className="font-semibold text-white">
+                        <span className="font-semibold text-foreground">
                           {capitalizeFirst(item.word)}
                         </span>
-                        <span className="text-xs text-neutral-500">
+                        <span className="text-xs text-foreground/50">
                           #{item.rank.toLocaleString()}
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="text-xs text-neutral-400">
+                        <span className="text-xs text-primary-700">
                           ⭐ {item.importance_tier}
                         </span>
-                        <span className="rounded-full bg-neutral-800 px-2 py-0.5 text-xs text-neutral-400">
+                        <span className="rounded-full bg-primary-50 px-2 py-0.5 text-xs text-primary-800">
                           {STATUS_LABELS[item.learning_status]}
                         </span>
                       </div>

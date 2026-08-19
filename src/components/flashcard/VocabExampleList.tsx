@@ -27,13 +27,13 @@ export function VocabExampleList({
           key={`${word}-ex-${i}`}
           className={
             boxed
-              ? "rounded-lg bg-neutral-800 px-3 py-2 text-sm text-neutral-300"
-              : "text-sm text-neutral-300"
+              ? "rounded-lg bg-primary-50 px-3 py-2 text-sm text-foreground/80"
+              : "text-sm text-foreground/80"
           }
         >
           <p className="italic">{ex.en}</p>
           {ex.vi ? (
-            <p className="mt-0.5 italic text-neutral-500">{ex.vi}</p>
+            <p className="mt-0.5 italic text-foreground/60">{ex.vi}</p>
           ) : null}
         </li>
       ))}

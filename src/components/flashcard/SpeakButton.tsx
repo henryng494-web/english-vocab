@@ -69,11 +69,11 @@ export function SpeakButton({
 
   const className = iconOnly
     ? variant === "light"
-      ? "inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-neutral-600 bg-neutral-800 text-white transition hover:bg-white hover:text-black disabled:opacity-60"
-      : "inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/40 bg-white/10 text-white shadow-sm transition hover:bg-white hover:text-black disabled:opacity-60"
+      ? "inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-primary-200 bg-primary-50 text-primary-800 transition hover:bg-primary hover:text-white disabled:opacity-60"
+      : "inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/40 bg-primary text-white shadow-sm transition hover:bg-primary-hover disabled:opacity-60"
     : variant === "light"
-      ? "inline-flex items-center gap-2 rounded-full border border-neutral-600 bg-neutral-800 px-4 py-2 text-sm font-medium text-white transition hover:bg-white hover:text-black disabled:opacity-60"
-      : "inline-flex items-center gap-2 rounded-full border border-white/40 bg-white/10 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-white hover:text-black disabled:opacity-60";
+      ? "inline-flex items-center gap-2 rounded-full border border-primary-200 bg-primary-50 px-4 py-2 text-sm font-medium text-primary-800 transition hover:bg-primary hover:text-white disabled:opacity-60"
+      : "inline-flex items-center gap-2 rounded-full border border-white/40 bg-primary px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-primary-hover disabled:opacity-60";
 
   return (
     <button

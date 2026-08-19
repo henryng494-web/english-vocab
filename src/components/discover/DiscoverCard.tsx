@@ -50,7 +50,7 @@ function CardImage({
   }, [word, imageUrl, searchKeyword]);
 
   return (
-    <div className="relative h-44 w-full shrink-0 bg-gradient-to-br from-neutral-800 via-neutral-700 to-neutral-900">
+    <div className="relative h-44 w-full shrink-0 bg-gradient-to-br from-primary-100 via-primary to-primary-hover">
       <Image
         src={src}
         alt={word}
@@ -71,9 +71,9 @@ function CardImage({
 function DetailSkeleton() {
   return (
     <div className="space-y-3 pt-1" aria-hidden>
-      <div className="h-6 w-3/4 animate-pulse rounded bg-neutral-800" />
-      <div className="h-10 w-full animate-pulse rounded-lg bg-neutral-800" />
-      <div className="h-10 w-full animate-pulse rounded-lg bg-neutral-800" />
+      <div className="h-6 w-3/4 animate-pulse rounded bg-primary-50" />
+      <div className="h-10 w-full animate-pulse rounded-lg bg-primary-50" />
+      <div className="h-10 w-full animate-pulse rounded-lg bg-primary-50" />
     </div>
   );
 }
@@ -83,7 +83,7 @@ export function DiscoverCard({ data, loading }: DiscoverCardProps) {
   const examples = detailsLoading ? [] : parseExamples(data.examples);
 
   return (
-    <div className="mx-auto w-full max-w-md overflow-hidden rounded-2xl border-2 border-neutral-700 bg-neutral-900 shadow-lg">
+    <div className="mx-auto w-full max-w-md overflow-hidden rounded-2xl border-2 border-primary-200 bg-white shadow-lg">
       <CardImage
         word={data.word}
         imageUrl={data.image_url}
@@ -103,7 +103,7 @@ export function DiscoverCard({ data, loading }: DiscoverCardProps) {
         ) : (
           <>
             {data.vietnamese_meaning ? (
-              <p className="text-lg font-semibold text-white">
+              <p className="text-lg font-semibold text-primary-700">
                 {capitalizeFirst(data.vietnamese_meaning)}
               </p>
             ) : null}
