@@ -6,7 +6,6 @@ import { capitalizeFirst } from "@/lib/format-text";
 import { parseExamples } from "@/lib/parse-examples";
 import {
   getDefaultLearningImageDataUrl,
-  getPicsumFallbackImageUrl,
   resolveWordImageUrl,
 } from "@/lib/unsplash";
 import type { VocabWord } from "@/types/database";
@@ -26,7 +25,6 @@ function FlashcardImage({ word }: { word: VocabWord }) {
     undefined,
     word.word_type,
   );
-  const secondarySrc = getPicsumFallbackImageUrl(word.word);
   const finalSrc = getDefaultLearningImageDataUrl();
   const [src, setSrc] = useState(primarySrc);
 
@@ -47,8 +45,7 @@ function FlashcardImage({ word }: { word: VocabWord }) {
         priority
         unoptimized
         onError={() => {
-          if (src === primarySrc) setSrc(secondarySrc);
-          else if (src === secondarySrc) setSrc(finalSrc);
+          if (src !== finalSrc) setSrc(finalSrc);
         }}
       />
     </div>

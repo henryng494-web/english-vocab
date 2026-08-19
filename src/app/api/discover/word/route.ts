@@ -4,7 +4,7 @@ import { enrichmentToDiscoverWord } from "@/lib/enrichment-helpers";
 import { enrichWord } from "@/lib/enrich-word";
 import {
   fetchWordImageUrl,
-  isStalePresetFallbackUrl,
+  shouldRefreshImageUrl,
 } from "@/lib/unsplash";
 import { NextResponse } from "next/server";
 
@@ -23,10 +23,15 @@ async function resolveImageUrl(
   pos?: string | null,
 ): Promise<string> {
   const trimmed = existingUrl?.trim();
-  if (trimmed?.startsWith("http") && !isStalePresetFallbackUrl(trimmed)) {
+  if (trimmed?.startsWith("http") && !shouldRefreshImageUrl(trimmed)) {
     return trimmed;
   }
-  return fetchWordImageUrl(word, searchKeyword ?? word, pos);
+  const resolvedUrl = await fetchWordImageUrl(
+    word,
+    searchKeyword ?? word,
+    pos,
+  );
+  return resolvedUrl;
 }
 
 /** Self-heal: persist a freshly regenerated image URL so it's fixed for good. */

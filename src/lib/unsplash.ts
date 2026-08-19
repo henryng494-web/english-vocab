@@ -1,6 +1,6 @@
 import {
   buildImageSearchQueries,
-  resolveImageSearchKeyword,
+  hasCuratedVisualKeyword,
 } from "@/lib/image-keyword";
 
 export type UnsplashPhoto = {
@@ -18,6 +18,49 @@ type UnsplashSearchResponse = {
     user: { name: string };
   }>;
 };
+
+type OpenverseSearchResponse = {
+  results?: Array<{
+    id?: string;
+    title?: string | null;
+    description?: string | null;
+    thumbnail?: string | null;
+    tags?: Array<{ name?: string | null }>;
+  }>;
+};
+
+const GENERIC_QUERY_TOKENS = new Set([
+  "action",
+  "everyday",
+  "moment",
+  "object",
+  "outdoors",
+  "person",
+  "photo",
+  "photography",
+  "scene",
+]);
+
+const NON_CONCRETE_POS = new Set([
+  "adjective",
+  "adverb",
+  "conjunction",
+  "determiner",
+  "preposition",
+  "pronoun",
+  "verb",
+]);
+
+const NON_VISUAL_FUNCTION_POS = new Set([
+  "adverb",
+  "article",
+  "conjunction",
+  "determiner",
+  "preposition",
+  "pronoun",
+]);
+
+const SEMANTIC_IMAGE_VERSION = "5";
 
 function hashWord(word: string): number {
   let hash = 0;
@@ -65,6 +108,59 @@ export function isStalePresetFallbackUrl(url: string | null | undefined): boolea
 }
 
 /**
+ * Random-photo providers cannot guarantee that the returned image depicts the
+ * requested word. Treat their URLs as stale instead of presenting an unrelated
+ * photo as learning content.
+ */
+export function isUntrustedRandomImageUrl(
+  url: string | null | undefined,
+): boolean {
+  const trimmed = url?.trim();
+  if (!trimmed) return false;
+  try {
+    const hostname = new URL(trimmed).hostname.toLowerCase();
+    return (
+      hostname === "loremflickr.com" ||
+      hostname.endsWith(".loremflickr.com") ||
+      hostname === "picsum.photos" ||
+      hostname.endsWith(".picsum.photos")
+    );
+  } catch {
+    return false;
+  }
+}
+
+export function isOutdatedSemanticImageUrl(
+  url: string | null | undefined,
+): boolean {
+  const trimmed = url?.trim();
+  if (!trimmed) return false;
+  try {
+    const parsed = new URL(trimmed);
+    const requiresSemanticVersion =
+      parsed.hostname === "api.openverse.org" ||
+      parsed.hostname === "images.unsplash.com";
+    return (
+      requiresSemanticVersion &&
+      parsed.searchParams.get("semantic") !== SEMANTIC_IMAGE_VERSION
+    );
+  } catch {
+    return false;
+  }
+}
+
+export function shouldRefreshImageUrl(
+  url: string | null | undefined,
+): boolean {
+  return (
+    !url?.trim() ||
+    isStalePresetFallbackUrl(url) ||
+    isUntrustedRandomImageUrl(url) ||
+    isOutdatedSemanticImageUrl(url)
+  );
+}
+
+/**
  * Local, network-free illustration — the guaranteed last resort so a card
  * never shows a broken-image icon even if every remote image host is down.
  */
@@ -97,18 +193,24 @@ export function getDefaultLearningImageDataUrl(): string {
 
 /** Always returns a displayable image URL for a vocabulary word. */
 export function resolveWordImageUrl(
-  word: string,
+  _word: string,
   imageUrl?: string | null,
-  searchKeyword?: string | null,
-  pos?: string | null,
+  _searchKeyword?: string | null,
+  _pos?: string | null,
 ): string {
+  void _searchKeyword;
+  void _pos;
   const trimmed = imageUrl?.trim();
-  if (trimmed && trimmed.startsWith("http")) return trimmed;
-  const keyword = resolveImageSearchKeyword(word, {
-    searchKeyword,
-    pos,
-  });
-  return getLoremFlickrImageUrl(keyword);
+  if (
+    trimmed &&
+    trimmed.startsWith("http") &&
+    !isStalePresetFallbackUrl(trimmed) &&
+    !isUntrustedRandomImageUrl(trimmed) &&
+    !isOutdatedSemanticImageUrl(trimmed)
+  ) {
+    return trimmed;
+  }
+  return getDefaultLearningImageDataUrl();
 }
 
 export async function searchPhotos(
@@ -150,10 +252,114 @@ export async function searchPhotos(
   }));
 }
 
+function semanticTokens(value: string): Set<string> {
+  return new Set(
+    value
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, " ")
+      .split(/\s+/)
+      .filter((token) => !GENERIC_QUERY_TOKENS.has(token))
+      .map((token) => {
+        if (token.endsWith("ing") && token.length > 5) {
+          let stem = token.slice(0, -3);
+          if (stem.at(-1) === stem.at(-2)) stem = stem.slice(0, -1);
+          if (stem === "mak" || stem === "tak") stem += "e";
+          return stem;
+        }
+        return token.replace(/(?:ies|es|s)$/, "");
+      })
+      .filter((token) => token.length > 2 && !GENERIC_QUERY_TOKENS.has(token)),
+  );
+}
+
+function overlapCount(left: Set<string>, right: Set<string>): number {
+  let count = 0;
+  for (const token of left) {
+    if (right.has(token)) count += 1;
+  }
+  return count;
+}
+
+function markSemanticImageUrl(url: string): string {
+  const versionedUrl = new URL(url);
+  versionedUrl.searchParams.set("semantic", SEMANTIC_IMAGE_VERSION);
+  return versionedUrl.toString();
+}
+
 /**
- * Fetch word image via Unsplash API (if configured), then a deterministic,
- * keyword-relevant LoremFlickr photo unique to `searchKeyword` / `word`.
- * Never returns null.
+ * Public-domain fallback with semantic validation. Openverse may return broad
+ * full-text matches, so only accept a result whose title/tags overlap both the
+ * vocabulary word and the concrete search phrase.
+ */
+export async function searchOpenversePhoto(
+  word: string,
+  query: string,
+  requireWordMatch = true,
+): Promise<string | null> {
+  const params = new URLSearchParams({
+    q: query,
+    page_size: "20",
+    license: "cc0,pdm",
+    mature: "false",
+    aspect_ratio: "wide",
+  });
+
+  try {
+    const response = await fetch(
+      `https://api.openverse.org/v1/images/?${params}`,
+      {
+        headers: { "User-Agent": "EnglishVocabApp/1.0" },
+        next: { revalidate: 86400 },
+      },
+    );
+    if (!response.ok) return null;
+
+    const data = (await response.json()) as OpenverseSearchResponse;
+    const wordTokens = semanticTokens(word);
+    const queryTokens = semanticTokens(query);
+    let best: { url: string; score: number } | null = null;
+
+    for (const result of data.results ?? []) {
+      const url = result.thumbnail?.trim();
+      if (!url?.startsWith("https://")) continue;
+
+      const titleTokens = semanticTokens(result.title ?? "");
+      const metadataTokens = semanticTokens(
+        [
+          result.title,
+          ...(result.tags ?? []).map((tag) => tag.name),
+        ]
+          .filter(Boolean)
+          .join(" "),
+      );
+      if (
+        requireWordMatch &&
+        overlapCount(wordTokens, metadataTokens) === 0
+      ) {
+        continue;
+      }
+
+      const queryMatches = overlapCount(queryTokens, metadataTokens);
+      const requiredMatches = queryTokens.size > 1 ? 2 : 1;
+      if (queryMatches < requiredMatches) continue;
+
+      const score =
+        overlapCount(queryTokens, titleTokens) * 4 + queryMatches;
+      if (!best || score > best.score) best = { url, score };
+    }
+
+    if (!best) return null;
+    return markSemanticImageUrl(best.url);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Fetch a semantically relevant image. Unsplash is preferred when configured;
+ * a validated public-domain Openverse image is the safe fallback. If neither
+ * source can produce a confident match, use the neutral local illustration
+ * rather than showing a misleading random photo.
  */
 export async function fetchWordImageUrl(
   word: string,
@@ -161,13 +367,24 @@ export async function fetchWordImageUrl(
   pos?: string | null,
 ): Promise<string> {
   const queries = buildImageSearchQueries(word, { searchKeyword, pos });
-  if (queries.length === 0) return getLoremFlickrImageUrl("vocabulary");
+  if (queries.length === 0) return getDefaultLearningImageDataUrl();
+  const normalizedPos = pos?.trim().toLowerCase();
+  const hasCuratedKeyword = hasCuratedVisualKeyword(word);
+  if (
+    normalizedPos &&
+    NON_VISUAL_FUNCTION_POS.has(normalizedPos) &&
+    !hasCuratedKeyword
+  ) {
+    return getDefaultLearningImageDataUrl();
+  }
 
   if (process.env.UNSPLASH_ACCESS_KEY?.trim()) {
     for (const keyword of queries) {
       try {
         const photos = await searchPhotos(keyword, 1);
-        if (photos[0]?.url) return photos[0].url;
+        if (photos[0]?.url) {
+          return markSemanticImageUrl(photos[0].url);
+        }
       } catch (error) {
         console.warn(`Unsplash API skipped for "${keyword}":`, error);
         break;
@@ -175,5 +392,19 @@ export async function fetchWordImageUrl(
     }
   }
 
-  return getLoremFlickrImageUrl(queries[0]);
+  const requiresConcretePhrase =
+    Boolean(normalizedPos && NON_CONCRETE_POS.has(normalizedPos)) &&
+    !hasCuratedKeyword;
+
+  for (const keyword of queries) {
+    if (requiresConcretePhrase && semanticTokens(keyword).size < 2) continue;
+    const openverseUrl = await searchOpenversePhoto(
+      word,
+      keyword,
+      !hasCuratedKeyword,
+    );
+    if (openverseUrl) return openverseUrl;
+  }
+
+  return getDefaultLearningImageDataUrl();
 }
