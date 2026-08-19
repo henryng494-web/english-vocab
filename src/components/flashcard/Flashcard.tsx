@@ -25,7 +25,7 @@ function FlashcardImage({ word }: { word: VocabWord }) {
     undefined,
     word.word_type,
   );
-  const finalSrc = getDefaultLearningImageDataUrl();
+  const finalSrc = getDefaultLearningImageDataUrl(word.word, word.word_type);
   const [src, setSrc] = useState(primarySrc);
 
   useEffect(() => {
