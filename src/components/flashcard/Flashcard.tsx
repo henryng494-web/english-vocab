@@ -20,14 +20,21 @@ type FlashcardProps = {
 };
 
 function FlashcardImage({ word }: { word: VocabWord }) {
-  const primarySrc = resolveWordImageUrl(word.word, word.image_url);
+  const primarySrc = resolveWordImageUrl(
+    word.word,
+    word.image_url,
+    undefined,
+    word.word_type,
+  );
   const secondarySrc = getPicsumFallbackImageUrl(word.word);
   const finalSrc = getDefaultLearningImageDataUrl();
   const [src, setSrc] = useState(primarySrc);
 
   useEffect(() => {
-    setSrc(resolveWordImageUrl(word.word, word.image_url));
-  }, [word.word, word.image_url]);
+    setSrc(
+      resolveWordImageUrl(word.word, word.image_url, undefined, word.word_type),
+    );
+  }, [word.word, word.image_url, word.word_type]);
 
   return (
     <div className="relative h-44 w-full shrink-0 bg-gradient-to-br from-primary-100 via-primary to-primary-hover">

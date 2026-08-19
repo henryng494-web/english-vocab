@@ -72,7 +72,8 @@ Rules:
 - Vietnamese translations must be natural (not word-by-word).
 - NEVER write meta lines like "I learned the word...", "Please use ... in a sentence", "This is a sentence with...".
 - pos: noun|verb|adjective|adverb|pronoun|preposition|conjunction|article|number|interjection|determiner
-- searchKeyword: one simple concrete English photo keyword.
+- searchKeyword: 2–4 English words for a CLEAR stock photo a beginner instantly links to the primary meaning. Use a visible object, person doing an action, or everyday scene — NOT the vocabulary word alone when it is abstract.
+  Examples: hole → "hole in ground", organic → "organic vegetables garden", run → "person running", happy → "smiling person", think → "person thinking".
 
 Respond with ONLY valid JSON:
 {
@@ -84,7 +85,7 @@ Respond with ONLY valid JSON:
     { "en": "5-10 word English sentence.", "vi": "Bản dịch tự nhiên." },
     { "en": "5-10 word English sentence.", "vi": "Bản dịch tự nhiên." }
   ],
-  "searchKeyword": "simple-keyword"
+  "searchKeyword": "concrete photo phrase"
 }`;
 }
 

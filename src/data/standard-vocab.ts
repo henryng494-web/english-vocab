@@ -475,7 +475,7 @@ const CURATED: Record<string, RawEntry> = {
         vi: "Đào một cái hố trong vườn.",
       },
     ],
-    keyword: "hole",
+    keyword: "hole in ground",
   },
   week: {
     pos: "noun",

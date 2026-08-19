@@ -2,7 +2,7 @@ import type { DiscoverWordData } from "@/components/discover/DiscoverCard";
 import { hasQualityExamples } from "@/lib/example-fallback";
 import { parseExamples } from "@/lib/parse-examples";
 
-const STORAGE_KEY = "discover-word-cache-v4";
+const STORAGE_KEY = "discover-word-cache-v5";
 const MAX_ENTRIES = 250;
 
 export function isWordDetailComplete(

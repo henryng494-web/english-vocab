@@ -1,3 +1,8 @@
+import {
+  buildImageSearchQueries,
+  resolveImageSearchKeyword,
+} from "@/lib/image-keyword";
+
 export type UnsplashPhoto = {
   id: string;
   url: string;
@@ -95,10 +100,14 @@ export function resolveWordImageUrl(
   word: string,
   imageUrl?: string | null,
   searchKeyword?: string | null,
+  pos?: string | null,
 ): string {
   const trimmed = imageUrl?.trim();
   if (trimmed && trimmed.startsWith("http")) return trimmed;
-  const keyword = searchKeyword?.trim() || word;
+  const keyword = resolveImageSearchKeyword(word, {
+    searchKeyword,
+    pos,
+  });
   return getLoremFlickrImageUrl(keyword);
 }
 
@@ -149,19 +158,22 @@ export async function searchPhotos(
 export async function fetchWordImageUrl(
   word: string,
   searchKeyword?: string | null,
+  pos?: string | null,
 ): Promise<string> {
-  const keyword =
-    searchKeyword?.trim().toLowerCase() || word.trim().toLowerCase();
-  if (!keyword) return getLoremFlickrImageUrl("vocabulary");
+  const queries = buildImageSearchQueries(word, { searchKeyword, pos });
+  if (queries.length === 0) return getLoremFlickrImageUrl("vocabulary");
 
   if (process.env.UNSPLASH_ACCESS_KEY?.trim()) {
-    try {
-      const photos = await searchPhotos(keyword, 1);
-      if (photos[0]?.url) return photos[0].url;
-    } catch (error) {
-      console.warn(`Unsplash API skipped for "${keyword}":`, error);
+    for (const keyword of queries) {
+      try {
+        const photos = await searchPhotos(keyword, 1);
+        if (photos[0]?.url) return photos[0].url;
+      } catch (error) {
+        console.warn(`Unsplash API skipped for "${keyword}":`, error);
+        break;
+      }
     }
   }
 
-  return getLoremFlickrImageUrl(keyword);
+  return getLoremFlickrImageUrl(queries[0]);
 }

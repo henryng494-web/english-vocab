@@ -49,6 +49,7 @@ function mapApiWord(
       item.word,
       apiWord.image_url as string | null | undefined,
       apiWord.search_keyword as string | null | undefined,
+      apiWord.word_type as string | null | undefined,
     ),
     collocations: apiWord.collocations as string | null | undefined,
     search_keyword: (apiWord.search_keyword as string | null | undefined) ?? item.word,

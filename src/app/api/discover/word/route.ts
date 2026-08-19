@@ -20,12 +20,13 @@ async function resolveImageUrl(
   word: string,
   existingUrl?: string | null,
   searchKeyword?: string | null,
+  pos?: string | null,
 ): Promise<string> {
   const trimmed = existingUrl?.trim();
   if (trimmed?.startsWith("http") && !isStalePresetFallbackUrl(trimmed)) {
     return trimmed;
   }
-  return fetchWordImageUrl(word, searchKeyword ?? word);
+  return fetchWordImageUrl(word, searchKeyword ?? word, pos);
 }
 
 /** Self-heal: persist a freshly regenerated image URL so it's fixed for good. */
@@ -80,6 +81,7 @@ export async function GET(request: Request) {
       word,
       dbDetail?.image_url ?? null,
       enrichment.searchKeyword,
+      enrichment.wordType,
     );
     if (dbDetail) {
       await persistImageUrlIfChanged(

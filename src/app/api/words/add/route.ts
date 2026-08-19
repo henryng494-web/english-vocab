@@ -42,6 +42,7 @@ export async function POST(request: Request) {
         imageUrl = await fetchWordImageUrl(
           trimmedWord,
           standard.searchKeyword,
+          standard.wordType,
         );
       }
 
@@ -76,6 +77,7 @@ export async function POST(request: Request) {
     const imageUrl = await fetchWordImageUrl(
       trimmedWord,
       enrichment.searchKeyword,
+      enrichment.wordType,
     );
 
     const { data: existingBank } = await supabase

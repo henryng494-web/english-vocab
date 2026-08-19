@@ -4,6 +4,7 @@ import type { WordEnrichment } from "@/lib/gemini";
 import { serializeExamples } from "@/lib/parse-examples";
 import { keepNaturalExamples } from "@/lib/example-fallback";
 import { ensureExamples } from "@/lib/example-fallback";
+import { resolveImageSearchKeyword } from "@/lib/image-keyword";
 import { resolveWordImageUrl } from "@/lib/unsplash";
 import { getImportanceTier } from "@/lib/word-rank";
 import { normalizeWordType } from "@/lib/word-type";
@@ -13,7 +14,11 @@ export function enrichmentToDiscoverWord(
   enrichment: WordEnrichment,
   imageUrl?: string | null,
 ) {
-  const keyword = enrichment.searchKeyword || word;
+  const keyword = resolveImageSearchKeyword(word, {
+    searchKeyword: enrichment.searchKeyword,
+    meaning: enrichment.vietnameseMeaning,
+    pos: enrichment.wordType,
+  });
   return {
     word,
     phonetic: enrichment.phonetic,
@@ -30,7 +35,7 @@ export function enrichmentToDiscoverWord(
       ),
     ),
     collocations: enrichment.collocations,
-    image_url: resolveWordImageUrl(word, imageUrl, keyword),
+    image_url: resolveWordImageUrl(word, imageUrl, keyword, enrichment.wordType),
     rank: enrichment.frequencyRank,
     importance_tier: enrichment.importanceTier,
     from_fallback: enrichment.fromFallback ?? false,

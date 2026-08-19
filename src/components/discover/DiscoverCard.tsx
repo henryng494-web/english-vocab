@@ -35,19 +35,26 @@ function CardImage({
   word,
   imageUrl,
   searchKeyword,
+  wordType,
 }: {
   word: string;
   imageUrl?: string | null;
   searchKeyword?: string | null;
+  wordType?: string | null;
 }) {
-  const primarySrc = resolveWordImageUrl(word, imageUrl, searchKeyword);
+  const primarySrc = resolveWordImageUrl(
+    word,
+    imageUrl,
+    searchKeyword,
+    wordType,
+  );
   const secondarySrc = getPicsumFallbackImageUrl(searchKeyword || word);
   const finalSrc = getDefaultLearningImageDataUrl();
   const [src, setSrc] = useState(primarySrc);
 
   useEffect(() => {
-    setSrc(resolveWordImageUrl(word, imageUrl, searchKeyword));
-  }, [word, imageUrl, searchKeyword]);
+    setSrc(resolveWordImageUrl(word, imageUrl, searchKeyword, wordType));
+  }, [word, imageUrl, searchKeyword, wordType]);
 
   return (
     <div className="relative h-44 w-full shrink-0 bg-gradient-to-br from-primary-100 via-primary to-primary-hover">
@@ -88,6 +95,7 @@ export function DiscoverCard({ data, loading }: DiscoverCardProps) {
         word={data.word}
         imageUrl={data.image_url}
         searchKeyword={data.search_keyword}
+        wordType={data.word_type}
       />
 
       <div className="space-y-4 p-6">
