@@ -1,5 +1,21 @@
 # Third-party data notices
 
+## New General Service List (NGSL) word frequencies
+
+`src/data/ngsl-frequency-ranks.ts` contains the frequency-rank table from the
+New General Service List (NGSL) 1.2, the primary source used to rank
+vocabulary importance in this app (`src/data/preset-vocabulary.ts`):
+
+> Browne, C., Culligan, B., & Phillips, J. (2013). The New General Service
+> List. Retrieved from https://www.newgeneralservicelist.com.
+
+The NGSL is a 2801-headword list of the most useful general-English words for
+second-language learners, derived from a 273-million-word subsection of the
+Cambridge English Corpus. It is licensed under a
+[Creative Commons Attribution-ShareAlike 4.0 International License](https://creativecommons.org/licenses/by-sa/4.0/).
+This file republishes the full public NGSL 1.2 frequency table (headwords and
+their listed inflected/variant forms) under that license.
+
 ## SUBTLEX-US spoken-word frequencies
 
 `src/data/spoken-frequency-ranks.ts` contains frequency-rank facts derived
