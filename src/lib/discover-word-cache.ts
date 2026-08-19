@@ -2,7 +2,17 @@ import type { DiscoverWordData } from "@/components/discover/DiscoverCard";
 import { hasQualityExamples } from "@/lib/example-fallback";
 import { parseExamples } from "@/lib/parse-examples";
 
-const STORAGE_KEY = "discover-word-cache-v6";
+/** Bump when example quality rules or enrichment output shape changes. */
+export const DISCOVER_WORD_CACHE_VERSION = 7;
+
+const STORAGE_KEY = `discover-word-cache-v${DISCOVER_WORD_CACHE_VERSION}`;
+
+const LEGACY_STORAGE_KEYS = [
+  "discover-word-cache-v4",
+  "discover-word-cache-v5",
+  "discover-word-cache-v6",
+];
+
 const MAX_ENTRIES = 250;
 
 export function isWordDetailComplete(
@@ -10,6 +20,7 @@ export function isWordDetailComplete(
   expectedWord?: string,
 ): boolean {
   if (!data?.phonetic?.trim()) return false;
+  if (data.phonetic.trim() === `/${data.word}/`) return false;
   if (!data.vietnamese_meaning?.trim()) return false;
   if (!hasQualityExamples(data.word, parseExamples(data.examples))) {
     return false;
@@ -25,11 +36,25 @@ export function isCacheEntryValid(
   expectedWord: string,
 ): boolean {
   if (!data) return false;
-  return data.word.toLowerCase() === expectedWord.toLowerCase();
+  if (data.word.toLowerCase() !== expectedWord.toLowerCase()) return false;
+  return isWordDetailComplete(data, expectedWord);
+}
+
+/** Drop legacy sessionStorage keys so stale template examples cannot persist. */
+export function purgeLegacyDiscoverWordCaches(): void {
+  if (typeof window === "undefined") return;
+  for (const key of LEGACY_STORAGE_KEYS) {
+    try {
+      sessionStorage.removeItem(key);
+    } catch {
+      /* ignore */
+    }
+  }
 }
 
 export function loadPersistedWordCache(): Map<string, DiscoverWordData> {
   if (typeof window === "undefined") return new Map();
+  purgeLegacyDiscoverWordCaches();
   try {
     const raw = sessionStorage.getItem(STORAGE_KEY);
     if (!raw) return new Map();
@@ -49,7 +74,10 @@ export function loadPersistedWordCache(): Map<string, DiscoverWordData> {
 export function persistWordCache(cache: Map<string, DiscoverWordData>): void {
   if (typeof window === "undefined") return;
   try {
-    const entries = Array.from(cache.entries()).slice(-MAX_ENTRIES);
+    const complete = Array.from(cache.entries()).filter(([word, value]) =>
+      isCacheEntryValid(value, word),
+    );
+    const entries = complete.slice(-MAX_ENTRIES);
     sessionStorage.setItem(
       STORAGE_KEY,
       JSON.stringify(Object.fromEntries(entries)),

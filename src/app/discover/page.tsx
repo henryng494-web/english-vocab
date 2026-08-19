@@ -7,11 +7,13 @@ import {
 import { AppNav } from "@/components/layout/AppNav";
 import { WORD_RANGES } from "@/data/preset-vocabulary";
 import {
+  DISCOVER_WORD_CACHE_VERSION,
   isCacheEntryValid,
   isWordDetailComplete,
   loadPersistedWordCache,
   persistWordCache,
   preloadImageUrl,
+  purgeLegacyDiscoverWordCaches,
   stubFromListItem,
 } from "@/lib/discover-word-cache";
 import { resolveWordImageUrl } from "@/lib/unsplash";
@@ -85,13 +87,20 @@ export default function DiscoverPage() {
         word: item.word,
         rank: String(item.rank),
         skipGemini: "false",
+        cacheVersion: String(DISCOVER_WORD_CACHE_VERSION),
       });
-      const res = await fetch(`/api/discover/word?${params}`);
+      const res = await fetch(`/api/discover/word?${params}`, {
+        cache: "no-store",
+      });
       const data = await res.json();
       if (!res.ok) {
         throw new Error(data.details ?? data.error ?? "Không thể tải từ");
       }
-      return mapApiWord(item, data.word);
+      const loaded = mapApiWord(item, data.word);
+      if (!isCacheEntryValid(loaded, item.word)) {
+        throw new Error(`Ví dụ cho "${item.word}" chưa đủ chất lượng — thử lại sau.`);
+      }
+      return loaded;
     },
     [],
   );
@@ -102,6 +111,7 @@ export default function DiscoverPage() {
       if (isWordDetailComplete(cached, item.word)) {
         return cached!;
       }
+      wordCache.current.delete(item.word);
 
       const pending = inflight.current.get(item.word);
       if (pending) return pending;
@@ -209,6 +219,11 @@ export default function DiscoverPage() {
       setLoadingList(false);
     }
   }, [rangeId, filterLocalMastered]);
+
+  useEffect(() => {
+    purgeLegacyDiscoverWordCaches();
+    wordCache.current = loadPersistedWordCache();
+  }, []);
 
   useEffect(() => {
     fetchRange();
