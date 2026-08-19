@@ -131,8 +131,10 @@ function parseGeminiResponse(text: string, word: string): WordEnrichment {
     meaningRaw;
 
   const examples = keepNaturalExamples(word, parseExamples(parsed.examples));
+  // Prefer real corpus-derived data over any rank Gemini might report — an
+  // LLM guess is far less reliable than a measured frequency rank.
   const frequencyRank = clampFrequencyRank(
-    Number(parsed.rank) || getPresetRank(word) || 5000,
+    getPresetRank(word) || Number(parsed.rank) || 5000,
   );
   const phonetic =
     parsed.phonetic?.trim() || parsed.ipa?.trim() || `/${word}/`;
