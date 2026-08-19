@@ -1,6 +1,6 @@
 "use client";
 
-import { keepNaturalExamples } from "@/lib/example-fallback";
+import { keepNaturalExamples } from "@/lib/example-quality";
 import type { VocabExample } from "@/lib/parse-examples";
 
 type VocabExampleListProps = {
