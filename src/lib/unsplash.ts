@@ -336,6 +336,27 @@ function overlapCount(left: Set<string>, right: Set<string>): number {
   return count;
 }
 
+/**
+ * A multi-word query phrase like "brown everyday scene" or "person
+ * shivering" collapses to a single meaningful token once generic words
+ * ("everyday", "scene", "person") are filtered out — "brown" and "shiver"
+ * respectively. That lone token is safe to match on its own only when it
+ * *is* the vocabulary word itself ("brown" for the word "brown"): then a
+ * title match is exactly a literal-word match, which is always trustworthy.
+ * When the lone token is an unrelated proxy for an abstract word ("shiver"
+ * for "rather"), a single coincidental match (e.g. a product named
+ * "Shiver") is not enough evidence — that case must additionally require
+ * the literal word to appear in the metadata, which it never will for a
+ * generated proxy phrase, correctly failing this query variant closed so
+ * the caller tries a more specific fallback instead.
+ */
+function isUngroundedSingleTokenQuery(
+  wordTokens: Set<string>,
+  queryTokens: Set<string>,
+): boolean {
+  return queryTokens.size === 1 && overlapCount(wordTokens, queryTokens) === 0;
+}
+
 function markSemanticImageUrl(url: string): string {
   const versionedUrl = new URL(url);
   versionedUrl.searchParams.set("semantic", SEMANTIC_IMAGE_VERSION);
@@ -373,6 +394,8 @@ export async function searchOpenversePhoto(
     const data = (await response.json()) as OpenverseSearchResponse;
     const wordTokens = semanticTokens(word);
     const queryTokens = semanticTokens(query);
+    const effectiveRequireWordMatch =
+      requireWordMatch || isUngroundedSingleTokenQuery(wordTokens, queryTokens);
     let best: { url: string; score: number } | null = null;
 
     for (const result of data.results ?? []) {
@@ -389,7 +412,7 @@ export async function searchOpenversePhoto(
           .join(" "),
       );
       if (
-        requireWordMatch &&
+        effectiveRequireWordMatch &&
         overlapCount(wordTokens, metadataTokens) === 0
       ) {
         continue;
@@ -454,6 +477,8 @@ export async function searchWikimediaPhoto(
     const pages = Object.values(data.query?.pages ?? {});
     const wordTokens = semanticTokens(word);
     const queryTokens = semanticTokens(query);
+    const effectiveRequireWordMatch =
+      requireWordMatch || isUngroundedSingleTokenQuery(wordTokens, queryTokens);
     let best: { url: string; score: number } | null = null;
 
     for (const page of pages) {
@@ -471,7 +496,10 @@ export async function searchWikimediaPhoto(
       const titleTokens = semanticTokens(
         (page.title ?? "").replace(/^file:/i, "").replace(/\.[a-z0-9]+$/i, ""),
       );
-      if (requireWordMatch && overlapCount(wordTokens, titleTokens) === 0) {
+      if (
+        effectiveRequireWordMatch &&
+        overlapCount(wordTokens, titleTokens) === 0
+      ) {
         continue;
       }
 

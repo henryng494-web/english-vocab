@@ -165,6 +165,10 @@ const CURATED_VISUAL_KEYWORDS: Record<string, string> = {
   very: "extremely tall skyscraper building",
   more: "second helping of food on plate",
   most: "largest slice of pizza on plate",
+  yes: "person giving thumbs up",
+  keep: "person holding treasure box",
+  suggest: "people brainstorming with sticky notes",
+  decide: "person choosing between two doors",
 };
 
 export function hasCuratedVisualKeyword(word: string): boolean {
