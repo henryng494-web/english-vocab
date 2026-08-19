@@ -2,8 +2,6 @@ import { getPresetRank } from "@/data/preset-word-details";
 import { getStandardVocab } from "@/data/standard-vocab";
 import type { WordEnrichment } from "@/lib/gemini";
 import { serializeExamples } from "@/lib/parse-examples";
-import { keepNaturalExamples } from "@/lib/example-fallback";
-import { ensureExamples } from "@/lib/example-fallback";
 import { resolveImageSearchKeyword } from "@/lib/image-keyword";
 import { resolveWordImageUrl } from "@/lib/unsplash";
 import { getImportanceTier } from "@/lib/word-rank";
@@ -26,14 +24,7 @@ export function enrichmentToDiscoverWord(
       normalizeWordType(enrichment.wordType, word) ?? enrichment.wordType,
     vietnamese_meaning: enrichment.vietnameseMeaning,
     english_definition: enrichment.englishDefinition,
-    examples: serializeExamples(
-      ensureExamples(
-        word,
-        keepNaturalExamples(word, enrichment.examples),
-        enrichment.wordType,
-        enrichment.vietnameseMeaning,
-      ),
-    ),
+    examples: serializeExamples(enrichment.examples),
     collocations: enrichment.collocations,
     image_url: resolveWordImageUrl(word, imageUrl, keyword, enrichment.wordType),
     rank: enrichment.frequencyRank,
@@ -58,9 +49,7 @@ export function standardToDiscoverFields(word: string) {
     word_type: entry.pos,
     vietnamese_meaning: entry.meaning,
     english_definition: entry.definition,
-    examples: serializeExamples(
-      ensureExamples(word, entry.examples, entry.pos, entry.meaning),
-    ),
+    examples: serializeExamples(entry.examples),
     image_url: null as string | null,
     collocations: null as string | null,
     from_static: true,

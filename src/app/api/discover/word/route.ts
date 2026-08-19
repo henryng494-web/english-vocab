@@ -58,7 +58,7 @@ export async function GET(request: Request) {
     const rankParam = searchParams.get("rank");
     const rank = rankParam ? Number(rankParam) : undefined;
     const skipGemini =
-      searchParams.get("skipGemini") !== "false" &&
+      searchParams.get("skipGemini") === "true" &&
       hasQualityStandardVocab(word ?? "");
 
     if (!word) {

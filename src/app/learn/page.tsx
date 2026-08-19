@@ -96,7 +96,7 @@ export default function LearnPage() {
     const params = new URLSearchParams({
       word: currentWord.word,
       rank: String(currentWord.rank),
-      skipGemini: "true",
+      skipGemini: "false",
     });
 
     fetch(`/api/discover/word?${params}`)

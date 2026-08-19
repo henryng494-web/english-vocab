@@ -65,7 +65,7 @@ export function buildDefinitionFromVietnameseMeaning(
   if (!raw || raw === "—") return "";
 
   const segments = raw
-    .split(/[/|,]/)
+    .split(/[/|,;]/)
     .map((s) => s.trim())
     .filter(Boolean);
   if (!segments.length) return "";

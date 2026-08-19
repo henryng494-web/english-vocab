@@ -477,6 +477,23 @@ const CURATED: Record<string, RawEntry> = {
     ],
     keyword: "hole in ground",
   },
+  train: {
+    pos: "noun",
+    ipa: "/treɪn/",
+    meaning: "Xe lửa",
+    definition: "Phương tiện chạy trên đường ray để chở hành khách hoặc hàng hóa.",
+    examples: [
+      {
+        en: "The train arrived at the station.",
+        vi: "Chuy tàu đã đến nhà ga.",
+      },
+      {
+        en: "We took the train to the city.",
+        vi: "Chúng tôi đi tàu vào thành phố.",
+      },
+    ],
+    keyword: "train station",
+  },
   week: {
     pos: "noun",
     ipa: "/wiːk/",

@@ -84,7 +84,7 @@ export default function DiscoverPage() {
       const params = new URLSearchParams({
         word: item.word,
         rank: String(item.rank),
-        skipGemini: "true",
+        skipGemini: "false",
       });
       const res = await fetch(`/api/discover/word?${params}`);
       const data = await res.json();
