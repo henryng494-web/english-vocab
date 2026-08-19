@@ -51,7 +51,16 @@ const NON_CONCRETE_POS = new Set([
   "verb",
 ]);
 
-const SEMANTIC_IMAGE_VERSION = "4";
+const NON_VISUAL_FUNCTION_POS = new Set([
+  "adverb",
+  "article",
+  "conjunction",
+  "determiner",
+  "preposition",
+  "pronoun",
+]);
+
+const SEMANTIC_IMAGE_VERSION = "5";
 
 function hashWord(word: string): number {
   let hash = 0;
@@ -359,6 +368,15 @@ export async function fetchWordImageUrl(
 ): Promise<string> {
   const queries = buildImageSearchQueries(word, { searchKeyword, pos });
   if (queries.length === 0) return getDefaultLearningImageDataUrl();
+  const normalizedPos = pos?.trim().toLowerCase();
+  const hasCuratedKeyword = hasCuratedVisualKeyword(word);
+  if (
+    normalizedPos &&
+    NON_VISUAL_FUNCTION_POS.has(normalizedPos) &&
+    !hasCuratedKeyword
+  ) {
+    return getDefaultLearningImageDataUrl();
+  }
 
   if (process.env.UNSPLASH_ACCESS_KEY?.trim()) {
     for (const keyword of queries) {
@@ -374,8 +392,6 @@ export async function fetchWordImageUrl(
     }
   }
 
-  const normalizedPos = pos?.trim().toLowerCase();
-  const hasCuratedKeyword = hasCuratedVisualKeyword(word);
   const requiresConcretePhrase =
     Boolean(normalizedPos && NON_CONCRETE_POS.has(normalizedPos)) &&
     !hasCuratedKeyword;
