@@ -1,12 +1,17 @@
 import { hasQualityStandardVocab } from "@/data/standard-vocab";
+import { getPresetRank } from "@/data/preset-word-details";
 import { createClient } from "@/lib/supabase/server";
 import { enrichmentToDiscoverWord } from "@/lib/enrichment-helpers";
 import { enrichWord } from "@/lib/enrich-word";
+import { isPersistedWordDetailComplete } from "@/lib/persisted-word-detail";
+import { serializeExamples } from "@/lib/parse-examples";
+import { getImportanceTier } from "@/lib/word-rank";
 import {
   fetchWordImageUrl,
   shouldRefreshImageUrl,
 } from "@/lib/unsplash";
 import { isProfaneWord } from "@/lib/safe-image-search";
+import type { WordDetail } from "@/types/database";
 import { NextResponse } from "next/server";
 
 function errorMessage(error: unknown): string {
@@ -27,12 +32,32 @@ async function resolveImageUrl(
   if (trimmed?.startsWith("http") && !shouldRefreshImageUrl(trimmed, word)) {
     return trimmed;
   }
-  const resolvedUrl = await fetchWordImageUrl(
+  return fetchWordImageUrl(word, searchKeyword ?? word, pos);
+}
+
+function persistedDetailToDiscoverWord(
+  word: string,
+  detail: WordDetail,
+  rank: number,
+  imageUrl: string,
+) {
+  return {
     word,
-    searchKeyword ?? word,
-    pos,
-  );
-  return resolvedUrl;
+    phonetic: detail.phonetic,
+    word_type: detail.word_type,
+    vietnamese_meaning: detail.vietnamese_meaning,
+    english_definition: detail.english_definition,
+    examples: detail.examples,
+    collocations: detail.collocations,
+    image_url: imageUrl,
+    rank,
+    importance_tier: getImportanceTier(rank),
+    from_fallback: false,
+    from_static: false,
+    from_cache: true,
+    source: "database" as const,
+    search_keyword: word,
+  };
 }
 
 /** Self-heal: persist a freshly regenerated image URL so it's fixed for good. */
@@ -50,6 +75,36 @@ async function persistImageUrlIfChanged(
       .eq("word", word);
   } catch (error) {
     console.warn(`Failed to persist refreshed image_url for "${word}":`, error);
+  }
+}
+
+async function persistEnrichedWordDetail(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  word: string,
+  payload: {
+    phonetic: string;
+    word_type: string;
+    vietnamese_meaning: string;
+    english_definition: string;
+    examples: string;
+    collocations: string | null;
+    image_url: string;
+  },
+): Promise<void> {
+  try {
+    const { data: existing } = await supabase
+      .from("word_details")
+      .select("word")
+      .eq("word", word)
+      .maybeSingle();
+
+    if (existing) {
+      await supabase.from("word_details").update(payload).eq("word", word);
+    } else {
+      await supabase.from("word_details").insert({ word, ...payload });
+    }
+  } catch (error) {
+    console.warn(`Failed to persist word_details for "${word}":`, error);
   }
 }
 
@@ -81,21 +136,75 @@ export async function GET(request: Request) {
     const supabase = await createClient();
     const { data: dbDetail } = await supabase
       .from("word_details")
-      .select("image_url, collocations")
+      .select("*")
       .eq("word", word)
       .maybeSingle();
 
-    const enrichment = await enrichWord(word, {
-      rank,
-      skipGemini,
-    });
+    const frequencyRank = rank ?? getPresetRank(word) ?? 5000;
 
-    const imageUrl = await resolveImageUrl(
+    if (isPersistedWordDetailComplete(dbDetail, word)) {
+      const imageUrl = await resolveImageUrl(
+        word,
+        dbDetail!.image_url,
+        word,
+        dbDetail!.word_type,
+      );
+      if (dbDetail!.image_url !== imageUrl) {
+        await persistImageUrlIfChanged(
+          supabase,
+          word,
+          dbDetail!.image_url,
+          imageUrl,
+        );
+      }
+      return NextResponse.json({
+        word: persistedDetailToDiscoverWord(
+          word,
+          dbDetail!,
+          frequencyRank,
+          imageUrl,
+        ),
+      });
+    }
+
+    const enrichmentPromise = enrichWord(word, { rank: frequencyRank, skipGemini });
+    const imagePromise = resolveImageUrl(
       word,
       dbDetail?.image_url ?? null,
-      enrichment.searchKeyword,
-      enrichment.wordType,
+      word,
+      dbDetail?.word_type ?? null,
     );
+    const [enrichment, imageUrlInitial] = await Promise.all([
+      enrichmentPromise,
+      imagePromise,
+    ]);
+
+    let imageUrl = imageUrlInitial;
+    const keyword = enrichment.searchKeyword?.trim() || word;
+    if (
+      keyword !== word &&
+      (shouldRefreshImageUrl(imageUrlInitial, word) ||
+        imageUrlInitial.startsWith("data:"))
+    ) {
+      imageUrl = await fetchWordImageUrl(
+        word,
+        keyword,
+        enrichment.wordType,
+      );
+    }
+
+    const responseWord = enrichmentToDiscoverWord(word, enrichment, imageUrl);
+
+    void persistEnrichedWordDetail(supabase, word, {
+      phonetic: responseWord.phonetic ?? `/${word}/`,
+      word_type: responseWord.word_type ?? "unknown",
+      vietnamese_meaning: responseWord.vietnamese_meaning ?? word,
+      english_definition: responseWord.english_definition ?? "",
+      examples: responseWord.examples ?? serializeExamples(enrichment.examples),
+      collocations: responseWord.collocations ?? null,
+      image_url: imageUrl,
+    });
+
     if (dbDetail) {
       await persistImageUrlIfChanged(
         supabase,
@@ -107,8 +216,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json({
       word: {
-        ...enrichmentToDiscoverWord(word, enrichment, imageUrl),
-        collocations: dbDetail?.collocations ?? enrichment.collocations,
+        ...responseWord,
         from_cache: hasQualityStandardVocab(word),
       },
     });

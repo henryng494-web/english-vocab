@@ -5,7 +5,7 @@ import {
   type DiscoverWordData,
 } from "@/components/discover/DiscoverCard";
 import { AppNav } from "@/components/layout/AppNav";
-import { WORD_RANGES } from "@/data/preset-vocabulary";
+import { WORD_RANGES } from "@/data/word-ranges";
 import {
   DISCOVER_WORD_CACHE_VERSION,
   isCacheEntryValid,
@@ -23,6 +23,15 @@ import {
 } from "@/lib/learning-storage";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+type DiscoverListPreview = {
+  phonetic?: string | null;
+  word_type?: string | null;
+  vietnamese_meaning?: string | null;
+  english_definition?: string | null;
+  examples?: string | null;
+  search_keyword?: string | null;
+};
+
 type DiscoverListItem = {
   word: string;
   rank: number;
@@ -30,9 +39,27 @@ type DiscoverListItem = {
   from_static?: boolean;
   has_vietnamese?: boolean;
   needs_fetch?: boolean;
+  preview?: DiscoverListPreview | null;
 };
 
-const PRELOAD_AHEAD = 3;
+const PRELOAD_AHEAD = 5;
+
+function listItemToDiscoverData(item: DiscoverListItem): DiscoverWordData {
+  const base = stubFromListItem(item);
+  const preview = item.preview;
+  if (!preview?.phonetic?.trim() || !preview.vietnamese_meaning?.trim()) {
+    return base;
+  }
+  return {
+    ...base,
+    phonetic: preview.phonetic,
+    word_type: preview.word_type ?? null,
+    vietnamese_meaning: preview.vietnamese_meaning,
+    english_definition: preview.english_definition ?? null,
+    examples: preview.examples ?? null,
+    search_keyword: preview.search_keyword ?? item.word,
+  };
+}
 
 function mapApiWord(
   item: DiscoverListItem,
@@ -86,7 +113,7 @@ export default function DiscoverPage() {
       const params = new URLSearchParams({
         word: item.word,
         rank: String(item.rank),
-        skipGemini: "false",
+        skipGemini: item.from_static ? "true" : "false",
         cacheVersion: String(DISCOVER_WORD_CACHE_VERSION),
       });
       const res = await fetch(`/api/discover/word?${params}`, {
@@ -158,9 +185,12 @@ export default function DiscoverPage() {
     (item: DiscoverListItem, options?: { fetchIfNeeded?: boolean }) => {
       activeWordRef.current = item.word;
 
-      const cleanStub = stubFromListItem(item);
+      const cleanStub = listItemToDiscoverData(item);
       setCurrentWord(cleanStub);
-      setLoadingWord(true);
+      const hasTextPreview =
+        Boolean(cleanStub.phonetic?.trim()) &&
+        Boolean(cleanStub.vietnamese_meaning?.trim());
+      setLoadingWord(!hasTextPreview);
 
       const cached = wordCache.current.get(item.word);
       if (cached && !isCacheEntryValid(cached, item.word, item.rank)) {

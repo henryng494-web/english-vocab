@@ -1,5 +1,5 @@
 import type { DiscoverWordData } from "@/components/discover/DiscoverCard";
-import { hasQualityExamples } from "@/lib/example-fallback";
+import { hasQualityExamples } from "@/lib/example-quality";
 import { parseExamples } from "@/lib/parse-examples";
 import {
   isOutdatedSemanticImageUrl,

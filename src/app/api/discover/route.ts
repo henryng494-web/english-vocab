@@ -6,7 +6,9 @@ import {
   getStaticWordDetail,
   hasStaticWordDetail,
 } from "@/data/preset-word-details";
+import { standardToDiscoverFields } from "@/lib/enrichment-helpers";
 import { hasStaticVietnamese } from "@/lib/static-vietnamese";
+import { serializeExamples } from "@/lib/parse-examples";
 import { createClient } from "@/lib/supabase/server";
 import { getImportanceTier } from "@/lib/word-rank";
 import { NextResponse } from "next/server";
@@ -51,8 +53,29 @@ export async function GET(request: Request) {
 
     const words = visiblePreset.map((preset) => {
       const staticDetail = getStaticWordDetail(preset.word);
-      const hasStatic = Boolean(staticDetail);
+      const standardFields = standardToDiscoverFields(preset.word);
+      const hasStatic = Boolean(staticDetail) || Boolean(standardFields);
       const hasVi = hasStaticVietnamese(preset.word);
+
+      const preview = standardFields
+        ? {
+            phonetic: standardFields.phonetic,
+            word_type: standardFields.word_type,
+            vietnamese_meaning: standardFields.vietnamese_meaning,
+            english_definition: standardFields.english_definition,
+            examples: standardFields.examples,
+            search_keyword: standardFields.search_keyword,
+          }
+        : staticDetail
+          ? {
+              phonetic: staticDetail.ipa,
+              word_type: staticDetail.pos,
+              vietnamese_meaning: staticDetail.vietnamese,
+              english_definition: staticDetail.definition,
+              examples: serializeExamples(staticDetail.examples),
+              search_keyword: preset.word,
+            }
+          : null;
 
       return {
         word: preset.word,
@@ -61,6 +84,7 @@ export async function GET(request: Request) {
         from_static: hasStatic,
         has_vietnamese: hasVi,
         needs_fetch: !hasStatic,
+        preview,
       };
     });
 
