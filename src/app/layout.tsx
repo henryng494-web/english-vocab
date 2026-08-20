@@ -9,7 +9,7 @@ const nunito = Nunito({
 
 export const metadata: Metadata = {
   title: "English Vocab",
-  description: "Ứng dụng học từ vựng tiếng Anh",
+  description: "English vocabulary learning app",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
@@ -34,7 +34,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="vi">
+    <html lang="en">
       <body className={`${nunito.className} antialiased`}>{children}</body>
     </html>
   );

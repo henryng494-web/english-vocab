@@ -16,10 +16,10 @@ type FilterOption = "all" | LearningStatus;
 type ViewMode = "card" | "list";
 
 const STATUS_LABELS: Record<LearningStatus, string> = {
-  new: "Mới",
-  learning: "Đang học",
-  need_review: "Cần ôn",
-  mastered: "Đã thuộc",
+  new: "New",
+  learning: "Learning",
+  need_review: "Needs review",
+  mastered: "Mastered",
 };
 
 export default function LearnPage() {
@@ -45,7 +45,7 @@ export default function LearnPage() {
       const res = await fetch(`/api/words?${params}`);
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.details ?? data.error ?? "Không thể tải danh sách từ");
+        throw new Error(data.details ?? data.error ?? "Failed to load word list");
       }
 
       const wordsFromApi = (data.words ?? []) as VocabWord[];
@@ -61,7 +61,7 @@ export default function LearnPage() {
       setIsFlipped(false);
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Không thể tải danh sách từ vựng",
+        err instanceof Error ? err.message : "Failed to load vocabulary",
       );
     } finally {
       setLoading(false);
@@ -150,13 +150,13 @@ export default function LearnPage() {
 
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.details ?? data.error ?? "Không thể thêm từ");
+        throw new Error(data.details ?? data.error ?? "Failed to add word");
       }
 
       setNewWord("");
       await fetchWords();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Lỗi không xác định");
+      setError(err instanceof Error ? err.message : "Unknown error");
     } finally {
       setAdding(false);
     }
@@ -196,7 +196,7 @@ export default function LearnPage() {
           setCurrentIndex((i) => Math.max(0, i - 1));
         }
         setError(
-          "Đã lưu tạm trên máy. Chạy supabase/user-learning-anon.sql để lưu lên Supabase.",
+          "Saved locally. Run supabase/user-learning-anon.sql to sync to Supabase.",
         );
         return;
       }
@@ -223,7 +223,7 @@ export default function LearnPage() {
         setCurrentIndex((i) => Math.max(0, i - 1));
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Lỗi không xác định");
+      setError(err instanceof Error ? err.message : "Unknown error");
     } finally {
       setUpdating(false);
     }
@@ -245,8 +245,8 @@ export default function LearnPage() {
   return (
     <>
       <MobileTopBar
-        title="Ôn tập"
-        subtitle={`${words.length} từ · ${studyQueue.length} cần học`}
+        title="Review"
+        subtitle={`${words.length} words · ${studyQueue.length} to study`}
       />
 
       <div className="px-4 pt-3">
@@ -255,7 +255,7 @@ export default function LearnPage() {
             type="text"
             value={newWord}
             onChange={(e) => setNewWord(e.target.value)}
-            placeholder="Thêm từ mới..."
+            placeholder="Add a new word..."
             className="flex-1 rounded-xl border border-primary-200 bg-white px-4 py-3 text-sm text-foreground shadow-sm placeholder:text-foreground/40 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
           />
           <button
@@ -263,7 +263,7 @@ export default function LearnPage() {
             disabled={adding || !newWord.trim()}
             className="rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-white shadow-sm transition active:bg-primary-hover disabled:opacity-50"
           >
-            {adding ? "..." : "Thêm"}
+            {adding ? "..." : "Add"}
           </button>
         </form>
 
@@ -273,14 +273,14 @@ export default function LearnPage() {
             data-active={viewMode === "card"}
             onClick={() => setViewMode("card")}
           >
-            Thẻ
+            Cards
           </button>
           <button
             type="button"
             data-active={viewMode === "list"}
             onClick={() => setViewMode("list")}
           >
-            Danh sách
+            List
           </button>
         </div>
 
@@ -290,9 +290,9 @@ export default function LearnPage() {
             onChange={(e) => setSortBy(e.target.value as SortOption)}
             className="flex-1 rounded-lg border border-primary-200 bg-white px-3 py-2 text-xs text-foreground shadow-sm"
           >
-            <option value="importance">Quan trọng</option>
+            <option value="importance">Importance</option>
             <option value="alphabetical">A → Z</option>
-            <option value="recent">Gần đây</option>
+            <option value="recent">Recent</option>
           </select>
 
           <select
@@ -300,11 +300,11 @@ export default function LearnPage() {
             onChange={(e) => setFilterStatus(e.target.value as FilterOption)}
             className="flex-1 rounded-lg border border-primary-200 bg-white px-3 py-2 text-xs text-foreground shadow-sm"
           >
-            <option value="all">Tất cả</option>
-            <option value="new">Mới</option>
-            <option value="need_review">Cần ôn</option>
-            <option value="learning">Đang học</option>
-            <option value="mastered">Đã thuộc</option>
+            <option value="all">All</option>
+            <option value="new">New</option>
+            <option value="need_review">Needs review</option>
+            <option value="learning">Learning</option>
+            <option value="mastered">Mastered</option>
           </select>
         </div>
 
@@ -320,7 +320,7 @@ export default function LearnPage() {
           </div>
         ) : words.length === 0 ? (
           <p className="mt-16 text-center text-sm text-foreground/60">
-            Chưa có từ vựng. Hãy thêm từ đầu tiên!
+            No vocabulary yet. Add your first word!
           </p>
         ) : viewMode === "list" ? (
           <ul className="mt-4 space-y-2 pb-4">
@@ -357,7 +357,7 @@ export default function LearnPage() {
           <div className="mt-4">
             <div className="mb-3 flex items-center justify-between text-xs font-medium text-foreground/55">
               <span>
-                Thẻ {currentIndex + 1} / {words.length}
+                Card {currentIndex + 1} / {words.length}
               </span>
               {currentWord && (
                 <span className="rounded-full bg-primary-50 px-3 py-1 text-primary-800">
@@ -387,7 +387,7 @@ export default function LearnPage() {
               disabled={currentIndex === 0}
               className="flex-1 rounded-lg border border-primary-200 bg-white py-2.5 text-sm font-medium text-foreground/80 disabled:opacity-40"
             >
-              ← Trước
+              ← Previous
             </button>
             <button
               type="button"
@@ -395,7 +395,7 @@ export default function LearnPage() {
               disabled={currentIndex >= words.length - 1}
               className="flex-1 rounded-lg border border-primary-200 bg-white py-2.5 text-sm font-medium text-foreground/80 disabled:opacity-40"
             >
-              Sau →
+              Next →
             </button>
           </div>
 
@@ -406,7 +406,7 @@ export default function LearnPage() {
               onClick={() => updateStatus("need_review")}
               className="rounded-xl border-2 border-primary-200 bg-primary-50 py-3.5 text-sm font-semibold text-primary-800 transition active:bg-primary-100 disabled:opacity-50"
             >
-              Cần ôn lại
+              Needs review
             </button>
             <button
               type="button"
@@ -414,7 +414,7 @@ export default function LearnPage() {
               onClick={() => updateStatus("mastered")}
               className="rounded-xl bg-primary py-3.5 text-sm font-semibold text-white shadow-sm transition active:bg-primary-hover disabled:opacity-50"
             >
-              Đã thuộc
+              Mastered
             </button>
           </div>
         </div>
