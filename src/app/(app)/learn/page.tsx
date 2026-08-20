@@ -243,7 +243,7 @@ export default function LearnPage() {
   }
 
   return (
-    <>
+    <div className="app-screen">
       <MobileTopBar
         title="Review"
         subtitle={`${words.length} words · ${studyQueue.length} to study`}
@@ -433,6 +433,6 @@ export default function LearnPage() {
           </div>
         )}
       </div>
-    </>
+    </div>
   );
 }

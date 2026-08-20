@@ -18,13 +18,8 @@
   --accent: #22c55e;
   --accent-hover: #16a34a;
   --tab-bar-height: 3.875rem;
+  --app-height: 100svh;
   --browser-chrome-bottom: 0px;
-}
-
-@media not (display-mode: standalone) {
-  :root {
-    --browser-chrome-bottom: 3rem;
-  }
 }
 
 @theme inline {
@@ -69,8 +64,7 @@ html {
   -webkit-tap-highlight-color: transparent;
   text-size-adjust: 100%;
   background: var(--background);
-  height: 100%;
-  height: 100dvh;
+  height: -webkit-fill-available;
 }
 
 body {
@@ -78,38 +72,41 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans);
   overscroll-behavior-y: none;
-  height: 100%;
-  height: 100dvh;
+  min-height: 100%;
+  min-height: -webkit-fill-available;
+  min-height: var(--app-height);
   margin: 0;
   overflow: hidden;
 }
 
 .app-page {
-  height: 100dvh;
-  height: 100svh;
+  height: var(--app-height);
   width: 100%;
   background: var(--background);
   overflow: hidden;
 }
 
 .app-shell {
-  position: relative;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
   height: 100%;
   min-height: 0;
 }
 
 .app-shell .shell-content {
   display: flex;
-  flex: 1;
   flex-direction: column;
   min-height: 0;
   overflow: hidden;
-  padding-bottom: calc(
-    var(--tab-bar-height) + env(safe-area-inset-bottom, 0px) +
-      var(--browser-chrome-bottom)
-  );
+}
+
+.app-screen {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
 }
 
 .page-scroll {
