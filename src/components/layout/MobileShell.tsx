@@ -2,23 +2,13 @@
 
 import { BottomTabBar } from "@/components/layout/BottomTabBar";
 
-export function MobileShell({
-  children,
-  actionDock = false,
-}: {
-  children: React.ReactNode;
-  actionDock?: boolean;
-}) {
+export function MobileShell({ children }: { children: React.ReactNode }) {
   return (
-    <div
-      className={`app-shell mx-auto flex min-h-dvh w-full max-w-lg flex-col bg-background${
-        actionDock ? " has-action-dock" : ""
-      }`}
-    >
-      <div className="shell-content flex-1 overflow-x-hidden overflow-y-auto">
-        {children}
+    <div className="app-page">
+      <div className="app-shell mx-auto w-full max-w-lg bg-background">
+        <div className="shell-content">{children}</div>
+        <BottomTabBar />
       </div>
-      <BottomTabBar />
     </div>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { MobileTopBar } from "@/components/layout/MobileTopBar";
+import { InstallAppHint } from "@/components/layout/InstallAppHint";
 import { ThemePicker } from "@/components/theme/ThemePicker";
 import Link from "next/link";
 
@@ -12,7 +13,8 @@ export default function AccountPage() {
         subtitle="Appearance and sign-in"
       />
 
-      <div className="space-y-6 px-4 pt-4 pb-6">
+      <div className="page-scroll">
+        <div className="space-y-6 px-4 pt-4 pb-6">
         <section>
           <h2 className="text-base font-bold uppercase tracking-wide text-foreground/70">
             Color tone
@@ -24,6 +26,8 @@ export default function AccountPage() {
             <ThemePicker />
           </div>
         </section>
+
+        <InstallAppHint />
 
         <section className="rounded-2xl border border-primary-200 bg-surface p-4 shadow-sm">
           <h2 className="text-base font-bold text-foreground">Sign in</h2>
@@ -37,6 +41,7 @@ export default function AccountPage() {
             Go to sign in
           </Link>
         </section>
+        </div>
       </div>
     </>
   );

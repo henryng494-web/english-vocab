@@ -7,5 +7,5 @@ export default function AppLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return <MobileShell actionDock>{children}</MobileShell>;
+  return <MobileShell>{children}</MobileShell>;
 }
