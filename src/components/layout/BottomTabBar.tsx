@@ -2,14 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { CoachDog } from "@/components/mascot/CoachDog";
 
 type TabItem = {
   href: string;
   label: string;
   match: (path: string) => boolean;
   icon: (active: boolean) => React.ReactNode;
-  showDog?: boolean;
 };
 
 function DiscoverIcon({ active }: { active: boolean }) {
@@ -65,7 +63,6 @@ const TABS: TabItem[] = [
     label: "Home",
     match: (path) => path.startsWith("/discover"),
     icon: (active) => <DiscoverIcon active={active} />,
-    showDog: true,
   },
   {
     href: "/learn",
@@ -103,13 +100,7 @@ export function BottomTabBar() {
                 active ? "tab-bar-link--active" : "tab-bar-link--inactive"
               }`}
             >
-              <span className="tab-bar-link__pill">
-                {tab.showDog && active ? (
-                  <CoachDog pose="happy" size={26} />
-                ) : (
-                  tab.icon(active)
-                )}
-              </span>
+              <span className="tab-bar-link__pill">{tab.icon(active)}</span>
               <span>{tab.label}</span>
             </Link>
           );

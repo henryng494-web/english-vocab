@@ -596,6 +596,13 @@ body {
   gap: 0.625rem;
 }
 
+.coach-dog-bubble__avatar {
+  display: block;
+  flex: 0 0 36px;
+  width: 36px;
+  height: 36px;
+}
+
 .coach-dog-bubble__text {
   flex: 1;
   min-width: 0;
@@ -614,8 +621,8 @@ body {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  gap: 0.5rem;
-  overflow: hidden;
+  gap: 0.75rem;
+  overflow: visible;
   min-height: 9.5rem;
 }
 
@@ -626,8 +633,11 @@ body {
 }
 
 .home-welcome__dog {
-  margin-right: -0.35rem;
-  margin-bottom: -0.5rem;
+  flex: 0 0 88px;
+  width: 88px;
+  height: 96px;
+  margin-right: 0;
+  margin-bottom: -0.25rem;
 }
 
 .home-section-header {
