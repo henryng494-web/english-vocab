@@ -52,8 +52,14 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="w-full max-w-md rounded-xl border border-primary-200 bg-white p-8 shadow-sm">
+    <main
+      className="flex min-h-dvh items-center justify-center bg-background px-4"
+      style={{
+        paddingTop: "env(safe-area-inset-top, 0px)",
+        paddingBottom: "env(safe-area-inset-bottom, 0px)",
+      }}
+    >
+      <div className="w-full max-w-md rounded-2xl border border-primary-200 bg-white p-8 shadow-sm">
         <h1 className="text-2xl font-bold text-foreground">Đăng nhập</h1>
         <p className="mt-2 text-sm text-foreground/60">
           Sử dụng tài khoản Supabase Auth để lưu tiến trình học
@@ -120,10 +126,10 @@ export default function LoginPage() {
         </form>
 
         <Link
-          href="/"
+          href="/discover"
           className="mt-6 block text-center text-sm text-foreground/60 hover:text-primary-700"
         >
-          ← Quay lại trang chủ
+          ← Quay lại ứng dụng
         </Link>
       </div>
     </main>

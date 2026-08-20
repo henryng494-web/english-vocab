@@ -101,7 +101,7 @@ export function Flashcard({ word, isFlipped, onFlip }: FlashcardProps) {
   }
 
   return (
-    <div className="flashcard-scene mx-auto w-full max-w-md">
+    <div className="flashcard-scene w-full">
       <div
         className={`flashcard-inner ${isFlipped ? "is-flipped" : ""}`}
         onClick={onFlip}

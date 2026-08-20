@@ -5,6 +5,8 @@
   --foreground: #2c3328;
   --primary: #9caf88;
   --primary-hover: #6b7f5e;
+  --tab-bar-height: 3.5rem;
+  --action-dock-height: 9.5rem;
 }
 
 @theme inline {
@@ -22,10 +24,74 @@
   --color-primary-800: #4f5f45;
 }
 
+html {
+  -webkit-tap-highlight-color: transparent;
+  text-size-adjust: 100%;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
+  overscroll-behavior-y: none;
+}
+
+.app-shell {
+  position: relative;
+}
+
+.app-shell .shell-content {
+  padding-bottom: calc(
+    var(--tab-bar-height) + env(safe-area-inset-bottom, 0px)
+  );
+}
+
+.mobile-action-dock {
+  position: fixed;
+  left: 50%;
+  z-index: 40;
+  width: 100%;
+  max-width: 32rem;
+  transform: translateX(-50%);
+  border-top: 1px solid color-mix(in srgb, var(--primary) 20%, transparent);
+  background: color-mix(in srgb, white 92%, transparent);
+  padding: 0.75rem 1rem calc(0.75rem + env(safe-area-inset-bottom, 0px));
+  backdrop-filter: blur(12px);
+  bottom: calc(var(--tab-bar-height) + env(safe-area-inset-bottom, 0px));
+}
+
+.mobile-segment {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.25rem;
+  border-radius: 0.875rem;
+  background: var(--color-primary-50);
+  padding: 0.25rem;
+}
+
+.mobile-segment button {
+  border-radius: 0.625rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.mobile-segment button[data-active="true"] {
+  background: white;
+  color: var(--color-primary-800);
+  box-shadow: 0 1px 2px rgba(44, 51, 40, 0.08);
+}
+
+.mobile-segment button[data-active="false"] {
+  color: color-mix(in srgb, var(--foreground) 55%, transparent);
+}
+
+.has-action-dock .shell-content {
+  padding-bottom: calc(
+    var(--tab-bar-height) + var(--action-dock-height) +
+      env(safe-area-inset-bottom, 0px)
+  );
 }
 
 /* Flashcard flip animation */
@@ -37,7 +103,8 @@ body {
   position: relative;
   display: block;
   width: 100%;
-  height: 420px;
+  height: min(420px, calc(100dvh - 18rem));
+  min-height: 300px;
   transform-style: preserve-3d;
   transition: transform 0.55s cubic-bezier(0.4, 0.2, 0.2, 1);
   cursor: pointer;
