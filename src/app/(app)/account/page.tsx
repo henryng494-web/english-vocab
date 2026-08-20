@@ -12,7 +12,7 @@ export default function AccountPage() {
       <MobileTopBar title="Account" subtitle="Appearance and sign-in" />
 
       <div className="page-scroll">
-        <div className="space-y-6 px-4 pt-4 pb-6">
+        <div className="space-y-6 px-4 pb-6">
           <section>
             <h2 className="text-base font-bold uppercase tracking-wide text-foreground/70">
               Color tone

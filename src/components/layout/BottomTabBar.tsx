@@ -87,7 +87,7 @@ export function BottomTabBar() {
       className="bottom-tab-bar border-t border-primary-200 bg-surface/95 backdrop-blur-lg"
       style={{
         paddingBottom:
-          "calc(env(safe-area-inset-bottom, 0px) + var(--browser-chrome-bottom))",
+          "calc(max(env(safe-area-inset-bottom, 0px), 12px) + var(--browser-chrome-bottom) + var(--layout-edge-buffer))",
       }}
       aria-label="Main navigation"
     >
