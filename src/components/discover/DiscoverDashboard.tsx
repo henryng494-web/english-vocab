@@ -82,13 +82,13 @@ export function DiscoverDashboard({
                 Start Learning →
               </button>
             </div>
+            <CoachDog
+              pose="neutral"
+              size={112}
+              className="home-welcome__dog shrink-0"
+              title="Coach Dog"
+            />
           </section>
-          <CoachDog
-            pose="peek"
-            size={108}
-            className="home-welcome__dog"
-            title="Coach Dog peeking"
-          />
         </div>
 
         {/* Today&apos;s goal */}

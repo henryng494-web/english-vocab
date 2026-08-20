@@ -1,2 +1,2 @@
 /** Bump when mobile shell / viewport layout changes (visible on Account page). */
-export const LAYOUT_VERSION = "2026-08-20-v17-coach-dog-muzzle";
+export const LAYOUT_VERSION = "2026-08-20-v18-coach-dog-ref-png";
