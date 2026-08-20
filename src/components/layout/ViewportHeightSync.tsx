@@ -2,47 +2,24 @@
 
 import { useEffect } from "react";
 
-const BOTTOM_INSET_BUFFER_PX = 12;
-
-function syncViewportVars() {
-  const root = document.documentElement;
-  const vv = window.visualViewport;
-
-  if (!vv) {
-    root.style.setProperty("--app-height", `${window.innerHeight}px`);
-    root.style.setProperty("--browser-chrome-bottom", "0px");
-    return;
-  }
-
-  const bottomInset =
-    Math.max(0, window.innerHeight - vv.height - vv.offsetTop) +
-    BOTTOM_INSET_BUFFER_PX;
-
-  root.style.setProperty(
-    "--app-height",
-    `${Math.round(vv.height + vv.offsetTop)}px`,
+function syncViewportHeight() {
+  const height = Math.round(
+    window.visualViewport?.height ?? window.innerHeight,
   );
-  root.style.setProperty(
-    "--browser-chrome-bottom",
-    `${Math.round(bottomInset)}px`,
-  );
+  document.documentElement.style.setProperty("--app-height", `${height}px`);
 }
 
 export function ViewportHeightSync() {
   useEffect(() => {
-    syncViewportVars();
+    syncViewportHeight();
 
     const vv = window.visualViewport;
-    vv?.addEventListener("resize", syncViewportVars);
-    vv?.addEventListener("scroll", syncViewportVars);
-    window.addEventListener("resize", syncViewportVars);
-    window.addEventListener("orientationchange", syncViewportVars);
+    vv?.addEventListener("resize", syncViewportHeight);
+    window.addEventListener("orientationchange", syncViewportHeight);
 
     return () => {
-      vv?.removeEventListener("resize", syncViewportVars);
-      vv?.removeEventListener("scroll", syncViewportVars);
-      window.removeEventListener("resize", syncViewportVars);
-      window.removeEventListener("orientationchange", syncViewportVars);
+      vv?.removeEventListener("resize", syncViewportHeight);
+      window.removeEventListener("orientationchange", syncViewportHeight);
     };
   }, []);
 
