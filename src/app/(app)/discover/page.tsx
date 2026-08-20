@@ -424,7 +424,7 @@ export default function DiscoverPage() {
             <button
               type="button"
               onClick={() => updateStatus("mastered")}
-              className="rounded-xl border-2 border-secondary bg-white py-3.5 text-sm font-semibold text-secondary transition active:bg-orange-50"
+              className="rounded-xl border-2 border-secondary bg-surface py-3.5 text-sm font-semibold text-secondary transition active:bg-primary-50"
             >
               Already know
             </button>
@@ -435,7 +435,7 @@ export default function DiscoverPage() {
               type="button"
               disabled={currentIndex === 0}
               onClick={() => goToIndex(currentIndex - 1)}
-              className="flex-1 rounded-lg border border-primary-200 bg-white py-2.5 text-sm font-medium text-foreground/80 disabled:opacity-40"
+              className="flex-1 rounded-lg border border-primary-200 bg-surface py-2.5 text-sm font-medium text-foreground/80 disabled:opacity-40"
             >
               ← Previous
             </button>
@@ -443,7 +443,7 @@ export default function DiscoverPage() {
               type="button"
               disabled={currentIndex >= queue.length - 1}
               onClick={() => goToIndex(currentIndex + 1)}
-              className="flex-1 rounded-lg border border-primary-200 bg-white py-2.5 text-sm font-medium text-foreground/80 disabled:opacity-40"
+              className="flex-1 rounded-lg border border-primary-200 bg-surface py-2.5 text-sm font-medium text-foreground/80 disabled:opacity-40"
             >
               Next →
             </button>

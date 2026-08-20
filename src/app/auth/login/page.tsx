@@ -59,7 +59,7 @@ export default function LoginPage() {
         paddingBottom: "env(safe-area-inset-bottom, 0px)",
       }}
     >
-      <div className="w-full max-w-md rounded-2xl border border-primary-200 bg-white p-8 shadow-sm">
+      <div className="w-full max-w-md rounded-2xl border border-primary-200 bg-surface p-8 shadow-sm">
         <h1 className="text-2xl font-bold text-foreground">Sign in</h1>
         <p className="mt-2 text-sm text-foreground/60">
           Use your Supabase Auth account to save learning progress
@@ -126,7 +126,7 @@ export default function LoginPage() {
         </form>
 
         <Link
-          href="/discover"
+          href="/account"
           className="mt-6 block text-center text-sm text-foreground/60 hover:text-primary-700"
         >
           ← Back to app

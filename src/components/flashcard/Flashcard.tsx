@@ -111,14 +111,14 @@ export function Flashcard({ word, isFlipped, onFlip }: FlashcardProps) {
         aria-label={isFlipped ? "Show front" : "Show back"}
       >
         <div className="flashcard-face flashcard-front">
-          <div className="flex h-full flex-col overflow-hidden rounded-2xl bg-white">
+          <div className="flex h-full flex-col overflow-hidden rounded-2xl bg-surface">
             <FlashcardImage word={word} />
             <FlashcardBody word={word} showDetails={false} />
           </div>
         </div>
 
         <div className="flashcard-face flashcard-back">
-          <div className="flex h-full flex-col overflow-hidden rounded-2xl bg-white">
+          <div className="flex h-full flex-col overflow-hidden rounded-2xl bg-surface">
             <FlashcardImage word={word} />
             <FlashcardBody word={word} showDetails={true} />
           </div>
