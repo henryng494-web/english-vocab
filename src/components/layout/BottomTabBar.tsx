@@ -72,9 +72,9 @@ const TABS: TabItem[] = [
     icon: (active) => <LearnIcon active={active} />,
   },
   {
-    href: "/auth/login",
+    href: "/account",
     label: "Account",
-    match: (path) => path.startsWith("/auth"),
+    match: (path) => path.startsWith("/account") || path.startsWith("/auth"),
     icon: (active) => <AccountIcon active={active} />,
   },
 ];
@@ -84,7 +84,7 @@ export function BottomTabBar() {
 
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-50 border-t border-primary-100 bg-white/95 backdrop-blur-lg"
+      className="fixed inset-x-0 bottom-0 z-50 border-t border-primary-200 bg-surface/95 backdrop-blur-lg"
       style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
       aria-label="Main navigation"
     >

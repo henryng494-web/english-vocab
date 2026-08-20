@@ -256,7 +256,7 @@ export default function LearnPage() {
             value={newWord}
             onChange={(e) => setNewWord(e.target.value)}
             placeholder="Add a new word..."
-            className="flex-1 rounded-xl border border-primary-200 bg-white px-4 py-3 text-sm text-foreground shadow-sm placeholder:text-foreground/40 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+            className="flex-1 rounded-xl border border-primary-200 bg-surface px-4 py-3 text-sm text-foreground shadow-sm placeholder:text-foreground/40 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
           />
           <button
             type="submit"
@@ -288,7 +288,7 @@ export default function LearnPage() {
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as SortOption)}
-            className="flex-1 rounded-lg border border-primary-200 bg-white px-3 py-2 text-xs text-foreground shadow-sm"
+            className="flex-1 rounded-lg border border-primary-200 bg-surface px-3 py-2 text-xs text-foreground shadow-sm"
           >
             <option value="importance">Importance</option>
             <option value="alphabetical">A → Z</option>
@@ -298,7 +298,7 @@ export default function LearnPage() {
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value as FilterOption)}
-            className="flex-1 rounded-lg border border-primary-200 bg-white px-3 py-2 text-xs text-foreground shadow-sm"
+            className="flex-1 rounded-lg border border-primary-200 bg-surface px-3 py-2 text-xs text-foreground shadow-sm"
           >
             <option value="all">All</option>
             <option value="new">New</option>
@@ -335,7 +335,7 @@ export default function LearnPage() {
                   className={`flex w-full items-center justify-between rounded-xl border px-4 py-3 text-left transition active:scale-[0.99] ${
                     index === currentIndex
                       ? "border-primary bg-primary-50 shadow-sm"
-                      : "border-primary-100 bg-white"
+                      : "border-primary-100 bg-surface"
                   }`}
                 >
                   <div className="flex min-w-0 items-center gap-2">
@@ -385,7 +385,7 @@ export default function LearnPage() {
               type="button"
               onClick={goPrev}
               disabled={currentIndex === 0}
-              className="flex-1 rounded-lg border border-primary-200 bg-white py-2.5 text-sm font-medium text-foreground/80 disabled:opacity-40"
+              className="flex-1 rounded-lg border border-primary-200 bg-surface py-2.5 text-sm font-medium text-foreground/80 disabled:opacity-40"
             >
               ← Previous
             </button>
@@ -393,7 +393,7 @@ export default function LearnPage() {
               type="button"
               onClick={goNext}
               disabled={currentIndex >= words.length - 1}
-              className="flex-1 rounded-lg border border-primary-200 bg-white py-2.5 text-sm font-medium text-foreground/80 disabled:opacity-40"
+              className="flex-1 rounded-lg border border-primary-200 bg-surface py-2.5 text-sm font-medium text-foreground/80 disabled:opacity-40"
             >
               Next →
             </button>
