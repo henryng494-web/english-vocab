@@ -1,13 +1,20 @@
 import type { Metadata, Viewport } from "next";
-import { Nunito } from "next/font/google";
+import { Fredoka, Inter } from "next/font/google";
 import { ThemeRoot } from "@/components/theme/ThemeRoot";
 import { themeBootstrapScript } from "@/lib/theme-bootstrap-script";
 import { viewportBootstrapScript } from "@/lib/viewport-bootstrap-script";
 import "./globals.css";
 
-const nunito = Nunito({
+const inter = Inter({
   subsets: ["latin", "vietnamese"],
-  weight: ["400", "600", "700", "800"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-inter",
+});
+
+const fredoka = Fredoka({
+  subsets: ["latin"],
+  weight: ["600", "700"],
+  variable: "--font-fredoka",
 });
 
 export const metadata: Metadata = {
@@ -33,7 +40,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   viewportFit: "cover",
-  themeColor: "#2563eb",
+  themeColor: "#3b82f6",
   interactiveWidget: "resizes-content",
 };
 
@@ -48,7 +55,7 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: themeBootstrapScript }} />
         <script dangerouslySetInnerHTML={{ __html: viewportBootstrapScript }} />
       </head>
-      <body className={`${nunito.className} antialiased`}>
+      <body className={`${inter.variable} ${fredoka.variable} font-sans antialiased`}>
         <ThemeRoot>{children}</ThemeRoot>
       </body>
     </html>

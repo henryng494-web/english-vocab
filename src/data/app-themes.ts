@@ -1,8 +1,8 @@
-export type AppThemeId = "sky-canvas" | "peach-glow" | "mint-pulse";
+export type AppThemeId = "coach-cat" | "sky-canvas" | "peach-glow" | "mint-pulse";
 
 export type AppTheme = {
   id: AppThemeId;
-  letter: "A" | "B" | "C";
+  letter: "A" | "B" | "C" | "D";
   name: string;
   tagline: string;
   swatches: [string, string, string, string];
@@ -38,6 +38,50 @@ function withUiTokens(
     "--tab-bar-bg": ui.tabBarBg,
   };
 }
+
+const COACH_CAT: AppTheme = {
+  id: "coach-cat",
+  letter: "D",
+  name: "Coach Cat",
+  tagline: "Friendly blue canvas with Miu the mascot",
+  swatches: ["#3B82F6", "#EF4444", "#FBBF24", "#E8F4FF"],
+  cssVars: withUiTokens(
+    {
+      "--background": "#e8f4ff",
+      "--foreground": "#0f172a",
+      "--surface": "#dbeafe",
+      "--surface-strong": "#bfdbfe",
+      "--primary": "#3b82f6",
+      "--primary-hover": "#2563eb",
+      "--primary-50": "#eff6ff",
+      "--primary-100": "#dbeafe",
+      "--primary-200": "#bfdbfe",
+      "--primary-300": "#93c5fd",
+      "--primary-700": "#1d4ed8",
+      "--primary-800": "#1e40af",
+      "--secondary": "#ef4444",
+      "--secondary-hover": "#dc2626",
+      "--accent": "#fbbf24",
+      "--accent-hover": "#f59e0b",
+      "--header-bg": "#ffffff",
+      "--header-fg": "#0f172a",
+      "--header-muted": "#64748b",
+      "--card-shadow": "0 8px 24px rgba(59, 130, 246, 0.12)",
+    },
+    {
+      card: "#ffffff",
+      cardBorder: "#bfdbfe",
+      headerMid: "#3b82f6",
+      headerEnd: "#fbbf24",
+      meaning: "#1d4ed8",
+      exampleBg: "#f0f9ff",
+      exampleVi: "#0369a1",
+      badgeBg: "#fef3c7",
+      badgeText: "#92400e",
+      tabBarBg: "#ffffff",
+    },
+  ),
+};
 
 const SKY_CANVAS: AppTheme = {
   id: "sky-canvas",
@@ -160,18 +204,20 @@ const MINT_PULSE: AppTheme = {
 };
 
 export const APP_THEMES: Record<AppThemeId, AppTheme> = {
+  "coach-cat": COACH_CAT,
   "sky-canvas": SKY_CANVAS,
   "peach-glow": PEACH_GLOW,
   "mint-pulse": MINT_PULSE,
 };
 
 export const APP_THEME_LIST: AppTheme[] = [
+  COACH_CAT,
   SKY_CANVAS,
   PEACH_GLOW,
   MINT_PULSE,
 ];
 
-export const DEFAULT_THEME_ID: AppThemeId = "sky-canvas";
+export const DEFAULT_THEME_ID: AppThemeId = "coach-cat";
 
 export const THEME_STORAGE_KEY = "app-color-theme-v1";
 

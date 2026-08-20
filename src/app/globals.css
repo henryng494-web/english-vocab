@@ -29,6 +29,15 @@
   --tab-bar-bg: #f8fbff;
   --tab-bar-height: 3.875rem;
   --app-height: 100svh;
+  --header-bg: linear-gradient(
+    135deg,
+    var(--primary) 0%,
+    var(--header-mid, var(--secondary)) 42%,
+    var(--header-end, var(--accent)) 100%
+  );
+  --header-fg: #ffffff;
+  --header-muted: color-mix(in srgb, white 78%, transparent);
+  --card-shadow: 0 10px 28px -14px color-mix(in srgb, var(--primary) 35%, transparent);
 }
 
 @theme inline {
@@ -36,7 +45,8 @@
   --color-foreground: var(--foreground);
   --color-surface: var(--surface);
   --color-surface-strong: var(--surface-strong);
-  --font-sans: Nunito, "Segoe UI", system-ui, sans-serif;
+  --font-sans: var(--font-inter), "Segoe UI", system-ui, sans-serif;
+  --font-display: var(--font-fredoka), var(--font-inter), system-ui, sans-serif;
 
   --text-xs: 0.875rem;
   --text-xs--line-height: 1.25rem;
@@ -82,6 +92,10 @@ body {
   font-family: var(--font-sans);
   overscroll-behavior-y: none;
   margin: 0;
+}
+
+.font-display {
+  font-family: var(--font-display);
 }
 
 .app-page {
@@ -246,6 +260,87 @@ body {
   background: color-mix(in srgb, var(--secondary) 10%, var(--card));
 }
 
+.btn-pill-primary {
+  border-radius: 9999px;
+  background: var(--primary);
+  padding: 0.875rem 1rem;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--primary) 35%, transparent);
+  transition: background-color 0.15s ease, transform 0.1s ease;
+}
+
+.btn-pill-primary:active {
+  background: var(--primary-hover);
+  transform: scale(0.98);
+}
+
+.btn-pill-outline {
+  border-radius: 9999px;
+  border: 2px solid var(--primary-200);
+  background: var(--card);
+  padding: 0.8125rem 1rem;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--primary);
+  transition: background-color 0.15s ease, transform 0.1s ease;
+}
+
+.btn-pill-outline:active {
+  background: var(--primary-50);
+  transform: scale(0.98);
+}
+
+.btn-pill-soft {
+  border-radius: 9999px;
+  border: 1px solid var(--primary-200);
+  background: var(--primary-50);
+  padding: 0.625rem 1rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: color-mix(in srgb, var(--foreground) 75%, transparent);
+}
+
+.btn-pill-soft:disabled {
+  opacity: 0.4;
+}
+
+.bottom-tab-bar {
+  box-shadow: 0 -1px 0 color-mix(in srgb, var(--primary) 10%, transparent);
+}
+
+.tab-bar-link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.125rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  transition: color 0.15s ease;
+}
+
+.tab-bar-link--active {
+  color: var(--primary);
+}
+
+.tab-bar-link--inactive {
+  color: color-mix(in srgb, var(--foreground) 45%, transparent);
+}
+
+.tab-bar-link__pill {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  padding: 0.25rem 0.75rem;
+}
+
+.tab-bar-link--active .tab-bar-link__pill {
+  background: var(--primary-50);
+}
+
 .card-image-frame {
   background: linear-gradient(
     135deg,
@@ -275,6 +370,7 @@ body {
 .discover-card {
   background: var(--card);
   border-color: var(--card-border);
+  box-shadow: var(--card-shadow);
 }
 
 .discover-card .vocab-meaning {
@@ -311,15 +407,20 @@ body {
 .mobile-top-bar {
   flex-shrink: 0;
   padding-top: env(safe-area-inset-top, 0px);
-  background: linear-gradient(
-    135deg,
-    var(--color-primary) 0%,
-    var(--header-mid, var(--color-secondary)) 42%,
-    var(--header-end, var(--color-accent)) 100%
-  );
+  background: var(--header-bg);
+  color: var(--header-fg);
   box-shadow:
     inset 0 1px 0 color-mix(in srgb, white 22%, transparent),
-    0 10px 28px -14px color-mix(in srgb, var(--color-secondary) 45%, transparent);
+    0 4px 16px -8px color-mix(in srgb, var(--primary) 25%, transparent);
+}
+
+[data-theme="coach-cat"] .mobile-top-bar {
+  background: var(--header-bg);
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--primary) 12%, transparent);
+}
+
+[data-theme="coach-cat"] .mobile-top-bar::after {
+  display: none;
 }
 
 .mobile-top-bar::after {
@@ -360,20 +461,39 @@ body {
 }
 
 .mobile-top-bar__title {
-  font-size: 1.625rem;
-  font-weight: 800;
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 700;
   line-height: 1.15;
   letter-spacing: -0.02em;
-  color: white;
-  text-shadow: 0 1px 2px color-mix(in srgb, var(--color-primary-hover) 35%, transparent);
+  color: var(--header-fg);
 }
 
 .mobile-top-bar__subtitle {
-  margin-top: 0.25rem;
-  font-size: 0.9375rem;
-  font-weight: 600;
+  margin-top: 0.2rem;
+  font-size: 0.875rem;
+  font-weight: 500;
   line-height: 1.35;
-  color: color-mix(in srgb, white 84%, transparent);
+  color: var(--header-muted);
+}
+
+[data-theme="coach-cat"] .mobile-top-bar__glow {
+  display: none;
+}
+
+[data-theme="coach-cat"] .mobile-top-bar__control {
+  max-width: 9.5rem;
+  border: 1px solid var(--primary-200);
+  border-radius: 9999px;
+  background: var(--primary-50);
+  color: var(--foreground);
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+[data-theme="coach-cat"] .mobile-top-bar__control:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 20%, transparent);
 }
 
 .mobile-top-bar__trailing {
