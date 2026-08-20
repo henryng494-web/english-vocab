@@ -4,6 +4,7 @@ import { enrichWord } from "@/lib/enrich-word";
 import { serializeExamples } from "@/lib/parse-examples";
 import { fetchWordImageUrl, shouldRefreshImageUrl } from "@/lib/unsplash";
 import { isProfaneWord } from "@/lib/safe-image-search";
+import { normalizeVocabInput } from "@/lib/word-validation";
 import { NextResponse } from "next/server";
 
 function errorMessage(error: unknown): string {
@@ -23,7 +24,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Word is required" }, { status: 400 });
     }
 
-    const trimmedWord = word.trim().toLowerCase();
+    const trimmedWord = normalizeVocabInput(word);
+    if (!trimmedWord) {
+      return NextResponse.json(
+        { error: "Invalid word format" },
+        { status: 400 },
+      );
+    }
 
     if (isProfaneWord(trimmedWord)) {
       return NextResponse.json(
