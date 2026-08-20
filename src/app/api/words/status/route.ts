@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import type { LearningStatus } from "@/types/database";
+import { normalizeVocabInput } from "@/lib/word-validation";
 import { NextResponse } from "next/server";
 
 const VALID_STATUSES: LearningStatus[] = [
@@ -25,11 +26,14 @@ export async function POST(request: Request) {
       status?: LearningStatus;
     };
 
-    const word = body.word?.trim().toLowerCase();
+    const word = normalizeVocabInput(body.word ?? "");
     const status = body.status;
 
     if (!word) {
-      return NextResponse.json({ error: "Word is required" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Word is required or invalid format" },
+        { status: 400 },
+      );
     }
 
     if (!status || !VALID_STATUSES.includes(status)) {

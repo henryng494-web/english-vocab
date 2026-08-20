@@ -1,6 +1,8 @@
 import { getPresetRank } from "@/data/preset-word-details";
 import { createClient } from "@/lib/supabase/server";
+import { cleanupCorruptWords } from "@/lib/cleanup-corrupt-words";
 import { getImportanceTier } from "@/lib/word-rank";
+import { isValidVocabWord } from "@/lib/word-validation";
 import type { LearningStatus, VocabWord } from "@/types/database";
 import { NextResponse } from "next/server";
 
@@ -19,6 +21,8 @@ export async function GET(request: Request) {
     const statusFilter = searchParams.get("status");
 
     const supabase = await createClient();
+
+    await cleanupCorruptWords(supabase);
 
     const { data: bankRows, error: bankError } = await supabase
       .from("word_bank")
@@ -47,18 +51,20 @@ export async function GET(request: Request) {
       (learningRows ?? []).map((row) => [row.word, row]),
     );
 
-    let words: VocabWord[] = (details ?? []).map((detail) => {
-      const rank =
-        getPresetRank(detail.word) ?? rankByWord.get(detail.word) ?? 10000;
-      const learning = learningByWord.get(detail.word);
-      return {
-        ...detail,
-        rank,
-        importance_tier: getImportanceTier(rank),
-        learning_status: (learning?.status as LearningStatus) ?? "new",
-        last_reviewed_at: learning?.last_reviewed_at ?? null,
-      };
-    });
+    let words: VocabWord[] = (details ?? [])
+      .filter((detail) => isValidVocabWord(detail.word))
+      .map((detail) => {
+        const rank =
+          getPresetRank(detail.word) ?? rankByWord.get(detail.word) ?? 10000;
+        const learning = learningByWord.get(detail.word);
+        return {
+          ...detail,
+          rank,
+          importance_tier: getImportanceTier(rank),
+          learning_status: (learning?.status as LearningStatus) ?? "new",
+          last_reviewed_at: learning?.last_reviewed_at ?? null,
+        };
+      });
 
     if (statusFilter && statusFilter !== "all") {
       words = words.filter((w) => w.learning_status === statusFilter);

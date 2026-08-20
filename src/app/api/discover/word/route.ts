@@ -19,6 +19,7 @@ import {
   shouldRefreshImageUrl,
 } from "@/lib/unsplash";
 import { isProfaneWord } from "@/lib/safe-image-search";
+import { normalizeVocabInput } from "@/lib/word-validation";
 import type { WordDetail } from "@/types/database";
 import { NextResponse } from "next/server";
 
@@ -209,7 +210,7 @@ async function persistEnrichedWordDetail(
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const word = searchParams.get("word")?.trim().toLowerCase();
+    const word = normalizeVocabInput(searchParams.get("word") ?? "");
     const rankParam = searchParams.get("rank");
     const rank = rankParam ? Number(rankParam) : undefined;
     const skipGemini =
@@ -217,7 +218,10 @@ export async function GET(request: Request) {
       hasQualityStandardVocab(word ?? "");
 
     if (!word) {
-      return NextResponse.json({ error: "Word is required" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Word is required or invalid format" },
+        { status: 400 },
+      );
     }
 
     if (isProfaneWord(word)) {
