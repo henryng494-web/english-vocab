@@ -132,8 +132,61 @@ body {
 }
 
 .journey-card-slot h2 {
-  font-size: 1.75rem;
-  line-height: 2rem;
+  font-size: 1.625rem;
+  line-height: 1.875rem;
+}
+
+.discover-card__body--compact {
+  gap: 0.375rem;
+}
+
+.discover-card__meaning {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.discover-card__examples {
+  display: flex;
+  min-height: 0;
+}
+
+.vocab-examples--compact {
+  display: flex;
+  min-height: 0;
+  width: 100%;
+  flex: 1;
+}
+
+.vocab-examples--compact .vocab-examples__item {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 0.625rem;
+  background: var(--example-bg);
+  padding: 0.5rem 0.625rem;
+  font-size: 0.875rem;
+  line-height: 1.3rem;
+}
+
+.vocab-examples__en,
+.vocab-examples__vi {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+}
+
+.vocab-examples__en {
+  -webkit-line-clamp: 3;
+}
+
+.vocab-examples__vi {
+  -webkit-line-clamp: 2;
+  color: var(--example-vi);
 }
 
 .journey-card-slot ul {
