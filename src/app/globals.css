@@ -126,18 +126,28 @@ body {
   touch-action: pan-x;
 }
 
-.discover-card-progress {
+.journey-main {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.journey-progress {
+  flex-shrink: 0;
   margin: 0;
-  padding: 0.625rem 1rem 0.5rem;
+  padding: 0.25rem 0 0.625rem;
   text-align: center;
   font-size: 0.875rem;
   font-weight: 600;
-  line-height: 1.25rem;
-  color: color-mix(in srgb, var(--foreground) 60%, transparent);
-  background: var(--card);
+  line-height: 1.375rem;
+  letter-spacing: 0.01em;
+  color: color-mix(in srgb, var(--foreground) 72%, transparent);
 }
 
 .journey-card-slot {
+  flex: 1;
+  min-height: 0;
   min-height: 0;
   overflow: hidden;
 }

@@ -400,14 +400,19 @@ export default function DiscoverPage() {
           </div>
         ) : (
           <>
-            <div className="journey-card-slot">
-              <DiscoverCard
-                key={currentItem.word}
-                data={currentWord ?? stubFromListItem(currentItem)}
-                loading={loadingWord}
-                compact
-                progressLabel={`Word ${currentIndex + 1} / ${queue.length}`}
-              />
+            <div className="journey-main">
+              <p className="journey-progress">
+                Word {currentIndex + 1} / {queue.length}
+              </p>
+
+              <div className="journey-card-slot">
+                <DiscoverCard
+                  key={currentItem.word}
+                  data={currentWord ?? stubFromListItem(currentItem)}
+                  loading={loadingWord}
+                  compact
+                />
+              </div>
             </div>
 
             <div className="journey-actions">
