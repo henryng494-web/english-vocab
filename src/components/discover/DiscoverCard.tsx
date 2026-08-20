@@ -31,6 +31,7 @@ type DiscoverCardProps = {
   loading?: boolean;
   /** Fit card in a fixed viewport panel without scrolling. */
   compact?: boolean;
+  progressLabel?: string;
 };
 
 function CardImage({
@@ -91,7 +92,12 @@ function DetailSkeleton() {
   );
 }
 
-export function DiscoverCard({ data, loading, compact = false }: DiscoverCardProps) {
+export function DiscoverCard({
+  data,
+  loading,
+  compact = false,
+  progressLabel,
+}: DiscoverCardProps) {
   const detailsLoading = loading && !data.vietnamese_meaning?.trim();
   const examples = detailsLoading ? [] : parseExamples(data.examples);
   const phonetic = displayPhonetic(data.word, data.phonetic);
@@ -99,9 +105,15 @@ export function DiscoverCard({ data, loading, compact = false }: DiscoverCardPro
   return (
     <div
       className={`discover-card w-full overflow-hidden rounded-2xl border-2 shadow-lg${
-        compact ? " grid h-full min-h-0 grid-rows-2" : " border-primary-200 bg-surface"
+        compact
+          ? " grid h-full min-h-0 grid-rows-[auto_minmax(0,1fr)_minmax(0,1fr)]"
+          : " border-primary-200 bg-surface"
       }`}
     >
+      {compact && progressLabel ? (
+        <p className="discover-card-progress">{progressLabel}</p>
+      ) : null}
+
       <CardImage
         word={data.word}
         imageUrl={data.image_url}
