@@ -78,6 +78,7 @@ body {
   height: var(--app-height, 100svh);
   width: 100%;
   background: var(--background);
+  overflow: hidden;
 }
 
 .app-shell {
@@ -98,6 +99,54 @@ body {
   height: 100%;
   min-height: 0;
   overflow: hidden;
+}
+
+.app-screen--journey {
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+.journey-panel {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 0.375rem;
+  min-height: 0;
+  overflow: hidden;
+  padding-top: 0.5rem;
+  padding-bottom: 0.25rem;
+  touch-action: pan-x;
+}
+
+.journey-progress {
+  text-align: center;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.25rem;
+  color: color-mix(in srgb, var(--foreground) 55%, transparent);
+}
+
+.journey-card-slot {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.journey-card-slot h2 {
+  font-size: 1.75rem;
+  line-height: 2rem;
+}
+
+.journey-card-slot ul {
+  gap: 0.375rem;
+}
+
+.journey-card-slot ul li {
+  font-size: 0.9375rem;
+  line-height: 1.375rem;
+}
+
+.journey-actions {
+  flex-shrink: 0;
+  padding-top: 0.625rem;
+  border-top: 1px solid color-mix(in srgb, var(--primary) 18%, transparent);
 }
 
 .page-scroll {
