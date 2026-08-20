@@ -5,7 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 type SpeakButtonProps = {
   text: string;
   variant?: "dark" | "light";
-  /** Icon-only round button (no "Phát âm" label). */
+  /** Icon-only round button (no "Pronounce" label). */
   iconOnly?: boolean;
 };
 
