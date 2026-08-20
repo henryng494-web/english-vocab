@@ -347,8 +347,8 @@ export default function DiscoverPage() {
       <MobileTopBar
         title="Vocab Journey"
         subtitle={
-          !loadingList && queue.length > 0
-            ? `Word ${currentIndex + 1} / ${queue.length}`
+          stats.hidden > 0
+            ? `${stats.hidden} words marked “Already know”`
             : undefined
         }
         trailing={
@@ -369,12 +369,6 @@ export default function DiscoverPage() {
       />
 
       <div className="journey-panel px-4">
-        {stats.hidden > 0 && (
-          <p className="text-xs text-foreground/55">
-            {stats.hidden} words marked &ldquo;Already know&rdquo;
-          </p>
-        )}
-
         {error && (
           <p className="rounded-xl border border-primary-200 bg-primary-50 px-4 py-3 text-sm text-primary-800">
             {error}
@@ -405,6 +399,7 @@ export default function DiscoverPage() {
                 data={currentWord ?? stubFromListItem(currentItem)}
                 loading={loadingWord}
                 compact
+                imageBadge={`${currentIndex + 1} / ${queue.length}`}
               />
             </div>
 

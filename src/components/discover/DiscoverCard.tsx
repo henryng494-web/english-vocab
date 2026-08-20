@@ -31,6 +31,8 @@ type DiscoverCardProps = {
   loading?: boolean;
   /** Fit card in a fixed viewport panel without scrolling. */
   compact?: boolean;
+  /** e.g. "2 / 194" — shown on the image top-right when compact. */
+  imageBadge?: string;
 };
 
 function CardImage({
@@ -39,12 +41,14 @@ function CardImage({
   searchKeyword,
   wordType,
   compact = false,
+  badge,
 }: {
   word: string;
   imageUrl?: string | null;
   searchKeyword?: string | null;
   wordType?: string | null;
   compact?: boolean;
+  badge?: string;
 }) {
   const primarySrc = resolveWordImageUrl(
     word,
@@ -77,6 +81,11 @@ function CardImage({
           if (src !== finalSrc) setSrc(finalSrc);
         }}
       />
+      {compact && badge ? (
+        <span className="card-image-badge" aria-label={`Word ${badge}`}>
+          {badge}
+        </span>
+      ) : null}
     </div>
   );
 }
@@ -95,6 +104,7 @@ export function DiscoverCard({
   data,
   loading,
   compact = false,
+  imageBadge,
 }: DiscoverCardProps) {
   const detailsLoading = loading && !data.vietnamese_meaning?.trim();
   const examples = detailsLoading ? [] : parseExamples(data.examples);
@@ -112,6 +122,7 @@ export function DiscoverCard({
         searchKeyword={data.search_keyword}
         wordType={data.word_type}
         compact={compact}
+        badge={imageBadge}
       />
 
       <div
