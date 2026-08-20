@@ -74,7 +74,7 @@ export function DiscoverDashboard({
               Start Learning →
             </button>
           </div>
-          <CoachDog pose="wave" size={88} className="home-welcome__dog shrink-0" />
+          <CoachDog pose="neutral" size={96} className="home-welcome__dog shrink-0" />
         </section>
 
         {/* Today&apos;s goal */}
