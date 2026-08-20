@@ -1,6 +1,7 @@
 "use client";
 
 import { MobileTopBar } from "@/components/layout/MobileTopBar";
+import { MiuCat } from "@/components/mascot/MiuCat";
 import { InstallAppHint } from "@/components/layout/InstallAppHint";
 import { ThemePicker } from "@/components/theme/ThemePicker";
 import { LAYOUT_VERSION } from "@/lib/layout-version";
@@ -9,7 +10,11 @@ import Link from "next/link";
 export default function AccountPage() {
   return (
     <div className="app-screen">
-      <MobileTopBar title="Account" subtitle="Appearance and sign-in" />
+      <MobileTopBar
+        title="Account"
+        subtitle="Appearance and sign-in"
+        leading={<MiuCat pose="happy" size={40} />}
+      />
 
       <div className="page-scroll">
         <div className="space-y-6 px-4 pb-6">

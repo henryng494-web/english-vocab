@@ -5,6 +5,7 @@ import {
   type DiscoverWordData,
 } from "@/components/discover/DiscoverCard";
 import { MobileTopBar } from "@/components/layout/MobileTopBar";
+import { MiuCat } from "@/components/mascot/MiuCat";
 import { WORD_RANGES } from "@/data/word-ranges";
 import {
   DISCOVER_WORD_CACHE_VERSION,
@@ -346,10 +347,13 @@ export default function DiscoverPage() {
     <div className="app-screen app-screen--journey">
       <MobileTopBar
         title="Vocab Journey"
+        leading={<MiuCat pose="wave" size={44} />}
         subtitle={
           stats.hidden > 0
             ? `${stats.hidden} words marked “Already know”`
-            : undefined
+            : queue.length > 0 && !loadingList
+              ? `Word ${currentIndex + 1} of ${queue.length} in this rank`
+              : undefined
         }
         trailing={
           <select
@@ -380,7 +384,8 @@ export default function DiscoverPage() {
             <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary-100 border-t-primary" />
           </div>
         ) : queue.length === 0 ? (
-          <div className="flex flex-1 items-center px-2 text-center">
+          <div className="flex flex-1 flex-col items-center justify-center px-2 text-center">
+            <MiuCat pose="sad" size={72} className="mb-3" />
             <div className="w-full">
               <p className="text-foreground/80">
                 You&apos;ve finished this range or marked every word as
@@ -408,14 +413,14 @@ export default function DiscoverPage() {
                 <button
                   type="button"
                   onClick={() => updateStatus("new")}
-                  className="rounded-xl bg-primary py-3.5 text-base font-semibold text-white shadow-sm transition active:bg-primary-hover"
+                  className="btn-pill-primary w-full"
                 >
                   Learn this
                 </button>
                 <button
                   type="button"
                   onClick={() => updateStatus("mastered")}
-                  className="btn-know rounded-xl py-3.5 text-base font-semibold transition"
+                  className="btn-pill-outline w-full"
                 >
                   Already know
                 </button>
@@ -426,7 +431,7 @@ export default function DiscoverPage() {
                   type="button"
                   disabled={currentIndex === 0}
                   onClick={() => goToIndex(currentIndex - 1)}
-                  className="flex-1 rounded-lg border border-primary-200 bg-surface py-2.5 text-sm font-medium text-foreground/80 disabled:opacity-40"
+                  className="btn-pill-soft flex-1"
                 >
                   ← Previous
                 </button>
@@ -434,7 +439,7 @@ export default function DiscoverPage() {
                   type="button"
                   disabled={currentIndex >= queue.length - 1}
                   onClick={() => goToIndex(currentIndex + 1)}
-                  className="flex-1 rounded-lg border border-primary-200 bg-surface py-2.5 text-sm font-medium text-foreground/80 disabled:opacity-40"
+                  className="btn-pill-soft flex-1"
                 >
                   Next →
                 </button>
