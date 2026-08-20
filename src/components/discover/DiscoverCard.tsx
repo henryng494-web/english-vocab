@@ -29,6 +29,8 @@ export type DiscoverWordData = {
 type DiscoverCardProps = {
   data: DiscoverWordData;
   loading?: boolean;
+  /** Fit card in a fixed viewport panel without scrolling. */
+  compact?: boolean;
 };
 
 function CardImage({
@@ -36,11 +38,13 @@ function CardImage({
   imageUrl,
   searchKeyword,
   wordType,
+  compact = false,
 }: {
   word: string;
   imageUrl?: string | null;
   searchKeyword?: string | null;
   wordType?: string | null;
+  compact?: boolean;
 }) {
   const primarySrc = resolveWordImageUrl(
     word,
@@ -56,7 +60,11 @@ function CardImage({
   }, [word, imageUrl, searchKeyword, wordType]);
 
   return (
-    <div className="relative h-44 w-full shrink-0 bg-gradient-to-br from-primary-100 via-primary to-primary-hover">
+    <div
+      className={`relative w-full shrink-0 bg-gradient-to-br from-primary-100 via-primary to-primary-hover ${
+        compact ? "h-[clamp(5.5rem,18vh,8.5rem)]" : "h-44"
+      }`}
+    >
       <Image
         src={src}
         alt={word}
@@ -83,21 +91,32 @@ function DetailSkeleton() {
   );
 }
 
-export function DiscoverCard({ data, loading }: DiscoverCardProps) {
+export function DiscoverCard({ data, loading, compact = false }: DiscoverCardProps) {
   const detailsLoading = loading && !data.vietnamese_meaning?.trim();
   const examples = detailsLoading ? [] : parseExamples(data.examples);
   const phonetic = displayPhonetic(data.word, data.phonetic);
 
   return (
-    <div className="w-full overflow-hidden rounded-2xl border-2 border-primary-200 bg-surface shadow-lg">
+    <div
+      className={`w-full overflow-hidden rounded-2xl border-2 border-primary-200 bg-surface shadow-lg${
+        compact ? " flex h-full min-h-0 flex-col" : ""
+      }`}
+    >
       <CardImage
         word={data.word}
         imageUrl={data.image_url}
         searchKeyword={data.search_keyword}
         wordType={data.word_type}
+        compact={compact}
       />
 
-      <div className="space-y-4 p-6">
+      <div
+        className={
+          compact
+            ? "flex min-h-0 flex-1 flex-col overflow-hidden space-y-2 p-4"
+            : "space-y-4 p-6"
+        }
+      >
         <WordCardHeader
           word={data.word}
           phonetic={phonetic}
@@ -110,17 +129,23 @@ export function DiscoverCard({ data, loading }: DiscoverCardProps) {
         ) : (
           <>
             {data.vietnamese_meaning ? (
-              <p className="text-xl font-semibold text-primary-700">
+              <p
+                className={`font-semibold text-primary-700 ${
+                  compact ? "text-lg leading-snug" : "text-xl"
+                }`}
+              >
                 {capitalizeFirst(data.vietnamese_meaning)}
               </p>
             ) : null}
 
-            <VocabExampleList
-              word={data.word}
-              examples={examples}
-              wordType={data.word_type}
-              meaning={data.vietnamese_meaning}
-            />
+            <div className={compact ? "min-h-0 overflow-hidden" : undefined}>
+              <VocabExampleList
+                word={data.word}
+                examples={examples}
+                wordType={data.word_type}
+                meaning={data.vietnamese_meaning}
+              />
+            </div>
           </>
         )}
       </div>

@@ -348,7 +348,7 @@ export default function DiscoverPage() {
   );
 
   return (
-    <div className="app-screen">
+    <div className="app-screen app-screen--journey">
       <MobileTopBar
         title="Vocab Journey"
         subtitle={`${rangeLabel} · ${queue.length} words left`}
@@ -369,7 +369,7 @@ export default function DiscoverPage() {
         }
       />
 
-      <div className="page-scroll px-4">
+      <div className="journey-panel px-4">
         {stats.hidden > 0 && (
           <p className="text-xs text-foreground/55">
             {stats.hidden} words marked &ldquo;Already know&rdquo;
@@ -377,63 +377,66 @@ export default function DiscoverPage() {
         )}
 
         {error && (
-          <p className="mt-3 rounded-xl border border-primary-200 bg-primary-50 px-4 py-3 text-sm text-primary-800">
+          <p className="rounded-xl border border-primary-200 bg-primary-50 px-4 py-3 text-sm text-primary-800">
             {error}
           </p>
         )}
 
         {loadingList ? (
-          <div className="mt-16 flex justify-center">
+          <div className="col-span-full flex flex-1 items-center justify-center">
             <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary-100 border-t-primary" />
           </div>
         ) : queue.length === 0 ? (
-          <div className="mt-16 px-2 text-center">
-            <p className="text-foreground/80">
-              You&apos;ve finished this range or marked every word as
-              &ldquo;Already know&rdquo;.
-            </p>
-            <p className="mt-2 text-sm text-foreground/60">
-              Choose another range or switch to the Review tab.
-            </p>
+          <div className="flex flex-1 items-center px-2 text-center">
+            <div className="w-full">
+              <p className="text-foreground/80">
+                You&apos;ve finished this range or marked every word as
+                &ldquo;Already know&rdquo;.
+              </p>
+              <p className="mt-2 text-sm text-foreground/60">
+                Choose another range or switch to the Review tab.
+              </p>
+            </div>
           </div>
         ) : (
           <>
-            <div className="mt-2">
-              <p className="mb-3 text-center text-xs font-medium text-foreground/55">
-                Word {currentIndex + 1} / {queue.length}
-              </p>
+            <p className="journey-progress">
+              Word {currentIndex + 1} / {queue.length}
+            </p>
 
+            <div className="journey-card-slot">
               <DiscoverCard
                 key={currentItem.word}
                 data={currentWord ?? stubFromListItem(currentItem)}
                 loading={loadingWord}
+                compact
               />
             </div>
 
-            <div className="card-actions">
-              <div className="grid grid-cols-2 gap-2.5">
+            <div className="journey-actions">
+              <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
                   onClick={() => updateStatus("new")}
-                  className="rounded-xl bg-primary py-4 text-base font-semibold text-white shadow-sm transition active:bg-primary-hover"
+                  className="rounded-xl bg-primary py-3.5 text-base font-semibold text-white shadow-sm transition active:bg-primary-hover"
                 >
                   Learn this
                 </button>
                 <button
                   type="button"
                   onClick={() => updateStatus("mastered")}
-                  className="rounded-xl border-2 border-secondary bg-surface py-4 text-base font-semibold text-secondary transition active:bg-primary-50"
+                  className="rounded-xl border-2 border-secondary bg-surface py-3.5 text-base font-semibold text-secondary transition active:bg-primary-50"
                 >
                   Already know
                 </button>
               </div>
 
-              <div className="mt-2.5 flex justify-center gap-2">
+              <div className="mt-2 flex gap-2">
                 <button
                   type="button"
                   disabled={currentIndex === 0}
                   onClick={() => goToIndex(currentIndex - 1)}
-                  className="flex-1 rounded-lg border border-primary-200 bg-surface py-3 text-base font-medium text-foreground/80 disabled:opacity-40"
+                  className="flex-1 rounded-lg border border-primary-200 bg-surface py-2.5 text-sm font-medium text-foreground/80 disabled:opacity-40"
                 >
                   ← Previous
                 </button>
@@ -441,7 +444,7 @@ export default function DiscoverPage() {
                   type="button"
                   disabled={currentIndex >= queue.length - 1}
                   onClick={() => goToIndex(currentIndex + 1)}
-                  className="flex-1 rounded-lg border border-primary-200 bg-surface py-3 text-base font-medium text-foreground/80 disabled:opacity-40"
+                  className="flex-1 rounded-lg border border-primary-200 bg-surface py-2.5 text-sm font-medium text-foreground/80 disabled:opacity-40"
                 >
                   Next →
                 </button>
