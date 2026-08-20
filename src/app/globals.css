@@ -582,13 +582,42 @@ body {
   padding: 0.875rem 1rem;
 }
 
+.home-welcome-wrap {
+  position: relative;
+  padding-bottom: 2.5rem;
+}
+
+.home-welcome-bubble {
+  margin-bottom: 0.75rem;
+}
+
+.coach-dog-bubble {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+}
+
+.coach-dog-bubble__text {
+  flex: 1;
+  min-width: 0;
+  padding: 0.625rem 0.875rem;
+  border-radius: 1rem;
+  border: 1px solid var(--primary-100);
+  background: var(--card);
+  box-shadow: var(--card-shadow);
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--foreground);
+}
+
 .home-welcome {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
   gap: 0.5rem;
-  overflow: hidden;
-  min-height: 9.5rem;
+  overflow: visible;
+  min-height: 8.5rem;
 }
 
 .home-welcome__text {
@@ -598,8 +627,10 @@ body {
 }
 
 .home-welcome__dog {
-  margin-right: -0.5rem;
-  margin-bottom: -0.25rem;
+  position: absolute;
+  right: 0.25rem;
+  bottom: 0;
+  pointer-events: none;
 }
 
 .home-section-header {

@@ -1,5 +1,6 @@
 "use client";
 
+import { CoachDogBubble } from "@/components/mascot/CoachDogBubble";
 import { CoachDog } from "@/components/mascot/CoachDog";
 import { WORD_RANGES, type WordRange } from "@/data/word-ranges";
 
@@ -56,26 +57,39 @@ export function DiscoverDashboard({
   return (
     <div className="home-scroll page-scroll">
       <div className="home-content space-y-4 px-4 pb-6">
-        {/* Welcome card */}
-        <section className="home-card home-welcome">
-          <div className="home-welcome__text">
-            <h2 className="home-section-title font-display">
-              Hi there! Ready to learn today?
-            </h2>
-            <p className="home-body-text mt-1">
-              Let&apos;s grow your vocabulary together with Coach Dog!
-            </p>
-            <button
-              type="button"
-              onClick={onStartLearning}
-              disabled={queueLength === 0}
-              className="btn-pill-primary mt-4 w-full"
-            >
-              Start Learning →
-            </button>
-          </div>
-          <CoachDog pose="neutral" size={96} className="home-welcome__dog shrink-0" />
-        </section>
+        {/* Welcome */}
+        <div className="home-welcome-wrap">
+          <CoachDogBubble
+            message="Let's learn something new!"
+            pose="happy"
+            className="home-welcome-bubble"
+          />
+
+          <section className="home-card home-welcome">
+            <div className="home-welcome__text">
+              <h2 className="home-section-title font-display">
+                Hi there! Ready to learn today?
+              </h2>
+              <p className="home-body-text mt-1">
+                Let&apos;s grow your vocabulary together with Coach Dog!
+              </p>
+              <button
+                type="button"
+                onClick={onStartLearning}
+                disabled={queueLength === 0}
+                className="btn-pill-primary mt-4 w-full"
+              >
+                Start Learning →
+              </button>
+            </div>
+          </section>
+          <CoachDog
+            pose="peek"
+            size={108}
+            className="home-welcome__dog"
+            title="Coach Dog peeking"
+          />
+        </div>
 
         {/* Today&apos;s goal */}
         <section>
