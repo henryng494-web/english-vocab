@@ -351,7 +351,11 @@ export default function DiscoverPage() {
     <div className="app-screen app-screen--journey">
       <MobileTopBar
         title="Vocab Journey"
-        subtitle={`${rangeLabel} · ${queue.length} words left`}
+        subtitle={
+          queue.length > 0 && !loadingList
+            ? `Word ${currentIndex + 1} / ${queue.length} · ${rangeLabel}`
+            : `${rangeLabel} · ${queue.length} words left`
+        }
         trailing={
           <select
             id="range"
@@ -400,19 +404,13 @@ export default function DiscoverPage() {
           </div>
         ) : (
           <>
-            <div className="journey-main">
-              <p className="journey-progress">
-                Word {currentIndex + 1} / {queue.length}
-              </p>
-
-              <div className="journey-card-slot">
-                <DiscoverCard
-                  key={currentItem.word}
-                  data={currentWord ?? stubFromListItem(currentItem)}
-                  loading={loadingWord}
-                  compact
-                />
-              </div>
+            <div className="journey-card-slot">
+              <DiscoverCard
+                key={currentItem.word}
+                data={currentWord ?? stubFromListItem(currentItem)}
+                loading={loadingWord}
+                compact
+              />
             </div>
 
             <div className="journey-actions">
