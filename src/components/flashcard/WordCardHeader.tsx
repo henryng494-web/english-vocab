@@ -38,7 +38,7 @@ export function WordCardHeader({
         ) : null}
 
         {wordTypeLabel && (
-          <span className="rounded-full bg-primary-50 px-3 py-1 text-sm font-medium text-primary-800">
+          <span className="word-type-badge rounded-full bg-primary-50 px-3 py-1 text-sm font-medium text-primary-800">
             {capitalizeFirst(wordTypeLabel)}
           </span>
         )}

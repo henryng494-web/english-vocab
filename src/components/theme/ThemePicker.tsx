@@ -28,7 +28,7 @@ export function ThemePicker() {
               <div
                 className="h-14 w-14 shrink-0 overflow-hidden rounded-xl border border-primary-200 shadow-sm"
                 style={{
-                  background: `linear-gradient(135deg, ${vars["--primary"]} 0%, ${vars["--primary-hover"]} 45%, ${vars["--secondary"]} 100%)`,
+                  background: `linear-gradient(135deg, ${vars["--primary"]} 0%, ${vars["--header-mid"] ?? vars["--secondary"]} 42%, ${vars["--header-end"] ?? vars["--accent"]} 100%)`,
                 }}
                 aria-hidden
               />

@@ -61,8 +61,8 @@ function CardImage({
 
   return (
     <div
-      className={`relative w-full bg-gradient-to-br from-primary-100 via-primary to-primary-hover ${
-        compact ? "h-full min-h-0" : "h-44 shrink-0"
+      className={`relative w-full ${
+        compact ? "card-image-frame h-full min-h-0" : "h-44 shrink-0 bg-gradient-to-br from-primary-100 via-primary to-primary-hover"
       }`}
     >
       <Image
@@ -98,8 +98,8 @@ export function DiscoverCard({ data, loading, compact = false }: DiscoverCardPro
 
   return (
     <div
-      className={`w-full overflow-hidden rounded-2xl border-2 border-primary-200 bg-surface shadow-lg${
-        compact ? " grid h-full min-h-0 grid-rows-2" : ""
+      className={`discover-card w-full overflow-hidden rounded-2xl border-2 shadow-lg${
+        compact ? " grid h-full min-h-0 grid-rows-2" : " border-primary-200 bg-surface"
       }`}
     >
       <CardImage
@@ -130,8 +130,8 @@ export function DiscoverCard({ data, loading, compact = false }: DiscoverCardPro
           <>
             {data.vietnamese_meaning ? (
               <p
-                className={`font-semibold text-primary-700 ${
-                  compact ? "text-lg leading-snug" : "text-xl"
+                className={`vocab-meaning font-semibold ${
+                  compact ? "text-lg leading-snug" : "text-xl text-primary-700"
                 }`}
               >
                 {capitalizeFirst(data.vietnamese_meaning)}
