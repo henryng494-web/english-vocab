@@ -2,13 +2,12 @@ import type { DiscoverWordData } from "@/components/discover/DiscoverCard";
 import { hasQualityExamples } from "@/lib/example-quality";
 import { parseExamples } from "@/lib/parse-examples";
 import {
-  isOutdatedSemanticImageUrl,
   isUntrustedRandomImageUrl,
 } from "@/lib/unsplash";
 import { requiresSafeImageOnly } from "@/lib/safe-image-search";
 
 /** Bump when ranking, image quality, or enrichment output shape changes. */
-export const DISCOVER_WORD_CACHE_VERSION = 26;
+export const DISCOVER_WORD_CACHE_VERSION = 27;
 
 const STORAGE_KEY = `discover-word-cache-v${DISCOVER_WORD_CACHE_VERSION}`;
 
@@ -35,6 +34,7 @@ const LEGACY_STORAGE_KEYS = [
   "discover-word-cache-v23",
   "discover-word-cache-v24",
   "discover-word-cache-v25",
+  "discover-word-cache-v26",
 ];
 
 const MAX_ENTRIES = 250;
@@ -49,8 +49,6 @@ export function isWordDetailComplete(
     return false;
   }
   if (isUntrustedRandomImageUrl(data.image_url)) return false;
-  if (isOutdatedSemanticImageUrl(data.image_url)) return false;
-  // SVG placeholders from resolveWordImageUrl are valid display images.
   if (!hasQualityExamples(data.word, parseExamples(data.examples))) {
     return false;
   }

@@ -4,7 +4,7 @@
  */
 
 const NSFW_METADATA_PATTERN =
-  /\b(?:nsfw|porn(?:o|ography|ographic)?|xxx|nude|nudes|naked|topless|bottomless|nipple|nipples|breast(?:s)?|genital|penis|vagina|erotic|erotica|sexual(?:ly)?|sex(?:y|uality)?|strip(?:per|tease|ping)?|lingerie|fetish|bdsm|hentai|orgasm|masturbat|boob(?:s)?|tits?\b|playboy|onlyfans|thong|bikini\s*model|adult\s*content|explicit)\b/i;
+  /\b(?:nsfw|porn(?:o|ography|ographic)?|xxx|nude|nudes|naked|topless|bottomless|nipple|nipples|breast(?:s)?|genital|penis|vagina|erotic|erotica|sexual(?:ly)?|sex(?:y|uality)?|stripper|striptease|stripping|lingerie|fetish|bdsm|hentai|orgasm|masturbat|boob(?:s)?|tits?\b|playboy|onlyfans|thong|bikini\s*model|adult\s*content|explicit)\b/i;
 
 /** Suggestive phrases that slip past `mature=false` on image APIs. */
 const SUGGESTIVE_PHRASE_PATTERN =

@@ -151,6 +151,20 @@ export function isOutdatedSemanticImageUrl(
   }
 }
 
+/** Client display — accept real http photos even before semantic refresh completes. */
+export function isDisplayableHttpImageUrl(
+  url: string | null | undefined,
+  word?: string | null,
+): boolean {
+  const trimmed = url?.trim();
+  if (!trimmed?.startsWith("http")) return false;
+  if (word && requiresSafeImageOnly(word)) return false;
+  if (isStalePresetFallbackUrl(trimmed)) return false;
+  if (isUntrustedRandomImageUrl(trimmed)) return false;
+  if (isPlaceholderIllustrationUrl(trimmed)) return false;
+  return true;
+}
+
 export function isPlaceholderIllustrationUrl(
   url: string | null | undefined,
 ): boolean {
@@ -266,15 +280,8 @@ export function resolveWordImageUrl(
     return getDefaultLearningImageDataUrl(word, pos);
   }
   const trimmed = imageUrl?.trim();
-  if (
-    trimmed &&
-    trimmed.startsWith("http") &&
-    !isStalePresetFallbackUrl(trimmed) &&
-    !isUntrustedRandomImageUrl(trimmed) &&
-    !isOutdatedSemanticImageUrl(trimmed) &&
-    !isPlaceholderIllustrationUrl(trimmed)
-  ) {
-    return trimmed;
+  if (isDisplayableHttpImageUrl(trimmed, word)) {
+    return trimmed!;
   }
   return getDefaultLearningImageDataUrl(word, pos);
 }
