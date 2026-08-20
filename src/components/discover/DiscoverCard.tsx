@@ -128,7 +128,7 @@ export function DiscoverCard({
       <div
         className={
           compact
-            ? "flex min-h-0 flex-1 flex-col justify-center overflow-hidden space-y-2 p-4"
+            ? "discover-card__body discover-card__body--compact flex min-h-0 flex-col overflow-hidden p-3"
             : "space-y-4 p-6"
         }
       >
@@ -145,20 +145,27 @@ export function DiscoverCard({
           <>
             {data.vietnamese_meaning ? (
               <p
-                className={`vocab-meaning font-semibold ${
-                  compact ? "text-lg leading-snug" : "text-xl text-primary-700"
+                className={`vocab-meaning shrink-0 font-semibold ${
+                  compact
+                    ? "discover-card__meaning text-base leading-snug"
+                    : "text-xl text-primary-700"
                 }`}
               >
                 {capitalizeFirst(data.vietnamese_meaning)}
               </p>
             ) : null}
 
-            <div className={compact ? "min-h-0 overflow-hidden" : undefined}>
+            <div
+              className={
+                compact ? "discover-card__examples min-h-0 flex-1 overflow-hidden" : undefined
+              }
+            >
               <VocabExampleList
                 word={data.word}
                 examples={examples}
                 wordType={data.word_type}
                 meaning={data.vietnamese_meaning}
+                compact={compact}
               />
             </div>
           </>
