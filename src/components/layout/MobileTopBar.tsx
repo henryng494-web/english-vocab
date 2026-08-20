@@ -6,18 +6,22 @@ type MobileTopBarProps = {
 
 export function MobileTopBar({ title, subtitle, trailing }: MobileTopBarProps) {
   return (
-    <header
-      className="sticky top-0 z-40 border-b border-primary-100 bg-white/90 backdrop-blur-md"
-      style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}
-    >
-      <div className="flex items-start justify-between gap-3 px-4 py-3">
-        <div className="min-w-0">
-          <h1 className="text-lg font-bold text-foreground">{title}</h1>
-          {subtitle ? (
-            <p className="text-xs text-foreground/60">{subtitle}</p>
+    <header className="mobile-top-bar">
+      <div className="mobile-top-bar__surface">
+        <div className="mobile-top-bar__glow" aria-hidden />
+        <div className="mobile-top-bar__glow mobile-top-bar__glow--left" aria-hidden />
+
+        <div className="relative flex items-start justify-between gap-3">
+          <div className="min-w-0 pt-0.5">
+            <h1 className="mobile-top-bar__title">{title}</h1>
+            {subtitle ? (
+              <p className="mobile-top-bar__subtitle">{subtitle}</p>
+            ) : null}
+          </div>
+          {trailing ? (
+            <div className="mobile-top-bar__trailing shrink-0">{trailing}</div>
           ) : null}
         </div>
-        {trailing ? <div className="shrink-0">{trailing}</div> : null}
       </div>
     </header>
   );

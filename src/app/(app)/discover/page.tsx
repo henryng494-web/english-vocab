@@ -358,7 +358,7 @@ export default function DiscoverPage() {
             value={rangeId}
             onChange={(e) => setRangeId(e.target.value)}
             aria-label="Select word range"
-            className="max-w-[9.5rem] rounded-xl border border-primary-200 bg-white px-3 py-2 text-xs font-semibold text-foreground shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+            className="mobile-top-bar__control"
           >
             {WORD_RANGES.map((range) => (
               <option key={range.id} value={range.id}>
