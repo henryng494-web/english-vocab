@@ -19,9 +19,6 @@
   --accent-hover: #16a34a;
   --tab-bar-height: 3.875rem;
   --app-height: 100svh;
-  --browser-chrome-bottom: 0px;
-  --layout-edge-buffer: 0.75rem;
-  --header-content-gap: 0.625rem;
 }
 
 @theme inline {
@@ -74,18 +71,13 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans);
   overscroll-behavior-y: none;
-  min-height: 100%;
-  min-height: -webkit-fill-available;
-  min-height: var(--app-height);
   margin: 0;
-  overflow: hidden;
 }
 
 .app-page {
-  height: var(--app-height);
+  height: var(--app-height, 100svh);
   width: 100%;
   background: var(--background);
-  overflow: hidden;
 }
 
 .app-shell {
@@ -96,58 +88,31 @@ body {
 }
 
 .app-shell .shell-content {
-  display: flex;
-  flex-direction: column;
   min-height: 0;
   overflow: hidden;
 }
 
 .app-screen {
-  display: flex;
-  flex: 1 1 auto;
-  flex-direction: column;
-  min-height: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
   height: 100%;
-  overflow: hidden;
-}
-
-.page-with-dock__scroll {
-  flex: 1;
   min-height: 0;
-  overflow-x: hidden;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  scroll-padding-top: var(--header-content-gap);
-  padding-top: calc(0.75rem + var(--header-content-gap));
-  padding-bottom: 0.75rem;
+  overflow: hidden;
 }
 
 .page-scroll {
-  flex: 1;
   min-height: 0;
   overflow-x: hidden;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  scroll-padding-top: var(--header-content-gap);
-  padding-top: calc(0.75rem + var(--header-content-gap));
-  padding-bottom: 0.75rem;
+  padding-top: 0.75rem;
+  padding-bottom: 1.25rem;
 }
 
-.mobile-action-dock {
-  flex-shrink: 0;
-  width: 100%;
-  border-top: 1px solid color-mix(in srgb, var(--primary) 20%, transparent);
-  background: color-mix(in srgb, var(--surface) 96%, transparent);
-  padding: 0.875rem 1rem 1rem;
-  backdrop-filter: blur(12px);
-}
-
-.page-with-dock {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  min-height: 0;
-  overflow: hidden;
+.card-actions {
+  margin-top: 1rem;
+  padding-top: 0.875rem;
+  border-top: 1px solid color-mix(in srgb, var(--primary) 18%, transparent);
 }
 
 .bottom-tab-bar {
@@ -182,10 +147,8 @@ body {
 }
 
 .mobile-top-bar {
-  position: relative;
-  z-index: 20;
   flex-shrink: 0;
-  padding-top: calc(env(safe-area-inset-top, 0px) + 0.375rem);
+  padding-top: env(safe-area-inset-top, 0px);
   background: linear-gradient(
     135deg,
     var(--color-primary) 0%,
@@ -200,8 +163,7 @@ body {
 .mobile-top-bar::after {
   content: "";
   display: block;
-  height: 1rem;
-  margin-bottom: var(--header-content-gap);
+  height: 0.875rem;
   background: var(--background);
   border-top-left-radius: 1.25rem;
   border-top-right-radius: 1.25rem;

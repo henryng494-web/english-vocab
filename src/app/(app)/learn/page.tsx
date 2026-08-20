@@ -249,20 +249,7 @@ export default function LearnPage() {
         subtitle={`${words.length} words · ${studyQueue.length} to study`}
       />
 
-      <div
-        className={
-          viewMode === "card" && !loading && words.length > 0
-            ? "page-with-dock"
-            : "page-scroll"
-        }
-      >
-        <div
-          className={
-            viewMode === "card" && !loading && words.length > 0
-              ? "page-with-dock__scroll px-4"
-              : "px-4"
-          }
-        >
+      <div className="page-scroll px-4">
         <form onSubmit={handleAddWord} className="flex gap-2">
           <input
             type="text"
@@ -367,70 +354,69 @@ export default function LearnPage() {
             ))}
           </ul>
         ) : (
-          <div className="mt-4 pb-3">
-            <div className="mb-3 flex items-center justify-between text-sm font-medium text-foreground/55">
-              <span>
-                Card {currentIndex + 1} / {words.length}
-              </span>
-              {currentWord && (
-                <span className="rounded-full bg-primary-50 px-3 py-1 text-primary-800">
-                  {STATUS_LABELS[currentWord.learning_status]}
+          <>
+            <div className="mt-4">
+              <div className="mb-3 flex items-center justify-between text-sm font-medium text-foreground/55">
+                <span>
+                  Card {currentIndex + 1} / {words.length}
                 </span>
+                {currentWord && (
+                  <span className="rounded-full bg-primary-50 px-3 py-1 text-primary-800">
+                    {STATUS_LABELS[currentWord.learning_status]}
+                  </span>
+                )}
+              </div>
+
+              {currentWord && (
+                <Flashcard
+                  key={currentWord.word}
+                  word={currentWord}
+                  isFlipped={isFlipped}
+                  onFlip={() => setIsFlipped((f) => !f)}
+                />
               )}
             </div>
 
-            {currentWord && (
-              <Flashcard
-                key={currentWord.word}
-                word={currentWord}
-                isFlipped={isFlipped}
-                onFlip={() => setIsFlipped((f) => !f)}
-              />
-            )}
-          </div>
-        )}
-        </div>
+            <div className="card-actions">
+              <div className="mb-2.5 flex gap-2">
+                <button
+                  type="button"
+                  onClick={goPrev}
+                  disabled={currentIndex === 0}
+                  className="flex-1 rounded-lg border border-primary-200 bg-surface py-3 text-base font-medium text-foreground/80 disabled:opacity-40"
+                >
+                  ← Previous
+                </button>
+                <button
+                  type="button"
+                  onClick={goNext}
+                  disabled={currentIndex >= words.length - 1}
+                  className="flex-1 rounded-lg border border-primary-200 bg-surface py-3 text-base font-medium text-foreground/80 disabled:opacity-40"
+                >
+                  Next →
+                </button>
+              </div>
 
-        {viewMode === "card" && !loading && words.length > 0 && (
-          <div className="mobile-action-dock">
-            <div className="mb-2.5 flex gap-2">
-              <button
-                type="button"
-                onClick={goPrev}
-                disabled={currentIndex === 0}
-                className="flex-1 rounded-lg border border-primary-200 bg-surface py-3 text-base font-medium text-foreground/80 disabled:opacity-40"
-              >
-                ← Previous
-              </button>
-              <button
-                type="button"
-                onClick={goNext}
-                disabled={currentIndex >= words.length - 1}
-                className="flex-1 rounded-lg border border-primary-200 bg-surface py-3 text-base font-medium text-foreground/80 disabled:opacity-40"
-              >
-                Next →
-              </button>
+              <div className="grid grid-cols-2 gap-2.5">
+                <button
+                  type="button"
+                  disabled={updating || !currentWord}
+                  onClick={() => updateStatus("need_review")}
+                  className="rounded-xl border-2 border-primary-200 bg-primary-50 py-4 text-base font-semibold text-primary-800 transition active:bg-primary-100 disabled:opacity-50"
+                >
+                  Needs review
+                </button>
+                <button
+                  type="button"
+                  disabled={updating || !currentWord}
+                  onClick={() => updateStatus("mastered")}
+                  className="rounded-xl bg-accent py-4 text-base font-semibold text-white shadow-sm transition active:bg-accent-hover disabled:opacity-50"
+                >
+                  Mastered
+                </button>
+              </div>
             </div>
-
-            <div className="grid grid-cols-2 gap-2.5">
-              <button
-                type="button"
-                disabled={updating || !currentWord}
-                onClick={() => updateStatus("need_review")}
-                className="rounded-xl border-2 border-primary-200 bg-primary-50 py-4 text-base font-semibold text-primary-800 transition active:bg-primary-100 disabled:opacity-50"
-              >
-                Needs review
-              </button>
-              <button
-                type="button"
-                disabled={updating || !currentWord}
-                onClick={() => updateStatus("mastered")}
-                className="rounded-xl bg-accent py-4 text-base font-semibold text-white shadow-sm transition active:bg-accent-hover disabled:opacity-50"
-              >
-                Mastered
-              </button>
-            </div>
-          </div>
+          </>
         )}
       </div>
     </div>
