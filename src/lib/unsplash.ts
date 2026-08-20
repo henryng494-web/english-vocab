@@ -241,7 +241,7 @@ export function getDefaultLearningImageDataUrl(
         pos?.toLowerCase() ?? "",
       )
     ) {
-      return `<rect x="150" y="105" width="125" height="105" rx="18"/><rect x="325" y="105" width="125" height="105" rx="18"/><path d="M275 158h50" fill="none" stroke="#fff" stroke-width="12" stroke-linecap="round"/><circle cx="300" cy="158" r="12" fill="#6B7F5E"/>`;
+      return `<rect x="150" y="105" width="125" height="105" rx="18"/><rect x="325" y="105" width="125" height="105" rx="18"/><path d="M275 158h50" fill="none" stroke="#fff" stroke-width="12" stroke-linecap="round"/><circle cx="300" cy="158" r="12" fill="#F97316"/>`;
     }
     return `<circle cx="230" cy="160" r="48"/><circle cx="370" cy="160" r="48" opacity=".65"/><path d="M284 160h66m-18-18 18 18-18 18" fill="none" stroke="#fff" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>`;
   })();
@@ -249,12 +249,13 @@ export function getDefaultLearningImageDataUrl(
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="600" height="350" viewBox="0 0 600 350">
     <defs>
       <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0%" stop-color="#B8C7AE"/>
-        <stop offset="100%" stop-color="#9CAF88"/>
+        <stop offset="0%" stop-color="#60A5FA"/>
+        <stop offset="55%" stop-color="#2563EB"/>
+        <stop offset="100%" stop-color="#F97316"/>
       </linearGradient>
     </defs>
     <rect width="600" height="350" fill="url(#bg)"/>
-    <rect x="24" y="22" width="128" height="30" rx="15" fill="#6B7F5E" opacity=".82"/>
+    <rect x="24" y="22" width="128" height="30" rx="15" fill="#1D4ED8" opacity=".88"/>
     <text x="88" y="43" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="700" fill="#fff">${safePos}</text>
     <g fill="#ffffff" opacity="0.94">
       ${relationGraphic}

@@ -424,7 +424,7 @@ export default function DiscoverPage() {
             <button
               type="button"
               onClick={() => updateStatus("mastered")}
-              className="rounded-xl border-2 border-primary-200 bg-white py-3.5 text-sm font-semibold text-primary-800 transition active:bg-primary-50"
+              className="rounded-xl border-2 border-secondary bg-white py-3.5 text-sm font-semibold text-secondary transition active:bg-orange-50"
             >
               Already know
             </button>

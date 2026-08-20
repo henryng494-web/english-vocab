@@ -412,7 +412,7 @@ export default function LearnPage() {
               type="button"
               disabled={updating || !currentWord}
               onClick={() => updateStatus("mastered")}
-              className="rounded-xl bg-primary py-3.5 text-sm font-semibold text-white shadow-sm transition active:bg-primary-hover disabled:opacity-50"
+              className="rounded-xl bg-accent py-3.5 text-sm font-semibold text-white shadow-sm transition active:bg-accent-hover disabled:opacity-50"
             >
               Mastered
             </button>
