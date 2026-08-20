@@ -259,8 +259,8 @@ export default function LearnPage() {
         <div
           className={
             viewMode === "card" && !loading && words.length > 0
-              ? "page-with-dock__scroll px-4 pt-3"
-              : "px-4 pt-3"
+              ? "page-with-dock__scroll px-4"
+              : "px-4"
           }
         >
         <form onSubmit={handleAddWord} className="flex gap-2">

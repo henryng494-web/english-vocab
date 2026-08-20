@@ -2,6 +2,8 @@
 
 import { useEffect } from "react";
 
+const BOTTOM_INSET_BUFFER_PX = 12;
+
 function syncViewportVars() {
   const root = document.documentElement;
   const vv = window.visualViewport;
@@ -12,16 +14,18 @@ function syncViewportVars() {
     return;
   }
 
-  const bottomInset = Math.max(
-    0,
-    window.innerHeight - vv.height - vv.offsetTop,
-  );
+  const bottomInset =
+    Math.max(0, window.innerHeight - vv.height - vv.offsetTop) +
+    BOTTOM_INSET_BUFFER_PX;
 
   root.style.setProperty(
     "--app-height",
     `${Math.round(vv.height + vv.offsetTop)}px`,
   );
-  root.style.setProperty("--browser-chrome-bottom", `${Math.round(bottomInset)}px`);
+  root.style.setProperty(
+    "--browser-chrome-bottom",
+    `${Math.round(bottomInset)}px`,
+  );
 }
 
 export function ViewportHeightSync() {

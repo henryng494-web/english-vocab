@@ -370,7 +370,7 @@ export default function DiscoverPage() {
       />
 
       <div className="page-with-dock">
-        <div className="page-with-dock__scroll px-4 pt-3">
+        <div className="page-with-dock__scroll px-4">
           {stats.hidden > 0 && (
             <p className="text-xs text-foreground/55">
               {stats.hidden} words marked &ldquo;Already know&rdquo;
