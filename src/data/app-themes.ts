@@ -9,30 +9,74 @@ export type AppTheme = {
   cssVars: Record<string, string>;
 };
 
+function withUiTokens(
+  base: Record<string, string>,
+  ui: {
+    card: string;
+    cardBorder: string;
+    headerMid: string;
+    headerEnd: string;
+    meaning: string;
+    exampleBg: string;
+    exampleVi: string;
+    badgeBg: string;
+    badgeText: string;
+    tabBarBg: string;
+  },
+): Record<string, string> {
+  return {
+    ...base,
+    "--card": ui.card,
+    "--card-border": ui.cardBorder,
+    "--header-mid": ui.headerMid,
+    "--header-end": ui.headerEnd,
+    "--meaning": ui.meaning,
+    "--example-bg": ui.exampleBg,
+    "--example-vi": ui.exampleVi,
+    "--badge-bg": ui.badgeBg,
+    "--badge-text": ui.badgeText,
+    "--tab-bar-bg": ui.tabBarBg,
+  };
+}
+
 const SKY_CANVAS: AppTheme = {
   id: "sky-canvas",
   letter: "A",
   name: "Sky Canvas",
   tagline: "Cool, fresh, modern blue canvas",
   swatches: ["#2563EB", "#F97316", "#22C55E", "#DBEAFE"],
-  cssVars: {
-    "--background": "#dbeafe",
-    "--foreground": "#0c4a6e",
-    "--surface": "#bfdbfe",
-    "--surface-strong": "#93c5fd",
-    "--primary": "#2563eb",
-    "--primary-hover": "#1d4ed8",
-    "--primary-50": "#eff6ff",
-    "--primary-100": "#dbeafe",
-    "--primary-200": "#bfdbfe",
-    "--primary-300": "#93c5fd",
-    "--primary-700": "#1d4ed8",
-    "--primary-800": "#1e40af",
-    "--secondary": "#f97316",
-    "--secondary-hover": "#ea580c",
-    "--accent": "#22c55e",
-    "--accent-hover": "#16a34a",
-  },
+  cssVars: withUiTokens(
+    {
+      "--background": "#dbeafe",
+      "--foreground": "#0c4a6e",
+      "--surface": "#bfdbfe",
+      "--surface-strong": "#93c5fd",
+      "--primary": "#2563eb",
+      "--primary-hover": "#1d4ed8",
+      "--primary-50": "#eff6ff",
+      "--primary-100": "#dbeafe",
+      "--primary-200": "#bfdbfe",
+      "--primary-300": "#93c5fd",
+      "--primary-700": "#1d4ed8",
+      "--primary-800": "#1e40af",
+      "--secondary": "#f97316",
+      "--secondary-hover": "#ea580c",
+      "--accent": "#22c55e",
+      "--accent-hover": "#16a34a",
+    },
+    {
+      card: "#ffffff",
+      cardBorder: "#93c5fd",
+      headerMid: "#1d4ed8",
+      headerEnd: "#f97316",
+      meaning: "#1d4ed8",
+      exampleBg: "#eff6ff",
+      exampleVi: "#0369a1",
+      badgeBg: "#dcfce7",
+      badgeText: "#166534",
+      tabBarBg: "#f8fbff",
+    },
+  ),
 };
 
 const PEACH_GLOW: AppTheme = {
@@ -41,24 +85,38 @@ const PEACH_GLOW: AppTheme = {
   name: "Peach Glow",
   tagline: "Warm, friendly coral and peach canvas",
   swatches: ["#F97316", "#F43F5E", "#7C3AED", "#FFE8D6"],
-  cssVars: {
-    "--background": "#ffe8d6",
-    "--foreground": "#7c2d12",
-    "--surface": "#ffd6ba",
-    "--surface-strong": "#fdba74",
-    "--primary": "#f97316",
-    "--primary-hover": "#ea580c",
-    "--primary-50": "#fff7ed",
-    "--primary-100": "#ffedd5",
-    "--primary-200": "#fed7aa",
-    "--primary-300": "#fdba74",
-    "--primary-700": "#c2410c",
-    "--primary-800": "#9a3412",
-    "--secondary": "#f43f5e",
-    "--secondary-hover": "#e11d48",
-    "--accent": "#7c3aed",
-    "--accent-hover": "#6d28d9",
-  },
+  cssVars: withUiTokens(
+    {
+      "--background": "#ffe8d6",
+      "--foreground": "#7c2d12",
+      "--surface": "#ffd6ba",
+      "--surface-strong": "#fdba74",
+      "--primary": "#f97316",
+      "--primary-hover": "#ea580c",
+      "--primary-50": "#fff7ed",
+      "--primary-100": "#ffedd5",
+      "--primary-200": "#fed7aa",
+      "--primary-300": "#fdba74",
+      "--primary-700": "#c2410c",
+      "--primary-800": "#9a3412",
+      "--secondary": "#f43f5e",
+      "--secondary-hover": "#e11d48",
+      "--accent": "#7c3aed",
+      "--accent-hover": "#6d28d9",
+    },
+    {
+      card: "#ffffff",
+      cardBorder: "#fda4af",
+      headerMid: "#f43f5e",
+      headerEnd: "#7c3aed",
+      meaning: "#be123c",
+      exampleBg: "#f5f3ff",
+      exampleVi: "#7c3aed",
+      badgeBg: "#ede9fe",
+      badgeText: "#5b21b6",
+      tabBarBg: "#fffbf7",
+    },
+  ),
 };
 
 const MINT_PULSE: AppTheme = {
@@ -67,24 +125,38 @@ const MINT_PULSE: AppTheme = {
   name: "Mint Pulse",
   tagline: "Fresh teal and lime on mint canvas",
   swatches: ["#0D9488", "#14B8A6", "#EAB308", "#CCFBF1"],
-  cssVars: {
-    "--background": "#ccfbf1",
-    "--foreground": "#134e4a",
-    "--surface": "#99f6e4",
-    "--surface-strong": "#5eead4",
-    "--primary": "#0d9488",
-    "--primary-hover": "#0f766e",
-    "--primary-50": "#f0fdfa",
-    "--primary-100": "#ccfbf1",
-    "--primary-200": "#99f6e4",
-    "--primary-300": "#5eead4",
-    "--primary-700": "#0f766e",
-    "--primary-800": "#115e59",
-    "--secondary": "#14b8a6",
-    "--secondary-hover": "#0d9488",
-    "--accent": "#eab308",
-    "--accent-hover": "#ca8a04",
-  },
+  cssVars: withUiTokens(
+    {
+      "--background": "#ccfbf1",
+      "--foreground": "#134e4a",
+      "--surface": "#99f6e4",
+      "--surface-strong": "#5eead4",
+      "--primary": "#0d9488",
+      "--primary-hover": "#0f766e",
+      "--primary-50": "#f0fdfa",
+      "--primary-100": "#ccfbf1",
+      "--primary-200": "#99f6e4",
+      "--primary-300": "#5eead4",
+      "--primary-700": "#0f766e",
+      "--primary-800": "#115e59",
+      "--secondary": "#14b8a6",
+      "--secondary-hover": "#0d9488",
+      "--accent": "#eab308",
+      "--accent-hover": "#ca8a04",
+    },
+    {
+      card: "#ffffff",
+      cardBorder: "#5eead4",
+      headerMid: "#0f766e",
+      headerEnd: "#eab308",
+      meaning: "#0f766e",
+      exampleBg: "#fefce8",
+      exampleVi: "#a16207",
+      badgeBg: "#fef9c3",
+      badgeText: "#854d0e",
+      tabBarBg: "#f0fdfa",
+    },
+  ),
 };
 
 export const APP_THEMES: Record<AppThemeId, AppTheme> = {
