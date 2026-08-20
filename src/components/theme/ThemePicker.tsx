@@ -35,12 +35,12 @@ export function ThemePicker() {
 
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
-                  <span className="rounded-md bg-primary px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-white">
+                  <span className="rounded-md bg-primary px-2 py-0.5 text-xs font-black uppercase tracking-wide text-white">
                     {theme.letter}
                   </span>
                   <span className="font-bold text-foreground">{theme.name}</span>
                   {selected ? (
-                    <span className="ml-auto rounded-full bg-accent px-2 py-0.5 text-[10px] font-bold text-white">
+                    <span className="ml-auto rounded-full bg-accent px-2 py-0.5 text-xs font-bold text-white">
                       Active
                     </span>
                   ) : null}

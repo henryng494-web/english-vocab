@@ -72,7 +72,7 @@ function FlashcardBody({
       {showDetails ? (
         <div className="mt-4 space-y-3">
           {word.vietnamese_meaning && (
-            <p className="text-lg font-semibold text-primary-700">
+            <p className="text-xl font-semibold text-primary-700">
               {capitalizeFirst(word.vietnamese_meaning)}
             </p>
           )}
@@ -86,7 +86,7 @@ function FlashcardBody({
           />
         </div>
       ) : (
-        <p className="mt-6 text-center text-xs text-foreground/50">Tap to flip</p>
+        <p className="mt-6 text-center text-sm text-foreground/50">Tap to flip</p>
       )}
     </div>
   );

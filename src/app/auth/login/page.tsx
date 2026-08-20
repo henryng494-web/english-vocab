@@ -60,7 +60,7 @@ export default function LoginPage() {
       }}
     >
       <div className="w-full max-w-md rounded-2xl border border-primary-200 bg-surface p-8 shadow-sm">
-        <h1 className="text-2xl font-bold text-foreground">Sign in</h1>
+        <h1 className="text-3xl font-bold text-foreground">Sign in</h1>
         <p className="mt-2 text-sm text-foreground/60">
           Use your Supabase Auth account to save learning progress
         </p>

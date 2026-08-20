@@ -95,7 +95,7 @@ export function BottomTabBar() {
             <Link
               key={tab.href}
               href={tab.href}
-              className={`flex flex-col items-center justify-center gap-0.5 text-[11px] font-semibold transition ${
+              className={`flex flex-col items-center justify-center gap-0.5 text-sm font-semibold transition ${
                 active ? "text-primary" : "text-foreground/50"
               }`}
             >
