@@ -785,7 +785,7 @@ function fromRaw(word: string, raw: RawEntry): StandardVocabEntry {
     pos: raw.pos,
     meaning: capitalizeFirst(raw.meaning),
     definition: capitalizeFirst(raw.definition),
-    examples: raw.examples.slice(0, 2),
+    examples: raw.examples?.slice(0, 2) ?? [],
     searchKeyword: raw.keyword.trim().toLowerCase() || word,
   };
 }
@@ -796,6 +796,7 @@ function simpleKeyword(word: string): string {
 }
 
 function fromPrimarySense(word: string): StandardVocabEntry | undefined {
+  if (!Object.hasOwn(PRIMARY_SENSES, word)) return undefined;
   const sense = PRIMARY_SENSES[word];
   if (!sense) return undefined;
   return {
@@ -827,7 +828,7 @@ function fromStaticDetail(
     pos: detail.pos,
     meaning,
     definition,
-    examples: detail.examples.slice(0, 2).map((en) => ({ en, vi: "" })),
+    examples: (detail.examples ?? []).slice(0, 2).map((en) => ({ en, vi: "" })),
     searchKeyword: simpleKeyword(word),
   };
 }
@@ -836,7 +837,7 @@ export function getStandardVocab(word: string): StandardVocabEntry | undefined {
   const normalized = word.trim().toLowerCase();
   if (!normalized) return undefined;
 
-  const curated = CURATED[normalized];
+  const curated = Object.hasOwn(CURATED, normalized) ? CURATED[normalized] : undefined;
   if (curated) return fromRaw(normalized, curated);
 
   const primary = fromPrimarySense(normalized);
