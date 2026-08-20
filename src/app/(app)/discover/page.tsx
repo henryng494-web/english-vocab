@@ -115,12 +115,12 @@ export default function DiscoverPage() {
       });
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.details ?? data.error ?? "Không thể tải từ");
+        throw new Error(data.details ?? data.error ?? "Failed to load word");
       }
       const loaded = mapApiWord(item, data.word);
       if (!isCacheEntryValid(loaded, item.word)) {
         throw new Error(
-          `Dữ liệu cho "${item.word}" chưa đầy đủ — thử tải lại sau.`,
+          `Data for "${item.word}" is incomplete — try again later.`,
         );
       }
       return loaded;
@@ -142,7 +142,7 @@ export default function DiscoverPage() {
       const promise = fetchWordFromApi(item)
         .then((loaded) => {
           if (!isCacheEntryValid(loaded, item.word)) {
-            throw new Error(`Dữ liệu không khớp cho "${item.word}"`);
+            throw new Error(`Data mismatch for "${item.word}"`);
           }
           wordCache.current.set(item.word, loaded);
           persistWordCache(wordCache.current);
@@ -207,7 +207,7 @@ export default function DiscoverPage() {
           })
           .catch((err) => {
             if (activeWordRef.current !== item.word) return;
-            setError(err instanceof Error ? err.message : "Lỗi tải chi tiết từ");
+            setError(err instanceof Error ? err.message : "Failed to load word details");
             setLoadingWord(false);
           });
       }
@@ -229,7 +229,7 @@ export default function DiscoverPage() {
       });
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.details ?? data.error ?? "Không thể tải kho từ");
+        throw new Error(data.details ?? data.error ?? "Failed to load word bank");
       }
 
       const filtered = filterLocalMastered(data.words ?? []);
@@ -242,7 +242,7 @@ export default function DiscoverPage() {
           ((data.words?.length ?? 0) - filtered.length),
       });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Lỗi tải dữ liệu");
+      setError(err instanceof Error ? err.message : "Failed to load data");
       setQueue([]);
       setCurrentWord(null);
     } finally {
@@ -316,7 +316,7 @@ export default function DiscoverPage() {
           if (!addRes.ok) {
             const addData = await addRes.json();
             throw new Error(
-              addData.details ?? addData.error ?? "Không thể thêm từ",
+              addData.details ?? addData.error ?? "Failed to add word",
             );
           }
         }
@@ -337,7 +337,7 @@ export default function DiscoverPage() {
           );
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Lỗi cập nhật");
+        setError(err instanceof Error ? err.message : "Update failed");
       }
     })();
   }
@@ -350,14 +350,14 @@ export default function DiscoverPage() {
   return (
     <>
       <MobileTopBar
-        title="Tra từ"
-        subtitle={`${rangeLabel} · ${queue.length} từ còn lại`}
+        title="Vocab Journey"
+        subtitle={`${rangeLabel} · ${queue.length} words left`}
         trailing={
           <select
             id="range"
             value={rangeId}
             onChange={(e) => setRangeId(e.target.value)}
-            aria-label="Chọn dải từ"
+            aria-label="Select word range"
             className="max-w-[9.5rem] rounded-xl border border-primary-200 bg-white px-3 py-2 text-xs font-semibold text-foreground shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
           >
             {WORD_RANGES.map((range) => (
@@ -372,7 +372,7 @@ export default function DiscoverPage() {
       <div className="px-4 pt-3">
         {stats.hidden > 0 && (
           <p className="text-xs text-foreground/55">
-            {stats.hidden} từ đã đánh dấu &ldquo;Đã biết&rdquo;
+            {stats.hidden} words marked &ldquo;Already know&rdquo;
           </p>
         )}
 
@@ -389,17 +389,17 @@ export default function DiscoverPage() {
         ) : queue.length === 0 ? (
           <div className="mt-16 px-2 text-center">
             <p className="text-foreground/80">
-              Đã xem hết từ trong dải này hoặc bạn đã đánh dấu tất cả là
-              &ldquo;Đã biết&rdquo;.
+              You&apos;ve finished this range or marked every word as
+              &ldquo;Already know&rdquo;.
             </p>
             <p className="mt-2 text-sm text-foreground/60">
-              Hãy chọn dải từ khác hoặc sang tab Ôn tập.
+              Choose another range or switch to the Review tab.
             </p>
           </div>
         ) : (
           <div className="mt-4">
             <p className="mb-3 text-center text-xs font-medium text-foreground/55">
-              Từ {currentIndex + 1} / {queue.length}
+              Word {currentIndex + 1} / {queue.length}
             </p>
 
             <DiscoverCard
@@ -419,14 +419,14 @@ export default function DiscoverPage() {
               onClick={() => updateStatus("new")}
               className="rounded-xl bg-primary py-3.5 text-sm font-semibold text-white shadow-sm transition active:bg-primary-hover"
             >
-              Nên học
+              Learn this
             </button>
             <button
               type="button"
               onClick={() => updateStatus("mastered")}
               className="rounded-xl border-2 border-primary-200 bg-white py-3.5 text-sm font-semibold text-primary-800 transition active:bg-primary-50"
             >
-              Đã biết
+              Already know
             </button>
           </div>
 
@@ -437,7 +437,7 @@ export default function DiscoverPage() {
               onClick={() => goToIndex(currentIndex - 1)}
               className="flex-1 rounded-lg border border-primary-200 bg-white py-2.5 text-sm font-medium text-foreground/80 disabled:opacity-40"
             >
-              ← Trước
+              ← Previous
             </button>
             <button
               type="button"
@@ -445,7 +445,7 @@ export default function DiscoverPage() {
               onClick={() => goToIndex(currentIndex + 1)}
               className="flex-1 rounded-lg border border-primary-200 bg-white py-2.5 text-sm font-medium text-foreground/80 disabled:opacity-40"
             >
-              Sau →
+              Next →
             </button>
           </div>
         </div>

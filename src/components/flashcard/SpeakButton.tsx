@@ -81,10 +81,10 @@ export function SpeakButton({
       onClick={speak}
       disabled={speaking}
       className={className}
-      aria-label={speaking ? "Đang phát âm" : "Phát âm"}
+      aria-label={speaking ? "Speaking" : "Pronounce"}
     >
       <SpeakerIcon className={iconOnly ? "h-4 w-4" : "h-5 w-5"} />
-      {!iconOnly && (speaking ? "Đang phát..." : "Phát âm")}
+      {!iconOnly && (speaking ? "Speaking..." : "Pronounce")}
     </button>
   );
 }

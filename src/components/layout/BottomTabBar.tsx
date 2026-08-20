@@ -61,19 +61,19 @@ function AccountIcon({ active }: { active: boolean }) {
 const TABS: TabItem[] = [
   {
     href: "/discover",
-    label: "Tra từ",
+    label: "Vocab Journey",
     match: (path) => path.startsWith("/discover"),
     icon: (active) => <DiscoverIcon active={active} />,
   },
   {
     href: "/learn",
-    label: "Ôn tập",
+    label: "Review",
     match: (path) => path.startsWith("/learn"),
     icon: (active) => <LearnIcon active={active} />,
   },
   {
     href: "/auth/login",
-    label: "Tài khoản",
+    label: "Account",
     match: (path) => path.startsWith("/auth"),
     icon: (active) => <AccountIcon active={active} />,
   },
@@ -86,7 +86,7 @@ export function BottomTabBar() {
     <nav
       className="fixed inset-x-0 bottom-0 z-50 border-t border-primary-100 bg-white/95 backdrop-blur-lg"
       style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
-      aria-label="Điều hướng chính"
+      aria-label="Main navigation"
     >
       <div className="mx-auto grid h-[var(--tab-bar-height)] max-w-lg grid-cols-3">
         {TABS.map((tab) => {

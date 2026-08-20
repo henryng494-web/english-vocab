@@ -1,7 +1,7 @@
 "use client";
 
 import { capitalizeFirst } from "@/lib/format-text";
-import { wordTypeLabelVi } from "@/lib/word-type";
+import { normalizeWordType } from "@/lib/word-type";
 import { SpeakButton } from "./SpeakButton";
 
 type WordCardHeaderProps = {
@@ -17,7 +17,7 @@ export function WordCardHeader({
   wordType,
   loadingPhonetic,
 }: WordCardHeaderProps) {
-  const wordTypeVi = wordTypeLabelVi(wordType, word);
+  const wordTypeLabel = normalizeWordType(wordType, word);
 
   return (
     <div className="flex w-full flex-wrap items-center gap-x-3 gap-y-2">
@@ -37,9 +37,9 @@ export function WordCardHeader({
           />
         ) : null}
 
-        {wordTypeVi && (
+        {wordTypeLabel && (
           <span className="rounded-full bg-primary-50 px-3 py-1 text-xs font-medium text-primary-800">
-            {wordTypeVi}
+            {capitalizeFirst(wordTypeLabel)}
           </span>
         )}
       </div>

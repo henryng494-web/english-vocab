@@ -46,7 +46,7 @@ export default function LoginPage() {
     if (error) {
       setMessage(error.message);
     } else {
-      setMessage("Đăng ký thành công! Kiểm tra email để xác nhận tài khoản.");
+      setMessage("Sign-up successful! Check your email to confirm your account.");
     }
     setLoading(false);
   }
@@ -60,9 +60,9 @@ export default function LoginPage() {
       }}
     >
       <div className="w-full max-w-md rounded-2xl border border-primary-200 bg-white p-8 shadow-sm">
-        <h1 className="text-2xl font-bold text-foreground">Đăng nhập</h1>
+        <h1 className="text-2xl font-bold text-foreground">Sign in</h1>
         <p className="mt-2 text-sm text-foreground/60">
-          Sử dụng tài khoản Supabase Auth để lưu tiến trình học
+          Use your Supabase Auth account to save learning progress
         </p>
 
         <form className="mt-6 space-y-4" onSubmit={handleSignIn}>
@@ -87,7 +87,7 @@ export default function LoginPage() {
               htmlFor="password"
               className="block text-sm font-medium text-foreground/80"
             >
-              Mật khẩu
+              Password
             </label>
             <input
               id="password"
@@ -112,7 +112,7 @@ export default function LoginPage() {
               disabled={loading}
               className="flex-1 rounded-lg bg-primary px-4 py-2 font-medium text-white hover:bg-primary-hover disabled:opacity-50"
             >
-              {loading ? "Đang xử lý..." : "Đăng nhập"}
+              {loading ? "Processing..." : "Sign in"}
             </button>
             <button
               type="button"
@@ -120,7 +120,7 @@ export default function LoginPage() {
               onClick={handleSignUp}
               className="flex-1 rounded-lg border border-primary-200 px-4 py-2 font-medium text-primary-800 hover:bg-primary-50 disabled:opacity-50"
             >
-              Đăng ký
+              Sign up
             </button>
           </div>
         </form>
@@ -129,7 +129,7 @@ export default function LoginPage() {
           href="/discover"
           className="mt-6 block text-center text-sm text-foreground/60 hover:text-primary-700"
         >
-          ← Quay lại ứng dụng
+          ← Back to app
         </Link>
       </div>
     </main>

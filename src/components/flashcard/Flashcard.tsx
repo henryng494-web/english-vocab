@@ -86,7 +86,7 @@ function FlashcardBody({
           />
         </div>
       ) : (
-        <p className="mt-6 text-center text-xs text-foreground/50">Nhấn để lật</p>
+        <p className="mt-6 text-center text-xs text-foreground/50">Tap to flip</p>
       )}
     </div>
   );
@@ -108,7 +108,7 @@ export function Flashcard({ word, isFlipped, onFlip }: FlashcardProps) {
         onKeyDown={handleKeyDown}
         role="button"
         tabIndex={0}
-        aria-label={isFlipped ? "Xem mặt trước" : "Xem mặt sau"}
+        aria-label={isFlipped ? "Show front" : "Show back"}
       >
         <div className="flashcard-face flashcard-front">
           <div className="flex h-full flex-col overflow-hidden rounded-2xl bg-white">
