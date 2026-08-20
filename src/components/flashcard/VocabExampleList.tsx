@@ -27,8 +27,8 @@ export function VocabExampleList({
           key={`${word}-ex-${i}`}
           className={
             boxed
-              ? "rounded-lg bg-primary-50 px-3 py-2 text-sm text-foreground/80"
-              : "text-sm text-foreground/80"
+              ? "rounded-lg bg-primary-50 px-3 py-2.5 text-base text-foreground/80"
+              : "text-base text-foreground/80"
           }
         >
           <p className="italic">{ex.en}</p>

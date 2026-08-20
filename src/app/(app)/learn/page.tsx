@@ -256,12 +256,12 @@ export default function LearnPage() {
             value={newWord}
             onChange={(e) => setNewWord(e.target.value)}
             placeholder="Add a new word..."
-            className="flex-1 rounded-xl border border-primary-200 bg-surface px-4 py-3 text-sm text-foreground shadow-sm placeholder:text-foreground/40 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+            className="flex-1 rounded-xl border border-primary-200 bg-surface px-4 py-3 text-base text-foreground shadow-sm placeholder:text-foreground/40 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
           />
           <button
             type="submit"
             disabled={adding || !newWord.trim()}
-            className="rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-white shadow-sm transition active:bg-primary-hover disabled:opacity-50"
+            className="rounded-xl bg-primary px-4 py-3 text-base font-semibold text-white shadow-sm transition active:bg-primary-hover disabled:opacity-50"
           >
             {adding ? "..." : "Add"}
           </button>
@@ -288,7 +288,7 @@ export default function LearnPage() {
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as SortOption)}
-            className="flex-1 rounded-lg border border-primary-200 bg-surface px-3 py-2 text-xs text-foreground shadow-sm"
+            className="flex-1 rounded-lg border border-primary-200 bg-surface px-3 py-2.5 text-sm text-foreground shadow-sm"
           >
             <option value="importance">Importance</option>
             <option value="alphabetical">A → Z</option>
@@ -298,7 +298,7 @@ export default function LearnPage() {
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value as FilterOption)}
-            className="flex-1 rounded-lg border border-primary-200 bg-surface px-3 py-2 text-xs text-foreground shadow-sm"
+            className="flex-1 rounded-lg border border-primary-200 bg-surface px-3 py-2.5 text-sm text-foreground shadow-sm"
           >
             <option value="all">All</option>
             <option value="new">New</option>
@@ -342,11 +342,11 @@ export default function LearnPage() {
                     <span className="truncate font-semibold text-foreground">
                       {capitalizeFirst(item.word)}
                     </span>
-                    <span className="text-[11px] text-foreground/45">
+                    <span className="text-xs text-foreground/45">
                       #{item.rank.toLocaleString()}
                     </span>
                   </div>
-                  <span className="shrink-0 rounded-full bg-primary-50 px-2 py-0.5 text-[11px] text-primary-800">
+                  <span className="shrink-0 rounded-full bg-primary-50 px-2 py-0.5 text-xs text-primary-800">
                     {STATUS_LABELS[item.learning_status]}
                   </span>
                 </button>
@@ -355,7 +355,7 @@ export default function LearnPage() {
           </ul>
         ) : (
           <div className="mt-4">
-            <div className="mb-3 flex items-center justify-between text-xs font-medium text-foreground/55">
+            <div className="mb-3 flex items-center justify-between text-sm font-medium text-foreground/55">
               <span>
                 Card {currentIndex + 1} / {words.length}
               </span>
@@ -385,7 +385,7 @@ export default function LearnPage() {
               type="button"
               onClick={goPrev}
               disabled={currentIndex === 0}
-              className="flex-1 rounded-lg border border-primary-200 bg-surface py-2.5 text-sm font-medium text-foreground/80 disabled:opacity-40"
+              className="flex-1 rounded-lg border border-primary-200 bg-surface py-3 text-base font-medium text-foreground/80 disabled:opacity-40"
             >
               ← Previous
             </button>
@@ -393,7 +393,7 @@ export default function LearnPage() {
               type="button"
               onClick={goNext}
               disabled={currentIndex >= words.length - 1}
-              className="flex-1 rounded-lg border border-primary-200 bg-surface py-2.5 text-sm font-medium text-foreground/80 disabled:opacity-40"
+              className="flex-1 rounded-lg border border-primary-200 bg-surface py-3 text-base font-medium text-foreground/80 disabled:opacity-40"
             >
               Next →
             </button>
@@ -404,7 +404,7 @@ export default function LearnPage() {
               type="button"
               disabled={updating || !currentWord}
               onClick={() => updateStatus("need_review")}
-              className="rounded-xl border-2 border-primary-200 bg-primary-50 py-3.5 text-sm font-semibold text-primary-800 transition active:bg-primary-100 disabled:opacity-50"
+              className="rounded-xl border-2 border-primary-200 bg-primary-50 py-4 text-base font-semibold text-primary-800 transition active:bg-primary-100 disabled:opacity-50"
             >
               Needs review
             </button>
@@ -412,7 +412,7 @@ export default function LearnPage() {
               type="button"
               disabled={updating || !currentWord}
               onClick={() => updateStatus("mastered")}
-              className="rounded-xl bg-accent py-3.5 text-sm font-semibold text-white shadow-sm transition active:bg-accent-hover disabled:opacity-50"
+              className="rounded-xl bg-accent py-4 text-base font-semibold text-white shadow-sm transition active:bg-accent-hover disabled:opacity-50"
             >
               Mastered
             </button>

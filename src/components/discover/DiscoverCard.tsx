@@ -110,7 +110,7 @@ export function DiscoverCard({ data, loading }: DiscoverCardProps) {
         ) : (
           <>
             {data.vietnamese_meaning ? (
-              <p className="text-lg font-semibold text-primary-700">
+              <p className="text-xl font-semibold text-primary-700">
                 {capitalizeFirst(data.vietnamese_meaning)}
               </p>
             ) : null}
