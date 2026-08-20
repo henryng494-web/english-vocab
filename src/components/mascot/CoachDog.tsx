@@ -8,14 +8,14 @@ type CoachDogProps = {
 };
 
 const INK = "#0A0A0A";
-const EYE_WHITE = "#FFFFFF";
+const EYE = "#FFFFFF";
 const COLLAR = "#EF4444";
 const BELL = "#FBBF24";
 const TEAR = "#38BDF8";
 
 /**
- * Flat head-only Coach Dog — matches Vocab Journey design board:
- * black silhouette, oversized white circle eyes, floppy ears, red collar, yellow bell.
+ * Flat head-only Coach Dog — Vocab Journey design board:
+ * black silhouette, oversized white eyes, floppy ears, thin red collar, yellow bell.
  */
 export function CoachDog({
   pose = "neutral",
@@ -24,82 +24,80 @@ export function CoachDog({
   title = "Coach Dog",
 }: CoachDogProps) {
   const sad = pose === "sad";
-  const happy = pose === "happy";
+  const chevronEyes = pose === "happy" || pose === "wave";
   const wink = pose === "wink" || pose === "smirk";
-  const wave = pose === "wave";
 
   return (
     <svg
       width={size}
       height={size}
-      viewBox="0 0 96 96"
+      viewBox="0 0 100 100"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={className}
       role="img"
       aria-label={title}
     >
-      {/* ears behind head */}
-      <ellipse cx="14" cy="42" rx="12" ry="18" fill={INK} />
-      <ellipse cx="82" cy="42" rx="12" ry="18" fill={INK} />
+      {/* floppy ears — large, droopy, behind head */}
+      <ellipse cx="12" cy="44" rx="13" ry="20" fill={INK} />
+      <ellipse cx="88" cy="44" rx="13" ry="20" fill={INK} />
 
-      {/* head */}
-      <circle cx="48" cy="46" r="30" fill={INK} />
+      {/* round head */}
+      <circle cx="50" cy="47" r="31" fill={INK} />
 
-      {/* eyes */}
       {sad ? (
         <>
           <path
-            d="M33 48 Q38 43 43 48"
-            stroke={EYE_WHITE}
+            d="M34 49 Q39 44 44 49"
+            stroke={EYE}
+            strokeWidth="3.4"
+            strokeLinecap="round"
+            fill="none"
+          />
+          <path
+            d="M56 49 Q61 44 66 49"
+            stroke={EYE}
+            strokeWidth="3.4"
+            strokeLinecap="round"
+            fill="none"
+          />
+          <path
+            d="M67 53 C68 59 70 65 72 71"
+            stroke={TEAR}
             strokeWidth="3.2"
             strokeLinecap="round"
             fill="none"
           />
           <path
-            d="M53 48 Q58 43 63 48"
-            stroke={EYE_WHITE}
+            d="M33 53 C32 59 30 65 28 71"
+            stroke={TEAR}
             strokeWidth="3.2"
             strokeLinecap="round"
             fill="none"
           />
           <path
-            d="M64 52 C65 58 67 63 69 68"
-            stroke={TEAR}
-            strokeWidth="3"
+            d="M41 60 Q50 64 59 60"
+            stroke={EYE}
+            strokeWidth="2.4"
             strokeLinecap="round"
             fill="none"
-          />
-          <path
-            d="M32 52 C31 58 29 63 27 68"
-            stroke={TEAR}
-            strokeWidth="3"
-            strokeLinecap="round"
-            fill="none"
-          />
-          <path
-            d="M40 58 Q48 62 56 58"
-            stroke={EYE_WHITE}
-            strokeWidth="2.2"
-            strokeLinecap="round"
-            fill="none"
-            opacity="0.85"
+            opacity="0.9"
           />
         </>
-      ) : happy || wave ? (
+      ) : chevronEyes ? (
         <>
           <path
-            d="M34 44 L40 48 L34 52"
-            stroke={EYE_WHITE}
-            strokeWidth="3.4"
+            d="M35 45 L42 49 L35 53"
+            stroke={EYE}
+            strokeWidth="3.6"
             strokeLinecap="round"
             strokeLinejoin="round"
             fill="none"
           />
           <path
-            d="M62 44 L56 48 L62 52"
-            stroke={EYE_WHITE}
-            strokeWidth="3.4"
+            d="M65 45 L58 49 L65 53"
+            stroke={EYE}
+            strokeWidth="3.6"
             strokeLinecap="round"
             strokeLinejoin="round"
             fill="none"
@@ -109,37 +107,34 @@ export function CoachDog({
         <>
           {wink ? (
             <path
-              d="M32 48 Q38 52 44 48"
-              stroke={EYE_WHITE}
-              strokeWidth="3.2"
+              d="M33 49 Q39 53 45 49"
+              stroke={EYE}
+              strokeWidth="3.4"
               strokeLinecap="round"
               fill="none"
             />
           ) : (
             <>
-              <circle cx="38" cy="46" r="12" fill={EYE_WHITE} />
-              <circle cx="38" cy="46" r="4.2" fill={INK} />
+              <circle cx="39" cy="47" r="13.5" fill={EYE} />
+              <circle cx="39" cy="47" r="4.5" fill={INK} />
             </>
           )}
-          <circle cx="58" cy="46" r="12" fill={EYE_WHITE} />
-          <circle cx="58" cy="46" r="4.2" fill={INK} />
+          <circle cx="61" cy="47" r="13.5" fill={EYE} />
+          <circle cx="61" cy="47" r="4.5" fill={INK} />
         </>
       )}
 
-      {/* red collar band */}
+      {/* thin red collar band */}
       <path
-        d="M22 68 C22 68 34 76 48 76 C62 76 74 68 74 68 L74 72 C74 72 62 80 48 80 C34 80 22 72 22 72 Z"
-        fill={COLLAR}
+        d="M23 70 Q50 78 77 70"
+        stroke={COLLAR}
+        strokeWidth="4.5"
+        strokeLinecap="round"
+        fill="none"
       />
 
-      {/* yellow bell */}
-      <circle cx="48" cy="77" r="5" fill={BELL} />
-      <path
-        d="M46 79 H50"
-        stroke="#B45309"
-        strokeWidth="1.4"
-        strokeLinecap="round"
-      />
+      {/* small yellow bell */}
+      <circle cx="50" cy="76" r="4.5" fill={BELL} />
     </svg>
   );
 }
