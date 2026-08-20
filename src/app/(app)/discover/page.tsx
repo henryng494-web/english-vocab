@@ -4,7 +4,7 @@ import {
   DiscoverCard,
   type DiscoverWordData,
 } from "@/components/discover/DiscoverCard";
-import { AppNav } from "@/components/layout/AppNav";
+import { MobileTopBar } from "@/components/layout/MobileTopBar";
 import { WORD_RANGES } from "@/data/word-ranges";
 import {
   DISCOVER_WORD_CACHE_VERSION,
@@ -348,31 +348,17 @@ export default function DiscoverPage() {
   );
 
   return (
-    <main className="min-h-screen bg-background">
-      <header className="border-b border-primary-100 bg-white/80 backdrop-blur-md">
-        <div className="mx-auto max-w-2xl px-4 py-4">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h1 className="text-xl font-bold text-foreground">Tra từ</h1>
-              <p className="text-sm text-foreground/60">
-                Duyệt và tra nghĩa theo dải tần suất
-              </p>
-            </div>
-            <AppNav active="lookup" />
-          </div>
-        </div>
-      </header>
-
-      <div className="mx-auto max-w-2xl px-4 py-6">
-        <div className="flex flex-wrap items-center gap-3">
-          <label className="text-sm font-medium text-foreground/70" htmlFor="range">
-            Dải từ:
-          </label>
+    <>
+      <MobileTopBar
+        title="Tra từ"
+        subtitle={`${rangeLabel} · ${queue.length} từ còn lại`}
+        trailing={
           <select
             id="range"
             value={rangeId}
             onChange={(e) => setRangeId(e.target.value)}
-            className="rounded-xl border border-primary-200 bg-white px-4 py-2.5 text-sm font-medium text-foreground shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+            aria-label="Chọn dải từ"
+            className="max-w-[9.5rem] rounded-xl border border-primary-200 bg-white px-3 py-2 text-xs font-semibold text-foreground shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
           >
             {WORD_RANGES.map((range) => (
               <option key={range.id} value={range.id}>
@@ -380,35 +366,40 @@ export default function DiscoverPage() {
               </option>
             ))}
           </select>
-          <span className="text-sm text-foreground/60">
-            {rangeLabel} · {queue.length} từ còn lại
-            {stats.hidden > 0 && ` · ${stats.hidden} đã biết`}
-          </span>
-        </div>
+        }
+      />
+
+      <div className="px-4 pt-3">
+        {stats.hidden > 0 && (
+          <p className="text-xs text-foreground/55">
+            {stats.hidden} từ đã đánh dấu &ldquo;Đã biết&rdquo;
+          </p>
+        )}
 
         {error && (
-          <p className="mt-4 rounded-xl border border-primary-200 bg-primary-50 px-4 py-3 text-sm text-primary-800">
+          <p className="mt-3 rounded-xl border border-primary-200 bg-primary-50 px-4 py-3 text-sm text-primary-800">
             {error}
           </p>
         )}
 
         {loadingList ? (
-          <div className="mt-12 flex justify-center">
+          <div className="mt-16 flex justify-center">
             <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary-100 border-t-primary" />
           </div>
         ) : queue.length === 0 ? (
-          <div className="mt-12 text-center">
+          <div className="mt-16 px-2 text-center">
             <p className="text-foreground/80">
-              Đã xem hết từ trong dải này hoặc bạn đã đánh dấu tất cả là &ldquo;Đã biết&rdquo;.
+              Đã xem hết từ trong dải này hoặc bạn đã đánh dấu tất cả là
+              &ldquo;Đã biết&rdquo;.
             </p>
             <p className="mt-2 text-sm text-foreground/60">
-              Hãy chọn dải từ khác hoặc sang trang Ôn tập.
+              Hãy chọn dải từ khác hoặc sang tab Ôn tập.
             </p>
           </div>
         ) : (
-          <div className="mt-8">
-            <p className="mb-4 text-center text-sm text-foreground/60">
-              Từ {currentIndex + 1} / {queue.length} trong dải
+          <div className="mt-4">
+            <p className="mb-3 text-center text-xs font-medium text-foreground/55">
+              Từ {currentIndex + 1} / {queue.length}
             </p>
 
             <DiscoverCard
@@ -416,45 +407,49 @@ export default function DiscoverPage() {
               data={currentWord ?? stubFromListItem(currentItem)}
               loading={loadingWord}
             />
-
-            <div className="mt-6 grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={() => updateStatus("new")}
-                className="rounded-xl bg-primary py-3.5 font-semibold text-white shadow-sm transition hover:bg-primary-hover"
-              >
-                Nên học
-              </button>
-              <button
-                type="button"
-                onClick={() => updateStatus("mastered")}
-                className="rounded-xl border-2 border-primary-200 bg-white py-3.5 font-semibold text-primary-800 transition hover:bg-primary-50"
-              >
-                Đã biết
-              </button>
-            </div>
-
-            <div className="mt-4 flex justify-center gap-3">
-              <button
-                type="button"
-                disabled={currentIndex === 0}
-                onClick={() => goToIndex(currentIndex - 1)}
-                className="rounded-lg border border-primary-200 bg-white px-4 py-2 text-sm text-foreground/80 disabled:opacity-40"
-              >
-                ← Trước
-              </button>
-              <button
-                type="button"
-                disabled={currentIndex >= queue.length - 1}
-                onClick={() => goToIndex(currentIndex + 1)}
-                className="rounded-lg border border-primary-200 bg-white px-4 py-2 text-sm text-foreground/80 disabled:opacity-40"
-              >
-                Sau →
-              </button>
-            </div>
           </div>
         )}
       </div>
-    </main>
+
+      {!loadingList && queue.length > 0 && (
+        <div className="mobile-action-dock">
+          <div className="grid grid-cols-2 gap-2.5">
+            <button
+              type="button"
+              onClick={() => updateStatus("new")}
+              className="rounded-xl bg-primary py-3.5 text-sm font-semibold text-white shadow-sm transition active:bg-primary-hover"
+            >
+              Nên học
+            </button>
+            <button
+              type="button"
+              onClick={() => updateStatus("mastered")}
+              className="rounded-xl border-2 border-primary-200 bg-white py-3.5 text-sm font-semibold text-primary-800 transition active:bg-primary-50"
+            >
+              Đã biết
+            </button>
+          </div>
+
+          <div className="mt-2.5 flex justify-center gap-2">
+            <button
+              type="button"
+              disabled={currentIndex === 0}
+              onClick={() => goToIndex(currentIndex - 1)}
+              className="flex-1 rounded-lg border border-primary-200 bg-white py-2.5 text-sm font-medium text-foreground/80 disabled:opacity-40"
+            >
+              ← Trước
+            </button>
+            <button
+              type="button"
+              disabled={currentIndex >= queue.length - 1}
+              onClick={() => goToIndex(currentIndex + 1)}
+              className="flex-1 rounded-lg border border-primary-200 bg-white py-2.5 text-sm font-medium text-foreground/80 disabled:opacity-40"
+            >
+              Sau →
+            </button>
+          </div>
+        </div>
+      )}
+    </>
   );
 }

@@ -89,7 +89,7 @@ export function DiscoverCard({ data, loading }: DiscoverCardProps) {
   const phonetic = displayPhonetic(data.word, data.phonetic);
 
   return (
-    <div className="mx-auto w-full max-w-md overflow-hidden rounded-2xl border-2 border-primary-200 bg-white shadow-lg">
+    <div className="w-full overflow-hidden rounded-2xl border-2 border-primary-200 bg-white shadow-lg">
       <CardImage
         word={data.word}
         imageUrl={data.image_url}

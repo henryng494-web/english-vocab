@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Nunito } from "next/font/google";
 import "./globals.css";
 
@@ -10,6 +10,22 @@ const nunito = Nunito({
 export const metadata: Metadata = {
   title: "English Vocab",
   description: "Ứng dụng học từ vựng tiếng Anh",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "English Vocab",
+  },
+  formatDetection: {
+    telephone: false,
+  },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  viewportFit: "cover",
+  themeColor: "#9caf88",
 };
 
 export default function RootLayout({
@@ -19,9 +35,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="vi">
-      <body className={`${nunito.className} antialiased`}>
-        {children}
-      </body>
+      <body className={`${nunito.className} antialiased`}>{children}</body>
     </html>
   );
 }
