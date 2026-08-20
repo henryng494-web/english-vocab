@@ -348,7 +348,7 @@ export default function DiscoverPage() {
   );
 
   return (
-    <>
+    <div className="app-screen">
       <MobileTopBar
         title="Vocab Journey"
         subtitle={`${rangeLabel} · ${queue.length} words left`}
@@ -452,6 +452,6 @@ export default function DiscoverPage() {
           </div>
         )}
       </div>
-    </>
+    </div>
   );
 }
