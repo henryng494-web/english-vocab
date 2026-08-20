@@ -7,120 +7,134 @@ type CoachDogProps = {
   title?: string;
 };
 
-/** Flat Figma-style black dog — white circle eyes, red collar, gold bell. */
+const INK = "#0A0A0A";
+const EYE = "#FFFFFF";
+const COLLAR = "#EF4444";
+const BELL = "#FBBF24";
+const TEAR = "#38BDF8";
+
+/**
+ * Flat head-only Coach Dog — Vocab Journey design board:
+ * black silhouette, oversized white eyes, floppy ears, thin red collar, yellow bell.
+ */
 export function CoachDog({
   pose = "neutral",
   size = 48,
   className = "",
   title = "Coach Dog",
 }: CoachDogProps) {
-  const wink = pose === "wink" || pose === "smirk";
   const sad = pose === "sad";
-  const happy = pose === "happy" || pose === "wave";
-  const wave = pose === "wave";
+  const chevronEyes = pose === "happy" || pose === "wave";
+  const wink = pose === "wink" || pose === "smirk";
 
   return (
     <svg
       width={size}
       height={size}
-      viewBox="0 0 64 64"
+      viewBox="0 0 100 100"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={className}
       role="img"
       aria-label={title}
     >
-      {/* floppy ears */}
-      <ellipse cx="17" cy="24" rx="7" ry="11" fill="#0a0a0a" />
-      <ellipse cx="47" cy="24" rx="7" ry="11" fill="#0a0a0a" />
-      {/* head */}
-      <circle cx="32" cy="34" r="21" fill="#0a0a0a" />
-      {/* left eye */}
-      {wink && !sad ? (
-        <path
-          d="M21 32 Q27 36 33 32"
-          stroke="#fff"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-          fill="none"
-        />
-      ) : sad ? (
-        <>
-          <path
-            d="M21 33 Q27 29 33 33"
-            stroke="#fff"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            fill="none"
-          />
-        </>
-      ) : (
-        <>
-          <circle cx="25" cy="32" r="7" fill="#fff" />
-          <circle cx="27" cy="30" r="2.2" fill="#0a0a0a" />
-        </>
-      )}
-      {/* right eye */}
+      {/* floppy ears — large, droopy, behind head */}
+      <ellipse cx="12" cy="44" rx="13" ry="20" fill={INK} />
+      <ellipse cx="88" cy="44" rx="13" ry="20" fill={INK} />
+
+      {/* round head */}
+      <circle cx="50" cy="47" r="31" fill={INK} />
+
       {sad ? (
         <>
           <path
-            d="M38 33 Q44 29 50 33"
-            stroke="#fff"
-            strokeWidth="2.5"
+            d="M34 49 Q39 44 44 49"
+            stroke={EYE}
+            strokeWidth="3.4"
             strokeLinecap="round"
             fill="none"
           />
           <path
-            d="M46 39 C47 43 49 45 51 47"
-            stroke="#60A5FA"
-            strokeWidth="2"
+            d="M56 49 Q61 44 66 49"
+            stroke={EYE}
+            strokeWidth="3.4"
             strokeLinecap="round"
             fill="none"
           />
+          <path
+            d="M67 53 C68 59 70 65 72 71"
+            stroke={TEAR}
+            strokeWidth="3.2"
+            strokeLinecap="round"
+            fill="none"
+          />
+          <path
+            d="M33 53 C32 59 30 65 28 71"
+            stroke={TEAR}
+            strokeWidth="3.2"
+            strokeLinecap="round"
+            fill="none"
+          />
+          <path
+            d="M41 60 Q50 64 59 60"
+            stroke={EYE}
+            strokeWidth="2.4"
+            strokeLinecap="round"
+            fill="none"
+            opacity="0.9"
+          />
         </>
-      ) : happy ? (
-        <path
-          d="M38 32 Q44 26 50 32"
-          stroke="#fff"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-          fill="none"
-        />
+      ) : chevronEyes ? (
+        <>
+          <path
+            d="M35 45 L42 49 L35 53"
+            stroke={EYE}
+            strokeWidth="3.6"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            fill="none"
+          />
+          <path
+            d="M65 45 L58 49 L65 53"
+            stroke={EYE}
+            strokeWidth="3.6"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            fill="none"
+          />
+        </>
       ) : (
         <>
-          <circle cx="39" cy="32" r="7" fill="#fff" />
-          <circle cx="41" cy="30" r="2.2" fill="#0a0a0a" />
+          {wink ? (
+            <path
+              d="M33 49 Q39 53 45 49"
+              stroke={EYE}
+              strokeWidth="3.4"
+              strokeLinecap="round"
+              fill="none"
+            />
+          ) : (
+            <>
+              <circle cx="39" cy="47" r="13.5" fill={EYE} />
+              <circle cx="39" cy="47" r="4.5" fill={INK} />
+            </>
+          )}
+          <circle cx="61" cy="47" r="13.5" fill={EYE} />
+          <circle cx="61" cy="47" r="4.5" fill={INK} />
         </>
       )}
-      {/* nose + mouth */}
-      <ellipse cx="32" cy="40" rx="3" ry="2.2" fill="#1f2937" />
-      {!sad && (
-        <path
-          d={pose === "smirk" ? "M27 44 Q32 47 40 42" : "M27 44 Q32 48 37 44"}
-          stroke="#fff"
-          strokeWidth="1.8"
-          strokeLinecap="round"
-          fill="none"
-        />
-      )}
-      {/* collar + bell */}
+
+      {/* thin red collar band */}
       <path
-        d="M18 48 Q32 54 46 48"
-        stroke="#EF4444"
-        strokeWidth="3"
+        d="M23 70 Q50 78 77 70"
+        stroke={COLLAR}
+        strokeWidth="4.5"
         strokeLinecap="round"
         fill="none"
       />
-      <circle cx="32" cy="51" r="3.5" fill="#FBBF24" />
-      {/* wave paw */}
-      {wave && (
-        <g transform="translate(46 38) rotate(-16)">
-          <ellipse cx="0" cy="0" rx="5" ry="4" fill="#0a0a0a" />
-          <circle cx="-2" cy="-3" r="1.2" fill="#0a0a0a" />
-          <circle cx="0" cy="-4" r="1.2" fill="#0a0a0a" />
-          <circle cx="2" cy="-3" r="1.2" fill="#0a0a0a" />
-        </g>
-      )}
+
+      {/* small yellow bell */}
+      <circle cx="50" cy="76" r="4.5" fill={BELL} />
     </svg>
   );
 }
