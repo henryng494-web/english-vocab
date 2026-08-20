@@ -1,45 +1,43 @@
 "use client";
 
-import { MobileTopBar } from "@/components/layout/MobileTopBar";
-import { MiuCat } from "@/components/mascot/MiuCat";
+import { AppHeader } from "@/components/layout/AppHeader";
 import { InstallAppHint } from "@/components/layout/InstallAppHint";
-import { ThemePicker } from "@/components/theme/ThemePicker";
+import { CoachDog } from "@/components/mascot/CoachDog";
 import { LAYOUT_VERSION } from "@/lib/layout-version";
 import Link from "next/link";
 
 export default function AccountPage() {
   return (
-    <div className="app-screen">
-      <MobileTopBar
+    <div className="app-screen app-screen--home">
+      <AppHeader
         title="Account"
-        subtitle="Appearance and sign-in"
-        leading={<MiuCat pose="happy" size={40} />}
+        leading={
+          <Link href="/discover" className="app-header__icon-btn" aria-label="Back home">
+            ←
+          </Link>
+        }
       />
 
       <div className="page-scroll">
         <div className="space-y-6 px-4 pb-6">
-          <section>
-            <h2 className="text-base font-bold uppercase tracking-wide text-foreground/70">
-              Color tone
-            </h2>
-            <p className="mt-1 text-xs text-foreground/60">
-              Pick a vibrant canvas theme for the whole app.
-            </p>
-            <div className="mt-3">
-              <ThemePicker />
+          <section className="home-card flex items-center gap-3">
+            <CoachDog pose="smirk" size={56} />
+            <div>
+              <h2 className="home-section-title font-display">Coach Dog</h2>
+              <p className="home-body-text">Your vocabulary learning buddy</p>
             </div>
           </section>
 
           <InstallAppHint />
 
-          <section className="rounded-2xl border border-primary-200 bg-surface p-4 shadow-sm">
-            <h2 className="text-base font-bold text-foreground">Sign in</h2>
-            <p className="mt-1 text-xs text-foreground/65">
+          <section className="home-card">
+            <h2 className="home-section-title font-display">Sign in</h2>
+            <p className="home-body-text mt-1">
               Save learning progress to Supabase when you are signed in.
             </p>
             <Link
               href="/auth/login"
-              className="mt-3 inline-flex rounded-xl bg-primary px-4 py-3 text-base font-semibold text-white shadow-sm transition active:bg-primary-hover"
+              className="btn-pill-primary mt-3 inline-flex px-5 py-3"
             >
               Go to sign in
             </Link>

@@ -4,8 +4,12 @@ import {
   DiscoverCard,
   type DiscoverWordData,
 } from "@/components/discover/DiscoverCard";
-import { MobileTopBar } from "@/components/layout/MobileTopBar";
-import { MiuCat } from "@/components/mascot/MiuCat";
+import {
+  CoinBadge,
+  DiscoverDashboard,
+} from "@/components/discover/DiscoverDashboard";
+import { AppHeader } from "@/components/layout/AppHeader";
+import { CoachDog } from "@/components/mascot/CoachDog";
 import { WORD_RANGES } from "@/data/word-ranges";
 import {
   DISCOVER_WORD_CACHE_VERSION,
@@ -18,10 +22,17 @@ import {
   stubFromListItem,
 } from "@/lib/discover-word-cache";
 import {
+  countWordsLearned,
+  getDailyGoalTarget,
+  getTodayWordsLearned,
+  incrementTodayWordsLearned,
+} from "@/lib/daily-goal";
+import {
   getLocallyMasteredWords,
   writeLocalLearning,
 } from "@/lib/learning-storage";
-import { useCallback, useEffect, useRef, useState } from "react";
+import Link from "next/link";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 type DiscoverListPreview = {
   phonetic?: string | null;
@@ -81,6 +92,7 @@ function mapApiWord(
 }
 
 export default function DiscoverPage() {
+  const [inSession, setInSession] = useState(false);
   const [rangeId, setRangeId] = useState("1-100");
   const [queue, setQueue] = useState<DiscoverListItem[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -89,6 +101,19 @@ export default function DiscoverPage() {
   const [loadingWord, setLoadingWord] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [stats, setStats] = useState({ total: 0, hidden: 0 });
+  const [wordsLearned, setWordsLearned] = useState(0);
+  const [todayLearned, setTodayLearned] = useState(0);
+
+  const todayGoal = getDailyGoalTarget();
+  const rangeLabel = useMemo(
+    () => WORD_RANGES.find((r) => r.id === rangeId)?.label ?? rangeId,
+    [rangeId],
+  );
+
+  useEffect(() => {
+    setWordsLearned(countWordsLearned());
+    setTodayLearned(getTodayWordsLearned());
+  }, [queue.length, currentIndex]);
 
   const wordCache = useRef<Map<string, DiscoverWordData>>(
     loadPersistedWordCache(),
@@ -304,6 +329,10 @@ export default function DiscoverPage() {
 
     const word = currentItem.word;
     setError(null);
+    if (status === "new") {
+      setTodayLearned(incrementTodayWordsLearned());
+      setWordsLearned(countWordsLearned());
+    }
     advanceAfterAction(word);
 
     void (async () => {
@@ -337,23 +366,61 @@ export default function DiscoverPage() {
             status === "mastered" ? "mastered" : "new",
           );
         }
+        setWordsLearned(countWordsLearned());
       } catch (err) {
         setError(err instanceof Error ? err.message : "Update failed");
       }
     })();
   }
 
+  if (!inSession) {
+    return (
+      <div className="app-screen app-screen--home">
+        <AppHeader
+          title="Vocab Journey"
+          leading={
+            <Link href="/account" className="app-header__icon-btn" aria-label="Menu">
+              ☰
+            </Link>
+          }
+          trailing={<CoinBadge value={wordsLearned} />}
+        />
+
+        {loadingList ? (
+          <div className="flex flex-1 items-center justify-center">
+            <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary-100 border-t-primary" />
+          </div>
+        ) : (
+          <DiscoverDashboard
+            rangeId={rangeId}
+            rangeLabel={rangeLabel}
+            queueLength={queue.length}
+            currentIndex={currentIndex}
+            wordsLearned={wordsLearned}
+            streakDays={todayLearned > 0 ? 1 : 0}
+            todayLearned={todayLearned}
+            todayGoal={todayGoal}
+            onStartLearning={() => setInSession(true)}
+            onRangeChange={setRangeId}
+          />
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className="app-screen app-screen--journey">
-      <MobileTopBar
+      <AppHeader
         title="Vocab Journey"
-        leading={<MiuCat pose="wave" size={44} />}
-        subtitle={
-          stats.hidden > 0
-            ? `${stats.hidden} words marked “Already know”`
-            : queue.length > 0 && !loadingList
-              ? `Word ${currentIndex + 1} of ${queue.length} in this rank`
-              : undefined
+        leading={
+          <button
+            type="button"
+            className="app-header__icon-btn"
+            aria-label="Back to home"
+            onClick={() => setInSession(false)}
+          >
+            ←
+          </button>
         }
         trailing={
           <select
@@ -373,6 +440,12 @@ export default function DiscoverPage() {
       />
 
       <div className="journey-panel px-4">
+        {stats.hidden > 0 && (
+          <p className="home-body-text pb-1 text-center">
+            {stats.hidden} words marked &ldquo;Already know&rdquo;
+          </p>
+        )}
+
         {error && (
           <p className="rounded-xl border border-primary-200 bg-primary-50 px-4 py-3 text-sm text-primary-800">
             {error}
@@ -385,15 +458,19 @@ export default function DiscoverPage() {
           </div>
         ) : queue.length === 0 ? (
           <div className="flex flex-1 flex-col items-center justify-center px-2 text-center">
-            <MiuCat pose="sad" size={72} className="mb-3" />
+            <CoachDog pose="sad" size={72} className="mb-3" />
             <div className="w-full">
               <p className="text-foreground/80">
                 You&apos;ve finished this range or marked every word as
                 &ldquo;Already know&rdquo;.
               </p>
-              <p className="mt-2 text-sm text-foreground/60">
-                Choose another range or switch to the Review tab.
-              </p>
+              <button
+                type="button"
+                onClick={() => setInSession(false)}
+                className="btn-pill-primary mt-4 px-6 py-3"
+              >
+                Back to Home
+              </button>
             </div>
           </div>
         ) : (
