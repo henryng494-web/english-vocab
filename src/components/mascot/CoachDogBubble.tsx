@@ -14,7 +14,7 @@ export function CoachDogBubble({
 }: CoachDogBubbleProps) {
   return (
     <div className={`coach-dog-bubble ${className}`.trim()}>
-      <CoachDog pose={pose} size={40} className="coach-dog-bubble__avatar shrink-0" />
+      <CoachDog pose={pose} size={36} className="coach-dog-bubble__avatar shrink-0" />
       <p className="coach-dog-bubble__text">{message}</p>
     </div>
   );

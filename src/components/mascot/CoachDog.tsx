@@ -1,5 +1,3 @@
-import Image from "next/image";
-
 export type CoachDogPose =
   | "neutral"
   | "peek"
@@ -16,25 +14,15 @@ type CoachDogProps = {
   title?: string;
 };
 
-/** PNG assets extracted from the Vocab Journey design board reference. */
-const POSE_ASSETS: Record<
-  "neutral" | "happy" | "sad",
-  { src: string; width: number; height: number }
-> = {
-  neutral: { src: "/mascot/coach-dog-neutral.png", width: 275, height: 280 },
-  happy: { src: "/mascot/coach-dog-happy.png", width: 48, height: 48 },
-  sad: { src: "/mascot/coach-dog-sad.png", width: 185, height: 300 },
-};
-
-function assetForPose(pose: CoachDogPose): (typeof POSE_ASSETS)["neutral"] {
-  if (pose === "sad") return POSE_ASSETS.sad;
-  if (pose === "happy" || pose === "wave" || pose === "smirk") return POSE_ASSETS.happy;
-  return POSE_ASSETS.neutral;
-}
+const INK = "#0A0A0A";
+const EYE = "#FFFFFF";
+const COLLAR = "#EF4444";
+const BELL = "#FBBF24";
+const TEAR = "#38BDF8";
 
 /**
- * Coach Dog — 100% design-board artwork (reference PNGs, not hand-drawn SVG).
- * Head-only black silhouette, white eyes, red collar, gold bell.
+ * Design-board Coach Dog — flat black head, huge white eyes, red collar, gold bell.
+ * SVG scales cleanly at every size (tab bar, bubble, welcome card).
  */
 export function CoachDog({
   pose = "neutral",
@@ -42,18 +30,89 @@ export function CoachDog({
   className = "",
   title = "Coach Dog",
 }: CoachDogProps) {
-  const asset = assetForPose(pose);
+  const sad = pose === "sad";
+  const chevrons = pose === "happy" || pose === "wave" || pose === "smirk";
+  const wink = pose === "wink";
 
   return (
-    <Image
-      src={asset.src}
-      alt={title}
-      width={asset.width}
-      height={asset.height}
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 88 96"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
       className={className}
-      style={{ width: size, height: "auto" }}
-      priority={size >= 80}
-      unoptimized
-    />
+      role="img"
+      aria-label={title}
+      shapeRendering="geometricPrecision"
+    >
+      <ellipse cx="14" cy="40" rx="11" ry="17" fill={INK} />
+      <ellipse cx="74" cy="40" rx="11" ry="17" fill={INK} />
+      <circle cx="44" cy="46" r="28" fill={INK} />
+
+      {sad ? (
+        <>
+          <circle cx="34" cy="44" r="11" fill={EYE} />
+          <circle cx="34" cy="45" r="3.8" fill={INK} />
+          <circle cx="54" cy="44" r="11" fill={EYE} />
+          <circle cx="54" cy="45" r="3.8" fill={INK} />
+          <path
+            d="M58 49 C59 55 61 61 63 67"
+            stroke={TEAR}
+            strokeWidth="3"
+            strokeLinecap="round"
+          />
+          <path
+            d="M30 49 C29 55 27 61 25 67"
+            stroke={TEAR}
+            strokeWidth="3"
+            strokeLinecap="round"
+          />
+        </>
+      ) : chevrons ? (
+        <>
+          <path
+            d="M29 42 L35 46 L29 50"
+            stroke={EYE}
+            strokeWidth="3.2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M59 42 L53 46 L59 50"
+            stroke={EYE}
+            strokeWidth="3.2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </>
+      ) : (
+        <>
+          {wink ? (
+            <path
+              d="M27 46 Q33 50 39 46"
+              stroke={EYE}
+              strokeWidth="3"
+              strokeLinecap="round"
+            />
+          ) : (
+            <>
+              <circle cx="34" cy="44" r="11" fill={EYE} />
+              <circle cx="34" cy="44" r="3.8" fill={INK} />
+            </>
+          )}
+          <circle cx="54" cy="44" r="11" fill={EYE} />
+          <circle cx="54" cy="44" r="3.8" fill={INK} />
+        </>
+      )}
+
+      <path
+        d="M20 68 Q44 76 68 68"
+        stroke={COLLAR}
+        strokeWidth="4"
+        strokeLinecap="round"
+      />
+      <circle cx="44" cy="74" r="4.5" fill={BELL} />
+    </svg>
   );
 }
