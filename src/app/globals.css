@@ -18,7 +18,6 @@
   --accent: #22c55e;
   --accent-hover: #16a34a;
   --tab-bar-height: 3.875rem;
-  --action-dock-height: 10rem;
   --browser-chrome-bottom: 0px;
 }
 
@@ -93,33 +92,55 @@ body {
 
 .app-shell {
   position: relative;
+  display: flex;
+  flex-direction: column;
   min-height: 100dvh;
   min-height: 100svh;
 }
 
 .app-shell .shell-content {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
   padding-bottom: calc(
     var(--tab-bar-height) + env(safe-area-inset-bottom, 0px) +
       var(--browser-chrome-bottom)
   );
 }
 
+.page-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.page-with-dock {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.page-with-dock__scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 .mobile-action-dock {
-  position: fixed;
-  left: 50%;
-  z-index: 40;
+  flex-shrink: 0;
   width: 100%;
-  max-width: 32rem;
-  transform: translateX(-50%);
   border-top: 1px solid color-mix(in srgb, var(--primary) 20%, transparent);
-  background: color-mix(in srgb, var(--surface) 92%, transparent);
-  padding: 0.75rem 1rem
-    calc(0.75rem + env(safe-area-inset-bottom, 0px) + var(--browser-chrome-bottom));
+  background: color-mix(in srgb, var(--surface) 96%, transparent);
+  padding: 0.75rem 1rem;
   backdrop-filter: blur(12px);
-  bottom: calc(
-    var(--tab-bar-height) + env(safe-area-inset-bottom, 0px) +
-      var(--browser-chrome-bottom)
-  );
 }
 
 .mobile-segment {
@@ -149,17 +170,8 @@ body {
   color: color-mix(in srgb, var(--foreground) 55%, transparent);
 }
 
-.has-action-dock .shell-content {
-  padding-bottom: calc(
-    var(--tab-bar-height) + var(--action-dock-height) +
-      env(safe-area-inset-bottom, 0px) + var(--browser-chrome-bottom)
-  );
-}
-
 .mobile-top-bar {
-  position: sticky;
-  top: 0;
-  z-index: 40;
+  flex-shrink: 0;
   padding-top: env(safe-area-inset-top, 0px);
   background: linear-gradient(
     135deg,
