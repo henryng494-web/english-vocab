@@ -301,5 +301,7 @@ export const PRIMARY_SENSES: Record<string, PrimarySense> = {
 };
 
 export function getPrimarySense(word: string): PrimarySense | undefined {
-  return PRIMARY_SENSES[word.trim().toLowerCase()];
+  const normalized = word.trim().toLowerCase();
+  if (!Object.hasOwn(PRIMARY_SENSES, normalized)) return undefined;
+  return PRIMARY_SENSES[normalized];
 }
