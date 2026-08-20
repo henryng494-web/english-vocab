@@ -1,6 +1,7 @@
 "use client";
 
 import { MobileTopBar } from "@/components/layout/MobileTopBar";
+import { InstallAppHint } from "@/components/layout/InstallAppHint";
 import { ThemePicker } from "@/components/theme/ThemePicker";
 import Link from "next/link";
 
@@ -24,6 +25,8 @@ export default function AccountPage() {
             <ThemePicker />
           </div>
         </section>
+
+        <InstallAppHint />
 
         <section className="rounded-2xl border border-primary-200 bg-surface p-4 shadow-sm">
           <h2 className="text-base font-bold text-foreground">Sign in</h2>

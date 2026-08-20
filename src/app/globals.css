@@ -19,6 +19,13 @@
   --accent-hover: #16a34a;
   --tab-bar-height: 3.875rem;
   --action-dock-height: 10rem;
+  --browser-chrome-bottom: 0px;
+}
+
+@media not (display-mode: standalone) {
+  :root {
+    --browser-chrome-bottom: 3rem;
+  }
 }
 
 @theme inline {
@@ -62,6 +69,9 @@
 html {
   -webkit-tap-highlight-color: transparent;
   text-size-adjust: 100%;
+  background: var(--background);
+  min-height: 100%;
+  min-height: 100dvh;
 }
 
 body {
@@ -69,15 +79,28 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans);
   overscroll-behavior-y: none;
+  min-height: 100%;
+  min-height: 100dvh;
+  margin: 0;
+}
+
+.app-page {
+  min-height: 100dvh;
+  min-height: 100svh;
+  width: 100%;
+  background: var(--background);
 }
 
 .app-shell {
   position: relative;
+  min-height: 100dvh;
+  min-height: 100svh;
 }
 
 .app-shell .shell-content {
   padding-bottom: calc(
-    var(--tab-bar-height) + env(safe-area-inset-bottom, 0px)
+    var(--tab-bar-height) + env(safe-area-inset-bottom, 0px) +
+      var(--browser-chrome-bottom)
   );
 }
 
@@ -90,9 +113,13 @@ body {
   transform: translateX(-50%);
   border-top: 1px solid color-mix(in srgb, var(--primary) 20%, transparent);
   background: color-mix(in srgb, var(--surface) 92%, transparent);
-  padding: 0.75rem 1rem calc(0.75rem + env(safe-area-inset-bottom, 0px));
+  padding: 0.75rem 1rem
+    calc(0.75rem + env(safe-area-inset-bottom, 0px) + var(--browser-chrome-bottom));
   backdrop-filter: blur(12px);
-  bottom: calc(var(--tab-bar-height) + env(safe-area-inset-bottom, 0px));
+  bottom: calc(
+    var(--tab-bar-height) + env(safe-area-inset-bottom, 0px) +
+      var(--browser-chrome-bottom)
+  );
 }
 
 .mobile-segment {
@@ -125,7 +152,7 @@ body {
 .has-action-dock .shell-content {
   padding-bottom: calc(
     var(--tab-bar-height) + var(--action-dock-height) +
-      env(safe-area-inset-bottom, 0px)
+      env(safe-area-inset-bottom, 0px) + var(--browser-chrome-bottom)
   );
 }
 
