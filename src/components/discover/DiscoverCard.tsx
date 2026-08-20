@@ -61,8 +61,8 @@ function CardImage({
 
   return (
     <div
-      className={`relative w-full shrink-0 bg-gradient-to-br from-primary-100 via-primary to-primary-hover ${
-        compact ? "h-[clamp(5.5rem,18vh,8.5rem)]" : "h-44"
+      className={`relative w-full bg-gradient-to-br from-primary-100 via-primary to-primary-hover ${
+        compact ? "h-full min-h-0" : "h-44 shrink-0"
       }`}
     >
       <Image
@@ -99,7 +99,7 @@ export function DiscoverCard({ data, loading, compact = false }: DiscoverCardPro
   return (
     <div
       className={`w-full overflow-hidden rounded-2xl border-2 border-primary-200 bg-surface shadow-lg${
-        compact ? " flex h-full min-h-0 flex-col" : ""
+        compact ? " grid h-full min-h-0 grid-rows-2" : ""
       }`}
     >
       <CardImage
@@ -113,7 +113,7 @@ export function DiscoverCard({ data, loading, compact = false }: DiscoverCardPro
       <div
         className={
           compact
-            ? "flex min-h-0 flex-1 flex-col overflow-hidden space-y-2 p-4"
+            ? "flex min-h-0 flex-1 flex-col justify-center overflow-hidden space-y-2 p-4"
             : "space-y-4 p-6"
         }
       >
