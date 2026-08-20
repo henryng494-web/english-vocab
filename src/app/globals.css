@@ -121,7 +121,7 @@ body {
   gap: 0.5rem;
   min-height: 0;
   overflow: hidden;
-  padding-top: 0.5rem;
+  padding-top: 0.75rem;
   padding-bottom: 0.25rem;
   touch-action: pan-x;
 }
