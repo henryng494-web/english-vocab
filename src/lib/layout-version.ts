@@ -1,2 +1,2 @@
 /** Bump when mobile shell / viewport layout changes (visible on Account page). */
-export const LAYOUT_VERSION = "2026-08-20-v14-coach-cat";
+export const LAYOUT_VERSION = "2026-08-20-v15-coach-dog";

@@ -2,14 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { MiuCat } from "@/components/mascot/MiuCat";
+import { CoachDog } from "@/components/mascot/CoachDog";
 
 type TabItem = {
   href: string;
   label: string;
   match: (path: string) => boolean;
   icon: (active: boolean) => React.ReactNode;
-  showMiu?: boolean;
+  showDog?: boolean;
 };
 
 function DiscoverIcon({ active }: { active: boolean }) {
@@ -22,8 +22,7 @@ function DiscoverIcon({ active }: { active: boolean }) {
       stroke="currentColor"
       strokeWidth="1.8"
     >
-      <circle cx="11" cy="11" r="7" />
-      <path d="M20 20l-3.5-3.5" strokeLinecap="round" />
+      <path d="M3 10.5L12 4l9 6.5V20a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1v-9.5z" strokeLinejoin="round" />
     </svg>
   );
 }
@@ -63,10 +62,10 @@ function AccountIcon({ active }: { active: boolean }) {
 const TABS: TabItem[] = [
   {
     href: "/discover",
-    label: "Vocab Journey",
+    label: "Home",
     match: (path) => path.startsWith("/discover"),
     icon: (active) => <DiscoverIcon active={active} />,
-    showMiu: true,
+    showDog: true,
   },
   {
     href: "/learn",
@@ -87,7 +86,7 @@ export function BottomTabBar() {
 
   return (
     <nav
-      className="bottom-tab-bar border-t border-primary-200/60 backdrop-blur-lg"
+      className="bottom-tab-bar border-t border-primary-100"
       style={{
         paddingBottom: "max(env(safe-area-inset-bottom, 0px), 0.5rem)",
       }}
@@ -105,8 +104,8 @@ export function BottomTabBar() {
               }`}
             >
               <span className="tab-bar-link__pill">
-                {tab.showMiu && active ? (
-                  <MiuCat pose="happy" size={26} />
+                {tab.showDog && active ? (
+                  <CoachDog pose="happy" size={26} />
                 ) : (
                   tab.icon(active)
                 )}

@@ -1,8 +1,8 @@
 "use client";
 
 import { Flashcard } from "@/components/flashcard/Flashcard";
-import { MobileTopBar } from "@/components/layout/MobileTopBar";
-import { MiuCat } from "@/components/mascot/MiuCat";
+import { AppHeader } from "@/components/layout/AppHeader";
+import { CoachDog } from "@/components/mascot/CoachDog";
 import { capitalizeFirst } from "@/lib/format-text";
 import {
   mergeLocalLearning,
@@ -245,10 +245,9 @@ export default function LearnPage() {
 
   return (
     <div className="app-screen">
-      <MobileTopBar
+      <AppHeader
         title="Review"
-        subtitle={`${words.length} words · ${studyQueue.length} to study`}
-        leading={<MiuCat pose="wink" size={40} />}
+        leading={<CoachDog pose="wink" size={32} />}
       />
 
       <div className="page-scroll px-4">
