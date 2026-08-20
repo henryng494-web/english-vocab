@@ -121,20 +121,9 @@ body {
   gap: 0.5rem;
   min-height: 0;
   overflow: hidden;
-  padding-top: 0.5rem;
+  padding-top: 0.75rem;
   padding-bottom: 0.25rem;
   touch-action: pan-x;
-}
-
-.discover-card-progress {
-  margin: 0;
-  padding: 0.625rem 1rem 0.5rem;
-  text-align: center;
-  font-size: 0.875rem;
-  font-weight: 600;
-  line-height: 1.25rem;
-  color: color-mix(in srgb, var(--foreground) 60%, transparent);
-  background: var(--card);
 }
 
 .journey-card-slot {

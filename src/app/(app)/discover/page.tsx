@@ -20,7 +20,7 @@ import {
   getLocallyMasteredWords,
   writeLocalLearning,
 } from "@/lib/learning-storage";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 type DiscoverListPreview = {
   phonetic?: string | null;
@@ -342,16 +342,15 @@ export default function DiscoverPage() {
     })();
   }
 
-  const rangeLabel = useMemo(
-    () => WORD_RANGES.find((r) => r.id === rangeId)?.label ?? rangeId,
-    [rangeId],
-  );
-
   return (
     <div className="app-screen app-screen--journey">
       <MobileTopBar
         title="Vocab Journey"
-        subtitle={`${rangeLabel} · ${queue.length} words left`}
+        subtitle={
+          !loadingList && queue.length > 0
+            ? `Word ${currentIndex + 1} / ${queue.length}`
+            : undefined
+        }
         trailing={
           <select
             id="range"
@@ -406,7 +405,6 @@ export default function DiscoverPage() {
                 data={currentWord ?? stubFromListItem(currentItem)}
                 loading={loadingWord}
                 compact
-                progressLabel={`Word ${currentIndex + 1} / ${queue.length}`}
               />
             </div>
 
