@@ -16,7 +16,6 @@ import {
   purgeLegacyDiscoverWordCaches,
   stubFromListItem,
 } from "@/lib/discover-word-cache";
-import { resolveWordImageUrl } from "@/lib/unsplash";
 import {
   getLocallyMasteredWords,
   writeLocalLearning,
@@ -74,12 +73,7 @@ function mapApiWord(
     vietnamese_meaning: apiWord.vietnamese_meaning as string | null | undefined,
     english_definition: apiWord.english_definition as string | null | undefined,
     examples: apiWord.examples as string | null | undefined,
-    image_url: resolveWordImageUrl(
-      item.word,
-      apiWord.image_url as string | null | undefined,
-      apiWord.search_keyword as string | null | undefined,
-      apiWord.word_type as string | null | undefined,
-    ),
+    image_url: (apiWord.image_url as string | null | undefined) ?? null,
     collocations: apiWord.collocations as string | null | undefined,
     search_keyword: (apiWord.search_keyword as string | null | undefined) ?? item.word,
   };
