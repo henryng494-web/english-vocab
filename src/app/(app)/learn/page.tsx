@@ -2,6 +2,7 @@
 
 import { Flashcard } from "@/components/flashcard/Flashcard";
 import { MobileTopBar } from "@/components/layout/MobileTopBar";
+import { MiuCat } from "@/components/mascot/MiuCat";
 import { capitalizeFirst } from "@/lib/format-text";
 import {
   mergeLocalLearning,
@@ -247,6 +248,7 @@ export default function LearnPage() {
       <MobileTopBar
         title="Review"
         subtitle={`${words.length} words · ${studyQueue.length} to study`}
+        leading={<MiuCat pose="wink" size={40} />}
       />
 
       <div className="page-scroll px-4">
