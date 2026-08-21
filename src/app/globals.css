@@ -1123,7 +1123,7 @@ body {
   flex-shrink: 0;
   align-items: center;
   gap: 0.65rem;
-  padding: 0.55rem 1rem 0.6rem;
+  padding: 0.65rem 1rem 0.7rem;
   border-top: 1px solid color-mix(in srgb, var(--primary) 18%, transparent);
   background: var(--background);
 }
@@ -1171,11 +1171,11 @@ body {
 .review-schedule__confirm {
   min-width: 0;
   flex: 1;
-  padding: 0.65rem 0.75rem;
+  padding: 0.72rem 0.85rem;
   border: none;
   background: transparent;
   font-family: var(--font-sans);
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 700;
   line-height: 1.2;
   color: #ffffff;
@@ -1184,12 +1184,12 @@ body {
 
 .review-schedule__chevron {
   flex-shrink: 0;
-  width: 2.15rem;
+  width: 2.35rem;
   border: none;
   border-left: 1px solid rgba(255, 255, 255, 0.35);
   background: transparent;
   font-family: inherit;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   line-height: 1;
   color: #ffffff;
 }
