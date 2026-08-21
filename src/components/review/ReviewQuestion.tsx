@@ -1,0 +1,81 @@
+"use client";
+
+import { ReviewWordImage } from "@/components/review/ReviewWordImage";
+import type { ReviewChoice } from "@/lib/review-quiz";
+
+type ReviewQuestionProps = {
+  word: string;
+  imageUrl?: string | null;
+  wordType?: string | null;
+  clue: string;
+  choices: ReviewChoice[];
+  selectedKey: string | null;
+  unsure: boolean;
+  correctWord: string;
+  locked: boolean;
+  onChoose: (choice: ReviewChoice) => void;
+  onUnsure: () => void;
+};
+
+export function ReviewQuestion({
+  word,
+  imageUrl,
+  wordType,
+  clue,
+  choices,
+  selectedKey,
+  unsure,
+  correctWord,
+  locked,
+  onChoose,
+  onUnsure,
+}: ReviewQuestionProps) {
+  const correct = correctWord.trim().toLowerCase();
+
+  return (
+    <div className="review-quiz">
+      <ReviewWordImage
+        word={word}
+        imageUrl={imageUrl}
+        wordType={wordType}
+        className="review-quiz__image"
+      />
+
+      <p className="review-quiz__clue">{clue}</p>
+
+      <div className="review-quiz__grid">
+        {choices.map((choice) => {
+          const isCorrect = choice.word.trim().toLowerCase() === correct;
+          const isSelected = selectedKey === choice.key;
+          let state = "";
+          if (locked) {
+            if (isCorrect) state = " is-correct";
+            else if (isSelected) state = " is-wrong";
+            else state = " is-dim";
+          }
+          return (
+            <button
+              key={choice.key}
+              type="button"
+              className={`review-quiz__choice${state}`}
+              disabled={locked}
+              onClick={() => onChoose(choice)}
+            >
+              <span className="review-quiz__letter">{choice.letter}</span>
+              <span className="review-quiz__word">{choice.word}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      <button
+        type="button"
+        className={`review-quiz__unsure${unsure ? " is-active" : ""}`}
+        disabled={locked}
+        onClick={onUnsure}
+      >
+        Not Sure?
+      </button>
+    </div>
+  );
+}
