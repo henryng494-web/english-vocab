@@ -35,54 +35,56 @@ export function ReviewSenseQuestion({
         <h2 className={`review-sense__word ${displayFontClass}`}>
           {capitalizeFirst(word)}
         </h2>
-        <SpeakButton text={word} variant="dark" iconOnly />
+        <SpeakButton text={word} variant="dark" iconOnly className="text-white" />
       </div>
 
-      <div className="review-sense__list">
-        {choices.map((choice) => {
-          const isCorrect = choice.word.trim().toLowerCase() === correct;
-          const isSelected = selectedKey === choice.key;
-          let state = "";
-          if (locked) {
-            if (isCorrect) state = " is-correct";
-            else if (isSelected) state = " is-wrong";
-            else state = " is-dim";
-          }
-          return (
-            <button
-              key={choice.key}
-              type="button"
-              className={`review-sense__choice${state}`}
-              disabled={locked}
-              onClick={() => onChoose(choice)}
-            >
-              <span className="review-sense__thumb">
-                <ReviewWordImage
-                  word={choice.word}
-                  imageUrl={choice.imageUrl}
-                  wordType={choice.wordType}
-                  className="review-sense__photo"
-                />
-              </span>
-              <span className={`review-sense__letter ${displayFontClass}`}>
-                {choice.letter}
-              </span>
-              <span className={`review-sense__meaning ${displayFontClass}`}>
-                {choice.meaning}
-              </span>
-            </button>
-          );
-        })}
-      </div>
+      <div className="review-sense__bottom">
+        <div className="review-sense__list">
+          {choices.map((choice) => {
+            const isCorrect = choice.word.trim().toLowerCase() === correct;
+            const isSelected = selectedKey === choice.key;
+            let state = "";
+            if (locked) {
+              if (isCorrect) state = " is-correct";
+              else if (isSelected) state = " is-wrong";
+              else state = " is-dim";
+            }
+            return (
+              <button
+                key={choice.key}
+                type="button"
+                className={`review-sense__choice${state}`}
+                disabled={locked}
+                onClick={() => onChoose(choice)}
+              >
+                <span className="review-sense__thumb">
+                  <ReviewWordImage
+                    word={choice.word}
+                    imageUrl={choice.imageUrl}
+                    wordType={choice.wordType}
+                    className="review-sense__photo"
+                  />
+                </span>
+                <span className={`review-sense__letter ${displayFontClass}`}>
+                  {choice.letter}
+                </span>
+                <span className={`review-sense__meaning ${displayFontClass}`}>
+                  {choice.meaning}
+                </span>
+              </button>
+            );
+          })}
+        </div>
 
-      <button
-        type="button"
-        className={`review-quiz__unsure${unsure ? " is-active" : ""} ${displayFontClass}`}
-        disabled={locked}
-        onClick={onUnsure}
-      >
-        Not Sure?
-      </button>
+        <button
+          type="button"
+          className={`review-quiz__unsure${unsure ? " is-active" : ""} ${displayFontClass}`}
+          disabled={locked}
+          onClick={onUnsure}
+        >
+          Not Sure?
+        </button>
+      </div>
     </div>
   );
 }

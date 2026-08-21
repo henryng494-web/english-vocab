@@ -7,6 +7,7 @@ type SpeakButtonProps = {
   variant?: "dark" | "light";
   /** Icon-only round button (no "Phát âm" label). */
   iconOnly?: boolean;
+  className?: string;
 };
 
 function SpeakerIcon({ className }: { className?: string }) {
@@ -37,6 +38,7 @@ export function SpeakButton({
   text,
   variant = "dark",
   iconOnly = false,
+  className = "",
 }: SpeakButtonProps) {
   const [speaking, setSpeaking] = useState(false);
 
@@ -67,7 +69,7 @@ export function SpeakButton({
     };
   }, []);
 
-  const className = iconOnly
+  const toneClass = iconOnly
     ? variant === "light"
       ? "inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-primary-200 bg-primary-50 text-primary-800 transition hover:bg-primary hover:text-foreground disabled:opacity-60"
       : "inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/40 bg-primary text-foreground shadow-sm transition hover:bg-primary-hover disabled:opacity-60"
@@ -80,7 +82,7 @@ export function SpeakButton({
       type="button"
       onClick={speak}
       disabled={speaking}
-      className={className}
+      className={`${toneClass} ${className}`.trim()}
       aria-label={speaking ? "Speaking" : "Pronounce"}
     >
       <SpeakerIcon className={iconOnly ? "h-4 w-4" : "h-5 w-5"} />
