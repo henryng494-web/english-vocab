@@ -110,7 +110,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 rounded-lg bg-primary px-4 py-2 font-medium text-white hover:bg-primary-hover disabled:opacity-50"
+              className="flex-1 rounded-lg bg-primary px-4 py-2 font-medium text-foreground hover:bg-primary-hover disabled:opacity-50"
             >
               {loading ? "Processing..." : "Sign in"}
             </button>

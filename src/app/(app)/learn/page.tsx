@@ -262,7 +262,7 @@ export default function LearnPage() {
           <button
             type="submit"
             disabled={adding || !newWord.trim()}
-            className="rounded-xl bg-primary px-4 py-3 text-base font-semibold text-white shadow-sm transition active:bg-primary-hover disabled:opacity-50"
+            className="rounded-xl bg-primary px-4 py-3 text-base font-semibold text-foreground shadow-sm transition active:bg-primary-hover disabled:opacity-50"
           >
             {adding ? "..." : "Add"}
           </button>
