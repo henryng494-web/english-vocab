@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import type { CSSProperties } from "react";
 import { ThemeRoot } from "@/components/theme/ThemeRoot";
-import { fredoka, inter } from "@/lib/fonts";
+import { inter, nunito } from "@/lib/fonts";
 import { viewportBootstrapScript } from "@/lib/viewport-bootstrap-script";
 import "./globals.css";
 
@@ -41,11 +41,11 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${inter.variable} ${fredoka.variable}`}
+      className={`${inter.variable} ${nunito.variable}`}
       style={
         {
           "--font-inter": inter.style.fontFamily,
-          "--font-fredoka": fredoka.style.fontFamily,
+          "--font-fredoka": nunito.style.fontFamily,
         } as CSSProperties
       }
     >
