@@ -1,6 +1,7 @@
 "use client";
 
 import { ReviewWordImage } from "@/components/review/ReviewWordImage";
+import { displayFontClass } from "@/lib/fonts";
 import type { ReviewChoice } from "@/lib/review-quiz";
 
 type ReviewQuestionProps = {
@@ -33,7 +34,7 @@ export function ReviewQuestion({
   const correct = correctWord.trim().toLowerCase();
 
   return (
-    <div className="review-quiz">
+    <div className={`review-quiz ${displayFontClass}`}>
       <ReviewWordImage
         word={word}
         imageUrl={imageUrl}
@@ -41,7 +42,7 @@ export function ReviewQuestion({
         className="review-quiz__image"
       />
 
-      <p className="review-quiz__clue">{clue}</p>
+      <p className={`review-quiz__clue ${displayFontClass}`}>{clue}</p>
 
       <div className="review-quiz__grid">
         {choices.map((choice) => {
@@ -61,8 +62,8 @@ export function ReviewQuestion({
               disabled={locked}
               onClick={() => onChoose(choice)}
             >
-              <span className="review-quiz__letter">{choice.letter}</span>
-              <span className="review-quiz__word">{choice.word}</span>
+              <span className={`review-quiz__letter ${displayFontClass}`}>{choice.letter}</span>
+              <span className={`review-quiz__word ${displayFontClass}`}>{choice.word}</span>
             </button>
           );
         })}
@@ -70,7 +71,7 @@ export function ReviewQuestion({
 
       <button
         type="button"
-        className={`review-quiz__unsure${unsure ? " is-active" : ""}`}
+        className={`review-quiz__unsure${unsure ? " is-active" : ""} ${displayFontClass}`}
         disabled={locked}
         onClick={onUnsure}
       >
