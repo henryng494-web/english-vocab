@@ -34,6 +34,7 @@ import {
   writeLocalLearning,
 } from "@/lib/learning-storage";
 import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 type DiscoverListPreview = {
@@ -94,7 +95,9 @@ function mapApiWord(
 }
 
 export default function DiscoverPage() {
-  const [inSession, setInSession] = useState(false);
+  const pathname = usePathname();
+  const router = useRouter();
+  const inSession = pathname.startsWith("/journey");
   const [rangeId, setRangeId] = useState("1-100");
   const [queue, setQueue] = useState<DiscoverListItem[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -382,7 +385,7 @@ export default function DiscoverPage() {
     return (
       <div className="app-screen app-screen--home">
         <AppHeader
-          title="Vocab Journey"
+          title="Home"
           peekFox
           foxPose="happy"
           leading={
@@ -407,7 +410,7 @@ export default function DiscoverPage() {
             streakDays={todayLearned > 0 ? 1 : 0}
             todayLearned={todayLearned}
             todayGoal={todayGoal}
-            onStartLearning={() => setInSession(true)}
+            onStartLearning={() => router.push("/journey")}
           />
         )}
       </div>
@@ -425,7 +428,7 @@ export default function DiscoverPage() {
             type="button"
             className="app-header__icon-btn"
             aria-label="Back to home"
-            onClick={() => setInSession(false)}
+            onClick={() => router.push("/discover")}
           >
             ←
           </button>
@@ -469,7 +472,7 @@ export default function DiscoverPage() {
               </p>
               <button
                 type="button"
-                onClick={() => setInSession(false)}
+                onClick={() => router.push("/discover")}
                 className="btn-pill-primary mt-4 px-6 py-3"
               >
                 Back to Home

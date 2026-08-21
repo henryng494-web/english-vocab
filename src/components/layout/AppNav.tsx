@@ -3,7 +3,7 @@ import Link from "next/link";
 export type AppNavSection = "lookup" | "review";
 
 const NAV_ITEMS: { href: string; section: AppNavSection; label: string }[] = [
-  { href: "/discover", section: "lookup", label: "Vocab Journey" },
+  { href: "/journey", section: "lookup", label: "Vocab Journey" },
   { href: "/learn", section: "review", label: "Review" },
 ];
 

@@ -28,6 +28,25 @@ function DiscoverIcon({ active }: { active: boolean }) {
   );
 }
 
+function JourneyIcon({ active }: { active: boolean }) {
+  return (
+    <svg
+      aria-hidden
+      viewBox="0 0 24 24"
+      className={`h-6 w-6 ${active ? "text-primary" : "text-foreground/45"}`}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+    >
+      <path
+        d="M5 19l4-2 6 2 4-2V7l-4 2-6-2-4 2v12z"
+        strokeLinejoin="round"
+      />
+      <circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
 function LearnIcon({ active }: { active: boolean }) {
   return (
     <svg
@@ -102,6 +121,12 @@ export function BottomTabBar() {
       icon: (active) => <DiscoverIcon active={active} />,
     },
     {
+      href: "/journey",
+      label: "Journey",
+      match: (path) => path.startsWith("/journey"),
+      icon: (active) => <JourneyIcon active={active} />,
+    },
+    {
       href: "/learn",
       label: "Review",
       match: (path) => path.startsWith("/learn"),
@@ -124,7 +149,7 @@ export function BottomTabBar() {
       }}
       aria-label="Main navigation"
     >
-      <div className="mx-auto grid h-[var(--tab-bar-height)] max-w-lg grid-cols-3 overflow-visible">
+      <div className="mx-auto grid h-[var(--tab-bar-height)] max-w-lg grid-cols-4 overflow-visible">
         {tabs.map((tab) => {
           const active = tab.match(pathname);
           return (

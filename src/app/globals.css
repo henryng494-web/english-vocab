@@ -348,10 +348,12 @@ body {
   align-items: center;
   justify-content: center;
   gap: 0.125rem;
+  min-width: 0;
   overflow: visible;
   font-family: var(--font-sans);
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   font-weight: 600;
+  white-space: nowrap;
   transition: color 0.15s ease;
 }
 
@@ -370,7 +372,7 @@ body {
   justify-content: center;
   overflow: visible;
   border-radius: 9999px;
-  padding: 0.25rem 0.75rem;
+  padding: 0.25rem 0.45rem;
 }
 
 .tab-bar-link__icon {
