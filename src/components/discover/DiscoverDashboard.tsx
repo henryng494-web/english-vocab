@@ -51,7 +51,7 @@ export function DiscoverDashboard({
 
   return (
     <div className="home-scroll page-scroll">
-      <div className="home-content space-y-4 px-4 pb-6">
+      <div className="home-content px-4">
         <section className="home-card home-welcome">
           <div className="home-welcome__text">
             <h2 className={`home-section-title ${displayFontClass}`}>
