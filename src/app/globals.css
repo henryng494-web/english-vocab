@@ -30,9 +30,9 @@
   --tab-bar-bg: #ffffff;
   --tab-bar-height: 4rem;
   --app-height: 100svh;
-  --header-bg: #ffffff;
+  --header-bg: #18c8b8;
   --header-fg: #182030;
-  --header-muted: #64748b;
+  --header-muted: #115e59;
   --card-shadow: 0 8px 24px rgba(24, 200, 184, 0.16);
 }
 
@@ -405,7 +405,7 @@ body {
   padding-top: env(safe-area-inset-top, 0px);
   background: var(--header-bg);
   color: var(--header-fg);
-  box-shadow: 0 1px 0 color-mix(in srgb, var(--primary) 12%, transparent);
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--foreground) 8%, transparent);
 }
 
 .mobile-top-bar::after {
@@ -499,7 +499,8 @@ body {
   flex-shrink: 0;
   padding-top: env(safe-area-inset-top, 0px);
   background: var(--header-bg);
-  box-shadow: 0 1px 0 color-mix(in srgb, var(--primary) 10%, transparent);
+  color: var(--header-fg);
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--foreground) 8%, transparent);
 }
 
 .app-header__inner {
@@ -542,7 +543,7 @@ body {
   border: none;
   border-radius: 0.75rem;
   background: transparent;
-  color: var(--foreground);
+  color: var(--header-fg);
   font-size: 1.25rem;
   line-height: 1;
 }
