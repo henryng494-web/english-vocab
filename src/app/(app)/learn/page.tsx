@@ -3,12 +3,20 @@
 import { AppHeader } from "@/components/layout/AppHeader";
 import { ReviewQuestion } from "@/components/review/ReviewQuestion";
 import { ReviewReveal } from "@/components/review/ReviewReveal";
+import { ReviewSenseQuestion } from "@/components/review/ReviewSenseQuestion";
 import { CoachDog } from "@/components/mascot/CoachDog";
 import {
   mergeLocalLearning,
   writeLocalLearning,
 } from "@/lib/learning-storage";
-import { buildReviewChoices, reviewClue, type ReviewChoice } from "@/lib/review-quiz";
+import {
+  buildReviewChoices,
+  buildReviewSenseChoices,
+  reviewClue,
+  reviewQuizKindForIndex,
+  type ReviewChoice,
+  type ReviewQuizKind,
+} from "@/lib/review-quiz";
 import {
   advanceReviewInterval,
   getReviewSchedule,
@@ -29,6 +37,7 @@ export default function LearnPage() {
   const [index, setIndex] = useState(0);
   const [phase, setPhase] = useState<Phase>("question");
   const [choices, setChoices] = useState<ReviewChoice[]>([]);
+  const [quizKind, setQuizKind] = useState<ReviewQuizKind>("word");
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const [unsure, setUnsure] = useState(false);
   const [locked, setLocked] = useState(false);
@@ -45,25 +54,34 @@ export default function LearnPage() {
 
   const currentWord = queue[index];
 
-  const startQuestion = useCallback((word: VocabWord, pool: VocabWord[]) => {
+  const startQuestion = useCallback((word: VocabWord, pool: VocabWord[], questionIndex = 0) => {
     if (resultTimer.current) {
       window.clearTimeout(resultTimer.current);
       resultTimer.current = null;
     }
     const schedule = getReviewSchedule(word.word);
+    const wantSense = reviewQuizKindForIndex(questionIndex) === "sense";
+    const senseChoices = wantSense
+      ? buildReviewSenseChoices(word.word, pool)
+      : [];
+    const kind: ReviewQuizKind =
+      wantSense && senseChoices.length === 3 ? "sense" : "word";
     setPhase("question");
+    setQuizKind(kind);
     setChoices(
-      buildReviewChoices(
-        word.word,
-        pool
-          .filter(
-            (item) =>
-              /^[a-z]+$/i.test(item.word) &&
-              item.word.length >= 3 &&
-              Boolean(item.english_definition?.trim()),
-          )
-          .map((item) => item.word),
-      ),
+      kind === "sense"
+        ? senseChoices
+        : buildReviewChoices(
+            word.word,
+            pool
+              .filter(
+                (item) =>
+                  /^[a-z]+$/i.test(item.word) &&
+                  item.word.length >= 3 &&
+                  Boolean(item.english_definition?.trim()),
+              )
+              .map((item) => item.word),
+          ),
     );
     setSelectedKey(null);
     setUnsure(false);
@@ -99,7 +117,7 @@ export default function LearnPage() {
       setAllWords(fetched);
       setQueue(due);
       setIndex(0);
-      if (due[0]) startQuestion(due[0], fetched);
+      if (due[0]) startQuestion(due[0], fetched, 0);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load vocabulary");
     } finally {
@@ -246,7 +264,7 @@ export default function LearnPage() {
       return;
     }
     setIndex(nextIndex);
-    startQuestion(queue[nextIndex], allWords);
+    startQuestion(queue[nextIndex], allWords, nextIndex);
   }
 
   const inSession = Boolean(currentWord) && !sessionDone;
@@ -263,6 +281,17 @@ export default function LearnPage() {
         <div className="flex flex-1 items-center justify-center">
           <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary-100 border-t-primary" />
         </div>
+      ) : inSession && currentWord && phase === "question" && quizKind === "sense" ? (
+        <ReviewSenseQuestion
+          word={currentWord.word}
+          choices={choices}
+          selectedKey={selectedKey}
+          unsure={unsure}
+          correctWord={currentWord.word}
+          locked={locked}
+          onChoose={handleChoose}
+          onUnsure={handleUnsure}
+        />
       ) : inSession && currentWord && phase === "question" ? (
         <ReviewQuestion
           word={currentWord.word}

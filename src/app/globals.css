@@ -1088,6 +1088,130 @@ body {
   color: var(--secondary);
 }
 
+/* —— Review sense quiz (word → 3 image + Vietnamese meaning rows) —— */
+.review-sense {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.85rem;
+  height: 100%;
+  min-height: 0;
+  padding: 0.65rem 1.1rem 0.4rem;
+  font-family: var(--font-display);
+}
+
+.review-sense button {
+  font-family: inherit;
+}
+
+.review-sense__prompt {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+}
+
+.review-sense__word {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  color: var(--foreground);
+}
+
+.review-sense__list {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.7rem;
+}
+
+.review-sense__choice {
+  display: flex;
+  min-height: 5.1rem;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.45rem 0.7rem 0.45rem 0.45rem;
+  border: 2px solid color-mix(in srgb, var(--primary) 16%, transparent);
+  border-radius: 1rem;
+  background: var(--card);
+  text-align: left;
+  box-shadow: 0 2px 8px rgba(24, 32, 48, 0.06);
+}
+
+.review-sense__choice:disabled {
+  cursor: default;
+}
+
+.review-sense__thumb {
+  position: relative;
+  flex-shrink: 0;
+  width: 4.75rem;
+  height: 4.75rem;
+  overflow: hidden;
+  border-radius: 0.8rem;
+  background: var(--primary-100);
+}
+
+.review-sense__photo {
+  width: 100%;
+  height: 100%;
+}
+
+.review-sense__letter {
+  position: absolute;
+  top: 0.28rem;
+  left: 0.28rem;
+  z-index: 2;
+  display: inline-flex;
+  width: 1.35rem;
+  height: 1.35rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--foreground);
+  color: #ffffff;
+  font-size: 0.72rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.review-sense__meaning {
+  min-width: 0;
+  flex: 1 1 auto;
+  font-size: 1.02rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.35;
+  color: var(--foreground);
+}
+
+.review-sense__choice.is-correct {
+  border-color: var(--primary);
+  background: var(--primary-50);
+}
+
+.review-sense__choice.is-correct .review-sense__letter {
+  background: var(--primary);
+}
+
+.review-sense__choice.is-wrong {
+  border-color: var(--secondary);
+  background: color-mix(in srgb, var(--secondary) 12%, var(--card));
+}
+
+.review-sense__choice.is-wrong .review-sense__letter {
+  background: var(--secondary);
+}
+
+.review-sense__choice.is-dim {
+  opacity: 0.45;
+}
+
 .review-reveal {
   display: grid;
   grid-template-rows: minmax(0, 1fr) auto;
