@@ -539,9 +539,9 @@ body {
 .app-header__inner {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.5rem;
   min-height: 3.25rem;
   padding: 0.5rem 1rem 0;
 }
@@ -559,6 +559,7 @@ body {
   z-index: 1;
   margin: 0;
   max-width: 100%;
+  justify-self: center;
   overflow: hidden;
   text-align: center;
   text-overflow: ellipsis;
@@ -569,6 +570,18 @@ body {
   line-height: 1.2;
   color: var(--header-fg);
   white-space: nowrap;
+}
+
+.app-header__inner--fox .app-header__title {
+  position: absolute;
+  left: 50%;
+  top: 0.5rem;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-self: auto;
+  transform: translateX(-50%);
+  pointer-events: none;
 }
 
 .app-header__fox {
@@ -606,12 +619,12 @@ body {
 }
 
 .app-header__control {
-  max-width: 8.75rem;
+  max-width: 6.5rem;
   height: 2rem;
   border: none;
   border-radius: 9999px;
   background: #ffffff;
-  padding: 0 0.7rem;
+  padding: 0 0.55rem;
   font-size: 0.75rem;
   font-weight: 700;
   color: #182030;

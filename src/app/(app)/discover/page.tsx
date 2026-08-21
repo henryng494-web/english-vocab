@@ -431,7 +431,7 @@ export default function DiscoverPage() {
           >
             {WORD_RANGES.map((range) => (
               <option key={range.id} value={range.id}>
-                {range.label}
+                {range.compactLabel}
               </option>
             ))}
           </select>
