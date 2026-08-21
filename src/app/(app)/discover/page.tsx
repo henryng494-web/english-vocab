@@ -426,8 +426,8 @@ export default function DiscoverPage() {
             id="range"
             value={rangeId}
             onChange={(e) => setRangeId(e.target.value)}
+            className="app-header__control"
             aria-label="Select word range"
-            className="mobile-top-bar__control"
           >
             {WORD_RANGES.map((range) => (
               <option key={range.id} value={range.id}>
@@ -440,7 +440,7 @@ export default function DiscoverPage() {
 
       <div className="journey-panel px-4">
         {stats.hidden > 0 && (
-          <p className="home-body-text pb-1 text-center">
+          <p className="journey-note">
             {stats.hidden} words marked &ldquo;Already know&rdquo;
           </p>
         )}
@@ -452,11 +452,11 @@ export default function DiscoverPage() {
         )}
 
         {loadingList ? (
-          <div className="col-span-full flex flex-1 items-center justify-center">
+          <div className="journey-main journey-main--center">
             <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary-100 border-t-primary" />
           </div>
         ) : queue.length === 0 ? (
-          <div className="flex flex-1 flex-col items-center justify-center px-2 text-center">
+          <div className="journey-main journey-main--center px-2 text-center">
             <CoachDog pose="sad" size={72} className="mb-3" />
             <div className="w-full">
               <p className="text-foreground/80">
@@ -473,7 +473,7 @@ export default function DiscoverPage() {
             </div>
           </div>
         ) : (
-          <>
+          <div className="journey-main">
             <div className="journey-card-slot">
               <DiscoverCard
                 key={currentItem.word}
@@ -521,7 +521,7 @@ export default function DiscoverPage() {
                 </button>
               </div>
             </div>
-          </>
+          </div>
         )}
       </div>
     </div>
