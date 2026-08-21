@@ -361,11 +361,29 @@ body {
 }
 
 .tab-bar-link__pill {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 9999px;
   padding: 0.25rem 0.75rem;
+}
+
+.tab-bar-badge {
+  position: absolute;
+  top: -0.05rem;
+  right: 0.05rem;
+  min-width: 1.1rem;
+  height: 1.1rem;
+  padding: 0 0.28rem;
+  border-radius: 9999px;
+  background: var(--primary);
+  color: #ffffff;
+  font-family: var(--font-sans);
+  font-size: 0.625rem;
+  font-weight: 700;
+  line-height: 1.1rem;
+  text-align: center;
 }
 
 .tab-bar-link--active .tab-bar-link__pill {

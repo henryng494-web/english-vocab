@@ -2,12 +2,15 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
+import { countLearningWords } from "@/lib/learning-storage";
 
 type TabItem = {
   href: string;
   label: string;
   match: (path: string) => boolean;
   icon: (active: boolean) => React.ReactNode;
+  badge?: number;
 };
 
 function DiscoverIcon({ active }: { active: boolean }) {
@@ -57,29 +60,42 @@ function AccountIcon({ active }: { active: boolean }) {
   );
 }
 
-const TABS: TabItem[] = [
-  {
-    href: "/discover",
-    label: "Home",
-    match: (path) => path.startsWith("/discover"),
-    icon: (active) => <DiscoverIcon active={active} />,
-  },
-  {
-    href: "/learn",
-    label: "Review",
-    match: (path) => path.startsWith("/learn"),
-    icon: (active) => <LearnIcon active={active} />,
-  },
-  {
-    href: "/account",
-    label: "Account",
-    match: (path) => path.startsWith("/account") || path.startsWith("/auth"),
-    icon: (active) => <AccountIcon active={active} />,
-  },
-];
-
 export function BottomTabBar() {
   const pathname = usePathname();
+  const [learningCount, setLearningCount] = useState(0);
+
+  useEffect(() => {
+    const refresh = () => setLearningCount(countLearningWords());
+    refresh();
+    window.addEventListener("vocab-learning-changed", refresh);
+    window.addEventListener("storage", refresh);
+    return () => {
+      window.removeEventListener("vocab-learning-changed", refresh);
+      window.removeEventListener("storage", refresh);
+    };
+  }, [pathname]);
+
+  const tabs: TabItem[] = [
+    {
+      href: "/discover",
+      label: "Home",
+      match: (path) => path.startsWith("/discover"),
+      icon: (active) => <DiscoverIcon active={active} />,
+    },
+    {
+      href: "/learn",
+      label: "Review",
+      match: (path) => path.startsWith("/learn"),
+      icon: (active) => <LearnIcon active={active} />,
+      badge: learningCount,
+    },
+    {
+      href: "/account",
+      label: "Account",
+      match: (path) => path.startsWith("/account") || path.startsWith("/auth"),
+      icon: (active) => <AccountIcon active={active} />,
+    },
+  ];
 
   return (
     <nav
@@ -90,8 +106,9 @@ export function BottomTabBar() {
       aria-label="Main navigation"
     >
       <div className="mx-auto grid h-[var(--tab-bar-height)] max-w-lg grid-cols-3">
-        {TABS.map((tab) => {
+        {tabs.map((tab) => {
           const active = tab.match(pathname);
+          const badge = tab.badge ?? 0;
           return (
             <Link
               key={tab.href}
@@ -100,7 +117,14 @@ export function BottomTabBar() {
                 active ? "tab-bar-link--active" : "tab-bar-link--inactive"
               }`}
             >
-              <span className="tab-bar-link__pill">{tab.icon(active)}</span>
+              <span className="tab-bar-link__pill">
+                {tab.icon(active)}
+                {badge > 0 ? (
+                  <span className="tab-bar-badge" aria-label={`${badge} words learning`}>
+                    {badge > 99 ? "99+" : badge}
+                  </span>
+                ) : null}
+              </span>
               <span>{tab.label}</span>
             </Link>
           );

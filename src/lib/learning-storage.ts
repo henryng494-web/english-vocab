@@ -22,6 +22,14 @@ export function writeLocalLearning(word: string, status: LearningStatus) {
   const map = readLocalLearning();
   map[word] = { status, last_reviewed_at: new Date().toISOString() };
   localStorage.setItem(STORAGE_KEY, JSON.stringify(map));
+  window.dispatchEvent(new Event("vocab-learning-changed"));
+}
+
+export function countLearningWords(): number {
+  const map = readLocalLearning();
+  return Object.values(map).filter(
+    (entry) => entry.status === "new" || entry.status === "learning",
+  ).length;
 }
 
 export function mergeLocalLearning<T extends { word: string; learning_status: LearningStatus; last_reviewed_at: string | null }>(

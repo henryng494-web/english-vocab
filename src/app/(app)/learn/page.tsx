@@ -168,6 +168,7 @@ export default function LearnPage() {
 
     setUpdating(true);
     setError(null);
+    writeLocalLearning(currentWord.word, status);
     try {
       const res = await fetch("/api/words/status", {
         method: "POST",

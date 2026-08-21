@@ -106,10 +106,12 @@ export default function DiscoverPage() {
   const [todayLearned, setTodayLearned] = useState(0);
 
   const todayGoal = getDailyGoalTarget();
-  const rangeLabel = useMemo(
-    () => WORD_RANGES.find((r) => r.id === rangeId)?.label ?? rangeId,
+  const rangeMeta = useMemo(
+    () => WORD_RANGES.find((r) => r.id === rangeId),
     [rangeId],
   );
+  const rangeLabel = rangeMeta?.label ?? rangeId;
+  const rangeCompact = rangeMeta?.compactLabel ?? rangeId;
 
   useEffect(() => {
     setWordsLearned(countWordsLearned());
@@ -330,6 +332,7 @@ export default function DiscoverPage() {
 
     const word = currentItem.word;
     setError(null);
+    writeLocalLearning(word, status === "mastered" ? "mastered" : "new");
     if (status === "new") {
       setTodayLearned(incrementTodayWordsLearned());
       setWordsLearned(countWordsLearned());
@@ -352,7 +355,7 @@ export default function DiscoverPage() {
           }
         }
 
-        const statusRes = await fetch("/api/words/status", {
+        await fetch("/api/words/status", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -360,13 +363,6 @@ export default function DiscoverPage() {
             status: status === "mastered" ? "mastered" : "new",
           }),
         });
-
-        if (!statusRes.ok) {
-          writeLocalLearning(
-            word,
-            status === "mastered" ? "mastered" : "new",
-          );
-        }
         setWordsLearned(countWordsLearned());
       } catch (err) {
         setError(err instanceof Error ? err.message : "Update failed");
@@ -439,7 +435,8 @@ export default function DiscoverPage() {
       <div className="journey-panel px-4">
         {stats.hidden > 0 && (
           <p className="journey-note">
-            {stats.hidden} words marked &ldquo;Already know&rdquo;
+            {stats.hidden} known {stats.hidden === 1 ? "word" : "words"} in
+            this rank ({rangeCompact})
           </p>
         )}
 

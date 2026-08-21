@@ -1,3 +1,5 @@
+import { countLearningWords } from "@/lib/learning-storage";
+
 const DAILY_GOAL_KEY = "vocab-journey-daily-goal-v1";
 const DEFAULT_GOAL = 10;
 
@@ -41,13 +43,5 @@ export function incrementTodayWordsLearned(): number {
 }
 
 export function countWordsLearned(): number {
-  if (typeof window === "undefined") return 0;
-  try {
-    const raw = localStorage.getItem("english-vocab-learning");
-    if (!raw) return 0;
-    const map = JSON.parse(raw) as Record<string, { status: string }>;
-    return Object.values(map).filter((e) => e.status === "new" || e.status === "learning").length;
-  } catch {
-    return 0;
-  }
+  return countLearningWords();
 }
