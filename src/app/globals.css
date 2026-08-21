@@ -531,20 +531,21 @@ body {
 }
 
 .app-header__fox {
-  width: 52px;
-  height: 36px;
+  width: 68px;
+  height: 42px;
   overflow: hidden;
   align-self: end;
   pointer-events: none;
+  margin-bottom: 0;
 }
 
 .app-header__fox img,
 .app-header__fox svg {
   display: block;
-  width: 52px;
-  height: 52px;
+  width: 68px;
+  height: 80px;
   object-fit: cover;
-  object-position: 50% 8%;
+  object-position: 50% 6%;
 }
 
 .app-header__side {

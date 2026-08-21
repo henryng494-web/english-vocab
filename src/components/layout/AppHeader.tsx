@@ -17,7 +17,7 @@ export function AppHeader({ title, leading, trailing, peekFox = false }: AppHead
         </div>
         {peekFox && (
           <div className="app-header__fox" aria-hidden>
-            <CoachDog pose="happy" size={56} title="Coach Fox" />
+            <CoachDog pose="happy" size={68} title="Coach Fox" />
           </div>
         )}
         <h1 className="app-header__title font-display">{title}</h1>
