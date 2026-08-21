@@ -1,5 +1,3 @@
-import Image from "next/image";
-
 export type CoachDogPose =
   | "neutral"
   | "peek"
@@ -16,30 +14,25 @@ type CoachDogProps = {
   title?: string;
 };
 
-/** Artwork cropped from the Vocab Journey design-board PNG (275×280 / 185×300). */
-const REF_ASSETS = {
-  neutral: { src: "/mascot/coach-dog-neutral.png", w: 275, h: 280 },
-  sad: { src: "/mascot/coach-dog-sad.png", w: 185, h: 300 },
-} as const;
-
 const INK = "#0A0A0A";
 const EYE = "#FFFFFF";
 const COLLAR = "#EF4444";
 const BELL = "#FBBF24";
+const BELL_DOT = "#B45309";
 const TEAR = "#38BDF8";
 
-/** SVG poses share the same proportions as the reference neutral PNG. */
-function CoachDogSvg({
-  pose,
-  size,
-  className,
-  title,
-}: {
-  pose: "happy" | "wave" | "smirk" | "wink";
-  size: number;
-  className: string;
-  title: string;
-}) {
+/**
+ * Flat Coach Dog matching the Vocab Journey design board:
+ * black silhouette, floppy ears, huge white eyes, red collar, gold bell.
+ * Single SVG — no PNG crops.
+ */
+export function CoachDog({
+  pose = "neutral",
+  size = 48,
+  className = "",
+  title = "Coach Dog",
+}: CoachDogProps) {
+  const sad = pose === "sad";
   const chevrons = pose === "happy" || pose === "wave" || pose === "smirk";
   const wink = pose === "wink";
 
@@ -47,32 +40,62 @@ function CoachDogSvg({
     <svg
       width={size}
       height={size}
-      viewBox="0 0 275 280"
+      viewBox="0 0 220 230"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={className}
       role="img"
       aria-label={title}
-      shapeRendering="geometricPrecision"
+      overflow="visible"
     >
-      {/* droopy ears — hang down the cheeks, not bear ears */}
-      <ellipse cx="42" cy="118" rx="34" ry="52" fill={INK} />
-      <ellipse cx="233" cy="118" rx="34" ry="52" fill={INK} />
+      <ellipse
+        cx="36"
+        cy="118"
+        rx="30"
+        ry="62"
+        transform="rotate(-12 36 118)"
+        fill={INK}
+      />
+      <ellipse
+        cx="184"
+        cy="118"
+        rx="30"
+        ry="62"
+        transform="rotate(12 184 118)"
+        fill={INK}
+      />
+      <ellipse cx="110" cy="108" rx="80" ry="76" fill={INK} />
 
-      {/* wide rounded head */}
-      <ellipse cx="137" cy="132" rx="96" ry="92" fill={INK} />
-
-      {chevrons ? (
+      {sad ? (
+        <>
+          <circle cx="82" cy="110" r="32" fill={EYE} />
+          <circle cx="82" cy="112" r="11" fill={INK} />
+          <circle cx="138" cy="110" r="32" fill={EYE} />
+          <circle cx="138" cy="112" r="11" fill={INK} />
+          <path
+            d="M148 128 C152 148 158 168 164 184"
+            stroke={TEAR}
+            strokeWidth="8"
+            strokeLinecap="round"
+          />
+          <path
+            d="M72 128 C68 148 62 168 56 184"
+            stroke={TEAR}
+            strokeWidth="8"
+            strokeLinecap="round"
+          />
+        </>
+      ) : chevrons ? (
         <>
           <path
-            d="M92 118 L108 132 L92 146"
+            d="M68 100 L84 114 L68 128"
             stroke={EYE}
             strokeWidth="10"
             strokeLinecap="round"
             strokeLinejoin="round"
           />
           <path
-            d="M183 118 L167 132 L183 146"
+            d="M152 100 L136 114 L152 128"
             stroke={EYE}
             strokeWidth="10"
             strokeLinecap="round"
@@ -83,80 +106,28 @@ function CoachDogSvg({
         <>
           {wink ? (
             <path
-              d="M88 132 Q104 142 120 132"
+              d="M64 112 Q82 124 100 112"
               stroke={EYE}
               strokeWidth="9"
               strokeLinecap="round"
             />
           ) : (
             <>
-              <circle cx="104" cy="128" r="36" fill={EYE} />
-              <circle cx="104" cy="128" r="12" fill={INK} />
+              <circle cx="82" cy="110" r="32" fill={EYE} />
+              <circle cx="82" cy="110" r="11" fill={INK} />
             </>
           )}
-          <circle cx="170" cy="128" r="36" fill={EYE} />
-          <circle cx="170" cy="128" r="12" fill={INK} />
+          <circle cx="138" cy="110" r="32" fill={EYE} />
+          <circle cx="138" cy="110" r="11" fill={INK} />
         </>
       )}
 
       <path
-        d="M58 198 Q137 218 216 198"
-        stroke={COLLAR}
-        strokeWidth="12"
-        strokeLinecap="round"
+        d="M48 164 Q110 184 172 164 L170 176 Q110 196 50 176 Z"
+        fill={COLLAR}
       />
-      <circle cx="137" cy="212" r="14" fill={BELL} />
+      <circle cx="110" cy="180" r="13" fill={BELL} />
+      <circle cx="110" cy="185" r="3.2" fill={BELL_DOT} />
     </svg>
-  );
-}
-
-/**
- * Coach Dog — reference PNG for neutral/sad; matched SVG for happy/wink.
- * Proportions traced from the design-board artwork (floppy ears, low wide eyes).
- */
-export function CoachDog({
-  pose = "neutral",
-  size = 48,
-  className = "",
-  title = "Coach Dog",
-}: CoachDogProps) {
-  if (pose === "happy" || pose === "wave" || pose === "smirk" || pose === "wink") {
-    return (
-      <CoachDogSvg
-        pose={pose}
-        size={size}
-        className={className}
-        title={title}
-      />
-    );
-  }
-
-  if (pose === "sad") {
-    const asset = REF_ASSETS.sad;
-    return (
-      <Image
-        src={asset.src}
-        alt={title}
-        width={asset.w}
-        height={asset.h}
-        className={className}
-        style={{ width: size, height: size, objectFit: "contain" }}
-        unoptimized
-      />
-    );
-  }
-
-  const asset = REF_ASSETS.neutral;
-  return (
-    <Image
-      src={asset.src}
-      alt={title}
-      width={asset.w}
-      height={asset.h}
-      className={className}
-      style={{ width: size, height: size, objectFit: "contain" }}
-      priority={size >= 80}
-      unoptimized
-    />
   );
 }
