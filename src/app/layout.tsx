@@ -12,7 +12,7 @@ const inter = Inter({
 
 const fredoka = Fredoka({
   subsets: ["latin"],
-  weight: ["600", "700"],
+  weight: ["400", "500", "600", "700"],
   variable: "--font-fredoka",
 });
 
@@ -53,7 +53,7 @@ export default function RootLayout({
       <head>
         <script dangerouslySetInnerHTML={{ __html: viewportBootstrapScript }} />
       </head>
-      <body className={`${inter.variable} ${fredoka.variable} font-sans antialiased`}>
+      <body className={`${inter.variable} ${fredoka.variable} ${inter.className} antialiased`}>
         <ThemeRoot>{children}</ThemeRoot>
       </body>
     </html>
