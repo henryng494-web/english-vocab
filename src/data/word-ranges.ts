@@ -23,3 +23,15 @@ export const WORD_RANGES: WordRange[] = [
     max: Number.MAX_SAFE_INTEGER,
   },
 ];
+
+export function rankBandFor(rank: number): WordRange {
+  return (
+    WORD_RANGES.find((range) => rank >= range.min && rank <= range.max) ??
+    WORD_RANGES[WORD_RANGES.length - 1]
+  );
+}
+
+export function isSameRankBand(rank: number, otherRank: number): boolean {
+  const band = rankBandFor(rank);
+  return otherRank >= band.min && otherRank <= band.max;
+}

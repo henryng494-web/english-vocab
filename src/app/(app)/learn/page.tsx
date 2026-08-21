@@ -73,14 +73,13 @@ export default function LearnPage() {
         ? senseChoices
         : buildReviewChoices(
             word.word,
-            pool
-              .filter(
-                (item) =>
-                  /^[a-z]+$/i.test(item.word) &&
-                  item.word.length >= 3 &&
-                  Boolean(item.english_definition?.trim()),
-              )
-              .map((item) => item.word),
+            pool.filter(
+              (item) =>
+                /^[a-z]+$/i.test(item.word) &&
+                item.word.length >= 3 &&
+                Boolean(item.english_definition?.trim()),
+            ),
+            word.rank,
           ),
     );
     setSelectedKey(null);

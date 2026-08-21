@@ -1,4 +1,5 @@
 import { capitalizeFirst } from "@/lib/format-text";
+import { isSameRankBand } from "@/data/word-ranges";
 
 const FALLBACK_DISTRACTORS = [
   "apple",
@@ -49,11 +50,41 @@ const FALLBACK_SENSE_DISTRACTORS: Array<{
 
 type SenseSource = {
   word: string;
+  rank?: number;
   vietnamese_meaning?: string | null;
   english_definition?: string | null;
   image_url?: string | null;
   word_type?: string | null;
 };
+
+function pickSameRankDistractors<T extends { word: string; rank?: number }>(
+  correctWord: string,
+  correctRank: number,
+  pool: T[],
+  count: number,
+  usable: (item: T) => boolean,
+): T[] {
+  const correct = correctWord.trim().toLowerCase();
+  const candidates = pool.filter((item) => {
+    const key = item.word.trim().toLowerCase();
+    return key && key !== correct && usable(item);
+  });
+  const inBand = candidates.filter((item) =>
+    isSameRankBand(correctRank, item.rank ?? Number.MAX_SAFE_INTEGER),
+  );
+  const picked = shuffle(inBand).slice(0, count);
+  if (picked.length >= count) return picked;
+
+  const used = new Set(picked.map((item) => item.word.trim().toLowerCase()));
+  const nearest = [...candidates]
+    .filter((item) => !used.has(item.word.trim().toLowerCase()))
+    .sort(
+      (left, right) =>
+        Math.abs((left.rank ?? 99999) - correctRank) -
+        Math.abs((right.rank ?? 99999) - correctRank),
+    );
+  return [...picked, ...nearest].slice(0, count);
+}
 
 export function reviewSenseText(word: {
   vietnamese_meaning?: string | null;
@@ -77,20 +108,22 @@ export function buildReviewSenseChoices(
   const correctMeaning = reviewSenseText(correctItem ?? {});
   if (!correctMeaning) return [];
 
-  const used = new Set<string>([correct]);
-  const distractors: SenseSource[] = [];
-  for (const item of shuffle(pool)) {
-    const key = item.word.trim().toLowerCase();
-    if (used.has(key) || !reviewSenseText(item)) continue;
-    used.add(key);
-    distractors.push(item);
-    if (distractors.length === 2) break;
-  }
-  for (const fallback of FALLBACK_SENSE_DISTRACTORS) {
-    if (distractors.length === 2) break;
-    if (used.has(fallback.word)) continue;
-    used.add(fallback.word);
-    distractors.push(fallback);
+  const distractors = pickSameRankDistractors(
+    correct,
+    correctItem?.rank ?? 0,
+    pool,
+    2,
+    (item) => Boolean(reviewSenseText(item)),
+  );
+  if (distractors.length < 2) {
+    for (const fallback of FALLBACK_SENSE_DISTRACTORS) {
+      if (distractors.length === 2) break;
+      if (fallback.word === correct) continue;
+      if (distractors.some((item) => item.word.trim().toLowerCase() === fallback.word)) {
+        continue;
+      }
+      distractors.push(fallback);
+    }
   }
 
   const options = shuffle([correctItem ?? { word: correct, vietnamese_meaning: correctMeaning }, ...distractors]);
@@ -121,17 +154,24 @@ function shuffle<T>(items: T[]): T[] {
 
 export function buildReviewChoices(
   correctWord: string,
-  pool: string[],
+  pool: Array<{ word: string; rank?: number }>,
+  correctRank = 0,
 ): ReviewChoice[] {
   const correct = correctWord.trim().toLowerCase();
+  const ranked = pickSameRankDistractors(
+    correct,
+    correctRank,
+    pool,
+    3,
+    (item) => /^[a-z]+$/i.test(item.word) && item.word.length >= 3,
+  );
   const unique = [
-    ...new Set(
-      [...pool, ...FALLBACK_DISTRACTORS]
-        .map((item) => item.trim().toLowerCase())
-        .filter((item) => item && item !== correct),
-    ),
-  ];
-  const distractors = shuffle(unique).slice(0, 3);
+    ...new Set([
+      ...ranked.map((item) => item.word.trim().toLowerCase()),
+      ...FALLBACK_DISTRACTORS,
+    ]),
+  ].filter((item) => item && item !== correct);
+  const distractors = unique.slice(0, 3);
   const words = shuffle([correct, ...distractors]);
   return words.map((word, index) => ({
     key: `${word}-${index}`,
