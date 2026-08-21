@@ -1,38 +1,39 @@
 @import "tailwindcss";
 
 :root {
-  --background: #e8f4ff;
-  --foreground: #0f172a;
-  --surface: #dbeafe;
-  --surface-strong: #bfdbfe;
-  --primary: #3b82f6;
-  --primary-hover: #2563eb;
-  --primary-50: #eff6ff;
-  --primary-100: #dbeafe;
-  --primary-200: #bfdbfe;
-  --primary-300: #93c5fd;
-  --primary-700: #1d4ed8;
-  --primary-800: #1e40af;
+  /* Coach Fox navy (#182030) + teal lead (#18c8b8) */
+  --background: #e8eef4;
+  --foreground: #182030;
+  --surface: #dce4ee;
+  --surface-strong: #c5d0de;
+  --primary: #182030;
+  --primary-hover: #243044;
+  --primary-50: #f1f4f8;
+  --primary-100: #e2e8f0;
+  --primary-200: #cbd5e1;
+  --primary-300: #94a3b8;
+  --primary-700: #182030;
+  --primary-800: #101828;
   --secondary: #ef4444;
   --secondary-hover: #dc2626;
-  --accent: #fbbf24;
-  --accent-hover: #f59e0b;
+  --accent: #18c8b8;
+  --accent-hover: #14b8a6;
   --card: #ffffff;
-  --card-border: #bfdbfe;
-  --header-mid: #3b82f6;
-  --header-end: #fbbf24;
-  --meaning: #1d4ed8;
-  --example-bg: #f0f9ff;
-  --example-vi: #0369a1;
-  --badge-bg: #fef3c7;
-  --badge-text: #92400e;
+  --card-border: #c5d0de;
+  --header-mid: #182030;
+  --header-end: #18c8b8;
+  --meaning: #182030;
+  --example-bg: #eefbf8;
+  --example-vi: #0f766e;
+  --badge-bg: #d1faf4;
+  --badge-text: #115e59;
   --tab-bar-bg: #ffffff;
   --tab-bar-height: 4rem;
   --app-height: 100svh;
   --header-bg: #ffffff;
-  --header-fg: #0f172a;
+  --header-fg: #182030;
   --header-muted: #64748b;
-  --card-shadow: 0 8px 24px rgba(59, 130, 246, 0.1);
+  --card-shadow: 0 8px 24px rgba(24, 32, 48, 0.1);
 }
 
 @theme inline {
@@ -745,7 +746,7 @@ body {
 .ui-progress__fill {
   height: 100%;
   border-radius: 9999px;
-  background: var(--primary);
+  background: var(--accent);
   transition: width 0.25s ease;
 }
 
