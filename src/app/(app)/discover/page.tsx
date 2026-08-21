@@ -378,6 +378,7 @@ export default function DiscoverPage() {
       <div className="app-screen app-screen--home">
         <AppHeader
           title="Vocab Journey"
+          peekFox
           leading={
             <Link href="/account" className="app-header__icon-btn" aria-label="Menu">
               ☰
@@ -392,7 +393,6 @@ export default function DiscoverPage() {
           </div>
         ) : (
           <DiscoverDashboard
-            rangeId={rangeId}
             rangeLabel={rangeLabel}
             queueLength={queue.length}
             currentIndex={currentIndex}
@@ -401,7 +401,6 @@ export default function DiscoverPage() {
             todayLearned={todayLearned}
             todayGoal={todayGoal}
             onStartLearning={() => setInSession(true)}
-            onRangeChange={setRangeId}
           />
         )}
       </div>
