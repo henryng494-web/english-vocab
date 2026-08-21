@@ -20,7 +20,7 @@ export function VocabExampleList({
   compact = false,
 }: VocabExampleListProps) {
   const filled = keepNaturalExamples(word, examples);
-  const visible = compact ? filled.slice(0, 1) : filled;
+  const visible = filled.slice(0, 2);
 
   if (visible.length === 0) return null;
 

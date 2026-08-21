@@ -411,6 +411,7 @@ export default function DiscoverPage() {
     <div className="app-screen app-screen--journey">
       <AppHeader
         title="Vocab Journey"
+        peekFox="sm"
         leading={
           <button
             type="button"
