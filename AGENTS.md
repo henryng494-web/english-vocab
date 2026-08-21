@@ -15,10 +15,10 @@ Next.js 15 (App Router) flashcard app for learning English vocabulary. Vietnames
 |---------|---------|
 | `npm install` | Install dependencies |
 | `npm run dev` | Dev server at http://localhost:3000 |
-| `npm run build` | Production build — run before opening a PR |
-| `npm run lint` | ESLint |
+| `npm run build` | Production build — only when TypeScript or Next.js config changed, and not while `npm run dev` is on port 3000 |
+| `npm run lint` | ESLint — only on files you edited |
 
-Always run `npm run build` (and fix errors) before finishing a task.
+Do not run `npm run build` for docs, copy, or CSS-only changes.
 
 ## Environment variables
 
@@ -86,22 +86,24 @@ You may fix bugs inside these files but preserve the layout contract.
 2. The dev server starts in a terminal (`npm run dev` on port 3000).
 3. Confirm secrets are set before testing discover/enrich flows that hit Gemini or Supabase.
 
-### Testing checklist
+### Speed — skip low-value steps
 
-- `npm run build` — must pass with no TypeScript errors.
-- `npm run lint` — fix new lint issues you introduce.
-- **Discover flow:** open `/discover`, load a word; card shows image, meaning, natural examples.
-- **API:** `GET /api/discover/word?word=hole` returns enriched payload when secrets are configured.
-- **Add word:** authenticated add flow writes to Supabase when logged in.
+Van prefers a faster turnaround. Drop anything that does not change the product:
 
-### Walkthrough artifacts
-
-Van prefers a faster turnaround. After a task is done:
-
-- **Do not** record screen videos or take screenshots to attach in the chat or PR.
-- **Do not** use computer-use / GUI walkthrough recordings unless Van explicitly asks to capture the UI.
-- Verify with `npm run build` / `npx tsc --noEmit`, lint, and API or terminal checks when those are enough.
+- **Do not** record screen videos or take screenshots for chat or PRs, and **do not** use computer-use / GUI walkthroughs unless Van explicitly asks.
+- **Do not** bump `LAYOUT_VERSION` unless Van asks or the change is a mobile shell/layout fix they need to verify on device.
+- **Do not** run Discover / Review / API / auth checks unless the diff touches those paths.
+- **Do not** run `npm run build` for docs, copy, or CSS-only changes. For TypeScript, `npx tsc --noEmit` is enough; skip a full build while `npm run dev` is already on port 3000.
+- **Do not** lint files you did not change.
+- Keep chat replies short. Do not narrate git/PR steps.
+- Feature branches and PRs are a Cursor Cloud requirement; still **push `HEAD` to `main`** when the task is done so Production Vercel updates. Do not wait on Preview CI (it fails on every branch).
 - Use `/no-test` only when Van wants to skip testing entirely.
+
+### Testing checklist (only when the diff needs it)
+
+- TypeScript changes: `npx tsc --noEmit`; fix new lint issues in files you edited.
+- Discover/enrichment: `GET /api/discover/word?word=hole` when secrets are set.
+- Auth/add-word: only if that flow changed.
 
 ### Auth on cloud
 
