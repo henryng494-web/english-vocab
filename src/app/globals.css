@@ -1093,10 +1093,10 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 0.85rem;
+  gap: 0.9rem;
   height: 100%;
   min-height: 0;
-  padding: 0.65rem 1.1rem 0.4rem;
+  padding: 1.35rem 1.1rem 0.55rem;
   font-family: var(--font-display);
 }
 
@@ -1110,6 +1110,7 @@ body {
   align-items: center;
   justify-content: center;
   gap: 0.45rem;
+  padding: 0.15rem 0 0.35rem;
 }
 
 .review-sense__word {
@@ -1123,19 +1124,18 @@ body {
 
 .review-sense__list {
   display: flex;
-  flex: 1 1 auto;
-  min-height: 0;
+  flex: 0 0 auto;
   flex-direction: column;
-  justify-content: center;
   gap: 0.7rem;
 }
 
 .review-sense__choice {
-  display: flex;
+  display: grid;
+  grid-template-columns: 4.75rem 1.4rem minmax(0, 1fr);
   min-height: 5.1rem;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.45rem 0.7rem 0.45rem 0.45rem;
+  column-gap: 0.65rem;
+  padding: 0.45rem 0.75rem 0.45rem 0.45rem;
   border: 2px solid color-mix(in srgb, var(--primary) 16%, transparent);
   border-radius: 1rem;
   background: var(--card);
@@ -1149,7 +1149,6 @@ body {
 
 .review-sense__thumb {
   position: relative;
-  flex-shrink: 0;
   width: 4.75rem;
   height: 4.75rem;
   overflow: hidden;
@@ -1163,13 +1162,9 @@ body {
 }
 
 .review-sense__letter {
-  position: absolute;
-  top: 0.28rem;
-  left: 0.28rem;
-  z-index: 2;
   display: inline-flex;
-  width: 1.35rem;
-  height: 1.35rem;
+  width: 1.4rem;
+  height: 1.4rem;
   align-items: center;
   justify-content: center;
   border-radius: 999px;
@@ -1182,7 +1177,6 @@ body {
 
 .review-sense__meaning {
   min-width: 0;
-  flex: 1 1 auto;
   font-size: 1.02rem;
   font-weight: 600;
   letter-spacing: -0.02em;

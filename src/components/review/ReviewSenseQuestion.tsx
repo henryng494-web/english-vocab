@@ -57,15 +57,15 @@ export function ReviewSenseQuestion({
               onClick={() => onChoose(choice)}
             >
               <span className="review-sense__thumb">
-                <span className={`review-sense__letter ${displayFontClass}`}>
-                  {choice.letter}
-                </span>
                 <ReviewWordImage
                   word={choice.word}
                   imageUrl={choice.imageUrl}
                   wordType={choice.wordType}
                   className="review-sense__photo"
                 />
+              </span>
+              <span className={`review-sense__letter ${displayFontClass}`}>
+                {choice.letter}
               </span>
               <span className={`review-sense__meaning ${displayFontClass}`}>
                 {choice.meaning}
