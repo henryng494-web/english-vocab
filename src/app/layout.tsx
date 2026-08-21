@@ -1,20 +1,9 @@
 import type { Metadata, Viewport } from "next";
-import { Fredoka, Inter } from "next/font/google";
+import type { CSSProperties } from "react";
 import { ThemeRoot } from "@/components/theme/ThemeRoot";
+import { fredoka, inter } from "@/lib/fonts";
 import { viewportBootstrapScript } from "@/lib/viewport-bootstrap-script";
 import "./globals.css";
-
-const inter = Inter({
-  subsets: ["latin", "vietnamese"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-inter",
-});
-
-const fredoka = Fredoka({
-  subsets: ["latin"],
-  weight: ["600", "700"],
-  variable: "--font-fredoka",
-});
 
 export const metadata: Metadata = {
   title: "English Vocab",
@@ -49,11 +38,21 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={`${inter.variable} ${fredoka.variable}`}
+      style={
+        {
+          "--font-inter": inter.style.fontFamily,
+          "--font-fredoka": fredoka.style.fontFamily,
+        } as CSSProperties
+      }
+    >
       <head>
         <script dangerouslySetInnerHTML={{ __html: viewportBootstrapScript }} />
       </head>
-      <body className={`${inter.variable} ${fredoka.variable} font-sans antialiased`}>
+      <body className={`${inter.className} antialiased`}>
         <ThemeRoot>{children}</ThemeRoot>
       </body>
     </html>

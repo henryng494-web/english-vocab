@@ -1,4 +1,5 @@
 import { CoachDog } from "@/components/mascot/CoachDog";
+import { displayFontClass } from "@/lib/fonts";
 
 type AppHeaderProps = {
   title: string;
@@ -20,7 +21,7 @@ export function AppHeader({ title, leading, trailing, peekFox = false }: AppHead
             <CoachDog pose="happy" size={68} title="Coach Fox" />
           </div>
         )}
-        <h1 className="app-header__title font-display">{title}</h1>
+        <h1 className={`app-header__title ${displayFontClass}`}>{title}</h1>
         <div className="app-header__side app-header__side--right">
           {trailing ?? <span className="app-header__spacer" aria-hidden />}
         </div>
