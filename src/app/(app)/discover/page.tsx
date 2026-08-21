@@ -9,6 +9,7 @@ import {
   DiscoverDashboard,
 } from "@/components/discover/DiscoverDashboard";
 import { AppHeader } from "@/components/layout/AppHeader";
+import { HeaderSelect } from "@/components/layout/HeaderSelect";
 import { CoachDog } from "@/components/mascot/CoachDog";
 import { WORD_RANGES } from "@/data/word-ranges";
 import {
@@ -423,19 +424,15 @@ export default function DiscoverPage() {
           </button>
         }
         trailing={
-          <select
-            id="range"
+          <HeaderSelect
             value={rangeId}
-            onChange={(e) => setRangeId(e.target.value)}
-            className="app-header__control"
+            onChange={setRangeId}
             aria-label="Select word range"
-          >
-            {WORD_RANGES.map((range) => (
-              <option key={range.id} value={range.id}>
-                {range.compactLabel}
-              </option>
-            ))}
-          </select>
+            options={WORD_RANGES.map((range) => ({
+              id: range.id,
+              label: range.compactLabel,
+            }))}
+          />
         }
       />
 

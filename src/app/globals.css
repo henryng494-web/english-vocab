@@ -659,10 +659,58 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-family: var(--font-inter, "Inter"), "Segoe UI", sans-serif;
   font-size: 0.75rem;
   font-weight: 700;
   color: #182030;
   box-shadow: 0 1px 4px rgba(24, 32, 48, 0.12);
+}
+
+.header-select {
+  flex-shrink: 0;
+}
+
+.header-select__menu {
+  position: fixed;
+  z-index: 80;
+  min-width: 7.75rem;
+  margin: 0;
+  padding: 0.35rem;
+  list-style: none;
+  border: 2px solid var(--card-border);
+  border-radius: 0.9rem;
+  background: var(--card);
+  box-shadow: var(--card-shadow);
+}
+
+.header-select__option {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 0.35rem;
+  border: none;
+  border-radius: 0.55rem;
+  background: transparent;
+  padding: 0.5rem 0.55rem;
+  font-family: var(--font-inter, "Inter"), "Segoe UI", sans-serif;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--foreground);
+  text-align: left;
+}
+
+.header-select__option.is-active {
+  background: var(--primary-100);
+  font-weight: 700;
+  color: var(--primary-800);
+}
+
+.header-select__check {
+  display: inline-flex;
+  width: 0.9rem;
+  flex-shrink: 0;
+  font-size: 0.75rem;
 }
 
 .app-header__spacer {
