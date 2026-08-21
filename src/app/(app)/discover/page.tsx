@@ -379,6 +379,7 @@ export default function DiscoverPage() {
         <AppHeader
           title="Vocab Journey"
           peekFox
+          foxPose="happy"
           leading={
             <Link href="/account" className="app-header__icon-btn" aria-label="Menu">
               ☰
@@ -412,6 +413,7 @@ export default function DiscoverPage() {
       <AppHeader
         title="Vocab Journey"
         peekFox="sm"
+        foxPose="happy"
         leading={
           <button
             type="button"

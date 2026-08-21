@@ -1,4 +1,4 @@
-import { CoachDog } from "@/components/mascot/CoachDog";
+import { CoachDog, type CoachDogPose } from "@/components/mascot/CoachDog";
 import { displayFontClass } from "@/lib/fonts";
 
 type AppHeaderProps = {
@@ -7,10 +7,18 @@ type AppHeaderProps = {
   trailing?: React.ReactNode;
   /** Home: full peek. Session: compact half-face so Rank still fits. */
   peekFox?: boolean | "sm";
+  /** Expression for the header peek. Defaults to happy (Vocab Journey). */
+  foxPose?: CoachDogPose;
 };
 
 /** Top bar — teal header, optional Coach Fox peeking from the bottom edge. */
-export function AppHeader({ title, leading, trailing, peekFox = false }: AppHeaderProps) {
+export function AppHeader({
+  title,
+  leading,
+  trailing,
+  peekFox = false,
+  foxPose = "happy",
+}: AppHeaderProps) {
   const foxSize = peekFox === "sm" ? "sm" : peekFox ? "home" : null;
   const innerClass =
     foxSize === "home"
@@ -30,7 +38,7 @@ export function AppHeader({ title, leading, trailing, peekFox = false }: AppHead
               aria-hidden
             >
               <CoachDog
-                pose="happy"
+                pose={foxPose}
                 size={foxSize === "sm" ? 48 : 68}
                 title="Coach Fox"
               />

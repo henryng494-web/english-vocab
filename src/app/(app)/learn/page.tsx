@@ -2,7 +2,6 @@
 
 import { Flashcard } from "@/components/flashcard/Flashcard";
 import { AppHeader } from "@/components/layout/AppHeader";
-import { CoachDog } from "@/components/mascot/CoachDog";
 import { capitalizeFirst } from "@/lib/format-text";
 import {
   mergeLocalLearning,
@@ -246,10 +245,7 @@ export default function LearnPage() {
 
   return (
     <div className="app-screen">
-      <AppHeader
-        title="Review"
-        leading={<CoachDog pose="wink" size={32} />}
-      />
+      <AppHeader title="Review" peekFox foxPose="think" />
 
       <div className="page-scroll px-4">
         <form onSubmit={handleAddWord} className="flex gap-2">
