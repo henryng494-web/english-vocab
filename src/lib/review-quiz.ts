@@ -150,19 +150,22 @@ function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
+function sentenceHasWord(sentence: string, word: string): boolean {
+  const needle = word.trim();
+  if (!needle || !sentence.trim()) return false;
+  return new RegExp(`\\b${escapeRegExp(needle)}\\b`, "i").test(sentence);
+}
+
 export function pickReviewRecallSentence(
   word: string,
   rawExamples: unknown,
 ): string {
   const parsed = parseExamples(rawExamples);
   const natural = keepNaturalExamples(word, parsed);
-  const preferred = natural[0]?.en?.trim();
-  if (preferred) return preferred;
-  const needle = word.trim().toLowerCase();
-  const fallback = parsed.find((item) =>
-    item.en.toLowerCase().includes(needle),
-  );
-  return fallback?.en?.trim() ?? "";
+  const withWord =
+    natural.find((item) => sentenceHasWord(item.en, word)) ??
+    parsed.find((item) => sentenceHasWord(item.en, word));
+  return withWord?.en?.trim() ?? natural[0]?.en?.trim() ?? "";
 }
 
 export function splitSentenceAroundWord(
