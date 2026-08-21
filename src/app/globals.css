@@ -1208,6 +1208,87 @@ body {
   opacity: 0.45;
 }
 
+/* —— Review recall (image + highlighted sentence → Look Up / I Remember) —— */
+.review-recall {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.85rem;
+  height: 100%;
+  min-height: 0;
+  padding: 0.65rem 1.1rem;
+  font-family: var(--font-display);
+}
+
+.review-recall button {
+  font-family: inherit;
+}
+
+.review-recall__image {
+  position: relative;
+  flex: 0 1 auto;
+  width: 100%;
+  aspect-ratio: 1;
+  height: auto;
+  max-height: 52%;
+  min-height: 10rem;
+  overflow: hidden;
+  border-radius: 1rem;
+  background: var(--primary-100);
+}
+
+.review-recall__sentence {
+  margin: 0;
+  flex-shrink: 0;
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.45;
+  color: var(--foreground);
+}
+
+.review-recall__word {
+  color: var(--primary);
+  font-weight: 800;
+}
+
+.review-recall__actions {
+  display: grid;
+  flex-shrink: 0;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.65rem;
+}
+
+.review-recall__btn {
+  min-height: 3.35rem;
+  padding: 0.7rem 0.8rem;
+  border: 2px solid color-mix(in srgb, var(--primary) 16%, transparent);
+  border-radius: 0.9rem;
+  background: var(--card);
+  font-family: inherit;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--foreground);
+  box-shadow: 0 2px 8px rgba(24, 32, 48, 0.06);
+}
+
+.review-recall__btn:disabled {
+  cursor: default;
+}
+
+.review-recall__btn.is-active {
+  border-color: var(--secondary);
+  background: color-mix(in srgb, var(--secondary) 12%, var(--card));
+}
+
+.review-recall__btn--remember.is-correct {
+  border-color: var(--primary);
+  background: var(--primary-50);
+}
+
 .review-reveal {
   display: grid;
   grid-template-rows: minmax(0, 1fr) auto;

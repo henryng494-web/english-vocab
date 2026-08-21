@@ -2,6 +2,7 @@
 
 import { AppHeader } from "@/components/layout/AppHeader";
 import { ReviewQuestion } from "@/components/review/ReviewQuestion";
+import { ReviewRecallQuestion } from "@/components/review/ReviewRecallQuestion";
 import { ReviewReveal } from "@/components/review/ReviewReveal";
 import { ReviewSenseQuestion } from "@/components/review/ReviewSenseQuestion";
 import { CoachDog } from "@/components/mascot/CoachDog";
@@ -12,6 +13,7 @@ import {
 import {
   buildReviewChoices,
   buildReviewSenseChoices,
+  pickReviewRecallSentence,
   reviewClue,
   reviewQuizKindForIndex,
   type ReviewChoice,
@@ -60,28 +62,33 @@ export default function LearnPage() {
       resultTimer.current = null;
     }
     const schedule = getReviewSchedule(word.word);
-    const wantSense = reviewQuizKindForIndex(questionIndex) === "sense";
-    const senseChoices = wantSense
-      ? buildReviewSenseChoices(word.word, pool)
-      : [];
-    const kind: ReviewQuizKind =
-      wantSense && senseChoices.length === 3 ? "sense" : "word";
+    const wanted = reviewQuizKindForIndex(questionIndex);
+    let kind: ReviewQuizKind = "word";
+    let nextChoices: ReviewChoice[] = [];
+    if (wanted === "sense") {
+      const senseChoices = buildReviewSenseChoices(word.word, pool);
+      if (senseChoices.length === 3) {
+        kind = "sense";
+        nextChoices = senseChoices;
+      }
+    } else if (wanted === "recall") {
+      kind = "recall";
+    }
+    if (kind === "word") {
+      nextChoices = buildReviewChoices(
+        word.word,
+        pool.filter(
+          (item) =>
+            /^[a-z]+$/i.test(item.word) &&
+            item.word.length >= 3 &&
+            Boolean(item.english_definition?.trim()),
+        ),
+        word.rank,
+      );
+    }
     setPhase("question");
     setQuizKind(kind);
-    setChoices(
-      kind === "sense"
-        ? senseChoices
-        : buildReviewChoices(
-            word.word,
-            pool.filter(
-              (item) =>
-                /^[a-z]+$/i.test(item.word) &&
-                item.word.length >= 3 &&
-                Boolean(item.english_definition?.trim()),
-            ),
-            word.rank,
-          ),
-    );
+    setChoices(nextChoices);
     setSelectedKey(null);
     setUnsure(false);
     setLocked(false);
@@ -142,7 +149,10 @@ export default function LearnPage() {
       currentWord.english_definition?.trim() &&
       currentWord.vietnamese_meaning.trim().toLowerCase() ===
         currentWord.english_definition.trim().toLowerCase();
-    if (!missingImage && !badVi) return;
+    const missingExamples =
+      quizKind === "recall" &&
+      !pickReviewRecallSentence(currentWord.word, currentWord.examples);
+    if (!missingImage && !badVi && !missingExamples) return;
 
     let cancelled = false;
     const params = new URLSearchParams({
@@ -184,9 +194,16 @@ export default function LearnPage() {
     currentWord?.image_url,
     currentWord?.vietnamese_meaning,
     currentWord?.english_definition,
+    currentWord?.examples,
+    quizKind,
   ]);
 
-  function lockAnswer(isCorrect: boolean, key: string | null, wasUnsure: boolean) {
+  function lockAnswer(
+    isCorrect: boolean,
+    key: string | null,
+    wasUnsure: boolean,
+    immediate = false,
+  ) {
     if (locked || !currentWord) return;
     const schedule = getReviewSchedule(currentWord.word);
     setLocked(true);
@@ -199,6 +216,10 @@ export default function LearnPage() {
     setTimesReviewed(
       isCorrect ? schedule.timesReviewed + 1 : schedule.timesReviewed,
     );
+    if (immediate) {
+      setPhase("reveal");
+      return;
+    }
     resultTimer.current = window.setTimeout(() => {
       setPhase("reveal");
     }, 850);
@@ -212,6 +233,14 @@ export default function LearnPage() {
 
   function handleUnsure() {
     lockAnswer(false, null, true);
+  }
+
+  function handleLookUp() {
+    lockAnswer(false, "lookup", true, true);
+  }
+
+  function handleRemember() {
+    lockAnswer(true, "remember", false, true);
   }
 
   async function handleAddWord(e: React.FormEvent) {
@@ -290,6 +319,26 @@ export default function LearnPage() {
           locked={locked}
           onChoose={handleChoose}
           onUnsure={handleUnsure}
+        />
+      ) : inSession && currentWord && phase === "question" && quizKind === "recall" ? (
+        <ReviewRecallQuestion
+          word={currentWord.word}
+          imageUrl={currentWord.image_url}
+          wordType={currentWord.word_type}
+          sentence={pickReviewRecallSentence(
+            currentWord.word,
+            currentWord.examples,
+          )}
+          locked={locked}
+          remembered={
+            selectedKey === "remember"
+              ? true
+              : selectedKey === "lookup"
+                ? false
+                : null
+          }
+          onLookUp={handleLookUp}
+          onRemember={handleRemember}
         />
       ) : inSession && currentWord && phase === "question" ? (
         <ReviewQuestion

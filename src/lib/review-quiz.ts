@@ -1,4 +1,6 @@
+import { keepNaturalExamples } from "@/lib/example-quality";
 import { capitalizeFirst } from "@/lib/format-text";
+import { parseExamples } from "@/lib/parse-examples";
 import { isSameRankBand } from "@/data/word-ranges";
 
 const FALLBACK_DISTRACTORS = [
@@ -29,7 +31,7 @@ export type ReviewChoice = {
   wordType?: string | null;
 };
 
-export type ReviewQuizKind = "word" | "sense";
+export type ReviewQuizKind = "word" | "sense" | "recall";
 
 const LETTERS = ["A", "B", "C", "D"] as const;
 const SENSE_LETTERS = ["A", "B", "C"] as const;
@@ -138,7 +140,47 @@ export function buildReviewSenseChoices(
 }
 
 export function reviewQuizKindForIndex(index: number): ReviewQuizKind {
-  return index % 2 === 1 ? "sense" : "word";
+  const slot = index % 3;
+  if (slot === 1) return "sense";
+  if (slot === 2) return "recall";
+  return "word";
+}
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+export function pickReviewRecallSentence(
+  word: string,
+  rawExamples: unknown,
+): string {
+  const parsed = parseExamples(rawExamples);
+  const natural = keepNaturalExamples(word, parsed);
+  const preferred = natural[0]?.en?.trim();
+  if (preferred) return preferred;
+  const needle = word.trim().toLowerCase();
+  const fallback = parsed.find((item) =>
+    item.en.toLowerCase().includes(needle),
+  );
+  return fallback?.en?.trim() ?? "";
+}
+
+export function splitSentenceAroundWord(
+  sentence: string,
+  word: string,
+): Array<{ text: string; highlight: boolean }> {
+  const needle = word.trim();
+  if (!sentence.trim() || !needle) {
+    return sentence ? [{ text: sentence, highlight: false }] : [];
+  }
+  const re = new RegExp(`\\b(${escapeRegExp(needle)})\\b`, "ig");
+  const parts = sentence.split(re);
+  return parts
+    .filter((part) => part.length > 0)
+    .map((text) => ({
+      text,
+      highlight: text.toLowerCase() === needle.toLowerCase(),
+    }));
 }
 
 function shuffle<T>(items: T[]): T[] {
