@@ -94,6 +94,15 @@ You may fix bugs inside these files but preserve the layout contract.
 - **API:** `GET /api/discover/word?word=hole` returns enriched payload when secrets are configured.
 - **Add word:** authenticated add flow writes to Supabase when logged in.
 
+### Walkthrough artifacts
+
+Van prefers a faster turnaround. After a task is done:
+
+- **Do not** record screen videos or take screenshots to attach in the chat or PR.
+- **Do not** use computer-use / GUI walkthrough recordings unless Van explicitly asks to capture the UI.
+- Verify with `npm run build` / `npx tsc --noEmit`, lint, and API or terminal checks when those are enough.
+- Use `/no-test` only when Van wants to skip testing entirely.
+
 ### Auth on cloud
 
 Login uses Supabase auth (`src/app/auth/login`). For flows requiring a session, use test credentials from Cloud Agent secrets if provided; otherwise test unauthenticated or API-only paths.
