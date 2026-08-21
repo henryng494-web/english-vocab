@@ -1,11 +1,8 @@
 "use client";
 
-import { CoachDogBubble } from "@/components/mascot/CoachDogBubble";
 import { CoachDog } from "@/components/mascot/CoachDog";
-import { WORD_RANGES, type WordRange } from "@/data/word-ranges";
 
 type DiscoverDashboardProps = {
-  rangeId: string;
   rangeLabel: string;
   queueLength: number;
   currentIndex: number;
@@ -14,7 +11,6 @@ type DiscoverDashboardProps = {
   todayLearned: number;
   todayGoal: number;
   onStartLearning: () => void;
-  onRangeChange: (rangeId: string) => void;
 };
 
 function CoinBadge({ value }: { value: number }) {
@@ -38,7 +34,6 @@ function ProgressBar({ value, max }: { value: number; max: number }) {
 }
 
 export function DiscoverDashboard({
-  rangeId,
   rangeLabel,
   queueLength,
   currentIndex,
@@ -47,7 +42,6 @@ export function DiscoverDashboard({
   todayLearned,
   todayGoal,
   onStartLearning,
-  onRangeChange,
 }: DiscoverDashboardProps) {
   const rankProgress =
     queueLength > 0
@@ -57,41 +51,31 @@ export function DiscoverDashboard({
   return (
     <div className="home-scroll page-scroll">
       <div className="home-content space-y-4 px-4 pb-6">
-        {/* Welcome */}
-        <div className="home-welcome-wrap">
-          <CoachDogBubble
-            message="Let's learn something new!"
-            pose="happy"
-            className="home-welcome-bubble"
+        <section className="home-card home-welcome">
+          <div className="home-welcome__text">
+            <h2 className="home-section-title font-display">
+              Hi there! Ready to learn today?
+            </h2>
+            <p className="home-body-text mt-1">
+              Let&apos;s grow your vocabulary together with Coach Fox!
+            </p>
+            <button
+              type="button"
+              onClick={onStartLearning}
+              disabled={queueLength === 0}
+              className="btn-pill-primary mt-4 w-full"
+            >
+              Start Learning →
+            </button>
+          </div>
+          <CoachDog
+            pose="wave"
+            size={108}
+            className="home-welcome__dog"
+            title="Coach Fox"
           />
+        </section>
 
-          <section className="home-card home-welcome">
-            <div className="home-welcome__text">
-              <h2 className="home-section-title font-display">
-                Hi there! Ready to learn today?
-              </h2>
-              <p className="home-body-text mt-1">
-                Let&apos;s grow your vocabulary together with Coach Fox!
-              </p>
-              <button
-                type="button"
-                onClick={onStartLearning}
-                disabled={queueLength === 0}
-                className="btn-pill-primary mt-4 w-full"
-              >
-                Start Learning →
-              </button>
-            </div>
-            <CoachDog
-              pose="wave"
-              size={108}
-              className="home-welcome__dog"
-              title="Coach Fox"
-            />
-          </section>
-        </div>
-
-        {/* Today&apos;s goal */}
         <section>
           <div className="home-section-header">
             <h3 className="home-section-label">Today&apos;s Goal</h3>
@@ -110,7 +94,6 @@ export function DiscoverDashboard({
           </div>
         </section>
 
-        {/* Your progress */}
         <section>
           <div className="home-section-header">
             <h3 className="home-section-label">Your Progress</h3>
@@ -142,7 +125,6 @@ export function DiscoverDashboard({
           </div>
         </section>
 
-        {/* Continue learning */}
         <section>
           <div className="home-section-header">
             <h3 className="home-section-label">Continue Learning</h3>
@@ -165,22 +147,6 @@ export function DiscoverDashboard({
               ›
             </span>
           </button>
-
-          <label className="mt-3 block">
-            <span className="home-section-label mb-1 block">Word rank</span>
-            <select
-              value={rangeId}
-              onChange={(e) => onRangeChange(e.target.value)}
-              className="home-select w-full"
-              aria-label="Select word range"
-            >
-              {WORD_RANGES.map((range: WordRange) => (
-                <option key={range.id} value={range.id}>
-                  {range.label}
-                </option>
-              ))}
-            </select>
-          </label>
         </section>
       </div>
     </div>
