@@ -1,3 +1,6 @@
+import { readLocalLearning } from "@/lib/learning-storage";
+import type { LearningStatus } from "@/types/database";
+
 export const REVIEW_INTERVALS = [1, 2, 4, 7, 14, 30] as const;
 
 export type ReviewIntervalDays = (typeof REVIEW_INTERVALS)[number];
@@ -61,9 +64,63 @@ export function getReviewSchedule(word: string): ReviewScheduleEntry {
   };
 }
 
+function endOfLocalDay(now = Date.now()): number {
+  const d = new Date(now);
+  d.setHours(23, 59, 59, 999);
+  return d.getTime();
+}
+
 export function isReviewDue(word: string, now = Date.now()): boolean {
   const entry = getReviewSchedule(word);
-  return Date.parse(entry.nextReviewAt) <= now;
+  return Date.parse(entry.nextReviewAt) <= endOfLocalDay(now);
+}
+
+export function isDueReviewWord(
+  word: string,
+  learningStatus: LearningStatus,
+  lastReviewedAt: string | null | undefined,
+  now = Date.now(),
+): boolean {
+  const local = readLocalLearning();
+  const localEntry = local[word] ?? local[word.trim().toLowerCase()];
+  const status = localEntry?.status ?? learningStatus;
+  if (status === "mastered") return false;
+  const tracked = Boolean(localEntry) || Boolean(lastReviewedAt);
+  if (!tracked) return false;
+  return isReviewDue(word, now);
+}
+
+export function countDueReviewWords(
+  extraWords: Array<{
+    word: string;
+    status?: LearningStatus | string;
+    last_reviewed_at?: string | null;
+  }> = [],
+  now = Date.now(),
+): number {
+  const local = readLocalLearning();
+  const due = new Set<string>();
+
+  for (const [word, entry] of Object.entries(local)) {
+    if (entry.status === "mastered") continue;
+    if (isReviewDue(word, now)) due.add(word.trim().toLowerCase());
+  }
+
+  for (const item of extraWords) {
+    const key = item.word.trim().toLowerCase();
+    if (
+      isDueReviewWord(
+        item.word,
+        (item.status as LearningStatus) ?? "new",
+        item.last_reviewed_at,
+        now,
+      )
+    ) {
+      due.add(key);
+    }
+  }
+
+  return due.size;
 }
 
 export function writeReviewSchedule(

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { countLearningWords } from "@/lib/learning-storage";
+import { countDueReviewWords } from "@/lib/review-schedule";
 
 type TabItem = {
   href: string;
@@ -62,18 +62,24 @@ function AccountIcon({ active }: { active: boolean }) {
 
 export function BottomTabBar() {
   const pathname = usePathname();
-  const [learningCount, setLearningCount] = useState(0);
+  const [dueCount, setDueCount] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
     const refresh = async () => {
-      const local = countLearningWords();
-      if (!cancelled) setLearningCount(local);
+      const local = countDueReviewWords();
+      if (!cancelled) setDueCount(local);
       try {
         const res = await fetch("/api/words?summary=learning", { cache: "no-store" });
-        const data = (await res.json()) as { learning?: number };
-        if (cancelled || typeof data.learning !== "number") return;
-        setLearningCount(Math.max(local, data.learning));
+        const data = (await res.json()) as {
+          words?: Array<{
+            word: string;
+            status?: string;
+            last_reviewed_at?: string | null;
+          }>;
+        };
+        if (cancelled) return;
+        setDueCount(countDueReviewWords(data.words ?? []));
       } catch {
         /* keep local count */
       }
@@ -132,12 +138,12 @@ export function BottomTabBar() {
               <span className="tab-bar-link__pill">
                 <span className="tab-bar-link__icon">
                   {tab.icon(active)}
-                  {tab.showBadge ? (
+                  {tab.showBadge && dueCount > 0 ? (
                     <span
                       className="tab-bar-badge"
-                      aria-label={`${learningCount} words learning`}
+                      aria-label={`${dueCount} words due today`}
                     >
-                      {learningCount > 99 ? "99+" : learningCount}
+                      {dueCount > 99 ? "99+" : dueCount}
                     </span>
                   ) : null}
                 </span>

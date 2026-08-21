@@ -25,16 +25,12 @@ export async function GET(request: Request) {
     if (searchParams.get("summary") === "learning") {
       const { data, error } = await supabase
         .from("user_learning")
-        .select("status");
+        .select("word, status, last_reviewed_at");
       if (error) {
-        return NextResponse.json({ learning: 0 });
+        return NextResponse.json({ words: [] });
       }
-      const learning = (data ?? []).filter((row) =>
-        row.status === "new" ||
-        row.status === "learning" ||
-        row.status === "need_review",
-      ).length;
-      return NextResponse.json({ learning });
+      const words = (data ?? []).filter((row) => row.status !== "mastered");
+      return NextResponse.json({ words });
     }
 
     await cleanupCorruptWords(supabase);

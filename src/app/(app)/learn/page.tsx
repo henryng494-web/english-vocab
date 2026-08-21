@@ -12,7 +12,7 @@ import { buildReviewChoices, reviewClue, type ReviewChoice } from "@/lib/review-
 import {
   advanceReviewInterval,
   getReviewSchedule,
-  isReviewDue,
+  isDueReviewWord,
   writeReviewSchedule,
   type ReviewIntervalDays,
 } from "@/lib/review-schedule";
@@ -88,8 +88,12 @@ export default function LearnPage() {
           importance_tier: word.importance_tier ?? getImportanceTier(word.rank),
         })),
       );
-      const due = fetched.filter(
-        (word) => word.learning_status !== "mastered" && isReviewDue(word.word),
+      const due = fetched.filter((word) =>
+        isDueReviewWord(
+          word.word,
+          word.learning_status,
+          word.last_reviewed_at,
+        ),
       );
       setAllWords(fetched);
       setQueue(due);
