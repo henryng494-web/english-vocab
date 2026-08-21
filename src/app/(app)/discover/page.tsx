@@ -333,6 +333,9 @@ export default function DiscoverPage() {
     const word = currentItem.word;
     setError(null);
     writeLocalLearning(word, status === "mastered" ? "mastered" : "new");
+    if (status === "mastered") {
+      setStats((current) => ({ ...current, hidden: current.hidden + 1 }));
+    }
     if (status === "new") {
       setTodayLearned(incrementTodayWordsLearned());
       setWordsLearned(countWordsLearned());
