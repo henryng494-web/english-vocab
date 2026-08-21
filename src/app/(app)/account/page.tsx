@@ -21,9 +21,9 @@ export default function AccountPage() {
       <div className="page-scroll">
         <div className="space-y-6 px-4 pb-6">
           <section className="home-card flex items-center gap-3">
-            <CoachDog pose="smirk" size={56} />
+            <CoachDog pose="smirk" size={64} />
             <div>
-              <h2 className="home-section-title font-display">Coach Dog</h2>
+              <h2 className="home-section-title font-display">Coach Fox</h2>
               <p className="home-body-text">Your vocabulary learning buddy</p>
             </div>
           </section>
