@@ -61,3 +61,8 @@ export function getLocallyMasteredWords(): string[] {
     .filter(([, v]) => v.status === "mastered")
     .map(([word]) => word);
 }
+
+/** Words the learner already acted on — known or added to Review. */
+export function getLocallyTakenWords(): string[] {
+  return Object.keys(readLocalLearning());
+}

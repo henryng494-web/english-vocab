@@ -43,13 +43,13 @@ export async function GET(request: Request) {
       console.warn("user_learning fetch skipped:", learningError.message);
     }
 
-    const masteredWords = new Set(
-      (learningRows ?? [])
-        .filter((r) => r.status === "mastered")
-        .map((r) => r.word),
+    const takenWords = new Set(
+      (learningRows ?? []).map((row) => row.word.trim().toLowerCase()),
     );
 
-    const visiblePreset = presetWords.filter((p) => !masteredWords.has(p.word));
+    const visiblePreset = presetWords.filter(
+      (preset) => !takenWords.has(preset.word.trim().toLowerCase()),
+    );
 
     const words = visiblePreset.map((preset) => {
       const staticDetail = getStaticWordDetail(preset.word);

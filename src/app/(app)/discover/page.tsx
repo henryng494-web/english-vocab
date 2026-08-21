@@ -29,7 +29,7 @@ import {
   incrementTodayWordsLearned,
 } from "@/lib/daily-goal";
 import {
-  getLocallyMasteredWords,
+  getLocallyTakenWords,
   writeLocalLearning,
 } from "@/lib/learning-storage";
 import Link from "next/link";
@@ -126,9 +126,11 @@ export default function DiscoverPage() {
 
   const currentItem = queue[currentIndex];
 
-  const filterLocalMastered = useCallback((items: DiscoverListItem[]) => {
-    const localMastered = new Set(getLocallyMasteredWords());
-    return items.filter((w) => !localMastered.has(w.word));
+  const filterLocalTaken = useCallback((items: DiscoverListItem[]) => {
+    const taken = new Set(
+      getLocallyTakenWords().map((word) => word.trim().toLowerCase()),
+    );
+    return items.filter((item) => !taken.has(item.word.trim().toLowerCase()));
   }, []);
 
   const fetchWordFromApi = useCallback(
@@ -261,7 +263,7 @@ export default function DiscoverPage() {
         throw new Error(data.details ?? data.error ?? "Failed to load word bank");
       }
 
-      const filtered = filterLocalMastered(data.words ?? []);
+      const filtered = filterLocalTaken(data.words ?? []);
       setQueue(filtered);
       setCurrentIndex(0);
       setStats({
@@ -277,7 +279,7 @@ export default function DiscoverPage() {
     } finally {
       setLoadingList(false);
     }
-  }, [rangeId, filterLocalMastered]);
+  }, [rangeId, filterLocalTaken]);
 
   useEffect(() => {
     purgeLegacyDiscoverWordCaches();
@@ -333,9 +335,7 @@ export default function DiscoverPage() {
     const word = currentItem.word;
     setError(null);
     writeLocalLearning(word, status === "mastered" ? "mastered" : "new");
-    if (status === "mastered") {
-      setStats((current) => ({ ...current, hidden: current.hidden + 1 }));
-    }
+    setStats((current) => ({ ...current, hidden: current.hidden + 1 }));
     if (status === "new") {
       setTodayLearned(incrementTodayWordsLearned());
       setWordsLearned(countWordsLearned());
@@ -439,8 +439,8 @@ export default function DiscoverPage() {
 
       <div className="journey-panel px-4">
         <p className="journey-note">
-          {stats.hidden} known {stats.hidden === 1 ? "word" : "words"} in
-          this rank ({rangeCompact})
+          {stats.hidden} {stats.hidden === 1 ? "word" : "words"} known or in
+          review in this rank ({rangeCompact})
         </p>
 
         {error && (
@@ -458,8 +458,8 @@ export default function DiscoverPage() {
             <CoachDog pose="sad" size={72} className="mb-3" />
             <div className="w-full">
               <p className="text-foreground/80">
-                You&apos;ve finished this range or marked every word as
-                &ldquo;Already know&rdquo;.
+                You&apos;ve finished this range. Words you learned or marked
+                as known no longer appear here.
               </p>
               <button
                 type="button"
