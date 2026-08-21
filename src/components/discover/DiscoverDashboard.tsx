@@ -71,7 +71,7 @@ export function DiscoverDashboard({
                 Hi there! Ready to learn today?
               </h2>
               <p className="home-body-text mt-1">
-                Let&apos;s grow your vocabulary together with Coach Dog!
+                Let&apos;s grow your vocabulary together with Coach Fox!
               </p>
               <button
                 type="button"
@@ -83,10 +83,10 @@ export function DiscoverDashboard({
               </button>
             </div>
             <CoachDog
-              pose="neutral"
-              size={96}
+              pose="wave"
+              size={108}
               className="home-welcome__dog"
-              title="Coach Dog"
+              title="Coach Fox"
             />
           </section>
         </div>
