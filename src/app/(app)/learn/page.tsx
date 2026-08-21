@@ -51,7 +51,19 @@ export default function LearnPage() {
     }
     const schedule = getReviewSchedule(word.word);
     setPhase("question");
-    setChoices(buildReviewChoices(word.word, pool.map((item) => item.word)));
+    setChoices(
+      buildReviewChoices(
+        word.word,
+        pool
+          .filter(
+            (item) =>
+              /^[a-z]+$/i.test(item.word) &&
+              item.word.length >= 3 &&
+              Boolean(item.english_definition?.trim()),
+          )
+          .map((item) => item.word),
+      ),
+    );
     setSelectedKey(null);
     setUnsure(false);
     setLocked(false);
