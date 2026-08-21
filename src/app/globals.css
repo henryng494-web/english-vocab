@@ -612,7 +612,22 @@ body {
 
 .home-scroll {
   min-height: 0;
-  flex: 1;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.home-scroll.page-scroll {
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+}
+
+.home-content {
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1.25rem;
 }
 
 .home-card {
