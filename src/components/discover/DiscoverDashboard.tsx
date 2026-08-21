@@ -84,7 +84,7 @@ export function DiscoverDashboard({
             </div>
             <CoachDog
               pose="neutral"
-              size={88}
+              size={96}
               className="home-welcome__dog"
               title="Coach Dog"
             />

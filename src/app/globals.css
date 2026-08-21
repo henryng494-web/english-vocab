@@ -633,11 +633,11 @@ body {
 }
 
 .home-welcome__dog {
-  flex: 0 0 88px;
-  width: 88px;
-  height: 96px;
-  margin-right: 0;
-  margin-bottom: -0.25rem;
+  flex: 0 0 96px;
+  width: 96px;
+  height: auto;
+  display: block;
+  overflow: visible;
 }
 
 .home-section-header {
