@@ -10,7 +10,7 @@ type TabItem = {
   label: string;
   match: (path: string) => boolean;
   icon: (active: boolean) => React.ReactNode;
-  badge?: number;
+  showBadge?: boolean;
 };
 
 function DiscoverIcon({ active }: { active: boolean }) {
@@ -65,11 +65,24 @@ export function BottomTabBar() {
   const [learningCount, setLearningCount] = useState(0);
 
   useEffect(() => {
-    const refresh = () => setLearningCount(countLearningWords());
-    refresh();
+    let cancelled = false;
+    const refresh = async () => {
+      const local = countLearningWords();
+      if (!cancelled) setLearningCount(local);
+      try {
+        const res = await fetch("/api/words?summary=learning", { cache: "no-store" });
+        const data = (await res.json()) as { learning?: number };
+        if (cancelled || typeof data.learning !== "number") return;
+        setLearningCount(Math.max(local, data.learning));
+      } catch {
+        /* keep local count */
+      }
+    };
+    void refresh();
     window.addEventListener("vocab-learning-changed", refresh);
     window.addEventListener("storage", refresh);
     return () => {
+      cancelled = true;
       window.removeEventListener("vocab-learning-changed", refresh);
       window.removeEventListener("storage", refresh);
     };
@@ -87,7 +100,7 @@ export function BottomTabBar() {
       label: "Review",
       match: (path) => path.startsWith("/learn"),
       icon: (active) => <LearnIcon active={active} />,
-      badge: learningCount,
+      showBadge: true,
     },
     {
       href: "/account",
@@ -105,10 +118,9 @@ export function BottomTabBar() {
       }}
       aria-label="Main navigation"
     >
-      <div className="mx-auto grid h-[var(--tab-bar-height)] max-w-lg grid-cols-3">
+      <div className="mx-auto grid h-[var(--tab-bar-height)] max-w-lg grid-cols-3 overflow-visible">
         {tabs.map((tab) => {
           const active = tab.match(pathname);
-          const badge = tab.badge ?? 0;
           return (
             <Link
               key={tab.href}
@@ -118,12 +130,17 @@ export function BottomTabBar() {
               }`}
             >
               <span className="tab-bar-link__pill">
-                {tab.icon(active)}
-                {badge > 0 ? (
-                  <span className="tab-bar-badge" aria-label={`${badge} words learning`}>
-                    {badge > 99 ? "99+" : badge}
-                  </span>
-                ) : null}
+                <span className="tab-bar-link__icon">
+                  {tab.icon(active)}
+                  {tab.showBadge ? (
+                    <span
+                      className="tab-bar-badge"
+                      aria-label={`${learningCount} words learning`}
+                    >
+                      {learningCount > 99 ? "99+" : learningCount}
+                    </span>
+                  ) : null}
+                </span>
               </span>
               <span>{tab.label}</span>
             </Link>

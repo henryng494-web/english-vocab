@@ -28,7 +28,10 @@ export function writeLocalLearning(word: string, status: LearningStatus) {
 export function countLearningWords(): number {
   const map = readLocalLearning();
   return Object.values(map).filter(
-    (entry) => entry.status === "new" || entry.status === "learning",
+    (entry) =>
+      entry.status === "new" ||
+      entry.status === "learning" ||
+      entry.status === "need_review",
   ).length;
 }
 

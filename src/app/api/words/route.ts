@@ -22,6 +22,21 @@ export async function GET(request: Request) {
 
     const supabase = await createClient();
 
+    if (searchParams.get("summary") === "learning") {
+      const { data, error } = await supabase
+        .from("user_learning")
+        .select("status");
+      if (error) {
+        return NextResponse.json({ learning: 0 });
+      }
+      const learning = (data ?? []).filter((row) =>
+        row.status === "new" ||
+        row.status === "learning" ||
+        row.status === "need_review",
+      ).length;
+      return NextResponse.json({ learning });
+    }
+
     await cleanupCorruptWords(supabase);
 
     const { data: bankRows, error: bankError } = await supabase
