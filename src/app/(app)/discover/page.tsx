@@ -446,7 +446,7 @@ export default function DiscoverPage() {
         )}
 
         {error && (
-          <p className="rounded-xl border border-primary-200 bg-primary-50 px-4 py-3 text-sm text-primary-800">
+          <p className="shrink-0 rounded-xl border border-primary-200 bg-primary-50 px-4 py-3 text-sm text-primary-800">
             {error}
           </p>
         )}
