@@ -31,7 +31,7 @@ export function AppHeader({ title, leading, trailing, peekFox = false }: AppHead
             >
               <CoachDog
                 pose="happy"
-                size={foxSize === "sm" ? 40 : 68}
+                size={foxSize === "sm" ? 48 : 68}
                 title="Coach Fox"
               />
             </div>
