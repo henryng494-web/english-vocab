@@ -1,3 +1,5 @@
+import { displayFontClass } from "@/lib/fonts";
+
 type MobileTopBarProps = {
   title: string;
   subtitle?: string;
@@ -25,7 +27,7 @@ export function MobileTopBar({
               </div>
             ) : null}
             <div className="min-w-0 pt-0.5">
-              <h1 className="mobile-top-bar__title">{title}</h1>
+              <h1 className={`mobile-top-bar__title ${displayFontClass}`}>{title}</h1>
               {subtitle ? (
                 <p className="mobile-top-bar__subtitle">{subtitle}</p>
               ) : null}

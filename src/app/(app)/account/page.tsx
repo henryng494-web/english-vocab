@@ -3,6 +3,7 @@
 import { AppHeader } from "@/components/layout/AppHeader";
 import { InstallAppHint } from "@/components/layout/InstallAppHint";
 import { CoachDog } from "@/components/mascot/CoachDog";
+import { displayFontClass } from "@/lib/fonts";
 import { LAYOUT_VERSION } from "@/lib/layout-version";
 import Link from "next/link";
 
@@ -23,7 +24,7 @@ export default function AccountPage() {
           <section className="home-card flex items-center gap-3">
             <CoachDog pose="smirk" size={64} />
             <div>
-              <h2 className="home-section-title font-display">Coach Fox</h2>
+              <h2 className={`home-section-title ${displayFontClass}`}>Coach Fox</h2>
               <p className="home-body-text">Your vocabulary learning buddy</p>
             </div>
           </section>
@@ -31,7 +32,7 @@ export default function AccountPage() {
           <InstallAppHint />
 
           <section className="home-card">
-            <h2 className="home-section-title font-display">Sign in</h2>
+            <h2 className={`home-section-title ${displayFontClass}`}>Sign in</h2>
             <p className="home-body-text mt-1">
               Save learning progress to Supabase when you are signed in.
             </p>

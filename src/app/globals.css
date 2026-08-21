@@ -41,8 +41,8 @@
   --color-foreground: var(--foreground);
   --color-surface: var(--surface);
   --color-surface-strong: var(--surface-strong);
-  --font-sans: var(--font-inter), "Inter", "Segoe UI", system-ui, sans-serif;
-  --font-display: var(--font-fredoka), "Fredoka", sans-serif;
+  --font-sans: var(--font-inter, "Inter"), "Segoe UI", system-ui, sans-serif;
+  --font-display: var(--font-fredoka, "Fredoka"), sans-serif;
 
   --text-xs: 0.75rem;
   --text-xs--line-height: 1.125rem;
@@ -92,7 +92,7 @@ body {
 }
 
 .font-display {
-  font-family: var(--font-fredoka), "Fredoka", sans-serif;
+  font-family: var(--font-fredoka, "Fredoka"), sans-serif;
   font-weight: 700;
 }
 
@@ -427,7 +427,7 @@ body {
 }
 
 .mobile-top-bar__title {
-  font-family: var(--font-fredoka), "Fredoka", sans-serif;
+  font-family: var(--font-fredoka, "Fredoka"), sans-serif;
   font-size: 1.5rem;
   font-weight: 700;
   line-height: 1.15;
@@ -524,7 +524,7 @@ body {
 .app-header__title {
   margin: 0;
   text-align: center;
-  font-family: var(--font-fredoka), "Fredoka", sans-serif;
+  font-family: var(--font-fredoka, "Fredoka"), sans-serif;
   font-size: 1.25rem;
   font-weight: 700;
   letter-spacing: -0.02em;
@@ -656,7 +656,7 @@ body {
 }
 
 .home-section-title {
-  font-family: var(--font-fredoka), "Fredoka", sans-serif;
+  font-family: var(--font-fredoka, "Fredoka"), sans-serif;
   font-size: 1.25rem;
   font-weight: 700;
   letter-spacing: -0.02em;
@@ -710,7 +710,7 @@ body {
 }
 
 .home-stat-value {
-  font-family: var(--font-fredoka), "Fredoka", sans-serif;
+  font-family: var(--font-fredoka, "Fredoka"), sans-serif;
   font-size: 1.25rem;
   font-weight: 700;
   line-height: 1.2;

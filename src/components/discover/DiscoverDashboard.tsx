@@ -1,6 +1,7 @@
 "use client";
 
 import { CoachDog } from "@/components/mascot/CoachDog";
+import { displayFontClass } from "@/lib/fonts";
 
 type DiscoverDashboardProps = {
   rangeLabel: string;
@@ -53,7 +54,7 @@ export function DiscoverDashboard({
       <div className="home-content space-y-4 px-4 pb-6">
         <section className="home-card home-welcome">
           <div className="home-welcome__text">
-            <h2 className="home-section-title font-display">
+            <h2 className={`home-section-title ${displayFontClass}`}>
               Hi there! Ready to learn today?
             </h2>
             <p className="home-body-text mt-1">
@@ -104,21 +105,21 @@ export function DiscoverDashboard({
                 📘
               </span>
               <p className="home-stat-label">Words Learned</p>
-              <p className="home-stat-value font-display">{wordsLearned}</p>
+              <p className={`home-stat-value ${displayFontClass}`}>{wordsLearned}</p>
             </div>
             <div className="home-card home-stat-card">
               <span className="home-stat-icon text-xl" aria-hidden>
                 🏆
               </span>
               <p className="home-stat-label">Streak</p>
-              <p className="home-stat-value font-display">{streakDays} days</p>
+              <p className={`home-stat-value ${displayFontClass}`}>{streakDays} days</p>
             </div>
             <div className="home-card home-stat-card">
               <span className="home-stat-icon text-xl" aria-hidden>
                 ⭐
               </span>
               <p className="home-stat-label">Badges</p>
-              <p className="home-stat-value font-display">
+              <p className={`home-stat-value ${displayFontClass}`}>
                 {Math.min(99, Math.floor(wordsLearned / 10))}
               </p>
             </div>
