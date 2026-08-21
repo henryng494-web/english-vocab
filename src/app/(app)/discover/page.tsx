@@ -436,12 +436,10 @@ export default function DiscoverPage() {
       />
 
       <div className="journey-panel px-4">
-        {stats.hidden > 0 && (
-          <p className="journey-note">
-            {stats.hidden} known {stats.hidden === 1 ? "word" : "words"} in
-            this rank ({rangeCompact})
-          </p>
-        )}
+        <p className="journey-note">
+          {stats.hidden} known {stats.hidden === 1 ? "word" : "words"} in
+          this rank ({rangeCompact})
+        </p>
 
         {error && (
           <p className="shrink-0 rounded-xl border border-primary-200 bg-primary-50 px-4 py-3 text-sm text-primary-800">
