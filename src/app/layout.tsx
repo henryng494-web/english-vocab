@@ -49,11 +49,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning className={`${inter.variable} ${fredoka.variable}`}>
       <head>
         <script dangerouslySetInnerHTML={{ __html: viewportBootstrapScript }} />
       </head>
-      <body className={`${inter.variable} ${fredoka.variable} ${inter.className} antialiased`}>
+      <body className={`${inter.className} antialiased`}>
         <ThemeRoot>{children}</ThemeRoot>
       </body>
     </html>
