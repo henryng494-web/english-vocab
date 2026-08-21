@@ -23,12 +23,13 @@ import {
   stubFromListItem,
 } from "@/lib/discover-word-cache";
 import {
-  countWordsLearned,
   getDailyGoalTarget,
   getTodayWordsLearned,
   incrementTodayWordsLearned,
 } from "@/lib/daily-goal";
 import {
+  countLearningWords,
+  countMasteredWords,
   getLocallyTakenWords,
   writeLocalLearning,
 } from "@/lib/learning-storage";
@@ -102,7 +103,8 @@ export default function DiscoverPage() {
   const [loadingWord, setLoadingWord] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [stats, setStats] = useState({ total: 0, hidden: 0 });
-  const [wordsLearned, setWordsLearned] = useState(0);
+  const [wordsKnown, setWordsKnown] = useState(0);
+  const [wordsReviewing, setWordsReviewing] = useState(0);
   const [todayLearned, setTodayLearned] = useState(0);
 
   const todayGoal = getDailyGoalTarget();
@@ -114,7 +116,8 @@ export default function DiscoverPage() {
   const rangeCompact = rangeMeta?.compactLabel ?? rangeId;
 
   useEffect(() => {
-    setWordsLearned(countWordsLearned());
+    setWordsKnown(countMasteredWords());
+    setWordsReviewing(countLearningWords());
     setTodayLearned(getTodayWordsLearned());
   }, [queue.length, currentIndex]);
 
@@ -338,8 +341,9 @@ export default function DiscoverPage() {
     setStats((current) => ({ ...current, hidden: current.hidden + 1 }));
     if (status === "new") {
       setTodayLearned(incrementTodayWordsLearned());
-      setWordsLearned(countWordsLearned());
     }
+    setWordsKnown(countMasteredWords());
+    setWordsReviewing(countLearningWords());
     advanceAfterAction(word);
 
     void (async () => {
@@ -366,7 +370,8 @@ export default function DiscoverPage() {
             status: status === "mastered" ? "mastered" : "new",
           }),
         });
-        setWordsLearned(countWordsLearned());
+        setWordsKnown(countMasteredWords());
+        setWordsReviewing(countLearningWords());
       } catch (err) {
         setError(err instanceof Error ? err.message : "Update failed");
       }
@@ -385,7 +390,7 @@ export default function DiscoverPage() {
               ☰
             </Link>
           }
-          trailing={<CoinBadge value={wordsLearned} />}
+          trailing={<CoinBadge value={wordsKnown + wordsReviewing} />}
         />
 
         {loadingList ? (
@@ -397,7 +402,8 @@ export default function DiscoverPage() {
             rangeLabel={rangeLabel}
             queueLength={queue.length}
             currentIndex={currentIndex}
-            wordsLearned={wordsLearned}
+            wordsKnown={wordsKnown}
+            wordsReviewing={wordsReviewing}
             streakDays={todayLearned > 0 ? 1 : 0}
             todayLearned={todayLearned}
             todayGoal={todayGoal}

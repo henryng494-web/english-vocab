@@ -7,7 +7,8 @@ type DiscoverDashboardProps = {
   rangeLabel: string;
   queueLength: number;
   currentIndex: number;
-  wordsLearned: number;
+  wordsKnown: number;
+  wordsReviewing: number;
   streakDays: number;
   todayLearned: number;
   todayGoal: number;
@@ -38,7 +39,8 @@ export function DiscoverDashboard({
   rangeLabel,
   queueLength,
   currentIndex,
-  wordsLearned,
+  wordsKnown,
+  wordsReviewing,
   streakDays,
   todayLearned,
   todayGoal,
@@ -102,10 +104,17 @@ export function DiscoverDashboard({
           <div className="home-stat-grid">
             <div className="home-card home-stat-card">
               <span className="home-stat-icon text-xl" aria-hidden>
-                📘
+                🌟
               </span>
-              <p className="home-stat-label">Words Learned</p>
-              <p className={`home-stat-value ${displayFontClass}`}>{wordsLearned}</p>
+              <p className="home-stat-label">You know</p>
+              <p className={`home-stat-value ${displayFontClass}`}>{wordsKnown}</p>
+            </div>
+            <div className="home-card home-stat-card">
+              <span className="home-stat-icon text-xl" aria-hidden>
+                🔁
+              </span>
+              <p className="home-stat-label">In review</p>
+              <p className={`home-stat-value ${displayFontClass}`}>{wordsReviewing}</p>
             </div>
             <div className="home-card home-stat-card">
               <span className="home-stat-icon text-xl" aria-hidden>
@@ -113,15 +122,6 @@ export function DiscoverDashboard({
               </span>
               <p className="home-stat-label">Streak</p>
               <p className={`home-stat-value ${displayFontClass}`}>{streakDays} days</p>
-            </div>
-            <div className="home-card home-stat-card">
-              <span className="home-stat-icon text-xl" aria-hidden>
-                ⭐
-              </span>
-              <p className="home-stat-label">Badges</p>
-              <p className={`home-stat-value ${displayFontClass}`}>
-                {Math.min(99, Math.floor(wordsLearned / 10))}
-              </p>
             </div>
           </div>
         </section>

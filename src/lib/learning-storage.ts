@@ -35,6 +35,11 @@ export function countLearningWords(): number {
   ).length;
 }
 
+export function countMasteredWords(): number {
+  const map = readLocalLearning();
+  return Object.values(map).filter((entry) => entry.status === "mastered").length;
+}
+
 export function mergeLocalLearning<T extends { word: string; learning_status: LearningStatus; last_reviewed_at: string | null }>(
   words: T[],
 ): T[] {
