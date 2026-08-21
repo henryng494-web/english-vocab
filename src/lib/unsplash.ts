@@ -462,9 +462,13 @@ export async function searchOpenversePhoto(
   }
 }
 
-const WIKIMEDIA_ALLOWED_MIME_TYPES = new Set(["image/jpeg", "image/png"]);
-const WIKIMEDIA_MIN_WIDTH = 400;
-const WIKIMEDIA_MIN_HEIGHT = 300;
+const WIKIMEDIA_ALLOWED_MIME_TYPES = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/svg+xml",
+]);
+const WIKIMEDIA_MIN_WIDTH = 240;
+const WIKIMEDIA_MIN_HEIGHT = 180;
 
 /**
  * Wikimedia Commons has a much larger, keyless, generously-rate-limited photo
@@ -483,7 +487,7 @@ export async function searchWikimediaPhoto(
     format: "json",
     generator: "search",
     gsrnamespace: "6",
-    gsrsearch: `${query} filetype:bitmap`,
+    gsrsearch: query,
     gsrlimit: "15",
     prop: "imageinfo",
     iiprop: "url|mime|size",
@@ -514,6 +518,7 @@ export async function searchWikimediaPhoto(
       const url = info?.thumburl?.trim() || info?.url?.trim();
       if (!url?.startsWith("https://")) continue;
       if (!info?.mime || !WIKIMEDIA_ALLOWED_MIME_TYPES.has(info.mime)) continue;
+      if (info.mime === "image/svg+xml" && !info.thumburl) continue;
       if (
         (info.width ?? 0) < WIKIMEDIA_MIN_WIDTH ||
         (info.height ?? 0) < WIKIMEDIA_MIN_HEIGHT
@@ -544,6 +549,104 @@ export async function searchWikimediaPhoto(
 
     if (!best) return null;
     return markSemanticImageUrl(best.url);
+  } catch {
+    return null;
+  }
+}
+
+type WikipediaSummaryResponse = {
+  type?: string;
+  title?: string;
+  thumbnail?: { source?: string };
+  originalimage?: { source?: string };
+};
+
+function cleanMediaUrl(url: string): string {
+  try {
+    const parsed = new URL(url);
+    parsed.searchParams.delete("utm_source");
+    return parsed.toString();
+  } catch {
+    return url;
+  }
+}
+
+/**
+ * Wikipedia article lead image — reliable for school nouns (fraction, vowel,
+ * triangle) when stock-photo APIs miss diagrams and objects.
+ */
+export async function searchWikipediaLeadImage(
+  word: string,
+): Promise<string | null> {
+  const normalized = word.trim();
+  if (!normalized) return null;
+
+  try {
+    const response = await fetch(
+      `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(normalized)}`,
+      {
+        headers: {
+          "User-Agent": "EnglishVocabApp/1.0 (education flashcards)",
+          Accept: "application/json",
+        },
+        next: { revalidate: 86400 },
+      },
+    );
+    if (!response.ok) return null;
+    const data = (await response.json()) as WikipediaSummaryResponse;
+    if (data.type !== "disambiguation") {
+      const url =
+        data.originalimage?.source?.trim() || data.thumbnail?.source?.trim();
+      if (url?.startsWith("https://")) {
+        return markSemanticImageUrl(cleanMediaUrl(url));
+      }
+    }
+
+    const searchParams = new URLSearchParams({
+      action: "query",
+      format: "json",
+      generator: "search",
+      gsrsearch: normalized,
+      gsrlimit: "8",
+      gsrnamespace: "0",
+      prop: "pageimages",
+      piprop: "thumbnail",
+      pithumbsize: "1080",
+      origin: "*",
+      redirects: "1",
+    });
+    const searchResponse = await fetch(
+      `https://en.wikipedia.org/w/api.php?${searchParams}`,
+      {
+        headers: {
+          "User-Agent": "EnglishVocabApp/1.0 (education flashcards)",
+        },
+        next: { revalidate: 86400 },
+      },
+    );
+    if (!searchResponse.ok) return null;
+    const searchData = (await searchResponse.json()) as {
+      query?: {
+        pages?: Record<
+          string,
+          { title?: string; index?: number; thumbnail?: { source?: string } }
+        >;
+      };
+    };
+    const wordTokens = semanticTokens(normalized);
+    const pages = Object.values(searchData.query?.pages ?? {}).sort(
+      (left, right) => (left.index ?? 99) - (right.index ?? 99),
+    );
+    for (const page of pages) {
+      const title = page.title ?? "";
+      if (/disambiguation/i.test(title)) continue;
+      const url = page.thumbnail?.source?.trim();
+      if (!url?.startsWith("https://")) continue;
+      const titleTokens = semanticTokens(title.replace(/\([^)]*\)/g, ""));
+      if (overlapCount(wordTokens, titleTokens) === 0) continue;
+      return markSemanticImageUrl(cleanMediaUrl(url));
+    }
+    return null;
   } catch {
     return null;
   }
@@ -607,6 +710,9 @@ export async function fetchWordImageUrl(
     );
     if (wikimediaUrl) return wikimediaUrl;
   }
+
+  const wikipediaUrl = await searchWikipediaLeadImage(word);
+  if (wikipediaUrl) return wikipediaUrl;
 
   return getDefaultLearningImageDataUrl(word, pos);
 }

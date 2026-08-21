@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 import {
   getDefaultLearningImageDataUrl,
+  isDisplayableHttpImageUrl,
   resolveWordImageUrl,
 } from "@/lib/unsplash";
 
@@ -37,7 +38,27 @@ export function ReviewWordImage({
         priority
         unoptimized
         onError={() => {
-          if (src !== finalSrc) setSrc(finalSrc);
+          if (src === finalSrc) return;
+          void (async () => {
+            try {
+              const params = new URLSearchParams({
+                word,
+                skipGemini: "true",
+              });
+              const res = await fetch(`/api/discover/word?${params}`);
+              const data = (await res.json()) as {
+                word?: { image_url?: string | null };
+              };
+              const next = data.word?.image_url;
+              if (isDisplayableHttpImageUrl(next, word) && next !== src) {
+                setSrc(next!);
+                return;
+              }
+            } catch {
+              /* keep local fallback */
+            }
+            setSrc(finalSrc);
+          })();
         }}
       />
     </div>

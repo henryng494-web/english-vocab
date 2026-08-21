@@ -179,6 +179,15 @@ const CURATED_VISUAL_KEYWORDS: Record<string, string> = {
   wet: "wet rain umbrella",
   suck: "straw drinking juice",
   blow: "person blowing birthday candles",
+  fraction: "sliced cake equal pieces",
+  multiply: "multiplication chalkboard",
+  vowel: "aeiou vowel letters",
+  syllable: "dictionary pronunciation",
+  decimal: "decimal number calculator",
+  numeral: "roman numerals clock",
+  equate: "equals sign chalkboard",
+  consonant: "english alphabet wooden letters",
+  triangle: "red triangle shape",
 };
 
 export function hasCuratedVisualKeyword(word: string): boolean {

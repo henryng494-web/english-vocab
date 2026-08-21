@@ -17,6 +17,7 @@ import {
   type ReviewIntervalDays,
 } from "@/lib/review-schedule";
 import { getImportanceTier } from "@/lib/word-rank";
+import { shouldRefreshImageUrl } from "@/lib/unsplash";
 import type { LearningStatus, VocabWord } from "@/types/database";
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -115,7 +116,10 @@ export default function LearnPage() {
 
   useEffect(() => {
     if (!currentWord) return;
-    const missingImage = !currentWord.image_url?.trim();
+    const missingImage = shouldRefreshImageUrl(
+      currentWord.image_url,
+      currentWord.word,
+    );
     const badVi =
       currentWord.vietnamese_meaning?.trim() &&
       currentWord.english_definition?.trim() &&
