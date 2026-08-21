@@ -1,31 +1,31 @@
 @import "tailwindcss";
 
 :root {
-  /* Coach Fox navy (#182030) + teal lead (#18c8b8) */
-  --background: #e8eef4;
+  /* Coach Fox collar teal (#18c8b8) + navy body (#182030) */
+  --background: #e8f7f4;
   --foreground: #182030;
-  --surface: #dce4ee;
-  --surface-strong: #c5d0de;
-  --primary: #182030;
-  --primary-hover: #243044;
-  --primary-50: #f1f4f8;
-  --primary-100: #e2e8f0;
-  --primary-200: #cbd5e1;
-  --primary-300: #94a3b8;
-  --primary-700: #182030;
-  --primary-800: #101828;
+  --surface: #d5f3ee;
+  --surface-strong: #b6e8e0;
+  --primary: #18c8b8;
+  --primary-hover: #14b8a6;
+  --primary-50: #f0fdfa;
+  --primary-100: #ccfbf1;
+  --primary-200: #99f6e4;
+  --primary-300: #5eead4;
+  --primary-700: #0f766e;
+  --primary-800: #115e59;
   --secondary: #ef4444;
   --secondary-hover: #dc2626;
-  --accent: #18c8b8;
-  --accent-hover: #14b8a6;
+  --accent: #0d9488;
+  --accent-hover: #0f766e;
   --card: #ffffff;
-  --card-border: #c5d0de;
-  --header-mid: #182030;
-  --header-end: #18c8b8;
-  --meaning: #182030;
-  --example-bg: #eefbf8;
+  --card-border: #99f6e4;
+  --header-mid: #18c8b8;
+  --header-end: #182030;
+  --meaning: #0f766e;
+  --example-bg: #f0fdfa;
   --example-vi: #0f766e;
-  --badge-bg: #d1faf4;
+  --badge-bg: #ccfbf1;
   --badge-text: #115e59;
   --tab-bar-bg: #ffffff;
   --tab-bar-height: 4rem;
@@ -33,7 +33,7 @@
   --header-bg: #ffffff;
   --header-fg: #182030;
   --header-muted: #64748b;
-  --card-shadow: 0 8px 24px rgba(24, 32, 48, 0.1);
+  --card-shadow: 0 8px 24px rgba(24, 200, 184, 0.16);
 }
 
 @theme inline {
@@ -262,7 +262,7 @@ body {
   padding: 0.875rem 1rem;
   font-size: 1rem;
   font-weight: 700;
-  color: #fff;
+  color: #182030;
   box-shadow: 0 4px 14px color-mix(in srgb, var(--primary) 35%, transparent);
   transition: background-color 0.15s ease, transform 0.1s ease;
 }
@@ -746,7 +746,7 @@ body {
 .ui-progress__fill {
   height: 100%;
   border-radius: 9999px;
-  background: var(--accent);
+  background: var(--primary);
   transition: width 0.25s ease;
 }
 

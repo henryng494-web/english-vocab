@@ -18,7 +18,7 @@ export function AppNav({ active }: { active: AppNavSection }) {
             href={item.href}
             className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
               isActive
-                ? "bg-primary text-white shadow-sm"
+                ? "bg-primary text-foreground shadow-sm"
                 : "text-primary-800 hover:text-primary-700"
             }`}
           >
