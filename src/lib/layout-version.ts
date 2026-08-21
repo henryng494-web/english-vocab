@@ -1,2 +1,2 @@
 /** Bump when mobile shell / viewport layout changes (visible on Account page). */
-export const LAYOUT_VERSION = "2026-08-21-v37-review-quiz";
+export const LAYOUT_VERSION = "2026-08-21-v38-review-quiz-balance";
