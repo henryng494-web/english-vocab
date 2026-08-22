@@ -288,6 +288,7 @@ body {
 .discover-card__examples {
   display: flex;
   min-height: 0;
+  align-items: stretch;
 }
 
 .vocab-examples--compact {
@@ -296,21 +297,21 @@ body {
   min-height: 0;
   width: 100%;
   flex: 1;
-  gap: 0.3rem;
+  justify-content: center;
+  gap: 0.4rem;
 }
 
 .vocab-examples--compact .vocab-examples__item {
   display: flex;
-  min-height: 4.6rem;
-  flex: 1 1 0;
+  flex: 0 0 auto;
   flex-direction: column;
-  justify-content: flex-start;
+  justify-content: center;
   overflow: hidden;
   border-radius: 0.625rem;
   background: var(--example-bg);
-  padding: 0.4rem 0.65rem 0.5rem;
-  font-size: 0.875rem;
-  line-height: 1.4;
+  padding: 0.55rem 0.75rem;
+  font-size: 1rem;
+  line-height: 1.45;
 }
 
 .vocab-examples__en,
@@ -322,27 +323,25 @@ body {
 }
 
 .vocab-examples__en {
-  -webkit-line-clamp: 1;
-  flex-shrink: 0;
+  -webkit-line-clamp: 2;
 }
 
 .vocab-examples__vi {
   -webkit-line-clamp: 2;
   color: var(--example-vi);
   line-height: 1.45;
-  padding-bottom: 0.12rem;
 }
 
 .journey-card-slot .vocab-examples {
-  gap: 0.35rem;
+  gap: 0.4rem;
 }
 
 .journey-card-slot .vocab-examples li {
-  font-size: 0.875rem;
-  line-height: 1.4;
+  font-size: 1rem;
+  line-height: 1.45;
   border-radius: 0.625rem;
   background: var(--example-bg);
-  padding: 0.4rem 0.65rem 0.5rem;
+  padding: 0.55rem 0.75rem;
 }
 
 .journey-card-slot .vocab-examples li p:last-child {
