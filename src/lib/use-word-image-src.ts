@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { shouldUseConceptIllustration } from "@/lib/concept-illustration";
 import {
   getDefaultLearningImageDataUrl,
   isDisplayableHttpImageUrl,
@@ -8,8 +9,8 @@ import {
 } from "@/lib/unsplash";
 
 /**
- * Prefer a stored HTTP photo. If the stored URL is a broken Openverse proxy
- * thumb or placeholder SVG, fetch a fresh photo from the discover API.
+ * Prefer a stored HTTP photo. Grammar/function words use a local concept
+ * diagram instead — stock photos cannot depict "too", "then", or "way".
  */
 export function useWordImageSrc(
   word: string,
@@ -33,6 +34,7 @@ export function useWordImageSrc(
       wordType,
     );
     setSrc(resolved);
+    if (shouldUseConceptIllustration(word, wordType)) return;
     if (isDisplayableHttpImageUrl(imageUrl, word)) return;
 
     let cancelled = false;
