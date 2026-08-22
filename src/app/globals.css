@@ -232,30 +232,36 @@ body {
   color: color-mix(in srgb, var(--foreground) 72%, transparent);
 }
 
-.card-details__dots {
+.card-details__hint {
   display: flex;
   flex-shrink: 0;
-  justify-content: center;
-  padding-top: 0.3rem;
-}
-
-.card-details__dots button {
-  display: flex;
   align-items: center;
-  gap: 0.35rem;
-  padding: 0.15rem;
+  justify-content: center;
+  gap: 0.45rem;
+  margin-top: 0.2rem;
+  padding: 0.2rem 0.15rem;
   border: 0;
   background: transparent;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: var(--primary);
 }
 
-.card-details__dots span {
+.card-details__dots {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.card-details__dots i {
   width: 0.4rem;
   height: 0.4rem;
   border-radius: 999px;
   background: color-mix(in srgb, var(--primary) 28%, transparent);
 }
 
-.card-details__dots span.is-on {
+.card-details__dots i.is-on {
   background: var(--primary);
 }
 

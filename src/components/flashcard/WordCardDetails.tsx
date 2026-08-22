@@ -153,19 +153,20 @@ export function WordCardDetails({
       </div>
 
       {canFlip ? (
-        <div className="card-details__dots">
-          <button
-            type="button"
-            aria-label={showFamily ? "Show examples" : "Show word family"}
-            onClick={(event) => {
-              event.stopPropagation();
-              toggle();
-            }}
-          >
-            <span className={!showFamily ? "is-on" : ""} />
-            <span className={showFamily ? "is-on" : ""} />
-          </button>
-        </div>
+        <button
+          type="button"
+          className="card-details__hint"
+          onClick={(event) => {
+            event.stopPropagation();
+            toggle();
+          }}
+        >
+          <span>{showFamily ? "Examples" : "Family"}</span>
+          <span className="card-details__dots" aria-hidden>
+            <i className={!showFamily ? "is-on" : ""} />
+            <i className={showFamily ? "is-on" : ""} />
+          </span>
+        </button>
       ) : null}
     </div>
   );
