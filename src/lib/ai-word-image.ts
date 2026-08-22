@@ -1,9 +1,8 @@
 /**
- * Trial: the coach-fox mascot acting out a few grammar words that stock
- * photos cannot depict clearly (too / then / way / more).
- *
- * Bundled JPEGs live in /public/word-images. Concrete nouns still use photos.
- * Gemini live image gen is off unless GEMINI_IMAGE_LIVE=true.
+ * Trial: the coach-fox mascot acting out words across POS
+ * (grammar, noun, verb, adjective). Bundled JPEGs in /public/word-images.
+ * Words not in this set still use stock photos. Live Gemini gen is off
+ * unless GEMINI_IMAGE_LIVE=true.
  */
 
 export const AI_IMAGE_TRIAL_WORDS: ReadonlySet<string> = new Set([
@@ -11,6 +10,12 @@ export const AI_IMAGE_TRIAL_WORDS: ReadonlySet<string> = new Set([
   "then",
   "way",
   "more",
+  "apple",
+  "book",
+  "eat",
+  "run",
+  "big",
+  "hot",
 ]);
 
 const FOX =
@@ -21,9 +26,16 @@ export const AI_IMAGE_PROMPTS: Readonly<Record<string, string>> = {
   then: `${FOX} Seen from behind in an open doorway, about to walk outside. Behind it, a table with an empty plate (crumbs only) and empty mug — breakfast is finished, then leave.`,
   way: `${FOX} Happy squint eyes, sitting at the start of a beige path that leads to a small white house with a teal roof. Green fields, blue sky. The way home.`,
   more: `${FOX} Excited pose. A teal jar pours more chocolate-chip cookies onto a plate that already has cookies.`,
+  apple: `${FOX} Happy squint eyes. Holds a large bright red apple with a leaf in both paws. Wooden table, cream background.`,
+  book: `${FOX} Thinking pose. Sits at a desk reading a thick open book (pages show a simple landscape, no letters).`,
+  eat: `${FOX} Happy squint eyes. Taking a bite from a round cookie, crumbs in the air. Wooden table.`,
+  run: `${FOX} Excited pose, running on a beige path through green fields, motion dashes behind the legs.`,
+  big: `${FOX} Tiny fox looking up in wonder at a giant teal gift box as tall as a house. Green grass, blue sky.`,
+  hot: `${FOX} Leaning away from a white mug with thick rising steam, paw shielding its face. The drink is hot. Wooden table.`,
 };
 
 const STATIC_PATH_RE = /^\/word-images\/[a-z]+\.jpg(?:\?v=[\w-]+)?$/;
+const BUNDLE_VERSION = "fox2";
 
 export function isAiImageTrialWord(word: string): boolean {
   return AI_IMAGE_TRIAL_WORDS.has(word.trim().toLowerCase());
@@ -32,7 +44,7 @@ export function isAiImageTrialWord(word: string): boolean {
 export function getStaticAiWordImagePath(word: string): string | null {
   const key = word.trim().toLowerCase();
   if (!AI_IMAGE_TRIAL_WORDS.has(key)) return null;
-  return `/word-images/${key}.jpg?v=fox1`;
+  return `/word-images/${key}.jpg?v=${BUNDLE_VERSION}`;
 }
 
 export function isStaticAiWordImageUrl(url: string | null | undefined): boolean {
