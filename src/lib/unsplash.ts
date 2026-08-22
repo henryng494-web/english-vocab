@@ -26,6 +26,7 @@ type OpenverseSearchResponse = {
     id?: string;
     title?: string | null;
     description?: string | null;
+    url?: string | null;
     thumbnail?: string | null;
     tags?: Array<{ name?: string | null }>;
   }>;
@@ -61,7 +62,57 @@ const GENERIC_QUERY_TOKENS = new Set([
   "scene",
 ]);
 
-const SEMANTIC_IMAGE_VERSION = "8";
+const SEMANTIC_IMAGE_VERSION = "9";
+
+const DISPLAYABLE_IMAGE_HOSTS = [
+  "images.unsplash.com",
+  "upload.wikimedia.org",
+  "images.pexels.com",
+  "live.staticflickr.com",
+];
+
+function isDisplayableImageHost(hostname: string): boolean {
+  const host = hostname.toLowerCase();
+  return (
+    DISPLAYABLE_IMAGE_HOSTS.includes(host) ||
+    host.endsWith(".staticflickr.com")
+  );
+}
+
+/** Openverse API proxy thumbs often 424 in the browser — never display them. */
+export function isBrokenOpenverseProxyUrl(
+  url: string | null | undefined,
+): boolean {
+  const trimmed = url?.trim();
+  if (!trimmed) return false;
+  try {
+    const parsed = new URL(trimmed);
+    return (
+      parsed.hostname === "api.openverse.org" &&
+      parsed.pathname.includes("/images/")
+    );
+  } catch {
+    return false;
+  }
+}
+
+function pickOpenverseMediaUrl(result: {
+  url?: string | null;
+  thumbnail?: string | null;
+}): string | null {
+  for (const candidate of [result.url, result.thumbnail]) {
+    const url = candidate?.trim();
+    if (!url?.startsWith("https://")) continue;
+    if (isBrokenOpenverseProxyUrl(url)) continue;
+    try {
+      if (!isDisplayableImageHost(new URL(url).hostname)) continue;
+    } catch {
+      continue;
+    }
+    return url;
+  }
+  return null;
+}
 
 function hashWord(word: string): number {
   let hash = 0;
@@ -162,7 +213,12 @@ export function isDisplayableHttpImageUrl(
   if (isStalePresetFallbackUrl(trimmed)) return false;
   if (isUntrustedRandomImageUrl(trimmed)) return false;
   if (isPlaceholderIllustrationUrl(trimmed)) return false;
-  return true;
+  if (isBrokenOpenverseProxyUrl(trimmed)) return false;
+  try {
+    return isDisplayableImageHost(new URL(trimmed).hostname);
+  } catch {
+    return false;
+  }
 }
 
 export function isPlaceholderIllustrationUrl(
@@ -184,7 +240,8 @@ export function shouldRefreshImageUrl(
     isStalePresetFallbackUrl(url) ||
     isUntrustedRandomImageUrl(url) ||
     isOutdatedSemanticImageUrl(url) ||
-    isPlaceholderIllustrationUrl(url)
+    isPlaceholderIllustrationUrl(url) ||
+    isBrokenOpenverseProxyUrl(url)
   );
 }
 
@@ -418,8 +475,8 @@ export async function searchOpenversePhoto(
     let best: { url: string; score: number } | null = null;
 
     for (const result of data.results ?? []) {
-      const url = result.thumbnail?.trim();
-      if (!url?.startsWith("https://")) continue;
+      const url = pickOpenverseMediaUrl(result);
+      if (!url) continue;
 
       const metadataText = [
         result.title,

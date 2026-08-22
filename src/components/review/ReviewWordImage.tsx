@@ -24,7 +24,34 @@ export function ReviewWordImage({
   const [src, setSrc] = useState(primarySrc);
 
   useEffect(() => {
-    setSrc(resolveWordImageUrl(word, imageUrl, undefined, wordType));
+    const resolved = resolveWordImageUrl(word, imageUrl, undefined, wordType);
+    setSrc(resolved);
+    if (isDisplayableHttpImageUrl(imageUrl, word)) return;
+
+    let cancelled = false;
+    void (async () => {
+      try {
+        const params = new URLSearchParams({
+          word,
+          skipGemini: "true",
+        });
+        const res = await fetch(`/api/discover/word?${params}`);
+        const data = (await res.json()) as {
+          word?: { image_url?: string | null };
+        };
+        const next = data.word?.image_url;
+        if (cancelled) return;
+        if (isDisplayableHttpImageUrl(next, word) && next !== resolved) {
+          setSrc(next!);
+        }
+      } catch {
+        /* keep resolved fallback */
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, [word, imageUrl, wordType]);
 
   return (
