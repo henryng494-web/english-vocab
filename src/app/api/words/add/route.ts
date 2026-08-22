@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { enrichWord } from "@/lib/enrich-word";
 import { serializeExamples } from "@/lib/parse-examples";
 import { fetchWordImageUrl, shouldRefreshImageUrl } from "@/lib/unsplash";
-import { isProfaneWord } from "@/lib/safe-image-search";
+import { isExcludedVocabWord } from "@/lib/proper-noun";
 import { getFamilyHeadword } from "@/lib/word-family";
 import { normalizeVocabInput } from "@/lib/word-validation";
 import { NextResponse } from "next/server";
@@ -34,7 +34,7 @@ export async function POST(request: Request) {
     }
     const trimmedWord = getFamilyHeadword(normalized);
 
-    if (isProfaneWord(trimmedWord)) {
+    if (isExcludedVocabWord(trimmedWord)) {
       return NextResponse.json(
         { error: "Word not available in this app" },
         { status: 400 },

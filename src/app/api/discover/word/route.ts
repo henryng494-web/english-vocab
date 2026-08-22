@@ -19,8 +19,9 @@ import {
   fetchWordImageUrl,
   shouldRefreshImageUrl,
 } from "@/lib/unsplash";
-import { isProfaneWord } from "@/lib/safe-image-search";
+import { isExcludedVocabWord } from "@/lib/proper-noun";
 import { normalizeVocabInput } from "@/lib/word-validation";
+import { getFamilyHeadword } from "@/lib/word-family";
 import type { WordDetail } from "@/types/database";
 import { NextResponse } from "next/server";
 
@@ -225,7 +226,7 @@ export async function GET(request: Request) {
       );
     }
 
-    if (isProfaneWord(word)) {
+    if (isExcludedVocabWord(word) || isExcludedVocabWord(getFamilyHeadword(word))) {
       return NextResponse.json(
         { error: "Word not available in this app" },
         { status: 404 },

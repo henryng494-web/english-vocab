@@ -1,4 +1,5 @@
 import { readLocalLearning } from "@/lib/learning-storage";
+import { isExcludedVocabWord } from "@/lib/proper-noun";
 import type { LearningStatus } from "@/types/database";
 
 export const REVIEW_INTERVALS = [1, 2, 4, 7, 14, 30] as const;
@@ -81,6 +82,7 @@ export function isDueReviewWord(
   lastReviewedAt: string | null | undefined,
   now = Date.now(),
 ): boolean {
+  if (isExcludedVocabWord(word)) return false;
   const local = readLocalLearning();
   const localEntry = local[word] ?? local[word.trim().toLowerCase()];
   const status = localEntry?.status ?? learningStatus;
@@ -102,12 +104,14 @@ export function countDueReviewWords(
   const due = new Set<string>();
 
   for (const [word, entry] of Object.entries(local)) {
+    if (isExcludedVocabWord(word)) continue;
     if (entry.status === "mastered") continue;
     if (isReviewDue(word, now)) due.add(word.trim().toLowerCase());
   }
 
   for (const item of extraWords) {
     const key = item.word.trim().toLowerCase();
+    if (isExcludedVocabWord(key)) continue;
     if (
       isDueReviewWord(
         item.word,

@@ -1,8 +1,8 @@
 import { NGSL_FREQUENCY_RANKS } from "@/data/ngsl-frequency-ranks";
 import { SPOKEN_FREQUENCY_RANKS } from "@/data/spoken-frequency-ranks";
 import { type WordRange, WORD_RANGES } from "@/data/word-ranges";
+import { isExcludedVocabWord } from "@/lib/proper-noun";
 import { getFamilyHeadword } from "@/lib/word-family";
-import { isProfaneWord } from "@/lib/safe-image-search";
 
 export type { WordRange };
 export { WORD_RANGES };
@@ -88,7 +88,9 @@ const CURRICULUM_RANK_OVERRIDES: Readonly<Record<string, number>> = {
 const NGSL_MAX_RANK = 2801;
 
 function isLearnableWord(word: string): boolean {
-  return /^[a-z]+$/.test(word) && word.length > 1 && !isProfaneWord(word);
+  return (
+    /^[a-z]+$/.test(word) && word.length > 1 && !isExcludedVocabWord(word)
+  );
 }
 
 /** NGSL headword → rank (one word per NGSL slot 1..2801). */
@@ -96,7 +98,7 @@ function buildNgslHeadwordRanks(): Map<string, number> {
   const rankToWord = new Map<number, string>();
   for (const [word, rank] of Object.entries(NGSL_FREQUENCY_RANKS)) {
     if (rank > NGSL_MAX_RANK) continue;
-    if (isProfaneWord(word)) continue;
+    if (isExcludedVocabWord(word)) continue;
     if (!rankToWord.has(rank)) rankToWord.set(rank, word);
   }
 
@@ -134,7 +136,8 @@ function collectLearnableWords(ngslHeadwords: Map<string, number>): string[] {
   }
   const headwords = new Set<string>();
   for (const word of words) {
-    headwords.add(getFamilyHeadword(word));
+    const head = getFamilyHeadword(word);
+    if (isLearnableWord(head)) headwords.add(head);
   }
   return [...headwords].sort(
     (a, b) =>

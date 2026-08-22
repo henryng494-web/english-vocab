@@ -1,4 +1,5 @@
 import type { LearningStatus } from "@/types/database";
+import { isExcludedVocabWord } from "@/lib/proper-noun";
 
 const STORAGE_KEY = "english-vocab-learning";
 
@@ -6,6 +7,10 @@ type LocalLearningMap = Record<
   string,
   { status: LearningStatus; last_reviewed_at: string }
 >;
+
+function isCountableWord(word: string): boolean {
+  return !isExcludedVocabWord(word);
+}
 
 export function readLocalLearning(): LocalLearningMap {
   if (typeof window === "undefined") return {};
@@ -27,17 +32,20 @@ export function writeLocalLearning(word: string, status: LearningStatus) {
 
 export function countLearningWords(): number {
   const map = readLocalLearning();
-  return Object.values(map).filter(
-    (entry) =>
-      entry.status === "new" ||
-      entry.status === "learning" ||
-      entry.status === "need_review",
+  return Object.entries(map).filter(
+    ([word, entry]) =>
+      isCountableWord(word) &&
+      (entry.status === "new" ||
+        entry.status === "learning" ||
+        entry.status === "need_review"),
   ).length;
 }
 
 export function countMasteredWords(): number {
   const map = readLocalLearning();
-  return Object.values(map).filter((entry) => entry.status === "mastered").length;
+  return Object.entries(map).filter(
+    ([word, entry]) => isCountableWord(word) && entry.status === "mastered",
+  ).length;
 }
 
 export function mergeLocalLearning<T extends { word: string; learning_status: LearningStatus; last_reviewed_at: string | null }>(
@@ -63,11 +71,11 @@ export function isWordMasteredLocally(word: string): boolean {
 export function getLocallyMasteredWords(): string[] {
   const map = readLocalLearning();
   return Object.entries(map)
-    .filter(([, v]) => v.status === "mastered")
+    .filter(([word, v]) => isCountableWord(word) && v.status === "mastered")
     .map(([word]) => word);
 }
 
 /** Words the learner already acted on — known or added to Review. */
 export function getLocallyTakenWords(): string[] {
-  return Object.keys(readLocalLearning());
+  return Object.keys(readLocalLearning()).filter(isCountableWord);
 }

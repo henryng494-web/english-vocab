@@ -2,6 +2,7 @@ import { getPresetRank } from "@/data/preset-word-details";
 import { createClient } from "@/lib/supabase/server";
 import { cleanupCorruptWords } from "@/lib/cleanup-corrupt-words";
 import { getImportanceTier } from "@/lib/word-rank";
+import { isExcludedVocabWord } from "@/lib/proper-noun";
 import { getFamilyHeadword } from "@/lib/word-family";
 import { withWordFamily } from "@/lib/word-family-display";
 import { isValidVocabWord } from "@/lib/word-validation";
@@ -31,7 +32,10 @@ export async function GET(request: Request) {
       if (error) {
         return NextResponse.json({ words: [] });
       }
-      const words = (data ?? []).filter((row) => row.status !== "mastered");
+      const words = (data ?? []).filter(
+        (row) =>
+          row.status !== "mastered" && !isExcludedVocabWord(row.word),
+      );
       return NextResponse.json({ words });
     }
 
@@ -65,7 +69,12 @@ export async function GET(request: Request) {
     );
 
     let words: VocabWord[] = (details ?? [])
-      .filter((detail) => isValidVocabWord(detail.word))
+      .filter(
+        (detail) =>
+          isValidVocabWord(detail.word) &&
+          !isExcludedVocabWord(detail.word) &&
+          !isExcludedVocabWord(getFamilyHeadword(detail.word)),
+      )
       .map((detail) => {
         const rank =
           getPresetRank(detail.word) ?? rankByWord.get(detail.word) ?? 10000;
