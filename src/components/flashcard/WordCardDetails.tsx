@@ -105,7 +105,7 @@ export function WordCardDetails({
               <p
                 className={`vocab-meaning shrink-0 font-semibold ${
                   compact
-                    ? "discover-card__meaning text-base leading-snug"
+                    ? "discover-card__meaning text-xl leading-normal"
                     : "text-xl text-primary-700"
                 }`}
               >
