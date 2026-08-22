@@ -121,16 +121,19 @@ export async function POST(request: Request) {
 
     const { data: wordData, error: detailError } = await supabase
       .from("word_details")
-      .insert({
-        word: trimmedWord,
-        phonetic: enrichment.phonetic,
-        word_type: enrichment.wordType,
-        english_definition: enrichment.englishDefinition,
-        vietnamese_meaning: enrichment.vietnameseMeaning,
-        examples: serializeExamples(enrichment.examples),
-        collocations: enrichment.collocations,
-        image_url: imageUrl,
-      })
+      .upsert(
+        {
+          word: trimmedWord,
+          phonetic: enrichment.phonetic,
+          word_type: enrichment.wordType,
+          english_definition: enrichment.englishDefinition,
+          vietnamese_meaning: enrichment.vietnameseMeaning,
+          examples: serializeExamples(enrichment.examples),
+          collocations: enrichment.collocations,
+          image_url: imageUrl,
+        },
+        { onConflict: "word" },
+      )
       .select("*")
       .single();
 

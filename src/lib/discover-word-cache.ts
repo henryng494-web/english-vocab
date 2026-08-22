@@ -4,7 +4,7 @@ import { parseExamples } from "@/lib/parse-examples";
 import { shouldRefreshImageUrl } from "@/lib/unsplash";
 
 /** Bump when ranking, image quality, or enrichment output shape changes. */
-export const DISCOVER_WORD_CACHE_VERSION = 32;
+export const DISCOVER_WORD_CACHE_VERSION = 33;
 
 const STORAGE_KEY = `discover-word-cache-v${DISCOVER_WORD_CACHE_VERSION}`;
 
@@ -37,6 +37,7 @@ const LEGACY_STORAGE_KEYS = [
   "discover-word-cache-v29",
   "discover-word-cache-v30",
   "discover-word-cache-v31",
+  "discover-word-cache-v32",
 ];
 
 const MAX_ENTRIES = 250;

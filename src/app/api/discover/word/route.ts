@@ -189,16 +189,11 @@ async function persistEnrichedWordDetail(
   },
 ): Promise<void> {
   try {
-    const { data: existing } = await supabase
+    const { error } = await supabase
       .from("word_details")
-      .select("word")
-      .eq("word", word)
-      .maybeSingle();
-
-    if (existing) {
-      await supabase.from("word_details").update(payload).eq("word", word);
-    } else {
-      await supabase.from("word_details").insert({ word, ...payload });
+      .upsert({ word, ...payload }, { onConflict: "word" });
+    if (error) {
+      console.warn(`Failed to persist word_details for "${word}":`, error);
     }
   } catch (error) {
     console.warn(`Failed to persist word_details for "${word}":`, error);
