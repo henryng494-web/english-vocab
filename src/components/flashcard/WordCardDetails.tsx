@@ -137,12 +137,8 @@ export function WordCardDetails({
                     <span className="card-family__word">
                       {capitalizeFirst(item.word)}
                     </span>
-                    {pos || item.vi ? (
-                      <span className="card-family__meta">
-                        {" "}
-                        — {pos}
-                        {item.vi ? ` ${item.vi}` : ""}
-                      </span>
+                    {pos ? (
+                      <span className="card-family__meta"> — {pos}</span>
                     ) : null}
                   </li>
                 );
