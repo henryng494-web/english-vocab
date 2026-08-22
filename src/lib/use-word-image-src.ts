@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import {
   getDefaultLearningImageDataUrl,
-  isDisplayableHttpImageUrl,
+  isUsableCardImageUrl,
   resolveWordImageUrl,
 } from "@/lib/unsplash";
 
@@ -33,13 +33,13 @@ export function useWordImageSrc(
       wordType,
     );
     setSrc(resolved);
-    if (isDisplayableHttpImageUrl(imageUrl, word)) return;
+    if (isUsableCardImageUrl(imageUrl, word)) return;
 
     let cancelled = false;
     void (async () => {
       const next = await fetchFreshImageUrl(word);
       if (cancelled) return;
-      if (isDisplayableHttpImageUrl(next, word) && next !== resolved) {
+      if (isUsableCardImageUrl(next, word) && next !== resolved) {
         setSrc(next!);
       }
     })();
@@ -55,7 +55,7 @@ export function useWordImageSrc(
       if (src === fallback) return;
       void (async () => {
         const next = await fetchFreshImageUrl(word);
-        if (isDisplayableHttpImageUrl(next, word) && next !== src) {
+        if (isUsableCardImageUrl(next, word) && next !== src) {
           setSrc(next!);
           return;
         }

@@ -1,4 +1,11 @@
 import {
+  getStaticAiWordImagePath,
+  generateAiWordImageDataUrl,
+  isAiImageDataUrl,
+  isAiImageTrialWord,
+  isStaticAiWordImageUrl,
+} from "@/lib/ai-word-image";
+import {
   buildImageSearchQueries,
   hasCuratedVisualKeyword,
   isAbstractImagePos,
@@ -266,11 +273,22 @@ export function isPlaceholderIllustrationUrl(
   return Boolean(url?.trim().startsWith("data:image/svg+xml"));
 }
 
+export function isUsableCardImageUrl(
+  url: string | null | undefined,
+  word?: string | null,
+): boolean {
+  if (isStaticAiWordImageUrl(url) || isAiImageDataUrl(url)) return true;
+  return isDisplayableHttpImageUrl(url, word);
+}
+
 export function shouldRefreshImageUrl(
   url: string | null | undefined,
   word?: string | null,
 ): boolean {
   const trimmed = url?.trim();
+  if (word && isAiImageTrialWord(word)) {
+    return !isStaticAiWordImageUrl(trimmed) && !isAiImageDataUrl(trimmed);
+  }
   if (word && requiresSafeImageOnly(word)) {
     return !trimmed || trimmed.startsWith("http") || isUnsafeImageUrl(trimmed);
   }
@@ -379,6 +397,12 @@ export function resolveWordImageUrl(
   void _searchKeyword;
   if (requiresSafeImageOnly(word)) {
     return getDefaultLearningImageDataUrl(word, pos);
+  }
+  if (isAiImageTrialWord(word)) {
+    if (isUsableCardImageUrl(imageUrl, word)) return imageUrl!.trim();
+    return (
+      getStaticAiWordImagePath(word) ?? getDefaultLearningImageDataUrl(word, pos)
+    );
   }
   const trimmed = imageUrl?.trim();
   if (isDisplayableHttpImageUrl(trimmed, word)) {
@@ -1104,6 +1128,14 @@ export async function fetchWordImageUrl(
 ): Promise<string> {
   if (requiresSafeImageOnly(word)) {
     return getDefaultLearningImageDataUrl(word, pos);
+  }
+  if (isAiImageTrialWord(word)) {
+    if (process.env.GEMINI_IMAGE_LIVE === "true") {
+      const generated = await generateAiWordImageDataUrl(word);
+      if (generated) return generated;
+    }
+    const bundled = getStaticAiWordImagePath(word);
+    if (bundled) return bundled;
   }
   const queries = buildImageSearchQueries(word, { searchKeyword, pos });
   if (queries.length === 0) return getDefaultLearningImageDataUrl(word, pos);

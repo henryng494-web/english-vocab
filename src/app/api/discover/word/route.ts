@@ -41,7 +41,7 @@ async function resolveImageUrl(
   pos?: string | null,
 ): Promise<string> {
   const trimmed = existingUrl?.trim();
-  if (trimmed?.startsWith("http") && !shouldRefreshImageUrl(trimmed, word)) {
+  if (trimmed && !shouldRefreshImageUrl(trimmed, word)) {
     return trimmed;
   }
   return fetchWordImageUrl(word, searchKeyword ?? word, pos);
