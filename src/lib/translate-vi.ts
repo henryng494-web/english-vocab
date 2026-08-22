@@ -1,4 +1,5 @@
 import { capitalizeFirst } from "@/lib/format-text";
+import { sanitizeVietnameseText } from "@/lib/sanitize-vi";
 import { normalizeWordType } from "@/lib/word-type";
 import { getStaticVietnamese } from "@/lib/static-vietnamese";
 import {
@@ -40,7 +41,7 @@ export async function fetchMyMemoryTranslation(word: string): Promise<string | n
     // MyMemory quota warning text
     if (normalized.includes("mymemory warning")) return null;
 
-    return translated;
+    return sanitizeVietnameseText(translated) || null;
   } catch {
     return null;
   }
@@ -156,10 +157,10 @@ export async function resolveVietnameseMeaning(
   options?: ResolveViOptions,
 ): Promise<string> {
   const staticVi = getStaticVietnamese(word);
-  if (staticVi) return staticVi;
+  if (staticVi) return sanitizeVietnameseText(staticVi) || staticVi;
 
   const fromMyMemory = await fetchMyMemoryTranslation(word);
-  if (fromMyMemory) return fromMyMemory;
+  if (fromMyMemory) return sanitizeVietnameseText(fromMyMemory) || fromMyMemory;
 
   if (options?.allowGemini && process.env.GEMINI_API_KEY?.trim()) {
     try {

@@ -2,6 +2,7 @@ import type { WordDetail } from "@/types/database";
 import { hasQualityExamples } from "@/lib/example-quality";
 import { isPlaceholderPhonetic } from "@/lib/phonetic";
 import { parseExamples } from "@/lib/parse-examples";
+import { containsForeignScript } from "@/lib/sanitize-vi";
 import { shouldRefreshImageUrl } from "@/lib/unsplash";
 
 /** True when a Supabase word_details row is safe to reuse without calling Gemini. */
@@ -15,6 +16,7 @@ export function isPersistedWordDetailComplete(
     return false;
   }
   if (!detail.vietnamese_meaning?.trim()) return false;
+  if (containsForeignScript(detail.vietnamese_meaning)) return false;
   if (!hasQualityExamples(word, parseExamples(detail.examples))) return false;
   const image = detail.image_url?.trim();
   if (!image) return false;

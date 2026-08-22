@@ -1,5 +1,6 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { capitalizeFirst } from "@/lib/format-text";
+import { sanitizeVietnameseText } from "@/lib/sanitize-vi";
 import { getPresetRank } from "@/data/preset-word-details";
 import { buildDefinitionFromVietnameseMeaning } from "@/lib/translate-vi";
 import { normalizeWordType } from "@/lib/word-type";
@@ -75,6 +76,7 @@ Rules:
 - Use ONLY the most common everyday PRIMARY sense.
 - Numbers (one, twenty...) = counting number, NEVER money/slang.
 - meaning: short common Vietnamese (like "Lỗ, hố"), not a long definition.
+- Vietnamese must use Latin quốc ngữ only — never Chinese, Japanese, or Korean characters (wrong: "âm谋"; right: "âm mưu").
 - examples: EXACTLY 2 English sentences, 5–10 words each, real daily life, MUST contain "${word}".
 - Vietnamese translations must be natural (not word-by-word).
 - NEVER write meta lines like "I learned the word...", "Please use ... in a sentence", "This is a sentence with...".
@@ -110,7 +112,7 @@ function parseExamples(
     if (item && typeof item === "object") {
       const en = item.en?.trim() ?? "";
       if (!en) continue;
-      parsed.push({ en, vi: item.vi?.trim() ?? "" });
+      parsed.push({ en, vi: sanitizeVietnameseText(item.vi) });
     }
   }
   return parsed.slice(0, 2);
@@ -124,7 +126,9 @@ function parseGeminiResponse(text: string, word: string): WordEnrichment {
 
   const parsed = JSON.parse(jsonMatch[0]) as GeminiJsonShape;
   const meaningRaw =
-    parsed.meaning?.trim() || parsed.vietnamese?.trim() || word;
+    sanitizeVietnameseText(
+      parsed.meaning?.trim() || parsed.vietnamese?.trim() || "",
+    ) || word;
   const wordType = normalizeWordType(parsed.pos?.trim(), word) ?? "unknown";
 
   const definition =
@@ -181,13 +185,16 @@ export async function translateVietnameseWithGemini(
 
 Reply with ONLY the most common Vietnamese meaning (primary sense).
 For numbers like "twenty", reply "Hai mươi" — never slang or money.
+Use Latin Vietnamese only — never Chinese characters.
 No English, no JSON, no explanation.`;
 
   const modelName = FALLBACK_MODELS[0];
   try {
     const model = genAI.getGenerativeModel({ model: modelName });
     const result = await model.generateContent(prompt);
-    const text = result.response.text().trim().replace(/^["']|["']$/g, "");
+    const text = sanitizeVietnameseText(
+      result.response.text().trim().replace(/^["']|["']$/g, ""),
+    );
     return text || null;
   } catch (error) {
     console.warn(`Gemini VI "${modelName}" failed for "${word}":`, error);
@@ -208,13 +215,16 @@ export async function translateDefinitionWithGemini(
 
 Write ONE short, natural Vietnamese definition (1 sentence) using the PRIMARY everyday sense.
 For "twenty": "Số đếm hai mươi (20)."
+Use Latin Vietnamese only — never Chinese characters.
 Reply with ONLY the Vietnamese definition. No English, no JSON.`;
 
   const modelName = FALLBACK_MODELS[0];
   try {
     const model = genAI.getGenerativeModel({ model: modelName });
     const result = await model.generateContent(prompt);
-    const text = result.response.text().trim().replace(/^["']|["']$/g, "");
+    const text = sanitizeVietnameseText(
+      result.response.text().trim().replace(/^["']|["']$/g, ""),
+    );
     return text || null;
   } catch (error) {
     console.warn(

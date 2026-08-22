@@ -460,6 +460,23 @@ const CURATED: Record<string, RawEntry> = {
     ],
     keyword: "color",
   },
+  scheme: {
+    pos: "noun",
+    ipa: "/skiːm/",
+    meaning: "Kế hoạch, âm mưu",
+    definition: "Một kế hoạch có tổ chức; đôi khi là âm mưu.",
+    examples: [
+      {
+        en: "They made a new scheme today.",
+        vi: "Hôm nay họ đã lập một kế hoạch mới.",
+      },
+      {
+        en: "The housing scheme helps poor families.",
+        vi: "Chương trình nhà ở giúp các gia đình nghèo.",
+      },
+    ],
+    keyword: "plan sketch on paper",
+  },
   hole: {
     pos: "noun",
     ipa: "/hoʊl/",

@@ -6,6 +6,7 @@ import { resolveImageSearchKeyword } from "@/lib/image-keyword";
 import { resolveWordImageUrl } from "@/lib/unsplash";
 import { getImportanceTier } from "@/lib/word-rank";
 import { normalizeWordType } from "@/lib/word-type";
+import { sanitizeVietnameseText } from "@/lib/sanitize-vi";
 import { withWordFamily } from "@/lib/word-family-display";
 
 export function enrichmentToDiscoverWord(
@@ -23,7 +24,7 @@ export function enrichmentToDiscoverWord(
     phonetic: enrichment.phonetic,
     word_type:
       normalizeWordType(enrichment.wordType, word) ?? enrichment.wordType,
-    vietnamese_meaning: enrichment.vietnameseMeaning,
+    vietnamese_meaning: sanitizeVietnameseText(enrichment.vietnameseMeaning),
     english_definition: enrichment.englishDefinition,
     examples: serializeExamples(enrichment.examples),
     collocations: enrichment.collocations,

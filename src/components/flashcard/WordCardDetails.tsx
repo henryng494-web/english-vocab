@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { VocabExampleList } from "@/components/flashcard/VocabExampleList";
 import { capitalizeFirst } from "@/lib/format-text";
+import { formatVietnameseMeaning } from "@/lib/sanitize-vi";
 import { parseExamples } from "@/lib/parse-examples";
 import type { WordFamilyMember } from "@/types/database";
 
@@ -108,7 +109,7 @@ export function WordCardDetails({
                     : "text-xl text-primary-700"
                 }`}
               >
-                {capitalizeFirst(meaning)}
+                {formatVietnameseMeaning(meaning)}
               </p>
             ) : null}
             <div

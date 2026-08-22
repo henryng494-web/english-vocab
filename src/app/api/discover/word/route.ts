@@ -20,6 +20,7 @@ import {
   shouldRefreshImageUrl,
 } from "@/lib/unsplash";
 import { isExcludedVocabWord } from "@/lib/proper-noun";
+import { sanitizeVietnameseText } from "@/lib/sanitize-vi";
 import { normalizeVocabInput } from "@/lib/word-validation";
 import { getFamilyHeadword } from "@/lib/word-family";
 import type { WordDetail } from "@/types/database";
@@ -69,7 +70,7 @@ function persistedDetailToDiscoverWord(
     word,
     phonetic: detail.phonetic,
     word_type: detail.word_type,
-    vietnamese_meaning: detail.vietnamese_meaning,
+    vietnamese_meaning: sanitizeVietnameseText(detail.vietnamese_meaning),
     english_definition: detail.english_definition,
     examples: detail.examples,
     collocations: detail.collocations,
@@ -175,6 +176,25 @@ async function repairPersistedExamplesIfNeeded(
   return repaired;
 }
 
+async function repairPersistedMeaningIfNeeded(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  word: string,
+  detail: WordDetail,
+): Promise<string> {
+  const repaired = sanitizeVietnameseText(detail.vietnamese_meaning);
+  if (repaired && repaired !== detail.vietnamese_meaning) {
+    try {
+      await supabase
+        .from("word_details")
+        .update({ vietnamese_meaning: repaired })
+        .eq("word", word);
+    } catch (error) {
+      console.warn(`Failed to persist repaired meaning for "${word}":`, error);
+    }
+  }
+  return repaired || detail.vietnamese_meaning;
+}
+
 async function persistEnrichedWordDetail(
   supabase: Awaited<ReturnType<typeof createClient>>,
   word: string,
@@ -249,7 +269,12 @@ export async function GET(request: Request) {
         word,
         { ...dbDetail, examples },
       );
-      repairedDbDetail = { ...dbDetail, examples, phonetic };
+      const vietnamese_meaning = await repairPersistedMeaningIfNeeded(
+        supabase,
+        word,
+        { ...dbDetail, examples, phonetic },
+      );
+      repairedDbDetail = { ...dbDetail, examples, phonetic, vietnamese_meaning };
     }
 
     if (isPersistedWordDetailComplete(repairedDbDetail, word)) {
@@ -326,7 +351,8 @@ export async function GET(request: Request) {
     void persistEnrichedWordDetail(supabase, word, {
       phonetic: phonetic ?? `/${word}/`,
       word_type: responseWord.word_type ?? "unknown",
-      vietnamese_meaning: responseWord.vietnamese_meaning ?? word,
+      vietnamese_meaning:
+        sanitizeVietnameseText(responseWord.vietnamese_meaning) || word,
       english_definition: responseWord.english_definition ?? "",
       examples,
       collocations: responseWord.collocations ?? null,

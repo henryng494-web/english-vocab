@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { capitalizeFirst } from "@/lib/format-text";
+import { formatVietnameseMeaning } from "@/lib/sanitize-vi";
 import { parseExamples } from "@/lib/parse-examples";
 import { useWordImageSrc } from "@/lib/use-word-image-src";
 import type { VocabWord } from "@/types/database";
@@ -59,7 +59,7 @@ function FlashcardBody({
         <div className="mt-4 space-y-3">
           {word.vietnamese_meaning && (
             <p className="text-xl font-semibold text-primary-700">
-              {capitalizeFirst(word.vietnamese_meaning)}
+              {formatVietnameseMeaning(word.vietnamese_meaning)}
             </p>
           )}
 

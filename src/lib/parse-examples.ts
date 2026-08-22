@@ -1,3 +1,5 @@
+import { sanitizeVietnameseText } from "@/lib/sanitize-vi";
+
 const EXAMPLE_DELIMITER = "\n---\n";
 const PAIR_DELIMITER = "|||";
 
@@ -12,17 +14,20 @@ function normalizeExample(item: string | VocabExample): VocabExample | null {
     if (!trimmed) return null;
     if (trimmed.includes(PAIR_DELIMITER)) {
       const [en, ...rest] = trimmed.split(PAIR_DELIMITER);
-      return { en: en.trim(), vi: rest.join(PAIR_DELIMITER).trim() };
+      return {
+        en: en.trim(),
+        vi: sanitizeVietnameseText(rest.join(PAIR_DELIMITER)),
+      };
     }
     const dash = trimmed.match(/^(.+?)\s+[—–-]\s+(.+)$/);
     if (dash && /[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/i.test(dash[2])) {
-      return { en: dash[1].trim(), vi: dash[2].trim() };
+      return { en: dash[1].trim(), vi: sanitizeVietnameseText(dash[2]) };
     }
     return { en: trimmed, vi: "" };
   }
   const en = item.en?.trim() ?? "";
   if (!en) return null;
-  return { en, vi: item.vi?.trim() ?? "" };
+  return { en, vi: sanitizeVietnameseText(item.vi) };
 }
 
 export function serializeExamples(

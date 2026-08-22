@@ -1,5 +1,6 @@
 import { keepNaturalExamples } from "@/lib/example-quality";
 import { capitalizeFirst } from "@/lib/format-text";
+import { formatVietnameseMeaning } from "@/lib/sanitize-vi";
 import { parseExamples } from "@/lib/parse-examples";
 import { isSameRankBand } from "@/data/word-ranges";
 
@@ -97,8 +98,8 @@ export function reviewSenseText(word: {
   vietnamese_meaning?: string | null;
   english_definition?: string | null;
 }): string {
-  const meaning = word.vietnamese_meaning?.trim();
-  if (meaning) return capitalizeFirst(meaning);
+  const meaning = formatVietnameseMeaning(word.vietnamese_meaning);
+  if (meaning) return meaning;
   const definition = word.english_definition?.trim();
   if (definition) return capitalizeFirst(definition);
   return "";
@@ -246,7 +247,7 @@ export function reviewClue(word: {
 }): string {
   const definition = word.english_definition?.trim();
   if (definition) return capitalizeFirst(definition);
-  const meaning = word.vietnamese_meaning?.trim();
-  if (meaning) return capitalizeFirst(meaning);
+  const meaning = formatVietnameseMeaning(word.vietnamese_meaning);
+  if (meaning) return meaning;
   return "Choose the matching word.";
 }
