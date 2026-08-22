@@ -38,9 +38,12 @@ const IMAGE_SEARCH_WHITELIST = new Set([
 
 const EXACT_VULGAR_WORDS = new Set([
   "arse",
+  "ass",
   "asshole",
   "bitch",
   "bollocks",
+  "butt",
+  "buttocks",
   "cock",
   "cocks",
   "cunt",
@@ -59,6 +62,32 @@ const EXACT_VULGAR_WORDS = new Set([
   "whore",
 ]);
 
+/** Body / sexual words that stay learnable but never get stock photos. */
+const SAFE_IMAGE_ONLY_WORDS = new Set([
+  "areola",
+  "boob",
+  "boobs",
+  "booty",
+  "breast",
+  "breasts",
+  "cleavage",
+  "condom",
+  "erotic",
+  "erotica",
+  "horny",
+  "lingerie",
+  "naked",
+  "nipple",
+  "nipples",
+  "nude",
+  "nudes",
+  "orgasm",
+  "sex",
+  "sexual",
+  "sexy",
+  "tits",
+]);
+
 const VULGAR_COMPOUND_PATTERN =
   /(asshole|blowjob|bullshit|cock(?:suck|sucker|suckers)|cunt|faggot|fuck(?:ed|er|ers|head|heads|ing|s|wit)?|masturbat|motherfuck|nigger|orgasm|pornograph|shit(?:head|ty|ting|s|load|faced)?|slutty|vaginal|whorehouse)/;
 
@@ -75,5 +104,8 @@ export function isProfaneWord(word: string): boolean {
 }
 
 export function requiresSafeImageOnly(word: string): boolean {
-  return isProfaneWord(word);
+  const normalized = normalizeWord(word);
+  if (!normalized) return false;
+  if (IMAGE_SEARCH_WHITELIST.has(normalized)) return false;
+  return isProfaneWord(word) || SAFE_IMAGE_ONLY_WORDS.has(normalized);
 }

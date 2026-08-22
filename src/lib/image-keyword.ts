@@ -188,6 +188,9 @@ const CURATED_VISUAL_KEYWORDS: Record<string, string> = {
   equate: "equals sign chalkboard",
   consonant: "english alphabet wooden letters",
   triangle: "red triangle shape",
+  web: "spider web on plants",
+  net: "fishing net on boat",
+  site: "construction building site",
 };
 
 export function hasCuratedVisualKeyword(word: string): boolean {

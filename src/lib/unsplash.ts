@@ -2,7 +2,7 @@ import {
   buildImageSearchQueries,
   isConcretePhrase,
 } from "@/lib/image-keyword";
-import { isUnsafeImageMetadata } from "@/lib/safe-image-metadata";
+import { isUnsafeImageMetadata, isUnsafeImageUrl, shouldSkipEncyclopediaImage } from "@/lib/safe-image-metadata";
 import { requiresSafeImageOnly } from "@/lib/safe-image-search";
 
 export type UnsplashPhoto = {
@@ -28,6 +28,8 @@ type OpenverseSearchResponse = {
     description?: string | null;
     url?: string | null;
     thumbnail?: string | null;
+    creator?: string | null;
+    foreign_landing_url?: string | null;
     tags?: Array<{ name?: string | null }>;
   }>;
 };
@@ -62,7 +64,7 @@ const GENERIC_QUERY_TOKENS = new Set([
   "scene",
 ]);
 
-const SEMANTIC_IMAGE_VERSION = "9";
+const SEMANTIC_IMAGE_VERSION = "10";
 
 const DISPLAYABLE_IMAGE_HOSTS = [
   "images.unsplash.com",
@@ -100,8 +102,12 @@ function pickDisplayableMediaUrl(url?: string | null): string | null {
   const trimmed = url?.trim();
   if (!trimmed?.startsWith("https://")) return null;
   if (isBrokenOpenverseProxyUrl(trimmed)) return null;
+  if (isUnsafeImageUrl(trimmed)) return null;
   try {
-    if (!isDisplayableImageHost(new URL(trimmed).hostname)) return null;
+    const parsed = new URL(trimmed);
+    if (!isDisplayableImageHost(parsed.hostname)) return null;
+    const pathText = decodeURIComponent(parsed.pathname).replace(/[_-]+/g, " ");
+    if (isUnsafeImageMetadata(pathText)) return null;
   } catch {
     return null;
   }
@@ -194,10 +200,14 @@ export function isOutdatedSemanticImageUrl(
   if (!trimmed) return false;
   try {
     const parsed = new URL(trimmed);
+    const host = parsed.hostname.toLowerCase();
     const requiresSemanticVersion =
-      parsed.hostname === "api.openverse.org" ||
-      parsed.hostname === "images.unsplash.com" ||
-      parsed.hostname === "upload.wikimedia.org";
+      host === "api.openverse.org" ||
+      host === "images.unsplash.com" ||
+      host === "upload.wikimedia.org" ||
+      host === "images.pexels.com" ||
+      host === "live.staticflickr.com" ||
+      host.endsWith(".staticflickr.com");
     return (
       requiresSemanticVersion &&
       parsed.searchParams.get("semantic") !== SEMANTIC_IMAGE_VERSION
@@ -214,11 +224,13 @@ export function isDisplayableHttpImageUrl(
 ): boolean {
   const trimmed = url?.trim();
   if (!trimmed?.startsWith("http")) return false;
+  if (isUnsafeImageUrl(trimmed)) return false;
   if (word && requiresSafeImageOnly(word)) return false;
   if (isStalePresetFallbackUrl(trimmed)) return false;
   if (isUntrustedRandomImageUrl(trimmed)) return false;
   if (isPlaceholderIllustrationUrl(trimmed)) return false;
   if (isBrokenOpenverseProxyUrl(trimmed)) return false;
+  if (isOutdatedSemanticImageUrl(trimmed)) return false;
   try {
     return isDisplayableImageHost(new URL(trimmed).hostname);
   } catch {
@@ -236,17 +248,21 @@ export function shouldRefreshImageUrl(
   url: string | null | undefined,
   word?: string | null,
 ): boolean {
+  const trimmed = url?.trim();
   if (word && requiresSafeImageOnly(word)) {
-    const trimmed = url?.trim();
-    if (trimmed?.startsWith("http")) return true;
+    return !trimmed || trimmed.startsWith("http") || isUnsafeImageUrl(trimmed);
+  }
+  if (!trimmed) return true;
+  if (isUnsafeImageUrl(trimmed)) return true;
+  if (trimmed.startsWith("http") && !isDisplayableHttpImageUrl(trimmed, word)) {
+    return true;
   }
   return (
-    !url?.trim() ||
-    isStalePresetFallbackUrl(url) ||
-    isUntrustedRandomImageUrl(url) ||
-    isOutdatedSemanticImageUrl(url) ||
-    isPlaceholderIllustrationUrl(url) ||
-    isBrokenOpenverseProxyUrl(url)
+    isStalePresetFallbackUrl(trimmed) ||
+    isUntrustedRandomImageUrl(trimmed) ||
+    isOutdatedSemanticImageUrl(trimmed) ||
+    isPlaceholderIllustrationUrl(trimmed) ||
+    isBrokenOpenverseProxyUrl(trimmed)
   );
 }
 
@@ -486,11 +502,18 @@ export async function searchOpenversePhoto(
       const metadataText = [
         result.title,
         result.description,
+        result.creator,
+        result.foreign_landing_url,
+        result.url,
+        result.thumbnail,
         ...(result.tags ?? []).map((tag) => tag.name),
       ]
         .filter(Boolean)
         .join(" ");
       if (isUnsafeImageMetadata(metadataText)) continue;
+      if (isUnsafeImageUrl(result.url) || isUnsafeImageUrl(result.foreign_landing_url)) {
+        continue;
+      }
 
       const titleTokens = semanticTokens(result.title ?? "");
       const metadataTokens = semanticTokens(
@@ -591,7 +614,7 @@ export async function searchWikimediaPhoto(
       }
 
       const titleText = (page.title ?? "").replace(/^file:/i, "");
-      if (isUnsafeImageMetadata(titleText)) continue;
+      if (isUnsafeImageMetadata(titleText, url)) continue;
 
       const titleTokens = semanticTokens(
         titleText.replace(/\.[a-z0-9]+$/i, ""),
@@ -644,6 +667,7 @@ export async function searchWikipediaLeadImage(
 ): Promise<string | null> {
   const normalized = word.trim();
   if (!normalized) return null;
+  if (shouldSkipEncyclopediaImage(normalized)) return null;
 
   try {
     const response = await fetch(
@@ -659,10 +683,12 @@ export async function searchWikipediaLeadImage(
     if (!response.ok) return null;
     const data = (await response.json()) as WikipediaSummaryResponse;
     if (data.type !== "disambiguation") {
-      const url = pickDisplayableMediaUrl(
-        data.originalimage?.source ?? data.thumbnail?.source,
-      );
-      if (url) return markSemanticImageUrl(cleanMediaUrl(url));
+      if (!isUnsafeImageMetadata(data.title)) {
+        const url = pickDisplayableMediaUrl(
+          data.originalimage?.source ?? data.thumbnail?.source,
+        );
+        if (url) return markSemanticImageUrl(cleanMediaUrl(url));
+      }
     }
 
     const searchParams = new URLSearchParams({
@@ -703,6 +729,7 @@ export async function searchWikipediaLeadImage(
     for (const page of pages) {
       const title = page.title ?? "";
       if (/disambiguation/i.test(title)) continue;
+      if (isUnsafeImageMetadata(title)) continue;
       const url = pickDisplayableMediaUrl(page.thumbnail?.source);
       if (!url) continue;
       const titleTokens = semanticTokens(title.replace(/\([^)]*\)/g, ""));
@@ -740,9 +767,13 @@ export async function fetchWordImageUrl(
 
   if (process.env.UNSPLASH_ACCESS_KEY?.trim()) {
     try {
-      const photos = await searchPhotos(queries[0], 1);
-      if (photos[0]?.url) {
-        const unsplashUrl = markSemanticImageUrl(photos[0].url);
+      const photos = await searchPhotos(queries[0], 5);
+      for (const photo of photos) {
+        if (isUnsafeImageMetadata(photo.alt, photo.photographer, queries[0])) {
+          continue;
+        }
+        if (!photo.url || isUnsafeImageUrl(photo.url)) continue;
+        const unsplashUrl = markSemanticImageUrl(photo.url);
         if (isDisplayableHttpImageUrl(unsplashUrl, word)) return unsplashUrl;
       }
     } catch (error) {
@@ -779,7 +810,9 @@ export async function fetchWordImageUrl(
     }
   }
 
-  const wikipediaUrl = await searchWikipediaLeadImage(word);
+  const wikipediaUrl = shouldSkipEncyclopediaImage(word)
+    ? null
+    : await searchWikipediaLeadImage(word);
   if (wikipediaUrl && isDisplayableHttpImageUrl(wikipediaUrl, word)) {
     return wikipediaUrl;
   }
