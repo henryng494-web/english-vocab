@@ -91,7 +91,7 @@ export function DiscoverCard({
   return (
     <div
       className={`discover-card w-full overflow-hidden rounded-2xl border-2 shadow-lg${
-        compact ? " grid h-full min-h-0 grid-rows-2" : " border-primary-200 bg-surface"
+        compact ? " discover-card--compact grid h-full min-h-0" : " border-primary-200 bg-surface"
       }`}
     >
       <CardImage
