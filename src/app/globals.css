@@ -962,10 +962,10 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 0.7rem;
+  gap: 1.15rem;
   height: 100%;
   min-height: 0;
-  padding: 0.65rem 1.1rem;
+  padding: 0.9rem 1.1rem 1rem;
   font-family: var(--font-display);
 }
 
@@ -1001,7 +1001,7 @@ body {
   display: grid;
   flex-shrink: 0;
   grid-template-columns: 1fr 1fr;
-  gap: 0.65rem;
+  gap: 0.85rem;
 }
 
 .review-quiz__choice {
@@ -1072,7 +1072,7 @@ body {
 .review-quiz__unsure {
   margin: 0;
   flex-shrink: 0;
-  padding: 0.2rem 0.5rem 0.1rem;
+  padding: 0.45rem 0.5rem 0.2rem;
   border: none;
   background: transparent;
   font-family: var(--font-display);
