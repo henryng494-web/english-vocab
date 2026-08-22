@@ -54,6 +54,26 @@ type WikimediaSearchResponse = {
   };
 };
 
+const WIKIMEDIA_USER_AGENT =
+  "EnglishVocabApp/1.0 (education flashcards)";
+
+const SKIP_WIKTIONARY_FILE =
+  /coat of arms|royal arms|flag of|\blogo\b|\bicon\b|seal of|wordmark/i;
+
+const WIKIDATA_SKIP_INSTANCE = new Set([
+  "Q4167410", // Wikimedia disambiguation page
+  "Q5", // human
+  "Q101352", // family name
+  "Q202444", // given name
+  "Q215380", // band
+  "Q482994", // album
+  "Q11424", // film
+  "Q5398426", // television series
+  "Q43229", // organization
+  "Q4830453", // business
+  "Q783794", // company
+]);
+
 const GENERIC_QUERY_TOKENS = new Set([
   "action",
   "everyday",
@@ -66,7 +86,7 @@ const GENERIC_QUERY_TOKENS = new Set([
   "scene",
 ]);
 
-const SEMANTIC_IMAGE_VERSION = "12";
+const SEMANTIC_IMAGE_VERSION = "13";
 
 const DISPLAYABLE_IMAGE_HOSTS = [
   "images.unsplash.com",
@@ -454,7 +474,11 @@ export function scoreImageMetadata(
   }
 
   const requiredMatches = queryTokens.size > 1 ? 2 : 1;
-  if (queryMatches < requiredMatches && wordMatches === 0) return 0;
+  if (queryMatches < requiredMatches && wordMatches === 0) {
+    // Unsplash alts often name the object only ("brown lion" for query "wild lion").
+    const focus = [...queryTokens].at(-1);
+    if (!focus || focus.length < 4 || !metaTokens.has(focus)) return 0;
+  }
   return wordMatches * 5 + queryMatches * 2;
 }
 
@@ -789,16 +813,204 @@ export async function searchWikipediaLeadImage(
   }
 }
 
+async function resolveCommonsFileUrl(fileName: string): Promise<string | null> {
+  const title = fileName.replace(/^File:/i, "").trim();
+  if (!title) return null;
+  if (SKIP_WIKTIONARY_FILE.test(title.replace(/[_-]+/g, " "))) return null;
+
+  const params = new URLSearchParams({
+    action: "query",
+    format: "json",
+    titles: `File:${title}`,
+    prop: "imageinfo",
+    iiprop: "url|mime|size",
+    iiurlwidth: "1080",
+    origin: "*",
+  });
+
+  try {
+    const response = await fetch(
+      `https://commons.wikimedia.org/w/api.php?${params}`,
+      {
+        headers: { "User-Agent": WIKIMEDIA_USER_AGENT },
+        next: { revalidate: 86400 },
+      },
+    );
+    if (!response.ok) return null;
+    const data = (await response.json()) as WikimediaSearchResponse;
+    const page = Object.values(data.query?.pages ?? {})[0];
+    const info = page?.imageinfo?.[0];
+    const url =
+      pickDisplayableMediaUrl(info?.thumburl) ||
+      pickDisplayableMediaUrl(info?.url);
+    if (!url) return null;
+    if (!info?.mime || !WIKIMEDIA_ALLOWED_MIME_TYPES.has(info.mime)) return null;
+    if (info.mime === "image/svg+xml") return null;
+    if (
+      (info.width ?? 0) < WIKIMEDIA_MIN_WIDTH ||
+      (info.height ?? 0) < WIKIMEDIA_MIN_HEIGHT
+    ) {
+      return null;
+    }
+    if (isUnsafeImageMetadata(title, url)) return null;
+    return markSemanticImageUrl(cleanMediaUrl(url));
+  } catch {
+    return null;
+  }
+}
+
+type WiktionaryMediaList = {
+  items?: Array<{
+    type?: string;
+    title?: string;
+    caption?: { text?: string | null };
+  }>;
+};
+
 /**
- * Always prefer a real photo. Curated everyday scenes are used for abstract
- * words so image search can return a concrete picture instead of a random
- * mismatch. Local SVG is only used if every photo source fails.
- *
- * Unsplash's free-tier quota is very low (50 requests/hour, shared by every
- * visitor), so it is only tried once per word with the single best query to
- * avoid exhausting it on words that will fall through anyway. Wikimedia
- * Commons is tried next (descriptive file titles), then Openverse. Every
- * query variant is attempted before showing a local illustration.
+ * Dictionary-page illustration — lexicographers pick a photo of the primary
+ * sense (apple → a red apple). Stronger than keyword search for concrete nouns.
+ */
+export async function searchWiktionaryIllustration(
+  word: string,
+): Promise<string | null> {
+  const normalized = word.trim();
+  if (!normalized) return null;
+  if (shouldSkipEncyclopediaImage(normalized)) return null;
+
+  try {
+    const response = await fetch(
+      `https://en.wiktionary.org/api/rest_v1/page/media-list/${encodeURIComponent(normalized)}`,
+      {
+        headers: {
+          "User-Agent": WIKIMEDIA_USER_AGENT,
+          Accept: "application/json",
+        },
+        next: { revalidate: 86400 },
+      },
+    );
+    if (!response.ok) return null;
+    const data = (await response.json()) as WiktionaryMediaList;
+    for (const item of data.items ?? []) {
+      if (item.type !== "image" || !item.title) continue;
+      const caption = item.caption?.text ?? "";
+      if (isUnsafeImageMetadata(item.title, caption)) continue;
+      const url = await resolveCommonsFileUrl(item.title);
+      if (url) return url;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+type WikidataEntitiesResponse = {
+  entities?: Record<
+    string,
+    {
+      descriptions?: { en?: { value?: string } };
+      claims?: {
+        P18?: Array<{ mainsnak?: { datavalue?: { value?: string } } }>;
+        P31?: Array<{
+          mainsnak?: { datavalue?: { value?: { id?: string } } };
+        }>;
+      };
+    }
+  >;
+};
+
+type WikipediaPagePropsResponse = {
+  query?: {
+    pages?: Record<
+      string,
+      {
+        title?: string;
+        missing?: boolean;
+        pageprops?: { wikibase_item?: string };
+      }
+    >;
+  };
+};
+
+/**
+ * Wikidata P18 — the concept photo for the English Wikipedia article of this
+ * word (lion → a lion, hole → a hole in wood). Skips people, bands, and
+ * disambiguation pages.
+ */
+export async function searchWikidataConceptImage(
+  word: string,
+): Promise<string | null> {
+  const normalized = word.trim();
+  if (!normalized) return null;
+  if (shouldSkipEncyclopediaImage(normalized)) return null;
+
+  try {
+    const wikiParams = new URLSearchParams({
+      action: "query",
+      format: "json",
+      titles: normalized,
+      redirects: "1",
+      prop: "pageprops",
+      ppprop: "wikibase_item",
+      origin: "*",
+    });
+    const wikiResponse = await fetch(
+      `https://en.wikipedia.org/w/api.php?${wikiParams}`,
+      {
+        headers: { "User-Agent": WIKIMEDIA_USER_AGENT },
+        next: { revalidate: 86400 },
+      },
+    );
+    if (!wikiResponse.ok) return null;
+    const wikiData = (await wikiResponse.json()) as WikipediaPagePropsResponse;
+    const page = Object.values(wikiData.query?.pages ?? {})[0];
+    const qid = page?.pageprops?.wikibase_item;
+    if (!qid || page?.missing) return null;
+
+    const entityParams = new URLSearchParams({
+      action: "wbgetentities",
+      ids: qid,
+      props: "claims|descriptions",
+      languages: "en",
+      format: "json",
+      origin: "*",
+    });
+    const entityResponse = await fetch(
+      `https://www.wikidata.org/w/api.php?${entityParams}`,
+      {
+        headers: { "User-Agent": WIKIMEDIA_USER_AGENT },
+        next: { revalidate: 86400 },
+      },
+    );
+    if (!entityResponse.ok) return null;
+    const entityData = (await entityResponse.json()) as WikidataEntitiesResponse;
+    const entity = entityData.entities?.[qid];
+    const instanceIds = (entity?.claims?.P31 ?? [])
+      .map((claim) => claim.mainsnak?.datavalue?.value?.id)
+      .filter((id): id is string => Boolean(id));
+    if (instanceIds.some((id) => WIKIDATA_SKIP_INSTANCE.has(id))) return null;
+
+    const description = entity?.descriptions?.en?.value ?? "";
+    if (
+      /(?:family name|given name|disambiguation|album|film|band|company|municipality|surname)/i.test(
+        description,
+      )
+    ) {
+      return null;
+    }
+
+    const fileName = entity?.claims?.P18?.[0]?.mainsnak?.datavalue?.value;
+    if (!fileName) return null;
+    return resolveCommonsFileUrl(fileName);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Dictionary sources first: Wiktionary illustrations (chosen for the word
+ * sense) and Wikidata P18 (the concept photo). Then Unsplash, Wikimedia
+ * search, Openverse. Local SVG is only used if every photo source fails.
  */
 export async function fetchWordImageUrl(
   word: string,
@@ -810,6 +1022,18 @@ export async function fetchWordImageUrl(
   }
   const queries = buildImageSearchQueries(word, { searchKeyword, pos });
   if (queries.length === 0) return getDefaultLearningImageDataUrl(word, pos);
+
+  const wiktionaryUrl = await searchWiktionaryIllustration(word);
+  if (wiktionaryUrl && isDisplayableHttpImageUrl(wiktionaryUrl, word)) {
+    return wiktionaryUrl;
+  }
+
+  if (!isAbstractImagePos(pos)) {
+    const wikidataUrl = await searchWikidataConceptImage(word);
+    if (wikidataUrl && isDisplayableHttpImageUrl(wikidataUrl, word)) {
+      return wikidataUrl;
+    }
+  }
 
   if (process.env.UNSPLASH_ACCESS_KEY?.trim()) {
     try {
