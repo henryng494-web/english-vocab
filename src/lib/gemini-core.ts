@@ -82,7 +82,7 @@ Rules:
 - NEVER write meta lines like "I learned the word...", "Please use ... in a sentence", "This is a sentence with...".
 - pos: noun|verb|adjective|adverb|pronoun|preposition|conjunction|article|number|interjection|determiner
 - phonetic: American English IPA in slashes (e.g. spent → /spɛnt/, opens → /ˈoʊpənz/) — NEVER repeat the spelling like /spent/
-- searchKeyword: 2–4 English words for a CLEAR stock photo a beginner instantly links to the primary meaning. Use a visible object, person doing an action, or everyday scene — NOT the vocabulary word alone when it is abstract.
+- searchKeyword: 2–4 English words for a CLEAR stock photo a beginner instantly links to the primary meaning. Use a visible object or person doing an action — NOT the vocabulary word alone when it is abstract, and NEVER a vague phrase like "everyday scene".
   Examples: hole → "hole in ground", organic → "organic vegetables garden", run → "person running", happy → "smiling person", think → "person thinking".
 
 Respond with ONLY valid JSON:

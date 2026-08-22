@@ -1,5 +1,6 @@
 import {
   buildImageSearchQueries,
+  isAbstractImagePos,
   isConcretePhrase,
 } from "@/lib/image-keyword";
 import { isUnsafeImageMetadata, isUnsafeImageUrl, shouldSkipEncyclopediaImage } from "@/lib/safe-image-metadata";
@@ -64,7 +65,7 @@ const GENERIC_QUERY_TOKENS = new Set([
   "scene",
 ]);
 
-const SEMANTIC_IMAGE_VERSION = "10";
+const SEMANTIC_IMAGE_VERSION = "11";
 
 const DISPLAYABLE_IMAGE_HOSTS = [
   "images.unsplash.com",
@@ -433,6 +434,29 @@ function overlapCount(left: Set<string>, right: Set<string>): number {
   return count;
 }
 
+/** >0 only when photo metadata actually mentions the word or the search phrase. */
+export function scoreImageMetadata(
+  word: string,
+  query: string,
+  metadata: string,
+): number {
+  const wordTokens = semanticTokens(word);
+  const queryTokens = semanticTokens(query);
+  const metaTokens = semanticTokens(metadata);
+  if (metaTokens.size === 0) return 0;
+
+  const wordMatches = overlapCount(wordTokens, metaTokens);
+  const queryMatches = overlapCount(queryTokens, metaTokens);
+  if (wordMatches === 0 && queryMatches === 0) return 0;
+  if (isUngroundedSingleTokenQuery(wordTokens, queryTokens) && wordMatches === 0) {
+    return 0;
+  }
+
+  const requiredMatches = queryTokens.size > 1 ? 2 : 1;
+  if (queryMatches < requiredMatches && wordMatches === 0) return 0;
+  return wordMatches * 5 + queryMatches * 2;
+}
+
 /**
  * A multi-word query phrase like "brown everyday scene" or "person
  * shivering" collapses to a single meaningful token once generic words
@@ -767,15 +791,20 @@ export async function fetchWordImageUrl(
 
   if (process.env.UNSPLASH_ACCESS_KEY?.trim()) {
     try {
-      const photos = await searchPhotos(queries[0], 5);
+      const photos = await searchPhotos(queries[0], 8);
+      let best: { url: string; score: number } | null = null;
       for (const photo of photos) {
         if (isUnsafeImageMetadata(photo.alt, photo.photographer, queries[0])) {
           continue;
         }
         if (!photo.url || isUnsafeImageUrl(photo.url)) continue;
+        const score = scoreImageMetadata(word, queries[0], photo.alt);
+        if (score <= 0) continue;
         const unsplashUrl = markSemanticImageUrl(photo.url);
-        if (isDisplayableHttpImageUrl(unsplashUrl, word)) return unsplashUrl;
+        if (!isDisplayableHttpImageUrl(unsplashUrl, word)) continue;
+        if (!best || score > best.score) best = { url: unsplashUrl, score };
       }
+      if (best) return best.url;
     } catch (error) {
       console.warn(`Unsplash API skipped for "${queries[0]}":`, error);
     }
@@ -810,9 +839,10 @@ export async function fetchWordImageUrl(
     }
   }
 
-  const wikipediaUrl = shouldSkipEncyclopediaImage(word)
-    ? null
-    : await searchWikipediaLeadImage(word);
+  const wikipediaUrl =
+    shouldSkipEncyclopediaImage(word) || isAbstractImagePos(pos)
+      ? null
+      : await searchWikipediaLeadImage(word);
   if (wikipediaUrl && isDisplayableHttpImageUrl(wikipediaUrl, word)) {
     return wikipediaUrl;
   }

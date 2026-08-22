@@ -191,10 +191,29 @@ const CURATED_VISUAL_KEYWORDS: Record<string, string> = {
   web: "spider web on plants",
   net: "fishing net on boat",
   site: "construction building site",
+  savage: "roaring lion",
+  fierce: "roaring lion",
+  cruel: "angry threatening face",
+  wild: "wild lion in grassland",
+  fuss: "people arguing loudly",
+  argue: "two people arguing",
+  complain: "person complaining",
+  folk: "crowd of people in town",
+  people: "group of people together",
+  crowd: "crowd of people outdoors",
+  among: "person standing among friends",
+  amongst: "friends standing in a group",
+  amid: "person standing among trees",
+  amidst: "person standing among trees",
 };
 
 export function hasCuratedVisualKeyword(word: string): boolean {
   return Boolean(CURATED_VISUAL_KEYWORDS[cleanPhrase(word)]);
+}
+
+export function isAbstractImagePos(pos?: string | null): boolean {
+  const normalized = pos?.trim().toLowerCase();
+  return Boolean(normalized && ABSTRACT_POS.has(normalized));
 }
 
 const ABSTRACT_POS = new Set([
@@ -245,11 +264,10 @@ export function resolveImageSearchKeyword(
   }
 
   const pos = options.pos?.trim().toLowerCase();
-  if (pos && ABSTRACT_POS.has(pos)) {
-    if (pos === "verb") return `${normalizedWord} action person`;
-    if (pos === "adjective") return `${normalizedWord} everyday scene`;
-    if (pos === "adverb") return `${normalizedWord} moment`;
-  }
+  // Do not invent "everyday scene" / "moment" suffixes — Unsplash treats
+  // those as the subject and returns unrelated landscapes.
+  if (pos === "verb") return `${normalizedWord} person`;
+  if (pos === "preposition") return `${normalizedWord} people`;
 
   if (candidate) return candidate;
   return normalizedWord;
