@@ -308,14 +308,6 @@ export default function DiscoverPage() {
     preloadWords(currentIndex, queue);
   }, [currentItem, currentIndex, queue, applyWordToView, preloadWords]);
 
-  const goToIndex = useCallback(
-    (index: number) => {
-      if (index < 0 || index >= queue.length) return;
-      setCurrentIndex(index);
-    },
-    [queue.length],
-  );
-
   function advanceAfterAction(removedWord: string) {
     const nextQueue = queue.filter((w) => w.word !== removedWord);
     const nextIndex =
@@ -492,41 +484,20 @@ export default function DiscoverPage() {
             </div>
 
             <div className="journey-actions">
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={() => updateStatus("new")}
-                  className="btn-pill-primary w-full"
-                >
-                  Learn this
-                </button>
-                <button
-                  type="button"
-                  onClick={() => updateStatus("mastered")}
-                  className="btn-pill-outline w-full"
-                >
-                  Already know
-                </button>
-              </div>
-
-              <div className="mt-2 flex gap-2">
-                <button
-                  type="button"
-                  disabled={currentIndex === 0}
-                  onClick={() => goToIndex(currentIndex - 1)}
-                  className="btn-pill-soft flex-1"
-                >
-                  ← Previous
-                </button>
-                <button
-                  type="button"
-                  disabled={currentIndex >= queue.length - 1}
-                  onClick={() => goToIndex(currentIndex + 1)}
-                  className="btn-pill-soft flex-1"
-                >
-                  Next →
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={() => updateStatus("new")}
+                className="btn-pill-primary w-full"
+              >
+                Learn this
+              </button>
+              <button
+                type="button"
+                onClick={() => updateStatus("mastered")}
+                className="btn-pill-outline w-full"
+              >
+                Already know
+              </button>
             </div>
           </div>
         )}
