@@ -86,7 +86,7 @@ const GENERIC_QUERY_TOKENS = new Set([
   "scene",
 ]);
 
-const SEMANTIC_IMAGE_VERSION = "13";
+const SEMANTIC_IMAGE_VERSION = "14";
 
 const DISPLAYABLE_IMAGE_HOSTS = [
   "images.unsplash.com",
@@ -387,6 +387,64 @@ export function resolveWordImageUrl(
   return getDefaultLearningImageDataUrl(word, pos);
 }
 
+type PexelsSearchResponse = {
+  photos?: Array<{
+    alt?: string | null;
+    photographer?: string | null;
+    src?: { large?: string; landscape?: string };
+  }>;
+};
+
+async function searchPexelsPhotos(
+  query: string,
+): Promise<Array<{ url: string; alt: string }>> {
+  const apiKey = process.env.PEXELS_API_KEY?.trim();
+  if (!apiKey) return [];
+
+  const params = new URLSearchParams({
+    query,
+    per_page: "8",
+    orientation: "landscape",
+  });
+
+  try {
+    const response = await fetch(`https://api.pexels.com/v1/search?${params}`, {
+      headers: { Authorization: apiKey },
+      next: { revalidate: 3600 },
+    });
+    if (!response.ok) return [];
+    const data = (await response.json()) as PexelsSearchResponse;
+    return (data.photos ?? [])
+      .map((photo) => ({
+        url: pickDisplayableMediaUrl(photo.src?.landscape) ??
+          pickDisplayableMediaUrl(photo.src?.large) ??
+          "",
+        alt: photo.alt ?? query,
+      }))
+      .filter((photo) => photo.url);
+  } catch {
+    return [];
+  }
+}
+
+async function pickScoredStockPhoto(
+  word: string,
+  query: string,
+  photos: Array<{ url: string; alt: string; extra?: string }>,
+): Promise<string | null> {
+  let best: { url: string; score: number } | null = null;
+  for (const photo of photos) {
+    if (isUnsafeImageMetadata(photo.alt, photo.extra, query)) continue;
+    if (!photo.url || isUnsafeImageUrl(photo.url)) continue;
+    const score = scoreImageMetadata(word, query, photo.alt);
+    if (score <= 0) continue;
+    const versioned = markSemanticImageUrl(photo.url);
+    if (!isDisplayableHttpImageUrl(versioned, word)) continue;
+    if (!best || score > best.score) best = { url: versioned, score };
+  }
+  return best?.url ?? null;
+}
+
 export async function searchPhotos(
   query: string,
   perPage = 1,
@@ -455,6 +513,24 @@ function overlapCount(left: Set<string>, right: Set<string>): number {
   return count;
 }
 
+function queryCoversWord(wordTokens: Set<string>, queryTokens: Set<string>): boolean {
+  return overlapCount(wordTokens, queryTokens) > 0;
+}
+
+function queryOverlapScore(
+  queryTokens: Set<string>,
+  metaTokens: Set<string>,
+  queryMatches: number,
+): number {
+  if (queryMatches === 0) return 0;
+  const requiredMatches = queryTokens.size > 1 ? 2 : 1;
+  if (queryMatches < requiredMatches) {
+    const focus = [...queryTokens].at(-1);
+    if (!focus || focus.length < 4 || !metaTokens.has(focus)) return 0;
+  }
+  return queryMatches * 2;
+}
+
 /** >0 only when photo metadata actually mentions the word or the search phrase. */
 export function scoreImageMetadata(
   word: string,
@@ -469,13 +545,20 @@ export function scoreImageMetadata(
   const wordMatches = overlapCount(wordTokens, metaTokens);
   const queryMatches = overlapCount(queryTokens, metaTokens);
   if (wordMatches === 0 && queryMatches === 0) return 0;
+
+  // Scene queries ("thumbs up" for "good") must match the scene, not the
+  // English word — otherwise book titles / homonyms win (Why, water well).
+  if (!queryCoversWord(wordTokens, queryTokens)) {
+    if (isUngroundedSingleTokenQuery(wordTokens, queryTokens)) return 0;
+    return queryOverlapScore(queryTokens, metaTokens, queryMatches);
+  }
+
   if (isUngroundedSingleTokenQuery(wordTokens, queryTokens) && wordMatches === 0) {
     return 0;
   }
 
   const requiredMatches = queryTokens.size > 1 ? 2 : 1;
   if (queryMatches < requiredMatches && wordMatches === 0) {
-    // Unsplash alts often name the object only ("brown lion" for query "wild lion").
     const focus = [...queryTokens].at(-1);
     if (!focus || focus.length < 4 || !metaTokens.has(focus)) return 0;
   }
@@ -676,6 +759,7 @@ export async function searchWikimediaPhoto(
 
       const titleText = (page.title ?? "").replace(/^file:/i, "");
       if (isUnsafeImageMetadata(titleText, url)) continue;
+      if (/\bstamp of\b|\bpostage stamp\b|\.pdf$/i.test(titleText)) continue;
 
       const titleTokens = semanticTokens(
         titleText.replace(/\.[a-z0-9]+$/i, ""),
@@ -1008,9 +1092,10 @@ export async function searchWikidataConceptImage(
 }
 
 /**
- * Dictionary sources first: Wiktionary illustrations (chosen for the word
- * sense) and Wikidata P18 (the concept photo). Then Unsplash, Wikimedia
- * search, Openverse. Local SVG is only used if every photo source fails.
+ * Concrete nouns can use dictionary photos (apple, lion). Abstract POS and
+ * homonyms (well the adverb, domestic = nội địa) must search a scene phrase
+ * instead — Wiktionary/Wikipedia pick the encyclopedia sense.
+ * Then Unsplash / optional Pexels, Wikimedia Commons, Openverse.
  */
 export async function fetchWordImageUrl(
   word: string,
@@ -1022,13 +1107,13 @@ export async function fetchWordImageUrl(
   }
   const queries = buildImageSearchQueries(word, { searchKeyword, pos });
   if (queries.length === 0) return getDefaultLearningImageDataUrl(word, pos);
-
-  const wiktionaryUrl = await searchWiktionaryIllustration(word);
-  if (wiktionaryUrl && isDisplayableHttpImageUrl(wiktionaryUrl, word)) {
-    return wiktionaryUrl;
-  }
+  const primaryQuery = queries[0];
 
   if (!isAbstractImagePos(pos)) {
+    const wiktionaryUrl = await searchWiktionaryIllustration(word);
+    if (wiktionaryUrl && isDisplayableHttpImageUrl(wiktionaryUrl, word)) {
+      return wiktionaryUrl;
+    }
     const wikidataUrl = await searchWikidataConceptImage(word);
     if (wikidataUrl && isDisplayableHttpImageUrl(wikidataUrl, word)) {
       return wikidataUrl;
@@ -1037,24 +1122,25 @@ export async function fetchWordImageUrl(
 
   if (process.env.UNSPLASH_ACCESS_KEY?.trim()) {
     try {
-      const photos = await searchPhotos(queries[0], 8);
-      let best: { url: string; score: number } | null = null;
-      for (const photo of photos) {
-        if (isUnsafeImageMetadata(photo.alt, photo.photographer, queries[0])) {
-          continue;
-        }
-        if (!photo.url || isUnsafeImageUrl(photo.url)) continue;
-        const score = scoreImageMetadata(word, queries[0], photo.alt);
-        if (score <= 0) continue;
-        const unsplashUrl = markSemanticImageUrl(photo.url);
-        if (!isDisplayableHttpImageUrl(unsplashUrl, word)) continue;
-        if (!best || score > best.score) best = { url: unsplashUrl, score };
-      }
-      if (best) return best.url;
+      const photos = await searchPhotos(primaryQuery, 8);
+      const unsplashUrl = await pickScoredStockPhoto(
+        word,
+        primaryQuery,
+        photos.map((photo) => ({
+          url: photo.url,
+          alt: photo.alt,
+          extra: photo.photographer,
+        })),
+      );
+      if (unsplashUrl) return unsplashUrl;
     } catch (error) {
-      console.warn(`Unsplash API skipped for "${queries[0]}":`, error);
+      console.warn(`Unsplash API skipped for "${primaryQuery}":`, error);
     }
   }
+
+  const pexelsPhotos = await searchPexelsPhotos(primaryQuery);
+  const pexelsUrl = await pickScoredStockPhoto(word, primaryQuery, pexelsPhotos);
+  if (pexelsUrl) return pexelsUrl;
 
   // Wikimedia titles are usually literal ("Lion at Wild Animal Sanctuary").
   // Openverse tags are noisier and used to win with jets tagged "lion".
