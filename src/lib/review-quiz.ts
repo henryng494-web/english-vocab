@@ -53,11 +53,16 @@ const FALLBACK_SENSE_DISTRACTORS: Array<{
 type SenseSource = {
   word: string;
   rank?: number;
+  family_head?: string | null;
   vietnamese_meaning?: string | null;
   english_definition?: string | null;
   image_url?: string | null;
   word_type?: string | null;
 };
+
+function familyKey(word: string, familyHead?: string | null): string {
+  return (familyHead ?? word).trim().toLowerCase();
+}
 
 function pickSameRankDistractors<T extends { word: string; rank?: number }>(
   correctWord: string,
@@ -110,12 +115,15 @@ export function buildReviewSenseChoices(
   const correctMeaning = reviewSenseText(correctItem ?? {});
   if (!correctMeaning) return [];
 
+  const correctHead = familyKey(correct, correctItem?.family_head);
   const distractors = pickSameRankDistractors(
     correct,
     correctItem?.rank ?? 0,
     pool,
     2,
-    (item) => Boolean(reviewSenseText(item)),
+    (item) =>
+      Boolean(reviewSenseText(item)) &&
+      familyKey(item.word, item.family_head) !== correctHead,
   );
   if (distractors.length < 2) {
     for (const fallback of FALLBACK_SENSE_DISTRACTORS) {
@@ -199,16 +207,23 @@ function shuffle<T>(items: T[]): T[] {
 
 export function buildReviewChoices(
   correctWord: string,
-  pool: Array<{ word: string; rank?: number }>,
+  pool: Array<{ word: string; rank?: number; family_head?: string | null }>,
   correctRank = 0,
 ): ReviewChoice[] {
   const correct = correctWord.trim().toLowerCase();
+  const correctHead = familyKey(
+    correct,
+    pool.find((item) => item.word.trim().toLowerCase() === correct)?.family_head,
+  );
   const ranked = pickSameRankDistractors(
     correct,
     correctRank,
     pool,
     3,
-    (item) => /^[a-z]+$/i.test(item.word) && item.word.length >= 3,
+    (item) =>
+      /^[a-z]+$/i.test(item.word) &&
+      item.word.length >= 3 &&
+      familyKey(item.word, item.family_head) !== correctHead,
   );
   const unique = [
     ...new Set([

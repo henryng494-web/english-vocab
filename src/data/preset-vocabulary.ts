@@ -1,6 +1,7 @@
 import { NGSL_FREQUENCY_RANKS } from "@/data/ngsl-frequency-ranks";
 import { SPOKEN_FREQUENCY_RANKS } from "@/data/spoken-frequency-ranks";
 import { type WordRange, WORD_RANGES } from "@/data/word-ranges";
+import { getFamilyHeadword } from "@/lib/word-family";
 import { isProfaneWord } from "@/lib/safe-image-search";
 
 export type { WordRange };
@@ -131,7 +132,11 @@ function collectLearnableWords(ngslHeadwords: Map<string, number>): string[] {
   for (const word of Object.keys(SPOKEN_FREQUENCY_RANKS)) {
     if (isLearnableWord(word)) words.add(word);
   }
-  return [...words].sort(
+  const headwords = new Set<string>();
+  for (const word of words) {
+    headwords.add(getFamilyHeadword(word));
+  }
+  return [...headwords].sort(
     (a, b) =>
       frequencySortKey(a, ngslHeadwords) - frequencySortKey(b, ngslHeadwords) ||
       a.localeCompare(b),
@@ -187,5 +192,8 @@ export function getWordsByRangeId(rangeId: string): PresetWord[] {
 }
 
 export function getPresetRank(word: string): number | undefined {
-  return PRESET_RANK_BY_WORD[word.toLowerCase()];
+  const key = word.toLowerCase();
+  if (PRESET_RANK_BY_WORD[key] !== undefined) return PRESET_RANK_BY_WORD[key];
+  const head = getFamilyHeadword(key);
+  return PRESET_RANK_BY_WORD[head];
 }

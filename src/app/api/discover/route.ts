@@ -11,6 +11,7 @@ import { hasStaticVietnamese } from "@/lib/static-vietnamese";
 import { serializeExamples } from "@/lib/parse-examples";
 import { createClient } from "@/lib/supabase/server";
 import { getImportanceTier } from "@/lib/word-rank";
+import { getFamilyMembers, familyContainsTaken } from "@/lib/word-family";
 import { NextResponse } from "next/server";
 
 function errorMessage(error: unknown): string {
@@ -48,7 +49,7 @@ export async function GET(request: Request) {
     );
 
     const visiblePreset = presetWords.filter(
-      (preset) => !takenWords.has(preset.word.trim().toLowerCase()),
+      (preset) => !familyContainsTaken(preset.word, takenWords),
     );
 
     const words = visiblePreset.map((preset) => {
@@ -84,6 +85,7 @@ export async function GET(request: Request) {
         from_static: hasStatic,
         has_vietnamese: hasVi,
         needs_fetch: !hasStatic,
+        family_members: getFamilyMembers(preset.word),
         preview,
       };
     });

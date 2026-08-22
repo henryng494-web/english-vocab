@@ -1,0 +1,172 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import { VocabExampleList } from "@/components/flashcard/VocabExampleList";
+import { capitalizeFirst } from "@/lib/format-text";
+import { parseExamples } from "@/lib/parse-examples";
+import type { WordFamilyMember } from "@/types/database";
+
+const POS_ABBREV: Record<string, string> = {
+  noun: "n.",
+  verb: "v.",
+  adjective: "adj.",
+  adverb: "adv.",
+  preposition: "prep.",
+  pronoun: "pron.",
+  conjunction: "conj.",
+  interjection: "interj.",
+  article: "art.",
+  number: "num.",
+  determiner: "det.",
+};
+
+type WordCardDetailsProps = {
+  word: string;
+  meaning?: string | null;
+  examples?: string | null;
+  wordType?: string | null;
+  family?: WordFamilyMember[] | null;
+  compact?: boolean;
+  loading?: boolean;
+};
+
+export function WordCardDetails({
+  word,
+  meaning,
+  examples,
+  wordType,
+  family,
+  compact = false,
+  loading = false,
+}: WordCardDetailsProps) {
+  const parsed = loading ? [] : parseExamples(examples);
+  const rows = (family ?? []).filter((item) => item.word.trim());
+  const canFlip = rows.length > 1;
+  const [showFamily, setShowFamily] = useState(false);
+  const startX = useRef<number | null>(null);
+  const swiped = useRef(false);
+
+  useEffect(() => {
+    setShowFamily(false);
+  }, [word]);
+
+  if (loading) {
+    return (
+      <div className="space-y-3 pt-1" aria-hidden>
+        <div className="h-6 w-3/4 animate-pulse rounded bg-primary-50" />
+        <div className="h-10 w-full animate-pulse rounded-lg bg-primary-50" />
+        <div className="h-10 w-full animate-pulse rounded-lg bg-primary-50" />
+      </div>
+    );
+  }
+
+  function toggle() {
+    if (!canFlip) return;
+    setShowFamily((current) => !current);
+  }
+
+  return (
+    <div className={compact ? "card-details card-details--compact" : "card-details"}>
+      <div
+        className="card-details__scene"
+        onClick={() => {
+          if (swiped.current) {
+            swiped.current = false;
+            return;
+          }
+          toggle();
+        }}
+        onPointerDown={(event) => {
+          startX.current = event.clientX;
+        }}
+        onPointerUp={(event) => {
+          if (startX.current == null || !canFlip) return;
+          const delta = event.clientX - startX.current;
+          startX.current = null;
+          if (Math.abs(delta) < 40) return;
+          swiped.current = true;
+          setShowFamily(delta < 0);
+        }}
+        role={canFlip ? "button" : undefined}
+        tabIndex={canFlip ? 0 : undefined}
+        aria-label={canFlip ? (showFamily ? "Show examples" : "Show word family") : undefined}
+        onKeyDown={(event) => {
+          if (!canFlip) return;
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            toggle();
+          }
+        }}
+      >
+        <div className={`card-details__flip${showFamily ? " is-family" : ""}`}>
+          <div className="card-details__face card-details__face--meaning">
+            {meaning ? (
+              <p
+                className={`vocab-meaning shrink-0 font-semibold ${
+                  compact
+                    ? "discover-card__meaning text-base leading-snug"
+                    : "text-xl text-primary-700"
+                }`}
+              >
+                {capitalizeFirst(meaning)}
+              </p>
+            ) : null}
+            <div
+              className={
+                compact ? "discover-card__examples min-h-0 flex-1 overflow-hidden" : undefined
+              }
+            >
+              <VocabExampleList
+                word={word}
+                examples={parsed}
+                wordType={wordType}
+                meaning={meaning}
+                compact={compact}
+                boxed={!compact}
+              />
+            </div>
+          </div>
+
+          {canFlip ? (
+            <ul className="card-details__face card-details__face--family">
+              {rows.map((item) => {
+                const pos =
+                  POS_ABBREV[item.pos] ?? (item.pos ? `${item.pos}.` : "");
+                return (
+                  <li key={item.word} className="card-family__row">
+                    <span className="card-family__word">
+                      {capitalizeFirst(item.word)}
+                    </span>
+                    {pos || item.vi ? (
+                      <span className="card-family__meta">
+                        {" "}
+                        — {pos}
+                        {item.vi ? ` ${item.vi}` : ""}
+                      </span>
+                    ) : null}
+                  </li>
+                );
+              })}
+            </ul>
+          ) : null}
+        </div>
+      </div>
+
+      {canFlip ? (
+        <div className="card-details__dots">
+          <button
+            type="button"
+            aria-label={showFamily ? "Show examples" : "Show word family"}
+            onClick={(event) => {
+              event.stopPropagation();
+              toggle();
+            }}
+          >
+            <span className={!showFamily ? "is-on" : ""} />
+            <span className={showFamily ? "is-on" : ""} />
+          </button>
+        </div>
+      ) : null}
+    </div>
+  );
+}

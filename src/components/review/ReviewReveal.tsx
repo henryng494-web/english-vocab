@@ -3,10 +3,8 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { WordCardHeader } from "@/components/flashcard/WordCardHeader";
-import { VocabExampleList } from "@/components/flashcard/VocabExampleList";
+import { WordCardDetails } from "@/components/flashcard/WordCardDetails";
 import { ReviewWordImage } from "@/components/review/ReviewWordImage";
-import { capitalizeFirst } from "@/lib/format-text";
-import { parseExamples } from "@/lib/parse-examples";
 import {
   REVIEW_INTERVALS,
   formatReviewInLabel,
@@ -34,7 +32,6 @@ export function ReviewReveal({
   onConfirm,
   confirming,
 }: ReviewRevealProps) {
-  const examples = parseExamples(word.examples);
   const filled = intervalLevelIndex(intervalDays) + 1;
   const timesLabel =
     timesReviewed <= 0
@@ -100,17 +97,12 @@ export function ReviewReveal({
             phonetic={word.phonetic}
             wordType={word.word_type}
           />
-          {word.vietnamese_meaning ? (
-            <p className="review-reveal__meaning">
-              {capitalizeFirst(word.vietnamese_meaning)}
-            </p>
-          ) : null}
-          <VocabExampleList
+          <WordCardDetails
             word={word.word}
-            examples={examples}
-            wordType={word.word_type}
             meaning={word.vietnamese_meaning}
-            boxed
+            examples={word.examples}
+            wordType={word.word_type}
+            family={word.word_family}
           />
         </div>
       </div>

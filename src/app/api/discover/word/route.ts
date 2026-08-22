@@ -13,6 +13,7 @@ import { generatePhoneticWithGemini } from "@/lib/gemini-core";
 import { isPlaceholderPhonetic, formatIpa } from "@/lib/phonetic";
 import { parseExamples, serializeExamples } from "@/lib/parse-examples";
 import { getImportanceTier } from "@/lib/word-rank";
+import { withWordFamily } from "@/lib/word-family-display";
 import { resolveImageSearchKeyword } from "@/lib/image-keyword";
 import {
   fetchWordImageUrl,
@@ -63,7 +64,7 @@ function persistedDetailToDiscoverWord(
   imageUrl: string,
   searchKeyword: string,
 ) {
-  return {
+  return withWordFamily({
     word,
     phonetic: detail.phonetic,
     word_type: detail.word_type,
@@ -79,7 +80,7 @@ function persistedDetailToDiscoverWord(
     from_cache: true,
     source: "database" as const,
     search_keyword: searchKeyword,
-  };
+  });
 }
 
 /** Self-heal: persist a freshly regenerated image URL so it's fixed for good. */

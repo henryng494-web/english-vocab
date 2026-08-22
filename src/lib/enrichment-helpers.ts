@@ -6,6 +6,7 @@ import { resolveImageSearchKeyword } from "@/lib/image-keyword";
 import { resolveWordImageUrl } from "@/lib/unsplash";
 import { getImportanceTier } from "@/lib/word-rank";
 import { normalizeWordType } from "@/lib/word-type";
+import { withWordFamily } from "@/lib/word-family-display";
 
 export function enrichmentToDiscoverWord(
   word: string,
@@ -17,7 +18,7 @@ export function enrichmentToDiscoverWord(
     meaning: enrichment.vietnameseMeaning,
     pos: enrichment.wordType,
   });
-  return {
+  return withWordFamily({
     word,
     phonetic: enrichment.phonetic,
     word_type:
@@ -33,7 +34,7 @@ export function enrichmentToDiscoverWord(
     from_static: enrichment.fromStatic ?? false,
     source: enrichment.source,
     search_keyword: keyword,
-  };
+  });
 }
 
 export function standardToDiscoverFields(word: string) {

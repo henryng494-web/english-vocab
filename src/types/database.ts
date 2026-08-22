@@ -75,9 +75,17 @@ export type Database = {
   };
 };
 
+export type WordFamilyMember = {
+  word: string;
+  pos: string;
+  vi: string;
+};
+
 export type VocabWord = WordDetail & {
   rank: number;
   importance_tier: string;
   learning_status: LearningStatus;
   last_reviewed_at: string | null;
+  word_family?: WordFamilyMember[];
+  family_head?: string;
 };

@@ -53,6 +53,7 @@ type DiscoverListItem = {
   from_static?: boolean;
   has_vietnamese?: boolean;
   needs_fetch?: boolean;
+  family_members?: string[] | null;
   preview?: DiscoverListPreview | null;
 };
 
@@ -91,6 +92,9 @@ function mapApiWord(
     image_url: (apiWord.image_url as string | null | undefined) ?? null,
     collocations: apiWord.collocations as string | null | undefined,
     search_keyword: (apiWord.search_keyword as string | null | undefined) ?? item.word,
+    word_family: Array.isArray(apiWord.word_family)
+      ? (apiWord.word_family as DiscoverWordData["word_family"])
+      : null,
   };
 }
 
@@ -136,7 +140,12 @@ export default function DiscoverPage() {
     const taken = new Set(
       getLocallyTakenWords().map((word) => word.trim().toLowerCase()),
     );
-    return items.filter((item) => !taken.has(item.word.trim().toLowerCase()));
+    return items.filter((item) => {
+      const family = item.family_members?.length
+        ? item.family_members
+        : [item.word];
+      return !family.some((member) => taken.has(member.trim().toLowerCase()));
+    });
   }, []);
 
   const fetchWordFromApi = useCallback(

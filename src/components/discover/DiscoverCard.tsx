@@ -2,11 +2,10 @@
 
 import Image from "next/image";
 import { WordCardHeader } from "@/components/flashcard/WordCardHeader";
-import { VocabExampleList } from "@/components/flashcard/VocabExampleList";
-import { capitalizeFirst } from "@/lib/format-text";
-import { parseExamples } from "@/lib/parse-examples";
+import { WordCardDetails } from "@/components/flashcard/WordCardDetails";
 import { displayPhonetic } from "@/lib/phonetic";
 import { useWordImageSrc } from "@/lib/use-word-image-src";
+import type { WordFamilyMember } from "@/types/database";
 
 export type DiscoverWordData = {
   word: string;
@@ -20,6 +19,8 @@ export type DiscoverWordData = {
   image_url?: string | null;
   collocations?: string | null;
   search_keyword?: string | null;
+  word_family?: WordFamilyMember[] | null;
+  family_members?: string[] | null;
 };
 
 type DiscoverCardProps = {
@@ -78,16 +79,6 @@ function CardImage({
   );
 }
 
-function DetailSkeleton() {
-  return (
-    <div className="space-y-3 pt-1" aria-hidden>
-      <div className="h-6 w-3/4 animate-pulse rounded bg-primary-50" />
-      <div className="h-10 w-full animate-pulse rounded-lg bg-primary-50" />
-      <div className="h-10 w-full animate-pulse rounded-lg bg-primary-50" />
-    </div>
-  );
-}
-
 export function DiscoverCard({
   data,
   loading,
@@ -95,7 +86,6 @@ export function DiscoverCard({
   imageBadge,
 }: DiscoverCardProps) {
   const detailsLoading = loading && !data.vietnamese_meaning?.trim();
-  const examples = detailsLoading ? [] : parseExamples(data.examples);
   const phonetic = displayPhonetic(data.word, data.phonetic);
 
   return (
@@ -127,37 +117,15 @@ export function DiscoverCard({
           loadingPhonetic={detailsLoading && !phonetic}
         />
 
-        {detailsLoading ? (
-          <DetailSkeleton />
-        ) : (
-          <>
-            {data.vietnamese_meaning ? (
-              <p
-                className={`vocab-meaning shrink-0 font-semibold ${
-                  compact
-                    ? "discover-card__meaning text-base leading-snug"
-                    : "text-xl text-primary-700"
-                }`}
-              >
-                {capitalizeFirst(data.vietnamese_meaning)}
-              </p>
-            ) : null}
-
-            <div
-              className={
-                compact ? "discover-card__examples min-h-0 flex-1 overflow-hidden" : undefined
-              }
-            >
-              <VocabExampleList
-                word={data.word}
-                examples={examples}
-                wordType={data.word_type}
-                meaning={data.vietnamese_meaning}
-                compact={compact}
-              />
-            </div>
-          </>
-        )}
+        <WordCardDetails
+          word={data.word}
+          meaning={data.vietnamese_meaning}
+          examples={data.examples}
+          wordType={data.word_type}
+          family={data.word_family}
+          compact={compact}
+          loading={detailsLoading}
+        />
       </div>
     </div>
   );

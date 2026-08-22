@@ -4,6 +4,7 @@ import { enrichWord } from "@/lib/enrich-word";
 import { serializeExamples } from "@/lib/parse-examples";
 import { fetchWordImageUrl, shouldRefreshImageUrl } from "@/lib/unsplash";
 import { isProfaneWord } from "@/lib/safe-image-search";
+import { getFamilyHeadword } from "@/lib/word-family";
 import { normalizeVocabInput } from "@/lib/word-validation";
 import { NextResponse } from "next/server";
 
@@ -24,13 +25,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Word is required" }, { status: 400 });
     }
 
-    const trimmedWord = normalizeVocabInput(word);
-    if (!trimmedWord) {
+    const normalized = normalizeVocabInput(word);
+    if (!normalized) {
       return NextResponse.json(
         { error: "Invalid word format" },
         { status: 400 },
       );
     }
+    const trimmedWord = getFamilyHeadword(normalized);
 
     if (isProfaneWord(trimmedWord)) {
       return NextResponse.json(

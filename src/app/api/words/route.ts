@@ -2,6 +2,8 @@ import { getPresetRank } from "@/data/preset-word-details";
 import { createClient } from "@/lib/supabase/server";
 import { cleanupCorruptWords } from "@/lib/cleanup-corrupt-words";
 import { getImportanceTier } from "@/lib/word-rank";
+import { getFamilyHeadword } from "@/lib/word-family";
+import { withWordFamily } from "@/lib/word-family-display";
 import { isValidVocabWord } from "@/lib/word-validation";
 import type { LearningStatus, VocabWord } from "@/types/database";
 import { NextResponse } from "next/server";
@@ -68,13 +70,14 @@ export async function GET(request: Request) {
         const rank =
           getPresetRank(detail.word) ?? rankByWord.get(detail.word) ?? 10000;
         const learning = learningByWord.get(detail.word);
-        return {
+        return withWordFamily({
           ...detail,
           rank,
           importance_tier: getImportanceTier(rank),
           learning_status: (learning?.status as LearningStatus) ?? "new",
           last_reviewed_at: learning?.last_reviewed_at ?? null,
-        };
+          family_head: getFamilyHeadword(detail.word),
+        });
       });
 
     if (statusFilter && statusFilter !== "all") {
