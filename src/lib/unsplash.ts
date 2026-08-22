@@ -96,20 +96,25 @@ export function isBrokenOpenverseProxyUrl(
   }
 }
 
+function pickDisplayableMediaUrl(url?: string | null): string | null {
+  const trimmed = url?.trim();
+  if (!trimmed?.startsWith("https://")) return null;
+  if (isBrokenOpenverseProxyUrl(trimmed)) return null;
+  try {
+    if (!isDisplayableImageHost(new URL(trimmed).hostname)) return null;
+  } catch {
+    return null;
+  }
+  return trimmed;
+}
+
 function pickOpenverseMediaUrl(result: {
   url?: string | null;
   thumbnail?: string | null;
 }): string | null {
   for (const candidate of [result.url, result.thumbnail]) {
-    const url = candidate?.trim();
-    if (!url?.startsWith("https://")) continue;
-    if (isBrokenOpenverseProxyUrl(url)) continue;
-    try {
-      if (!isDisplayableImageHost(new URL(url).hostname)) continue;
-    } catch {
-      continue;
-    }
-    return url;
+    const url = pickDisplayableMediaUrl(candidate);
+    if (url) return url;
   }
   return null;
 }
@@ -572,8 +577,10 @@ export async function searchWikimediaPhoto(
 
     for (const page of pages) {
       const info = page.imageinfo?.[0];
-      const url = info?.thumburl?.trim() || info?.url?.trim();
-      if (!url?.startsWith("https://")) continue;
+      const url =
+        pickDisplayableMediaUrl(info?.thumburl) ||
+        pickDisplayableMediaUrl(info?.url);
+      if (!url) continue;
       if (!info?.mime || !WIKIMEDIA_ALLOWED_MIME_TYPES.has(info.mime)) continue;
       if (info.mime === "image/svg+xml" && !info.thumburl) continue;
       if (
@@ -652,11 +659,10 @@ export async function searchWikipediaLeadImage(
     if (!response.ok) return null;
     const data = (await response.json()) as WikipediaSummaryResponse;
     if (data.type !== "disambiguation") {
-      const url =
-        data.originalimage?.source?.trim() || data.thumbnail?.source?.trim();
-      if (url?.startsWith("https://")) {
-        return markSemanticImageUrl(cleanMediaUrl(url));
-      }
+      const url = pickDisplayableMediaUrl(
+        data.originalimage?.source ?? data.thumbnail?.source,
+      );
+      if (url) return markSemanticImageUrl(cleanMediaUrl(url));
     }
 
     const searchParams = new URLSearchParams({
@@ -697,8 +703,8 @@ export async function searchWikipediaLeadImage(
     for (const page of pages) {
       const title = page.title ?? "";
       if (/disambiguation/i.test(title)) continue;
-      const url = page.thumbnail?.source?.trim();
-      if (!url?.startsWith("https://")) continue;
+      const url = pickDisplayableMediaUrl(page.thumbnail?.source);
+      if (!url) continue;
       const titleTokens = semanticTokens(title.replace(/\([^)]*\)/g, ""));
       if (overlapCount(wordTokens, titleTokens) === 0) continue;
       return markSemanticImageUrl(cleanMediaUrl(url));
@@ -736,7 +742,8 @@ export async function fetchWordImageUrl(
     try {
       const photos = await searchPhotos(queries[0], 1);
       if (photos[0]?.url) {
-        return markSemanticImageUrl(photos[0].url);
+        const unsplashUrl = markSemanticImageUrl(photos[0].url);
+        if (isDisplayableHttpImageUrl(unsplashUrl, word)) return unsplashUrl;
       }
     } catch (error) {
       console.warn(`Unsplash API skipped for "${queries[0]}":`, error);
@@ -755,7 +762,9 @@ export async function fetchWordImageUrl(
       keyword,
       requireWordMatch,
     );
-    if (openverseUrl) return openverseUrl;
+    if (openverseUrl && isDisplayableHttpImageUrl(openverseUrl, word)) {
+      return openverseUrl;
+    }
   }
 
   for (const keyword of queries) {
@@ -765,11 +774,15 @@ export async function fetchWordImageUrl(
       keyword,
       requireWordMatch,
     );
-    if (wikimediaUrl) return wikimediaUrl;
+    if (wikimediaUrl && isDisplayableHttpImageUrl(wikimediaUrl, word)) {
+      return wikimediaUrl;
+    }
   }
 
   const wikipediaUrl = await searchWikipediaLeadImage(word);
-  if (wikipediaUrl) return wikipediaUrl;
+  if (wikipediaUrl && isDisplayableHttpImageUrl(wikipediaUrl, word)) {
+    return wikipediaUrl;
+  }
 
   return getDefaultLearningImageDataUrl(word, pos);
 }

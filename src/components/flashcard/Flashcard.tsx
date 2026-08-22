@@ -1,13 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Image from "next/image";
 import { capitalizeFirst } from "@/lib/format-text";
 import { parseExamples } from "@/lib/parse-examples";
-import {
-  getDefaultLearningImageDataUrl,
-  resolveWordImageUrl,
-} from "@/lib/unsplash";
+import { useWordImageSrc } from "@/lib/use-word-image-src";
 import type { VocabWord } from "@/types/database";
 import { WordCardHeader } from "./WordCardHeader";
 import { VocabExampleList } from "./VocabExampleList";
@@ -19,20 +15,12 @@ type FlashcardProps = {
 };
 
 function FlashcardImage({ word }: { word: VocabWord }) {
-  const primarySrc = resolveWordImageUrl(
+  const { src, onError } = useWordImageSrc(
     word.word,
     word.image_url,
     undefined,
     word.word_type,
   );
-  const finalSrc = getDefaultLearningImageDataUrl(word.word, word.word_type);
-  const [src, setSrc] = useState(primarySrc);
-
-  useEffect(() => {
-    setSrc(
-      resolveWordImageUrl(word.word, word.image_url, undefined, word.word_type),
-    );
-  }, [word.word, word.image_url, word.word_type]);
 
   return (
     <div className="relative h-44 w-full shrink-0 bg-gradient-to-br from-primary-100 via-primary to-primary-hover">
@@ -44,9 +32,7 @@ function FlashcardImage({ word }: { word: VocabWord }) {
         sizes="(max-width: 768px) 100vw, 400px"
         priority
         unoptimized
-        onError={() => {
-          if (src !== finalSrc) setSrc(finalSrc);
-        }}
+        onError={onError}
       />
     </div>
   );

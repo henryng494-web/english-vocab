@@ -1,16 +1,12 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useState } from "react";
 import { WordCardHeader } from "@/components/flashcard/WordCardHeader";
 import { VocabExampleList } from "@/components/flashcard/VocabExampleList";
 import { capitalizeFirst } from "@/lib/format-text";
 import { parseExamples } from "@/lib/parse-examples";
 import { displayPhonetic } from "@/lib/phonetic";
-import {
-  getDefaultLearningImageDataUrl,
-  resolveWordImageUrl,
-} from "@/lib/unsplash";
+import { useWordImageSrc } from "@/lib/use-word-image-src";
 
 export type DiscoverWordData = {
   word: string;
@@ -50,18 +46,12 @@ function CardImage({
   compact?: boolean;
   badge?: string;
 }) {
-  const primarySrc = resolveWordImageUrl(
+  const { src, onError } = useWordImageSrc(
     word,
     imageUrl,
     searchKeyword,
     wordType,
   );
-  const finalSrc = getDefaultLearningImageDataUrl(word, wordType);
-  const [src, setSrc] = useState(primarySrc);
-
-  useEffect(() => {
-    setSrc(resolveWordImageUrl(word, imageUrl, searchKeyword, wordType));
-  }, [word, imageUrl, searchKeyword, wordType]);
 
   return (
     <div
@@ -77,9 +67,7 @@ function CardImage({
         sizes="(max-width: 768px) 100vw, 400px"
         priority
         unoptimized
-        onError={() => {
-          if (src !== finalSrc) setSrc(finalSrc);
-        }}
+        onError={onError}
       />
       {compact && badge ? (
         <span className="card-image-badge" aria-label={`Word ${badge}`}>
