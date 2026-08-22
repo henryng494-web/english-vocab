@@ -4,11 +4,6 @@ import {
   isAbstractImagePos,
   isConcretePhrase,
 } from "@/lib/image-keyword";
-import {
-  getConceptIllustrationDataUrl,
-  isConceptIllustrationUrl,
-  shouldUseConceptIllustration,
-} from "@/lib/concept-illustration";
 import { isUnsafeImageMetadata, isUnsafeImageUrl, shouldSkipEncyclopediaImage } from "@/lib/safe-image-metadata";
 import { requiresSafeImageOnly } from "@/lib/safe-image-search";
 
@@ -91,7 +86,7 @@ const GENERIC_QUERY_TOKENS = new Set([
   "scene",
 ]);
 
-const SEMANTIC_IMAGE_VERSION = "14";
+const SEMANTIC_IMAGE_VERSION = "15";
 
 const DISPLAYABLE_IMAGE_HOSTS = [
   "images.unsplash.com",
@@ -268,20 +263,14 @@ export function isDisplayableHttpImageUrl(
 export function isPlaceholderIllustrationUrl(
   url: string | null | undefined,
 ): boolean {
-  const trimmed = url?.trim();
-  if (!trimmed?.startsWith("data:image/svg+xml")) return false;
-  return !isConceptIllustrationUrl(trimmed);
+  return Boolean(url?.trim().startsWith("data:image/svg+xml"));
 }
 
 export function shouldRefreshImageUrl(
   url: string | null | undefined,
   word?: string | null,
-  pos?: string | null,
 ): boolean {
   const trimmed = url?.trim();
-  if (word && shouldUseConceptIllustration(word, pos)) {
-    return !isConceptIllustrationUrl(trimmed);
-  }
   if (word && requiresSafeImageOnly(word)) {
     return !trimmed || trimmed.startsWith("http") || isUnsafeImageUrl(trimmed);
   }
@@ -307,9 +296,6 @@ export function getDefaultLearningImageDataUrl(
   word = "word",
   pos?: string | null,
 ): string {
-  if (shouldUseConceptIllustration(word, pos)) {
-    return getConceptIllustrationDataUrl(word, pos);
-  }
   const normalizedWord =
     word.trim().toLowerCase().replace(/[^a-z0-9'-]/g, "") || "word";
   const safeWord = normalizedWord
@@ -391,8 +377,8 @@ export function resolveWordImageUrl(
   pos?: string | null,
 ): string {
   void _searchKeyword;
-  if (requiresSafeImageOnly(word) || shouldUseConceptIllustration(word, pos)) {
-    return getConceptIllustrationDataUrl(word, pos);
+  if (requiresSafeImageOnly(word)) {
+    return getDefaultLearningImageDataUrl(word, pos);
   }
   const trimmed = imageUrl?.trim();
   if (isDisplayableHttpImageUrl(trimmed, word)) {
@@ -1116,8 +1102,8 @@ export async function fetchWordImageUrl(
   searchKeyword?: string | null,
   pos?: string | null,
 ): Promise<string> {
-  if (requiresSafeImageOnly(word) || shouldUseConceptIllustration(word, pos)) {
-    return getConceptIllustrationDataUrl(word, pos);
+  if (requiresSafeImageOnly(word)) {
+    return getDefaultLearningImageDataUrl(word, pos);
   }
   const queries = buildImageSearchQueries(word, { searchKeyword, pos });
   if (queries.length === 0) return getDefaultLearningImageDataUrl(word, pos);
