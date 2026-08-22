@@ -44,7 +44,6 @@ const SUFFIXES = [
   "ition",
   "ment",
   "ness",
-  "tion",
   "sion",
   "ance",
   "ence",
@@ -160,7 +159,18 @@ const FUNCTION_WORDS = new Set([
 ]);
 
 const INFLECTIONAL = new Set(["s", "es", "ies", "ed", "ing", "est"]);
-const ADD_E_SUFFIXES = new Set(["ing", "ed", "er", "est", "en", "ion", "tion", "sion"]);
+const ADD_E_SUFFIXES = new Set(["ing", "ed", "er", "est", "en", "ion", "sion"]);
+const ION_SHORT_VERBS = new Set([
+  "act",
+  "add",
+  "opt",
+  "edit",
+  "emit",
+  "omit",
+  "fuse",
+  "pose",
+  "cite",
+]);
 const DOUBLE_STRIP_SUFFIXES = new Set(["ing", "ed", "er", "est"]);
 
 type FamilyMaps = {
@@ -208,6 +218,56 @@ function candidateLinks(
   return out;
 }
 
+function regularlyDerives(base: string, derived: string): boolean {
+  if (!base || !derived || base === derived) return false;
+  const stem = base.endsWith("e") ? base.slice(0, -1) : base;
+  if (
+    derived === `${base}s` ||
+    derived === `${base}es` ||
+    derived === `${base}ed` ||
+    derived === `${base}ing` ||
+    derived === `${base}er` ||
+    derived === `${base}ers` ||
+    derived === `${base}est` ||
+    derived === `${base}ly` ||
+    derived === `${base}ness` ||
+    derived === `${base}less` ||
+    derived === `${base}ful` ||
+    derived === `${base}ment` ||
+    derived === `${base}able` ||
+    derived === `${base}en` ||
+    derived === `${stem}en` ||
+    derived === `${base}ive` ||
+    derived === `${stem}ive` ||
+    derived === `${base}or` ||
+    derived === `${stem}or`
+  ) {
+    return true;
+  }
+  if (derived === `${base}al` || derived === `${stem}al`) {
+    return base.length >= 5 || base.endsWith("ion") || base.endsWith("ic");
+  }
+  if (derived === `${stem}ing` || derived === `${stem}ed` || derived === `${stem}er`) {
+    return true;
+  }
+  if (base.endsWith("y") && derived === `${base.slice(0, -1)}ies`) return true;
+  if (base.endsWith("y") && derived === `${base.slice(0, -1)}ied`) return true;
+  if (base.length >= 3) {
+    const last = base.at(-1);
+    if (last && (derived === `${base}${last}ing` || derived === `${base}${last}ed`)) {
+      return true;
+    }
+  }
+  const ionOk = base.length >= 5 || ION_SHORT_VERBS.has(base);
+  if (!ionOk) return false;
+  return (
+    derived === `${stem}ion` ||
+    derived === `${stem}ation` ||
+    derived === `${base}ion` ||
+    derived === `${base}ation`
+  );
+}
+
 function mayLink(
   word: string,
   base: string,
@@ -217,13 +277,31 @@ function mayLink(
   if (base === word) return false;
   if (FUNCTION_WORDS.has(base)) return false;
   if (viaAddE && base.length < 4 && !SHORT_LEMMAS.has(base)) return false;
-  if (suffix === "er" || suffix === "or" || suffix === "est") {
-    return base.length >= 4 || SHORT_LEMMAS.has(base);
+  if (
+    viaAddE &&
+    (suffix === "ion" || suffix === "sion" || suffix === "ation") &&
+    NGSL_FREQUENCY_RANKS[base] === undefined
+  ) {
+    return false;
   }
-  if (base.length >= 4) return true;
-  if (SHORT_LEMMAS.has(base)) return true;
-  if (base.length === 3) return INFLECTIONAL.has(suffix);
-  return false;
+  if (suffix === "er" || suffix === "or" || suffix === "est") {
+    if (!(base.length >= 4 || SHORT_LEMMAS.has(base))) return false;
+  } else if (base.length < 4 && !SHORT_LEMMAS.has(base)) {
+    if (!(base.length === 3 && INFLECTIONAL.has(suffix))) return false;
+  }
+  const ngslWord = NGSL_FREQUENCY_RANKS[word];
+  const ngslBase = NGSL_FREQUENCY_RANKS[base];
+  const ngslConflict =
+    ngslWord !== undefined &&
+    ngslBase !== undefined &&
+    ngslWord !== ngslBase;
+  const derivedOk =
+    regularlyDerives(base, word) || regularlyDerives(word, base);
+  if (INFLECTIONAL.has(suffix)) {
+    if (ngslConflict && !derivedOk) return false;
+    return true;
+  }
+  return derivedOk;
 }
 
 class UnionFind {
