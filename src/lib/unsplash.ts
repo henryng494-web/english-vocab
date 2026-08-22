@@ -287,7 +287,8 @@ export function shouldRefreshImageUrl(
 ): boolean {
   const trimmed = url?.trim();
   if (word && isAiImageTrialWord(word)) {
-    return !isStaticAiWordImageUrl(trimmed) && !isAiImageDataUrl(trimmed);
+    const bundled = getStaticAiWordImagePath(word);
+    return trimmed !== bundled && !isAiImageDataUrl(trimmed);
   }
   if (word && requiresSafeImageOnly(word)) {
     return !trimmed || trimmed.startsWith("http") || isUnsafeImageUrl(trimmed);
@@ -1116,9 +1117,10 @@ export async function searchWikidataConceptImage(
 }
 
 /**
- * Concrete nouns can use dictionary photos (apple, lion). Abstract POS and
+ * Concrete nouns can use dictionary photos (lion). Abstract POS and
  * homonyms (well the adverb, domestic = nội địa) must search a scene phrase
  * instead — Wiktionary/Wikipedia pick the encyclopedia sense.
+ * Fox-mascot trial words skip this and use bundled illustrations.
  * Then Unsplash / optional Pexels, Wikimedia Commons, Openverse.
  */
 export async function fetchWordImageUrl(
