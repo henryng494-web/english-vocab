@@ -1,5 +1,6 @@
 import {
   buildImageSearchQueries,
+  hasCuratedVisualKeyword,
   isAbstractImagePos,
   isConcretePhrase,
 } from "@/lib/image-keyword";
@@ -65,7 +66,7 @@ const GENERIC_QUERY_TOKENS = new Set([
   "scene",
 ]);
 
-const SEMANTIC_IMAGE_VERSION = "11";
+const SEMANTIC_IMAGE_VERSION = "12";
 
 const DISPLAYABLE_IMAGE_HOSTS = [
   "images.unsplash.com",
@@ -478,6 +479,17 @@ function isUngroundedSingleTokenQuery(
   return queryTokens.size === 1 && overlapCount(wordTokens, queryTokens) === 0;
 }
 
+/** Tags are too noisy (e.g. a jet tagged "lion"). The title must carry the word or enough of the query. */
+function titleSupportsQuery(
+  wordTokens: Set<string>,
+  queryTokens: Set<string>,
+  titleTokens: Set<string>,
+): boolean {
+  if (overlapCount(wordTokens, titleTokens) > 0) return true;
+  const needed = queryTokens.size > 1 ? 2 : 1;
+  return overlapCount(queryTokens, titleTokens) >= needed;
+}
+
 function markSemanticImageUrl(url: string): string {
   const versionedUrl = new URL(url);
   versionedUrl.searchParams.set("semantic", SEMANTIC_IMAGE_VERSION);
@@ -554,6 +566,7 @@ export async function searchOpenversePhoto(
       ) {
         continue;
       }
+      if (!titleSupportsQuery(wordTokens, queryTokens, titleTokens)) continue;
 
       const queryMatches = overlapCount(queryTokens, metadataTokens);
       const requiredMatches = queryTokens.size > 1 ? 2 : 1;
@@ -649,6 +662,7 @@ export async function searchWikimediaPhoto(
       ) {
         continue;
       }
+      if (!titleSupportsQuery(wordTokens, queryTokens, titleTokens)) continue;
 
       const queryMatches = overlapCount(queryTokens, titleTokens);
       const requiredMatches = queryTokens.size > 1 ? 2 : 1;
@@ -707,7 +721,14 @@ export async function searchWikipediaLeadImage(
     if (!response.ok) return null;
     const data = (await response.json()) as WikipediaSummaryResponse;
     if (data.type !== "disambiguation") {
-      if (!isUnsafeImageMetadata(data.title)) {
+      const leadTitle = (data.title ?? "")
+        .replace(/\s*\([^)]*\)\s*/g, "")
+        .trim()
+        .toLowerCase();
+      if (
+        leadTitle === normalized.toLowerCase() &&
+        !isUnsafeImageMetadata(data.title)
+      ) {
         const url = pickDisplayableMediaUrl(
           data.originalimage?.source ?? data.thumbnail?.source,
         );
@@ -758,6 +779,8 @@ export async function searchWikipediaLeadImage(
       if (!url) continue;
       const titleTokens = semanticTokens(title.replace(/\([^)]*\)/g, ""));
       if (overlapCount(wordTokens, titleTokens) === 0) continue;
+      const cleanedTitle = title.replace(/\s*\([^)]*\)\s*/g, "").trim().toLowerCase();
+      if (cleanedTitle !== normalized.toLowerCase()) continue;
       return markSemanticImageUrl(cleanMediaUrl(url));
     }
     return null;
@@ -773,10 +796,9 @@ export async function searchWikipediaLeadImage(
  *
  * Unsplash's free-tier quota is very low (50 requests/hour, shared by every
  * visitor), so it is only tried once per word with the single best query to
- * avoid exhausting it on words that will fall through anyway. Openverse and
- * Wikimedia Commons are keyless with generous limits, so every query variant
- * (including shortened 2-3 word slices) is tried against them before giving
- * up and showing a local illustration.
+ * avoid exhausting it on words that will fall through anyway. Wikimedia
+ * Commons is tried next (descriptive file titles), then Openverse. Every
+ * query variant is attempted before showing a local illustration.
  */
 export async function fetchWordImageUrl(
   word: string,
@@ -810,23 +832,8 @@ export async function fetchWordImageUrl(
     }
   }
 
-  // A multi-word scene description (curated or Gemini-provided) already
-  // encodes a deliberate, concrete meaning, and the query-token overlap
-  // check below confirms the photo actually matches that scene. Only a
-  // bare single-word query — with no other semantic signal — needs the
-  // word itself to also appear in the photo's metadata.
-  for (const keyword of queries) {
-    const requireWordMatch = !isConcretePhrase(keyword, word);
-    const openverseUrl = await searchOpenversePhoto(
-      word,
-      keyword,
-      requireWordMatch,
-    );
-    if (openverseUrl && isDisplayableHttpImageUrl(openverseUrl, word)) {
-      return openverseUrl;
-    }
-  }
-
+  // Wikimedia titles are usually literal ("Lion at Wild Animal Sanctuary").
+  // Openverse tags are noisier and used to win with jets tagged "lion".
   for (const keyword of queries) {
     const requireWordMatch = !isConcretePhrase(keyword, word);
     const wikimediaUrl = await searchWikimediaPhoto(
@@ -839,8 +846,22 @@ export async function fetchWordImageUrl(
     }
   }
 
+  for (const keyword of queries) {
+    const requireWordMatch = !isConcretePhrase(keyword, word);
+    const openverseUrl = await searchOpenversePhoto(
+      word,
+      keyword,
+      requireWordMatch,
+    );
+    if (openverseUrl && isDisplayableHttpImageUrl(openverseUrl, word)) {
+      return openverseUrl;
+    }
+  }
+
   const wikipediaUrl =
-    shouldSkipEncyclopediaImage(word) || isAbstractImagePos(pos)
+    shouldSkipEncyclopediaImage(word) ||
+    isAbstractImagePos(pos) ||
+    hasCuratedVisualKeyword(word)
       ? null
       : await searchWikipediaLeadImage(word);
   if (wikipediaUrl && isDisplayableHttpImageUrl(wikipediaUrl, word)) {
