@@ -287,7 +287,8 @@ export function shouldRefreshImageUrl(
 ): boolean {
   const trimmed = url?.trim();
   if (word && isAiImageTrialWord(word)) {
-    return !isStaticAiWordImageUrl(trimmed) && !isAiImageDataUrl(trimmed);
+    const bundled = getStaticAiWordImagePath(word);
+    return trimmed !== bundled && !isAiImageDataUrl(trimmed);
   }
   if (word && requiresSafeImageOnly(word)) {
     return !trimmed || trimmed.startsWith("http") || isUnsafeImageUrl(trimmed);

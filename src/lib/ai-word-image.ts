@@ -1,11 +1,9 @@
 /**
- * Trial: AI photos for a few grammar words that stock search cannot depict.
+ * Trial: the coach-fox mascot acting out a few grammar words that stock
+ * photos cannot depict clearly (too / then / way / more).
  *
- * Gemini image models on this project's API key currently report quota 0
- * (free tier). The four trial JPEGs in /public/word-images were generated
- * with a Flux image model so the cards can be reviewed. When Gemini image
- * quota is available, set GEMINI_IMAGE_MODEL and the generator will run
- * once per word and can replace these files.
+ * Bundled JPEGs live in /public/word-images. Concrete nouns still use photos.
+ * Gemini live image gen is off unless GEMINI_IMAGE_LIVE=true.
  */
 
 export const AI_IMAGE_TRIAL_WORDS: ReadonlySet<string> = new Set([
@@ -15,17 +13,17 @@ export const AI_IMAGE_TRIAL_WORDS: ReadonlySet<string> = new Set([
   "more",
 ]);
 
-const STYLE =
-  "Photorealistic photograph, 16:9 landscape, natural lighting, sharp focus. No text, no letters, no watermark, no logo, no collage grid.";
+const FOX =
+  "The app's navy-black chibi fox mascot: huge round head, tiny body, pointed ears, teal collar with a small bell. Flat children's-book illustration, 16:9, cream/teal palette. No text, no letters, no watermark.";
 
 export const AI_IMAGE_PROMPTS: Readonly<Record<string, string>> = {
-  too: `${STYLE} A white coffee cup overflowing, hot coffee spilling over the rim onto the saucer — too full to drink. Cafe table.`,
-  then: `${STYLE} Sequence in one scene: a finished breakfast plate in the foreground, and beyond it an open front door with a work bag — eat first, then leave for work.`,
-  way: `${STYLE} A clear paved path leading to a small train station building. The way to the station, daylight.`,
-  more: `${STYLE} A hand pouring more coffee from a glass carafe into a mug that already has coffee. Adding more.`,
+  too: `${FOX} Thinking pose (paw on chin). A white mug on a wooden table is too full — coffee overflowing down the side into a puddle.`,
+  then: `${FOX} Seen from behind in an open doorway, about to walk outside. Behind it, a table with an empty plate (crumbs only) and empty mug — breakfast is finished, then leave.`,
+  way: `${FOX} Happy squint eyes, sitting at the start of a beige path that leads to a small white house with a teal roof. Green fields, blue sky. The way home.`,
+  more: `${FOX} Excited pose. A teal jar pours more chocolate-chip cookies onto a plate that already has cookies.`,
 };
 
-const STATIC_PATH_RE = /^\/word-images\/[a-z]+\.jpg$/;
+const STATIC_PATH_RE = /^\/word-images\/[a-z]+\.jpg(?:\?v=[\w-]+)?$/;
 
 export function isAiImageTrialWord(word: string): boolean {
   return AI_IMAGE_TRIAL_WORDS.has(word.trim().toLowerCase());
@@ -34,7 +32,7 @@ export function isAiImageTrialWord(word: string): boolean {
 export function getStaticAiWordImagePath(word: string): string | null {
   const key = word.trim().toLowerCase();
   if (!AI_IMAGE_TRIAL_WORDS.has(key)) return null;
-  return `/word-images/${key}.jpg`;
+  return `/word-images/${key}.jpg?v=fox1`;
 }
 
 export function isStaticAiWordImageUrl(url: string | null | undefined): boolean {
