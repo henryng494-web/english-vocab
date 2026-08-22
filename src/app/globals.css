@@ -1094,16 +1094,11 @@ body {
 .review-sense {
   display: flex;
   flex-direction: column;
+  justify-content: space-evenly;
   height: 100%;
   min-height: 0;
-  padding: 0 1.15rem 0.65rem;
+  padding: 0.15rem 1.15rem;
   font-family: var(--font-display);
-}
-
-.review-sense::after {
-  content: "";
-  flex: 0.38 1 0;
-  min-height: 0;
 }
 
 .review-sense button {
@@ -1112,12 +1107,11 @@ body {
 
 .review-sense__prompt {
   display: flex;
-  flex: 0.62 1 0;
-  min-height: 4.25rem;
+  flex-shrink: 0;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  padding: 0.2rem 0 0.35rem;
+  padding: 0;
 }
 
 .review-sense__word {
@@ -1129,20 +1123,13 @@ body {
   color: var(--foreground);
 }
 
-.review-sense__bottom {
-  display: flex;
-  flex-shrink: 0;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.7rem;
-  padding-bottom: 0.15rem;
+.review-sense__bottom,
+.review-sense__list {
+  display: contents;
 }
 
-.review-sense__list {
-  display: flex;
-  width: 100%;
-  flex-direction: column;
-  gap: 0.8rem;
+.review-sense .review-quiz__unsure {
+  align-self: center;
 }
 
 .review-sense__choice {
@@ -1226,11 +1213,11 @@ body {
 .review-recall {
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  gap: 0.85rem;
+  justify-content: space-evenly;
+  gap: 0;
   height: 100%;
   min-height: 0;
-  padding: 0.65rem 1.1rem;
+  padding: 0.15rem 1.1rem;
   font-family: var(--font-display);
 }
 
@@ -1244,7 +1231,7 @@ body {
   width: 100%;
   aspect-ratio: 1;
   height: auto;
-  max-height: 52%;
+  max-height: 42%;
   min-height: 10rem;
   overflow: hidden;
   border-radius: 1rem;
