@@ -3,6 +3,8 @@
  * cannot be searched literally on Pexels/Unsplash.
  */
 
+import { singularizeForLookup } from "@/lib/word-singularize";
+
 const WORD_SCENES: Readonly<Record<string, string>> = {
   unless: "rain storm window person staying indoors",
   although: "person climbing mountain despite challenge",
@@ -134,6 +136,7 @@ const NOUN_HINTS: Readonly<Record<string, string>> = {
   door: "open door light hallway welcome",
   dream: "person dreaming sleep peaceful bedroom",
   dress: "elegant dress fashion model studio",
+  disgrace: "person ashamed embarrassed covering face hands",
   drink: "refreshing drink glass ice lemon",
   driver: "car driver steering wheel road trip",
   earth: "planet earth globe environment nature",
@@ -229,6 +232,7 @@ const NOUN_HINTS: Readonly<Record<string, string>> = {
   media: "social media phone scrolling news apps",
   mind: "meditation mind calm brain wellness peace",
   minute: "minute hand clock closeup time passing",
+  missile: "rocket missile launch smoke sky military",
   moment: "camera capturing special moment candid photo",
   money: "cash money dollars savings wallet",
   month: "calendar month planner schedule organizer",
@@ -293,6 +297,7 @@ const NOUN_HINTS: Readonly<Record<string, string>> = {
   radio: "vintage radio music retro device wooden",
   rain: "rain drops window glass storm weather city",
   range: "mountain range panoramic view landscape snow peaks",
+  rash: "skin rash red irritation arm closeup medical",
   rate: "interest rate graph chart finance screen",
   reason: "lightbulb reason logic thinking desk notes",
   record: "vinyl record turntable music retro listening",
@@ -473,6 +478,12 @@ function cleanWord(word: string): string {
   return word.trim().toLowerCase();
 }
 
+function lookupSceneKey(key: string): string | null {
+  if (WORD_SCENES[key]) return WORD_SCENES[key];
+  if (NOUN_HINTS[key]) return NOUN_HINTS[key];
+  return null;
+}
+
 export function lookupAbstractImageScene(
   word: string,
   pos?: string | null,
@@ -480,8 +491,8 @@ export function lookupAbstractImageScene(
   const key = cleanWord(word);
   if (!key) return null;
 
-  if (WORD_SCENES[key]) return WORD_SCENES[key];
-  if (NOUN_HINTS[key]) return NOUN_HINTS[key];
+  const direct = lookupSceneKey(key) ?? lookupSceneKey(singularizeForLookup(key));
+  if (direct) return direct;
 
   if (key.endsWith("where")) {
     if (key.includes("any")) return "world map travel destinations pins";

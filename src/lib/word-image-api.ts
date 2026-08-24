@@ -37,13 +37,12 @@ export async function resolveWordImageForApi(
     .eq("word", word)
     .maybeSingle();
 
-  const searchKeyword =
-    keywordParam?.trim() ||
-    resolveImageSearchKeyword(word, {
-      pos: posParam?.trim() || detail?.word_type,
-      meaning: detail?.vietnamese_meaning,
-      englishDefinition: detail?.english_definition,
-    });
+  const searchKeyword = resolveImageSearchKeyword(word, {
+    searchKeyword: keywordParam,
+    pos: posParam?.trim() || detail?.word_type,
+    meaning: detail?.vietnamese_meaning,
+    englishDefinition: detail?.english_definition,
+  });
   const pos = posParam?.trim() || detail?.word_type || null;
 
   const stored = detail?.image_url?.trim();
