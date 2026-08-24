@@ -311,39 +311,22 @@ export async function GET(request: Request) {
       });
     }
 
-    const searchKeyword = imageSearchKeyword(
+    const enrichment = await enrichWord(word, { rank: frequencyRank, skipGemini });
+    const responseWord = enrichmentToDiscoverWord(word, enrichment, null);
+    const searchKeyword = responseWord.search_keyword ?? word;
+    let imageUrl = await fetchWordImageUrl(
       word,
-      dbDetail?.word_type,
-      dbDetail?.vietnamese_meaning,
-      dbDetail?.english_definition,
-    );
-    const enrichmentPromise = enrichWord(word, { rank: frequencyRank, skipGemini });
-    const imagePromise = resolveImageUrl(
-      word,
-      dbDetail?.image_url ?? null,
       searchKeyword,
-      dbDetail?.word_type ?? null,
+      responseWord.word_type ?? enrichment.wordType,
     );
-    const [enrichment, imageUrlInitial] = await Promise.all([
-      enrichmentPromise,
-      imagePromise,
-    ]);
-
-    let imageUrl = imageUrlInitial;
-    const keyword = enrichment.searchKeyword?.trim() || word;
-    if (
-      keyword !== word &&
-      (shouldRefreshImageUrl(imageUrlInitial, word) ||
-        imageUrlInitial.startsWith("data:"))
-    ) {
+    if (!imageUrl || shouldRefreshImageUrl(imageUrl, word)) {
       imageUrl = await fetchWordImageUrl(
         word,
-        keyword,
-        enrichment.wordType,
+        searchKeyword,
+        responseWord.word_type ?? enrichment.wordType,
       );
     }
-
-    const responseWord = enrichmentToDiscoverWord(word, enrichment, imageUrl);
+    responseWord.image_url = imageUrl;
     const examples = await repairExamplesIfNeeded(
       word,
       responseWord.examples,

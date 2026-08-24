@@ -17,6 +17,7 @@ import { DEFAULT_BOOTSTRAP_RANGE } from "@/lib/app-bootstrap";
 import {
   fetchDiscoverRange,
   fetchDiscoverWordDetail,
+  filterDiscoverQueue,
   listItemToDiscoverData,
   type DiscoverListItem,
 } from "@/lib/discover-fetch";
@@ -62,7 +63,7 @@ function listItemImageTarget(item: DiscoverListItem): WordImagePrefetchTarget {
 export default function DiscoverPage() {
   const pathname = usePathname();
   const router = useRouter();
-  const { ranges: bootstrapRanges, wordCache: bootstrapWordCache } =
+  const { ranges: bootstrapRanges, wordCache: bootstrapWordCache, patchRangeAfterSave } =
     useAppBootstrap();
   const inSession = pathname.startsWith("/journey");
   const [rangeId, setRangeId] = useState(DEFAULT_BOOTSTRAP_RANGE);
@@ -76,6 +77,7 @@ export default function DiscoverPage() {
   const [wordsKnown, setWordsKnown] = useState(0);
   const [wordsReviewing, setWordsReviewing] = useState(0);
   const [todayLearned, setTodayLearned] = useState(0);
+  const [savingStatus, setSavingStatus] = useState(false);
 
   const todayGoal = getDailyGoalTarget();
   const rangeMeta = useMemo(
@@ -258,8 +260,12 @@ export default function DiscoverPage() {
     const cachedRange = bootstrapRanges?.[rangeId];
     if (cachedRange) {
       initializedRangeRef.current = rangeId;
-      setQueue(cachedRange.queue);
-      setStats(cachedRange.stats);
+      const filtered = filterDiscoverQueue(cachedRange.queue);
+      setQueue(filtered);
+      setStats({
+        total: cachedRange.stats.total,
+        hidden: cachedRange.stats.total - filtered.length,
+      });
       setCurrentIndex(0);
       setLoadingList(false);
       setError(null);
@@ -284,8 +290,25 @@ export default function DiscoverPage() {
     preloadWords(currentIndex, queue);
   }, [currentItem, currentIndex, queue, applyWordToView, preloadWords]);
 
-  function advanceAfterAction(removedWord: string) {
-    const nextQueue = queue.filter((w) => w.word !== removedWord);
+  function queueWithoutItem(
+    items: DiscoverListItem[],
+    item: DiscoverListItem,
+  ): DiscoverListItem[] {
+    const taken = new Set(
+      (item.family_members?.length ? item.family_members : [item.word]).map(
+        (member) => member.trim().toLowerCase(),
+      ),
+    );
+    return items.filter((entry) => {
+      const family = entry.family_members?.length
+        ? entry.family_members
+        : [entry.word];
+      return !family.some((member) => taken.has(member.trim().toLowerCase()));
+    });
+  }
+
+  function advanceAfterAction(item: DiscoverListItem) {
+    const nextQueue = queueWithoutItem(queue, item);
     const nextIndex =
       nextQueue.length === 0
         ? 0
@@ -304,18 +327,23 @@ export default function DiscoverPage() {
   }
 
   function updateStatus(status: "mastered" | "new") {
-    if (!currentItem) return;
+    if (!currentItem || savingStatus) return;
 
     const word = currentItem.word;
+    setSavingStatus(true);
     setError(null);
     writeLocalLearning(word, status === "mastered" ? "mastered" : "new");
-    setStats((current) => ({ ...current, hidden: current.hidden + 1 }));
+    setStats((current) => ({
+      total: current.total,
+      hidden: Math.min(current.total, current.hidden + 1),
+    }));
     if (status === "new") {
       setTodayLearned(incrementTodayWordsLearned());
     }
     setWordsKnown(countMasteredWords());
     setWordsReviewing(countLearningWords());
-    advanceAfterAction(word);
+    advanceAfterAction(currentItem);
+    patchRangeAfterSave(rangeId, word, currentItem.family_members);
 
     void (async () => {
       try {
@@ -333,7 +361,7 @@ export default function DiscoverPage() {
           }
         }
 
-        await fetch("/api/words/status", {
+        const statusRes = await fetch("/api/words/status", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -341,10 +369,20 @@ export default function DiscoverPage() {
             status: status === "mastered" ? "mastered" : "new",
           }),
         });
+        if (!statusRes.ok) {
+          const statusData = await statusRes.json();
+          throw new Error(
+            statusData.details ??
+              statusData.error ??
+              "Failed to update word status",
+          );
+        }
         setWordsKnown(countMasteredWords());
         setWordsReviewing(countLearningWords());
       } catch (err) {
         setError(err instanceof Error ? err.message : "Update failed");
+      } finally {
+        setSavingStatus(false);
       }
     })();
   }
@@ -472,6 +510,7 @@ export default function DiscoverPage() {
               <button
                 type="button"
                 onClick={() => updateStatus("new")}
+                disabled={savingStatus}
                 className="btn-pill-primary w-full"
               >
                 Learn this
@@ -479,6 +518,7 @@ export default function DiscoverPage() {
               <button
                 type="button"
                 onClick={() => updateStatus("mastered")}
+                disabled={savingStatus}
                 className="btn-pill-outline w-full"
               >
                 Already know

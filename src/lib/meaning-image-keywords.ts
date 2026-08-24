@@ -116,6 +116,26 @@ const MEANING_RULES: PatternRule[] = [
     pattern: /an toàn|safety|safe|secure/i,
     query: "safety helmet protection secure workplace gear",
   },
+  {
+    pattern: /khó hiểu|mơ hồ|obscure|unclear|vague|ambiguous|indistinct/i,
+    query: "person confused thinking fog mystery concept",
+  },
+  {
+    pattern: /bệnh hoạn|morbid|macabre|morbidity|ghastly/i,
+    query: "dark moody atmospheric gothic scene",
+  },
+  {
+    pattern: /tiêu đề|headline|heading|news title|banner title/i,
+    query: "newspaper headline bold text closeup",
+  },
+  {
+    pattern: /chết|perish|die|death|fatal|mortality/i,
+    query: "memorial candle quiet remembrance scene",
+  },
+  {
+    pattern: /không trung thực|dishonest|deceit|deceptive|liar/i,
+    query: "person lying deceptive guilty expression closeup",
+  },
 ];
 
 function contextBlob(context: MeaningImageContext): string {

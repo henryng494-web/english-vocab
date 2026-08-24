@@ -20,7 +20,13 @@ export function readLocalLearning(): LocalLearningMap {
   if (typeof window === "undefined") return {};
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? (JSON.parse(raw) as LocalLearningMap) : {};
+    if (!raw) return {};
+    const parsed = JSON.parse(raw) as LocalLearningMap;
+    const normalized: LocalLearningMap = {};
+    for (const [key, entry] of Object.entries(parsed)) {
+      normalized[key.trim().toLowerCase()] = entry;
+    }
+    return normalized;
   } catch {
     return {};
   }
@@ -28,10 +34,12 @@ export function readLocalLearning(): LocalLearningMap {
 
 export function writeLocalLearning(word: string, status: LearningStatus) {
   if (typeof window === "undefined") return;
+  const key = word.trim().toLowerCase();
+  if (!key) return;
   const map = readLocalLearning();
   const now = new Date().toISOString();
-  const existing = map[word];
-  map[word] = {
+  const existing = map[key];
+  map[key] = {
     status,
     last_reviewed_at: now,
     added_at: existing?.added_at ?? now,

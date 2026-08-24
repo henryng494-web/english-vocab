@@ -27,6 +27,12 @@ type AppBootstrapContextValue = {
   defaultRangeId: string | null;
   review: ReviewSessionData | null;
   updateReviewCache: (data: ReviewSessionData) => void;
+  /** Remove a word (and optional family) from a cached discover band after Journey save. */
+  patchRangeAfterSave: (
+    rangeId: string,
+    word: string,
+    familyMembers?: string[] | null,
+  ) => void;
 };
 
 const AppBootstrapContext = createContext<AppBootstrapContextValue | null>(null);
@@ -73,6 +79,42 @@ export function AppBootstrapProvider({ children }: { children: ReactNode }) {
     setReviewOverride(data);
   }, []);
 
+  const patchRangeAfterSave = useCallback(
+    (rangeId: string, word: string, familyMembers?: string[] | null) => {
+      setSnapshot((prev) => {
+        if (!prev?.ranges[rangeId]) return prev;
+        const range = prev.ranges[rangeId];
+        const taken = new Set(
+          [word, ...(familyMembers ?? [word])].map((member) =>
+            member.trim().toLowerCase(),
+          ),
+        );
+        const queue = range.queue.filter((item) => {
+          const family = item.family_members?.length
+            ? item.family_members
+            : [item.word];
+          return !family.some((member) =>
+            taken.has(member.trim().toLowerCase()),
+          );
+        });
+        return {
+          ...prev,
+          ranges: {
+            ...prev.ranges,
+            [rangeId]: {
+              queue,
+              stats: {
+                total: range.stats.total,
+                hidden: Math.min(range.stats.total, range.stats.hidden + 1),
+              },
+            },
+          },
+        };
+      });
+    },
+    [],
+  );
+
   const value = useMemo<AppBootstrapContextValue>(
     () => ({
       ready,
@@ -82,8 +124,9 @@ export function AppBootstrapProvider({ children }: { children: ReactNode }) {
       defaultRangeId: snapshot?.defaultRangeId ?? null,
       review: reviewOverride ?? snapshot?.review ?? null,
       updateReviewCache,
+      patchRangeAfterSave,
     }),
-    [ready, progress, snapshot, reviewOverride, updateReviewCache],
+    [ready, progress, snapshot, reviewOverride, updateReviewCache, patchRangeAfterSave],
   );
 
   return (
