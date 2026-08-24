@@ -103,6 +103,7 @@ export function ReviewReveal({
             examples={word.examples}
             wordType={word.word_type}
             family={word.word_family}
+            layout="flow"
           />
         </div>
       </div>

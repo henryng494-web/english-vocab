@@ -266,7 +266,49 @@ body {
 }
 
 .review-reveal__body .card-details {
-  min-height: 8.5rem;
+  min-height: 0;
+  flex: 0 0 auto;
+}
+
+.card-details--flow .card-details__scene {
+  flex: 0 0 auto;
+}
+
+.card-details--flow .card-details__flip {
+  height: auto;
+  min-height: 0;
+}
+
+.card-details--flow .card-details__face {
+  position: relative;
+  inset: auto;
+  overflow: visible;
+}
+
+.card-details--flow .card-details__face--family {
+  display: none;
+}
+
+.card-details--flow .card-details__flip.is-family {
+  transform: none;
+}
+
+.card-details--flow .card-details__flip.is-family .card-details__face--meaning {
+  display: none;
+}
+
+.card-details--flow .card-details__flip.is-family .card-details__face--family {
+  display: flex;
+}
+
+.review-reveal__body .vocab-examples li {
+  overflow: visible;
+}
+
+.review-reveal__body .vocab-examples li p {
+  overflow: visible;
+  display: block;
+  -webkit-line-clamp: unset;
 }
 
 .discover-card__meaning {
@@ -1424,18 +1466,21 @@ body {
 
 .review-reveal__image {
   position: relative;
-  flex: 1 1 42%;
-  min-height: 12rem;
+  flex: 0 1 auto;
+  min-height: 8rem;
+  max-height: min(38svh, 12.5rem);
   overflow: hidden;
   background: var(--primary-100);
 }
 
 .review-reveal__body {
   display: flex;
-  flex-shrink: 0;
+  flex: 1 1 auto;
+  min-height: 0;
   flex-direction: column;
   gap: 0.7rem;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   padding: 0.85rem 1.05rem 0.95rem;
 }
 

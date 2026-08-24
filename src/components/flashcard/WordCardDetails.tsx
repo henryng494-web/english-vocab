@@ -29,6 +29,8 @@ type WordCardDetailsProps = {
   family?: WordFamilyMember[] | null;
   compact?: boolean;
   loading?: boolean;
+  /** Flow layout: content grows naturally (Review reveal). Default card uses fixed flip height. */
+  layout?: "card" | "flow";
 };
 
 export function WordCardDetails({
@@ -39,6 +41,7 @@ export function WordCardDetails({
   family,
   compact = false,
   loading = false,
+  layout = "card",
 }: WordCardDetailsProps) {
   const parsed = loading ? [] : parseExamples(examples);
   const rows = (family ?? []).filter((item) => item.word.trim());
@@ -67,7 +70,15 @@ export function WordCardDetails({
   }
 
   return (
-    <div className={compact ? "card-details card-details--compact" : "card-details"}>
+    <div
+      className={
+        compact
+          ? "card-details card-details--compact"
+          : layout === "flow"
+            ? "card-details card-details--flow"
+            : "card-details"
+      }
+    >
       <div
         className="card-details__scene"
         onClick={() => {
