@@ -7,7 +7,6 @@ import { ReviewReveal } from "@/components/review/ReviewReveal";
 import { ReviewSenseQuestion } from "@/components/review/ReviewSenseQuestion";
 import { CoachDog } from "@/components/mascot/CoachDog";
 import {
-  mergeLocalLearning,
   writeLocalLearning,
 } from "@/lib/learning-storage";
 import {
@@ -23,16 +22,20 @@ import {
   prefetchReviewImages,
   preloadReviewImageBatch,
 } from "@/lib/review-image-preload";
+import { useAppBootstrap } from "@/context/AppBootstrapContext";
+import {
+  fetchReviewWords,
+  buildDueReviewQueue,
+  prepareReviewSession,
+} from "@/lib/review-fetch";
 import { hasQualityExamples } from "@/lib/example-quality";
 import { parseExamples } from "@/lib/parse-examples";
 import {
   advanceReviewInterval,
   getReviewSchedule,
-  isDueReviewWord,
   writeReviewSchedule,
   type ReviewIntervalDays,
 } from "@/lib/review-schedule";
-import { getImportanceTier } from "@/lib/word-rank";
 import { shouldRefreshImageUrl } from "@/lib/unsplash";
 import type { LearningStatus, VocabWord } from "@/types/database";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -63,6 +66,7 @@ function warmReviewQueueImages(words: VocabWord[]): void {
 }
 
 export default function LearnPage() {
+  const { review: bootstrapReview, updateReviewCache } = useAppBootstrap();
   const [allWords, setAllWords] = useState<VocabWord[]>([]);
   const [queue, setQueue] = useState<VocabWord[]>([]);
   const [index, setIndex] = useState(0);
@@ -75,13 +79,14 @@ export default function LearnPage() {
   const [correct, setCorrect] = useState(false);
   const [intervalDays, setIntervalDays] = useState<ReviewIntervalDays>(1);
   const [timesReviewed, setTimesReviewed] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!bootstrapReview);
   const [confirming, setConfirming] = useState(false);
   const [newWord, setNewWord] = useState("");
   const [adding, setAdding] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sessionDone, setSessionDone] = useState(false);
   const resultTimer = useRef<number | null>(null);
+  const hydratedRef = useRef(false);
 
   const currentWord = queue[index];
 
@@ -144,47 +149,68 @@ export default function LearnPage() {
     });
   }, []);
 
-  const fetchWords = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    setSessionDone(false);
-    try {
-      const res = await fetch("/api/words?sort=recent");
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.details ?? data.error ?? "Failed to load word list");
-      }
-      const fetched = mergeLocalLearning(
-        ((data.words ?? []) as VocabWord[]).map((word) => ({
-          ...word,
-          importance_tier: word.importance_tier ?? getImportanceTier(word.rank),
-        })),
-      );
-      const due = fetched.filter((word) =>
-        isDueReviewWord(
-          word.word,
-          word.learning_status,
-          word.last_reviewed_at,
-        ),
-      );
+  const applyReviewSession = useCallback(
+    (fetched: VocabWord[], due: VocabWord[], startFirst = true) => {
       setAllWords(fetched);
       setQueue(due);
       setIndex(0);
+      setSessionDone(false);
       warmReviewQueueImages(due);
-      if (due[0]) startQuestion(due[0], fetched, 0);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load vocabulary");
-    } finally {
-      setLoading(false);
-    }
-  }, [startQuestion]);
+      if (startFirst && due[0]) startQuestion(due[0], fetched, 0);
+    },
+    [startQuestion],
+  );
+
+  const fetchWords = useCallback(
+    async (options?: { silent?: boolean }) => {
+      if (!options?.silent) {
+        setLoading(true);
+      }
+      setError(null);
+      try {
+        const all = await fetchReviewWords();
+        const due = buildDueReviewQueue(all);
+        updateReviewCache({ allWords: all, dueQueue: due });
+        if (options?.silent) {
+          setAllWords(all);
+          setQueue(due);
+          void prepareReviewSession(all);
+          return;
+        }
+        applyReviewSession(all, due, true);
+      } catch (err) {
+        if (!options?.silent) {
+          setError(err instanceof Error ? err.message : "Failed to load vocabulary");
+        }
+      } finally {
+        if (!options?.silent) {
+          setLoading(false);
+        }
+      }
+    },
+    [applyReviewSession, updateReviewCache],
+  );
 
   useEffect(() => {
-    void fetchWords();
+    if (hydratedRef.current) return;
+    hydratedRef.current = true;
+
+    if (bootstrapReview) {
+      applyReviewSession(
+        bootstrapReview.allWords,
+        bootstrapReview.dueQueue,
+        true,
+      );
+      setLoading(false);
+      void fetchWords({ silent: true });
+    } else {
+      void fetchWords();
+    }
+
     return () => {
       if (resultTimer.current) window.clearTimeout(resultTimer.current);
     };
-  }, [fetchWords]);
+  }, [applyReviewSession, bootstrapReview, fetchWords]);
 
   useEffect(() => {
     if (!currentWord) return;

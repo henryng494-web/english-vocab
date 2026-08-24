@@ -14,6 +14,7 @@ import {
   type DiscoverListItem,
   type DiscoverRangeStats,
 } from "@/lib/discover-fetch";
+import { loadReviewSession, type ReviewSessionData } from "@/lib/review-fetch";
 
 export const DEFAULT_BOOTSTRAP_RANGE = "1-100";
 /** First band — enough for home + journey preload-ahead. */
@@ -37,6 +38,7 @@ export type AppBootstrapSnapshot = {
   defaultRangeId: string;
   ranges: Record<string, RangeBootstrapData>;
   wordCache: Record<string, DiscoverWordData>;
+  review: ReviewSessionData | null;
 };
 
 function report(
@@ -105,6 +107,8 @@ export async function runAppBootstrap(
   preloadAsset("/mascot/fox-happy.png");
   preloadAsset("/mascot/fox-wave.png");
 
+  const reviewPromise = loadReviewSession().catch(() => null);
+
   const ranges: Record<string, RangeBootstrapData> = {};
   let rangesDone = 0;
 
@@ -160,12 +164,16 @@ export async function runAppBootstrap(
 
   persistWordCache(wordCache);
 
+  report(onProgress, 96, "Loading review queue…");
+  const review = await reviewPromise;
+
   report(onProgress, 100, "Ready to learn!");
 
   return {
     defaultRangeId: DEFAULT_BOOTSTRAP_RANGE,
     ranges,
     wordCache: Object.fromEntries(wordCache.entries()),
+    review,
   };
 }
 

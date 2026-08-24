@@ -2,6 +2,7 @@
 
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useMemo,
@@ -16,14 +17,16 @@ import {
   type RangeBootstrapData,
 } from "@/lib/app-bootstrap";
 import type { DiscoverWordData } from "@/components/discover/DiscoverCard";
+import type { ReviewSessionData } from "@/lib/review-fetch";
 
 type AppBootstrapContextValue = {
   ready: boolean;
   progress: BootstrapProgress;
-  /** All rank bands preloaded at startup — keyed by range id. */
   ranges: Record<string, RangeBootstrapData> | null;
   wordCache: Record<string, DiscoverWordData> | null;
   defaultRangeId: string | null;
+  review: ReviewSessionData | null;
+  updateReviewCache: (data: ReviewSessionData) => void;
 };
 
 const AppBootstrapContext = createContext<AppBootstrapContextValue | null>(null);
@@ -37,6 +40,8 @@ export function AppBootstrapProvider({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false);
   const [progress, setProgress] = useState<BootstrapProgress>(INITIAL_PROGRESS);
   const [snapshot, setSnapshot] = useState<AppBootstrapSnapshot | null>(null);
+  const [reviewOverride, setReviewOverride] =
+    useState<ReviewSessionData | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -64,6 +69,10 @@ export function AppBootstrapProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  const updateReviewCache = useCallback((data: ReviewSessionData) => {
+    setReviewOverride(data);
+  }, []);
+
   const value = useMemo<AppBootstrapContextValue>(
     () => ({
       ready,
@@ -71,8 +80,10 @@ export function AppBootstrapProvider({ children }: { children: ReactNode }) {
       ranges: snapshot?.ranges ?? null,
       wordCache: snapshot?.wordCache ?? null,
       defaultRangeId: snapshot?.defaultRangeId ?? null,
+      review: reviewOverride ?? snapshot?.review ?? null,
+      updateReviewCache,
     }),
-    [ready, progress, snapshot],
+    [ready, progress, snapshot, reviewOverride, updateReviewCache],
   );
 
   return (
