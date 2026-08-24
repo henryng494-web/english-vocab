@@ -30,7 +30,7 @@ const GENERIC_QUERY_TOKENS = new Set([
   "scene",
 ]);
 
-const SEMANTIC_IMAGE_VERSION = "23";
+const SEMANTIC_IMAGE_VERSION = "24";
 
 /** Only Pexels and Unsplash are trusted learning-card photo sources. */
 const STOCK_IMAGE_HOSTS = new Set(["images.pexels.com", "images.unsplash.com"]);
