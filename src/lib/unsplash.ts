@@ -198,6 +198,18 @@ export function isPlaceholderIllustrationUrl(
   return Boolean(url?.trim().startsWith("data:image/svg+xml"));
 }
 
+/** Stock photo or intentional SVG fallback — both are OK to show a complete card. */
+export function hasAcceptableWordImage(
+  url: string | null | undefined,
+  word?: string | null,
+): boolean {
+  const trimmed = url?.trim();
+  if (!trimmed) return false;
+  if (isPlaceholderIllustrationUrl(trimmed)) return true;
+  if (!isStockImageUrl(trimmed)) return false;
+  return !shouldRefreshImageUrl(trimmed, word);
+}
+
 /** True when the URL is a real photo/illustration, not the local SVG fallback. */
 export function isRealCardImageUrl(
   url: string | null | undefined,
