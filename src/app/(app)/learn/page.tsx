@@ -20,6 +20,10 @@ import {
   type ReviewQuizKind,
 } from "@/lib/review-quiz";
 import {
+  prefetchReviewImages,
+  preloadReviewImageBatch,
+} from "@/lib/review-image-preload";
+import {
   advanceReviewInterval,
   getReviewSchedule,
   isDueReviewWord,
@@ -32,6 +36,29 @@ import type { LearningStatus, VocabWord } from "@/types/database";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 type Phase = "question" | "reveal";
+
+function reviewImageTargets(
+  word: VocabWord,
+  kind: ReviewQuizKind,
+  choices: ReviewChoice[],
+): Array<{ word: string; imageUrl?: string | null }> {
+  if (kind === "sense") {
+    return choices.map((choice) => ({
+      word: choice.word,
+      imageUrl: choice.imageUrl,
+    }));
+  }
+  return [{ word: word.word, imageUrl: word.image_url }];
+}
+
+function warmReviewQueueImages(words: VocabWord[]): void {
+  const batch = words.slice(0, 12).map((item) => ({
+    word: item.word,
+    imageUrl: item.image_url,
+  }));
+  preloadReviewImageBatch(batch);
+  void prefetchReviewImages(batch);
+}
 
 export default function LearnPage() {
   const [allWords, setAllWords] = useState<VocabWord[]>([]);
@@ -95,6 +122,24 @@ export default function LearnPage() {
     setCorrect(false);
     setIntervalDays(schedule.intervalDays);
     setTimesReviewed(schedule.timesReviewed);
+
+    const targets = reviewImageTargets(word, kind, nextChoices);
+    preloadReviewImageBatch(targets);
+    void prefetchReviewImages(targets).then((updates) => {
+      if (Object.keys(updates).length === 0) return;
+      const patchWord = (item: VocabWord) => {
+        const key = item.word.trim().toLowerCase();
+        return updates[key] ? { ...item, image_url: updates[key] } : item;
+      };
+      setAllWords((prev) => prev.map(patchWord));
+      setQueue((prev) => prev.map(patchWord));
+      setChoices((prev) =>
+        prev.map((choice) => {
+          const key = choice.word.trim().toLowerCase();
+          return updates[key] ? { ...choice, imageUrl: updates[key] } : choice;
+        }),
+      );
+    });
   }, []);
 
   const fetchWords = useCallback(async () => {
@@ -123,6 +168,7 @@ export default function LearnPage() {
       setAllWords(fetched);
       setQueue(due);
       setIndex(0);
+      warmReviewQueueImages(due);
       if (due[0]) startQuestion(due[0], fetched, 0);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load vocabulary");
@@ -155,6 +201,29 @@ export default function LearnPage() {
     if (!missingImage && !badVi && !missingExamples) return;
 
     let cancelled = false;
+    if (missingImage && !badVi && !missingExamples) {
+      fetch(`/api/word-image?word=${encodeURIComponent(currentWord.word)}`)
+        .then((res) => res.json())
+        .then((data: { image_url?: string | null }) => {
+          if (cancelled || !data.image_url) return;
+          const patch = { image_url: data.image_url };
+          setQueue((prev) =>
+            prev.map((word) =>
+              word.word === currentWord.word ? { ...word, ...patch } : word,
+            ),
+          );
+          setAllWords((prev) =>
+            prev.map((word) =>
+              word.word === currentWord.word ? { ...word, ...patch } : word,
+            ),
+          );
+        })
+        .catch(() => {});
+      return () => {
+        cancelled = true;
+      };
+    }
+
     const params = new URLSearchParams({
       word: currentWord.word,
       rank: String(currentWord.rank),

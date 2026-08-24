@@ -7,15 +7,34 @@ import {
   isUsableCardImageUrl,
   resolveWordImageUrl,
 } from "@/lib/unsplash";
+import {
+  peekCachedWordImageUrl,
+  setCachedWordImageUrl,
+} from "@/lib/word-image-cache";
 
 type WordImageSrcOptions = {
   /** Hide SVG placeholders until a real photo loads (review quizzes). */
   quizSafe?: boolean;
 };
 
+function pickQuizSrc(
+  word: string,
+  imageUrl?: string | null,
+  searchKeyword?: string | null,
+  wordType?: string | null,
+): string {
+  const cached = peekCachedWordImageUrl(word, imageUrl);
+  if (cached) return cached;
+  const trimmed = imageUrl?.trim();
+  if (trimmed && isRealCardImageUrl(trimmed, word)) return trimmed;
+  const resolved = resolveWordImageUrl(word, imageUrl, searchKeyword, wordType);
+  if (isRealCardImageUrl(resolved, word)) return resolved;
+  return "";
+}
+
 /**
  * Prefer a stored HTTP photo. If the stored URL is a placeholder SVG,
- * fetch a fresh photo from the discover API.
+ * fetch a fresh photo from the lightweight word-image API.
  */
 export function useWordImageSrc(
   word: string,
@@ -31,44 +50,49 @@ export function useWordImageSrc(
   const quizSafe = options?.quizSafe ?? false;
   const fallback = getDefaultLearningImageDataUrl(word, wordType);
 
-  const resolve = (url?: string | null) =>
-    resolveWordImageUrl(word, url, searchKeyword, wordType);
+  const resolveDisplay = (url?: string | null) => {
+    if (quizSafe) return pickQuizSrc(word, url, searchKeyword, wordType);
+    return resolveWordImageUrl(word, url, searchKeyword, wordType);
+  };
 
-  const initial = resolve(imageUrl);
-  const initialReady = !quizSafe || isRealCardImageUrl(initial, word);
+  const initial = resolveDisplay(imageUrl);
+  const initialReady = quizSafe ? Boolean(initial) : true;
 
-  const [src, setSrc] = useState(() =>
-    quizSafe && !initialReady ? "" : initial,
-  );
+  const [src, setSrc] = useState(initial);
   const [ready, setReady] = useState(initialReady);
 
   useEffect(() => {
-    const resolved = resolve(imageUrl);
-    const real = isRealCardImageUrl(resolved, word);
-
+    const next = resolveDisplay(imageUrl);
     if (quizSafe) {
-      if (real) {
-        setSrc(resolved);
+      if (next) {
+        setSrc(next);
         setReady(true);
         return;
       }
       setSrc("");
       setReady(false);
     } else {
-      setSrc(resolved);
+      setSrc(next);
       setReady(true);
     }
 
     if (!quizSafe && isUsableCardImageUrl(imageUrl, word)) return;
-    if (quizSafe && real) return;
+    if (quizSafe && next) return;
 
     let cancelled = false;
     void (async () => {
-      const next = await fetchFreshImageUrl(word);
+      const fetched = await fetchFreshImageUrl(word);
       if (cancelled) return;
-      if (!isRealCardImageUrl(next, word)) return;
-      setSrc(next!);
-      setReady(true);
+      if (quizSafe) {
+        if (!fetched) return;
+        setSrc(fetched);
+        setReady(true);
+        return;
+      }
+      if (isUsableCardImageUrl(fetched, word) && fetched !== next) {
+        setSrc(fetched!);
+        setReady(true);
+      }
     })();
 
     return () => {
@@ -82,9 +106,9 @@ export function useWordImageSrc(
     onError: () => {
       if (quizSafe) {
         void (async () => {
-          const next = await fetchFreshImageUrl(word);
-          if (isRealCardImageUrl(next, word)) {
-            setSrc(next!);
+          const fetched = await fetchFreshImageUrl(word);
+          if (fetched) {
+            setSrc(fetched);
             setReady(true);
           }
         })();
@@ -92,9 +116,9 @@ export function useWordImageSrc(
       }
       if (src === fallback) return;
       void (async () => {
-        const next = await fetchFreshImageUrl(word);
-        if (isUsableCardImageUrl(next, word) && next !== src) {
-          setSrc(next!);
+        const fetched = await fetchFreshImageUrl(word);
+        if (isUsableCardImageUrl(fetched, word) && fetched !== src) {
+          setSrc(fetched!);
           setReady(true);
           return;
         }
@@ -106,17 +130,20 @@ export function useWordImageSrc(
 }
 
 async function fetchFreshImageUrl(word: string): Promise<string | null> {
+  const cached = peekCachedWordImageUrl(word);
+  if (cached) return cached;
+
   try {
-    const params = new URLSearchParams({
-      word,
-      skipGemini: "true",
-    });
-    const res = await fetch(`/api/discover/word?${params}`);
-    const data = (await res.json()) as {
-      word?: { image_url?: string | null };
-    };
-    return data.word?.image_url ?? null;
+    const params = new URLSearchParams({ word });
+    const res = await fetch(`/api/word-image?${params}`);
+    const data = (await res.json()) as { image_url?: string | null };
+    const url = data.image_url?.trim() ?? null;
+    if (url && isRealCardImageUrl(url, word)) {
+      setCachedWordImageUrl(word, url);
+      return url;
+    }
   } catch {
-    return null;
+    /* ignore */
   }
+  return null;
 }
