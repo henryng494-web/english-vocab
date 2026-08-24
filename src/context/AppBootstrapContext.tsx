@@ -5,7 +5,6 @@ import {
   useContext,
   useEffect,
   useMemo,
-  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -14,13 +13,17 @@ import {
   waitForWelcomeMinimum,
   type AppBootstrapSnapshot,
   type BootstrapProgress,
+  type RangeBootstrapData,
 } from "@/lib/app-bootstrap";
+import type { DiscoverWordData } from "@/components/discover/DiscoverCard";
 
 type AppBootstrapContextValue = {
   ready: boolean;
   progress: BootstrapProgress;
-  snapshot: AppBootstrapSnapshot | null;
-  consumeSnapshot: (rangeId: string) => AppBootstrapSnapshot | null;
+  /** All rank bands preloaded at startup — keyed by range id. */
+  ranges: Record<string, RangeBootstrapData> | null;
+  wordCache: Record<string, DiscoverWordData> | null;
+  defaultRangeId: string | null;
 };
 
 const AppBootstrapContext = createContext<AppBootstrapContextValue | null>(null);
@@ -34,7 +37,6 @@ export function AppBootstrapProvider({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false);
   const [progress, setProgress] = useState<BootstrapProgress>(INITIAL_PROGRESS);
   const [snapshot, setSnapshot] = useState<AppBootstrapSnapshot | null>(null);
-  const consumedRef = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -66,14 +68,9 @@ export function AppBootstrapProvider({ children }: { children: ReactNode }) {
     () => ({
       ready,
       progress,
-      snapshot,
-      consumeSnapshot(rangeId: string) {
-        if (consumedRef.current || !snapshot || snapshot.rangeId !== rangeId) {
-          return null;
-        }
-        consumedRef.current = true;
-        return snapshot;
-      },
+      ranges: snapshot?.ranges ?? null,
+      wordCache: snapshot?.wordCache ?? null,
+      defaultRangeId: snapshot?.defaultRangeId ?? null,
     }),
     [ready, progress, snapshot],
   );

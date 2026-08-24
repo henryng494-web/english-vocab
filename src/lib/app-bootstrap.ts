@@ -1,4 +1,5 @@
 import type { DiscoverWordData } from "@/components/discover/DiscoverCard";
+import { WORD_RANGES } from "@/data/word-ranges";
 import {
   isCacheEntryValid,
   isWordDetailComplete,
@@ -15,18 +16,26 @@ import {
 } from "@/lib/discover-fetch";
 
 export const DEFAULT_BOOTSTRAP_RANGE = "1-100";
-export const BOOTSTRAP_PRELOAD_WORDS = 4;
-export const MIN_WELCOME_MS = 1400;
+/** First band — enough for home + journey preload-ahead. */
+export const BOOTSTRAP_PRELOAD_DEFAULT = 4;
+/** Other bands — first card ready when learner switches rank. */
+export const BOOTSTRAP_PRELOAD_OTHER = 2;
+export const BOOTSTRAP_WORD_CONCURRENCY = 4;
+export const MIN_WELCOME_MS = 1600;
 
 export type BootstrapProgress = {
   progress: number;
   message: string;
 };
 
-export type AppBootstrapSnapshot = {
-  rangeId: string;
+export type RangeBootstrapData = {
   queue: DiscoverListItem[];
   stats: DiscoverRangeStats;
+};
+
+export type AppBootstrapSnapshot = {
+  defaultRangeId: string;
+  ranges: Record<string, RangeBootstrapData>;
   wordCache: Record<string, DiscoverWordData>;
 };
 
@@ -44,11 +53,51 @@ function preloadAsset(path: string) {
   img.src = path;
 }
 
-/** Warm caches and fetch discover data before the main UI mounts. */
+async function mapWithConcurrency<T>(
+  items: T[],
+  concurrency: number,
+  worker: (item: T, index: number) => Promise<void>,
+) {
+  let index = 0;
+  async function run() {
+    while (index < items.length) {
+      const current = index;
+      index += 1;
+      await worker(items[current]!, current);
+    }
+  }
+  await Promise.all(
+    Array.from({ length: Math.min(concurrency, items.length) }, () => run()),
+  );
+}
+
+function collectPreloadTargets(
+  ranges: Record<string, RangeBootstrapData>,
+): DiscoverListItem[] {
+  const seen = new Set<string>();
+  const targets: DiscoverListItem[] = [];
+
+  for (const range of WORD_RANGES) {
+    const queue = ranges[range.id]?.queue ?? [];
+    const take =
+      range.id === DEFAULT_BOOTSTRAP_RANGE
+        ? BOOTSTRAP_PRELOAD_DEFAULT
+        : BOOTSTRAP_PRELOAD_OTHER;
+    for (const item of queue.slice(0, take)) {
+      if (seen.has(item.word)) continue;
+      seen.add(item.word);
+      targets.push(item);
+    }
+  }
+
+  return targets;
+}
+
+/** Warm caches and fetch all discover bands before the main UI mounts. */
 export async function runAppBootstrap(
   onProgress: (progress: BootstrapProgress) => void,
 ): Promise<AppBootstrapSnapshot> {
-  report(onProgress, 8, "Welcome! Getting things ready…");
+  report(onProgress, 6, "Welcome! Getting things ready…");
 
   purgeLegacyDiscoverWordCaches();
   const wordCache = loadPersistedWordCache();
@@ -56,62 +105,68 @@ export async function runAppBootstrap(
   preloadAsset("/mascot/fox-happy.png");
   preloadAsset("/mascot/fox-wave.png");
 
-  report(onProgress, 22, "Loading your word bank…");
-
-  const { words: queue, stats } = await fetchDiscoverRange(
-    DEFAULT_BOOTSTRAP_RANGE,
-  );
-
-  report(onProgress, 55, "Preparing flashcards…");
-
-  const preloadItems = queue.slice(0, BOOTSTRAP_PRELOAD_WORDS);
-  let completed = 0;
+  const ranges: Record<string, RangeBootstrapData> = {};
+  let rangesDone = 0;
 
   await Promise.all(
-    preloadItems.map(async (item) => {
-      const cached = wordCache.get(item.word);
-      if (isWordDetailComplete(cached, item.word)) {
-        preloadImageUrl(cached!.image_url);
-        completed += 1;
-        report(
-          onProgress,
-          55 + Math.round((completed / Math.max(preloadItems.length, 1)) * 35),
-          "Preparing flashcards…",
-        );
-        return;
-      }
-
+    WORD_RANGES.map(async (range) => {
       try {
-        const loaded = await fetchDiscoverWordDetail(item);
-        if (isCacheEntryValid(loaded, item.word)) {
-          wordCache.set(item.word, loaded);
-          preloadImageUrl(loaded.image_url);
-        }
+        const { words, stats } = await fetchDiscoverRange(range.id);
+        ranges[range.id] = { queue: words, stats };
       } catch {
-        /* best-effort — home can fetch later */
+        ranges[range.id] = { queue: [], stats: { total: 0, hidden: 0 } };
       } finally {
-        completed += 1;
+        rangesDone += 1;
         report(
           onProgress,
-          55 + Math.round((completed / Math.max(preloadItems.length, 1)) * 35),
-          "Preparing flashcards…",
+          10 + Math.round((rangesDone / WORD_RANGES.length) * 48),
+          `Loading rank ${range.compactLabel}…`,
         );
       }
     }),
+  );
+
+  report(onProgress, 62, "Preparing flashcards…");
+
+  const preloadTargets = collectPreloadTargets(ranges);
+  let wordsDone = 0;
+
+  await mapWithConcurrency(
+    preloadTargets,
+    BOOTSTRAP_WORD_CONCURRENCY,
+    async (item) => {
+      const cached = wordCache.get(item.word);
+      if (isWordDetailComplete(cached, item.word)) {
+        preloadImageUrl(cached!.image_url);
+      } else {
+        try {
+          const loaded = await fetchDiscoverWordDetail(item);
+          if (isCacheEntryValid(loaded, item.word)) {
+            wordCache.set(item.word, loaded);
+            preloadImageUrl(loaded.image_url);
+          }
+        } catch {
+          /* home/journey can fetch later */
+        }
+      }
+      wordsDone += 1;
+      report(
+        onProgress,
+        62 + Math.round((wordsDone / Math.max(preloadTargets.length, 1)) * 34),
+        "Preparing flashcards…",
+      );
+    },
   );
 
   persistWordCache(wordCache);
 
   report(onProgress, 100, "Ready to learn!");
 
-  const snapshot: AppBootstrapSnapshot = {
-    rangeId: DEFAULT_BOOTSTRAP_RANGE,
-    queue,
-    stats,
+  return {
+    defaultRangeId: DEFAULT_BOOTSTRAP_RANGE,
+    ranges,
     wordCache: Object.fromEntries(wordCache.entries()),
   };
-
-  return snapshot;
 }
 
 export async function waitForWelcomeMinimum(startedAt: number) {

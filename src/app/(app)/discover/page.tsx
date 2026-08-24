@@ -47,7 +47,8 @@ const PRELOAD_AHEAD = 5;
 export default function DiscoverPage() {
   const pathname = usePathname();
   const router = useRouter();
-  const { consumeSnapshot } = useAppBootstrap();
+  const { ranges: bootstrapRanges, wordCache: bootstrapWordCache } =
+    useAppBootstrap();
   const inSession = pathname.startsWith("/journey");
   const [rangeId, setRangeId] = useState(DEFAULT_BOOTSTRAP_RANGE);
   const [queue, setQueue] = useState<DiscoverListItem[]>([]);
@@ -79,6 +80,7 @@ export default function DiscoverPage() {
   const inflight = useRef<Map<string, Promise<DiscoverWordData>>>(new Map());
   const activeWordRef = useRef<string | null>(null);
   const initializedRangeRef = useRef<string | null>(null);
+  const wordCacheHydratedRef = useRef(false);
 
   const currentItem = queue[currentIndex];
 
@@ -202,28 +204,39 @@ export default function DiscoverPage() {
   }, [rangeId]);
 
   useEffect(() => {
+    if (!wordCacheHydratedRef.current) {
+      wordCache.current = loadPersistedWordCache();
+      if (bootstrapWordCache) {
+        for (const [word, entry] of Object.entries(bootstrapWordCache)) {
+          if (isCacheEntryValid(entry, word)) {
+            wordCache.current.set(word, entry);
+          }
+        }
+        persistWordCache(wordCache.current);
+      }
+      wordCacheHydratedRef.current = true;
+    }
+  }, [bootstrapWordCache]);
+
+  useEffect(() => {
     if (initializedRangeRef.current === rangeId) return;
 
-    wordCache.current = loadPersistedWordCache();
-    const snapshot = consumeSnapshot(rangeId);
-    if (snapshot) {
+    const cachedRange = bootstrapRanges?.[rangeId];
+    if (cachedRange) {
       initializedRangeRef.current = rangeId;
-      for (const [word, entry] of Object.entries(snapshot.wordCache)) {
-        if (isCacheEntryValid(entry, word)) {
-          wordCache.current.set(word, entry);
-        }
-      }
-      persistWordCache(wordCache.current);
-      setQueue(snapshot.queue);
-      setStats(snapshot.stats);
+      setQueue(cachedRange.queue);
+      setStats(cachedRange.stats);
       setCurrentIndex(0);
       setLoadingList(false);
+      setError(null);
       return;
     }
 
+    if (!bootstrapRanges) return;
+
     initializedRangeRef.current = rangeId;
     void fetchRange();
-  }, [consumeSnapshot, fetchRange, rangeId]);
+  }, [bootstrapRanges, fetchRange, rangeId]);
 
   useEffect(() => {
     if (!currentItem) {
