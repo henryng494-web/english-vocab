@@ -1,12 +1,9 @@
 /**
- * Trial: the coach-fox mascot acting out words across POS
- * (grammar, noun, verb, adjective). Bundled JPEGs in /public/word-images.
- * First 10 bundled via Cursor/Gemini trial; next 10 via Pollinations (see scripts/).
+ * Trial: the coach-fox mascot acting out words across POS.
+ * Bundled JPEGs in /public/word-images (Cursor GenerateImage).
  * Live Gemini gen is off unless GEMINI_IMAGE_LIVE=true.
- * Live Pollinations gen is off unless POLLINATIONS_IMAGE_LIVE=true.
  */
 
-/** Original bundled fox trial (Cursor agent / early pipeline). */
 export const AI_IMAGE_TRIAL_WORDS: ReadonlySet<string> = new Set([
   "too",
   "then",
@@ -18,10 +15,6 @@ export const AI_IMAGE_TRIAL_WORDS: ReadonlySet<string> = new Set([
   "run",
   "big",
   "hot",
-]);
-
-/** Bundled via Pollinations (scripts/generate-pollinations-images.mjs). */
-export const POLLINATIONS_IMAGE_TRIAL_WORDS: ReadonlySet<string> = new Set([
   "vital",
   "water",
   "sleep",
@@ -32,11 +25,6 @@ export const POLLINATIONS_IMAGE_TRIAL_WORDS: ReadonlySet<string> = new Set([
   "dog",
   "rain",
   "help",
-]);
-
-export const ALL_AI_IMAGE_TRIAL_WORDS: ReadonlySet<string> = new Set([
-  ...AI_IMAGE_TRIAL_WORDS,
-  ...POLLINATIONS_IMAGE_TRIAL_WORDS,
 ]);
 
 const FOX =
@@ -66,19 +54,15 @@ export const AI_IMAGE_PROMPTS: Readonly<Record<string, string>> = {
 };
 
 const STATIC_PATH_RE = /^\/word-images\/[a-z]+\.jpg(?:\?v=[\w-]+)?$/;
-const BUNDLE_VERSION = "polli1";
+const BUNDLE_VERSION = "fox3";
 
 export function isAiImageTrialWord(word: string): boolean {
-  return ALL_AI_IMAGE_TRIAL_WORDS.has(word.trim().toLowerCase());
-}
-
-export function isPollinationsImageTrialWord(word: string): boolean {
-  return POLLINATIONS_IMAGE_TRIAL_WORDS.has(word.trim().toLowerCase());
+  return AI_IMAGE_TRIAL_WORDS.has(word.trim().toLowerCase());
 }
 
 export function getStaticAiWordImagePath(word: string): string | null {
   const key = word.trim().toLowerCase();
-  if (!ALL_AI_IMAGE_TRIAL_WORDS.has(key)) return null;
+  if (!AI_IMAGE_TRIAL_WORDS.has(key)) return null;
   return `/word-images/${key}.jpg?v=${BUNDLE_VERSION}`;
 }
 
@@ -149,49 +133,6 @@ export async function generateAiWordImageDataUrl(
       return `data:${inline.mime};base64,${inline.data}`;
     } catch (error) {
       console.warn(`Gemini image ${model} failed for "${key}":`, error);
-    }
-  }
-  return null;
-}
-
-/** Returns a JPEG/PNG data URL via Pollinations, or null if unavailable. */
-export async function generatePollinationsWordImageDataUrl(
-  word: string,
-): Promise<string | null> {
-  const key = word.trim().toLowerCase();
-  const prompt = AI_IMAGE_PROMPTS[key];
-  if (!prompt) return null;
-
-  const apiKey = process.env.POLLINATIONS_API_KEY?.trim();
-  const encoded = encodeURIComponent(prompt);
-  const seed = [...key].reduce((acc, ch) => acc + ch.charCodeAt(0), 0) % 9999;
-  const query = `model=flux&width=1280&height=720&seed=${seed}`;
-
-  const urls = apiKey
-    ? [`https://gen.pollinations.ai/image/${encoded}?${query}`]
-    : [`https://image.pollinations.ai/prompt/${encoded}?${query}`];
-
-  for (const url of urls) {
-    try {
-      const headers: Record<string, string> = {};
-      if (apiKey) headers.Authorization = `Bearer ${apiKey}`;
-      const response = await fetch(url, {
-        headers,
-        signal: AbortSignal.timeout(120_000),
-      });
-      if (!response.ok) {
-        console.warn(
-          `Pollinations image skipped for "${key}": ${response.status}`,
-        );
-        continue;
-      }
-      const type = response.headers.get("content-type") ?? "image/jpeg";
-      if (!type.startsWith("image/")) continue;
-      const buf = Buffer.from(await response.arrayBuffer());
-      const mime = type.split(";")[0]?.trim() || "image/jpeg";
-      return `data:${mime};base64,${buf.toString("base64")}`;
-    } catch (error) {
-      console.warn(`Pollinations image failed for "${key}":`, error);
     }
   }
   return null;

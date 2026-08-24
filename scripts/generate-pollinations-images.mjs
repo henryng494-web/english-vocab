@@ -1,7 +1,6 @@
 /**
- * One-off: generate bundled fox word images via Pollinations (legacy endpoint).
- * Usage: node scripts/generate-pollinations-images.mjs [word ...]
- * Default: the 10 pollinations trial words in ai-word-image.ts
+ * Deprecated: Pollinations quality was too inconsistent for mascot scenes.
+ * Use Cursor GenerateImage + public/word-images instead (see ai-word-image.ts).
  */
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
