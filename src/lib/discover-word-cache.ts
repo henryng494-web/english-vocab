@@ -6,8 +6,8 @@ import { containsForeignScript } from "@/lib/sanitize-vi";
 import { hasAcceptableWordImage } from "@/lib/unsplash";
 import { normalizeWordType } from "@/lib/word-type";
 
-/** Bump when ranking, image quality, or enrichment output shape changes. */
-export const DISCOVER_WORD_CACHE_VERSION = 59;
+/** Bump when Gemini/Unsplash pipeline or image quality rules change. */
+export const DISCOVER_WORD_CACHE_VERSION = 60;
 
 const STORAGE_KEY = `discover-word-cache-v${DISCOVER_WORD_CACHE_VERSION}`;
 
@@ -60,6 +60,7 @@ const LEGACY_STORAGE_KEYS = [
   "discover-word-cache-v56",
   "discover-word-cache-v57",
   "discover-word-cache-v58",
+  "discover-word-cache-v59",
 ];
 
 const MAX_ENTRIES = 250;

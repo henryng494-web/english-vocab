@@ -347,7 +347,14 @@ export default function LearnPage() {
 
     let cancelled = false;
     if (missingImage && !badVi && !missingExamples && !badExamples) {
-      fetch(`/api/word-image?word=${encodeURIComponent(currentWord.word)}`)
+      const params = new URLSearchParams({ word: currentWord.word });
+      if (currentWord.vietnamese_meaning?.trim()) {
+        params.set("meaning", currentWord.vietnamese_meaning.trim());
+      }
+      if (currentWord.word_type?.trim()) {
+        params.set("pos", currentWord.word_type.trim());
+      }
+      fetch(`/api/word-image?${params}`)
         .then((res) => res.json())
         .then((data: { image_url?: string | null }) => {
           if (cancelled || !data.image_url) return;

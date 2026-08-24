@@ -44,7 +44,7 @@ const GENERIC_QUERY_TOKENS = new Set([
   "closeup",
 ]);
 
-const SEMANTIC_IMAGE_VERSION = "28";
+const SEMANTIC_IMAGE_VERSION = "29";
 
 /** Only Pexels and Unsplash are trusted learning-card photo sources. */
 const STOCK_IMAGE_HOSTS = new Set(["images.pexels.com", "images.unsplash.com"]);
@@ -166,6 +166,16 @@ export function isUntrustedRandomImageUrl(
   }
 }
 
+export function isPexelsImageUrl(url: string | null | undefined): boolean {
+  const trimmed = url?.trim();
+  if (!trimmed?.startsWith("http")) return false;
+  try {
+    return new URL(trimmed).hostname.toLowerCase() === "images.pexels.com";
+  } catch {
+    return false;
+  }
+}
+
 export function isOutdatedSemanticImageUrl(
   url: string | null | undefined,
 ): boolean {
@@ -251,6 +261,7 @@ export function shouldRefreshImageUrl(
     return !trimmed || trimmed.startsWith("http") || isUnsafeImageUrl(trimmed);
   }
   if (!trimmed) return true;
+  if (isPexelsImageUrl(trimmed)) return true;
   if (isUnsafeImageUrl(trimmed)) return true;
   if (trimmed.startsWith("http") && !isStockImageUrl(trimmed)) return true;
   if (trimmed.startsWith("http") && !isDisplayableHttpImageUrl(trimmed, word)) {
