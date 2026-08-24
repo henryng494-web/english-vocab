@@ -1,4 +1,4 @@
-import { buildImageSearchQueries } from "@/lib/image-keyword";
+import { buildImageSearchQueries, isAbstractImagePos } from "@/lib/image-keyword";
 import { isUnsafeImageMetadata, isUnsafeImageUrl } from "@/lib/safe-image-metadata";
 import { requiresSafeImageOnly } from "@/lib/safe-image-search";
 
@@ -30,7 +30,7 @@ const GENERIC_QUERY_TOKENS = new Set([
   "scene",
 ]);
 
-const SEMANTIC_IMAGE_VERSION = "20";
+const SEMANTIC_IMAGE_VERSION = "21";
 
 /** Only Pexels and Unsplash are trusted learning-card photo sources. */
 const STOCK_IMAGE_HOSTS = new Set(["images.pexels.com", "images.unsplash.com"]);
@@ -384,6 +384,25 @@ async function searchPexelsPhotos(
   }
 }
 
+async function pickRelaxedStockPhoto(
+  query: string,
+  photos: Array<{ url: string; alt: string; extra?: string }>,
+): Promise<string | null> {
+  const queryTokens = semanticTokens(query);
+  if (queryTokens.size === 0) return null;
+
+  for (const photo of photos) {
+    if (isUnsafeImageMetadata(photo.alt, photo.extra, query)) continue;
+    if (!photo.url || isUnsafeImageUrl(photo.url)) continue;
+    const metaTokens = semanticTokens([photo.alt, photo.extra].filter(Boolean).join(" "));
+    if (overlapCount(queryTokens, metaTokens) === 0) continue;
+    const versioned = markSemanticImageUrl(photo.url);
+    if (!isDisplayableHttpImageUrl(versioned)) continue;
+    return versioned;
+  }
+  return null;
+}
+
 async function pickScoredStockPhoto(
   word: string,
   query: string,
@@ -405,6 +424,7 @@ async function pickScoredStockPhoto(
 async function pickUnsplashFromQueries(
   word: string,
   queries: string[],
+  allowRelaxed = false,
 ): Promise<string | null> {
   if (!process.env.UNSPLASH_ACCESS_KEY?.trim()) return null;
 
@@ -421,6 +441,17 @@ async function pickUnsplashFromQueries(
         })),
       );
       if (url) return url;
+      if (allowRelaxed) {
+        const relaxed = await pickRelaxedStockPhoto(
+          query,
+          photos.map((photo) => ({
+            url: photo.url,
+            alt: photo.alt,
+            extra: photo.photographer,
+          })),
+        );
+        if (relaxed) return relaxed;
+      }
     } catch (error) {
       console.warn(`Unsplash search skipped for "${query}":`, error);
     }
@@ -431,6 +462,7 @@ async function pickUnsplashFromQueries(
 async function pickPexelsFromQueries(
   word: string,
   queries: string[],
+  allowRelaxed = false,
 ): Promise<string | null> {
   if (!process.env.PEXELS_API_KEY?.trim()) return null;
 
@@ -438,6 +470,10 @@ async function pickPexelsFromQueries(
     const photos = await searchPexelsPhotos(query);
     const url = await pickScoredStockPhoto(word, query, photos);
     if (url) return url;
+    if (allowRelaxed) {
+      const relaxed = await pickRelaxedStockPhoto(query, photos);
+      if (relaxed) return relaxed;
+    }
   }
   return null;
 }
@@ -604,10 +640,11 @@ export async function fetchWordImageUrl(
   const queries = buildImageSearchQueries(word, { searchKeyword, pos });
   if (queries.length === 0) return getDefaultLearningImageDataUrl(word, pos);
 
-  const pexelsUrl = await pickPexelsFromQueries(word, queries);
+  const allowRelaxed = isAbstractImagePos(pos);
+  const pexelsUrl = await pickPexelsFromQueries(word, queries, allowRelaxed);
   if (pexelsUrl) return pexelsUrl;
 
-  const unsplashUrl = await pickUnsplashFromQueries(word, queries);
+  const unsplashUrl = await pickUnsplashFromQueries(word, queries, allowRelaxed);
   if (unsplashUrl) return unsplashUrl;
 
   return getDefaultLearningImageDataUrl(word, pos);
