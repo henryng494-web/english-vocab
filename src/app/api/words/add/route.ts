@@ -58,6 +58,7 @@ export async function POST(request: Request) {
           standard.searchKeyword,
           standard.wordType,
           standard.vietnameseMeaning,
+          standard.englishDefinition,
         );
       }
 
@@ -99,6 +100,7 @@ export async function POST(request: Request) {
       enrichment.searchKeyword,
       enrichment.wordType,
       enrichment.vietnameseMeaning,
+      enrichment.englishDefinition,
     );
 
     const { data: existingBank } = await supabase

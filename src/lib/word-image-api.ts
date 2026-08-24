@@ -41,11 +41,12 @@ export async function resolveWordImageForApi(
 
   const meaning =
     meaningParam?.trim() || detail?.vietnamese_meaning?.trim() || null;
+  const englishDefinition = detail?.english_definition?.trim() || null;
   const searchKeyword = resolveImageSearchKeyword(word, {
     searchKeyword: keywordParam,
     pos: posParam?.trim() || detail?.word_type,
     meaning,
-    englishDefinition: detail?.english_definition,
+    englishDefinition,
   });
   const pos = posParam?.trim() || detail?.word_type || null;
 
@@ -63,6 +64,7 @@ export async function resolveWordImageForApi(
     searchKeyword,
     pos,
     meaning,
+    englishDefinition,
   );
   const imageUrl = isRealCardImageUrl(resolved.imageUrl, word)
     ? resolved.imageUrl

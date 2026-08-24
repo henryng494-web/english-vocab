@@ -44,7 +44,7 @@ const GENERIC_QUERY_TOKENS = new Set([
   "closeup",
 ]);
 
-const SEMANTIC_IMAGE_VERSION = "27";
+const SEMANTIC_IMAGE_VERSION = "28";
 
 /** Only Pexels and Unsplash are trusted learning-card photo sources. */
 const STOCK_IMAGE_HOSTS = new Set(["images.pexels.com", "images.unsplash.com"]);
@@ -657,14 +657,15 @@ async function tryGeminiVocabImage(
 }
 
 /**
- * Primary stock: curated Pexels/Unsplash, then Gemini→Pexels when meaning is
- * available. SVG placeholder only for safe-image-only words or total miss.
+ * Primary stock: Gemini→Pexels when meaning/definition is available, then
+ * rule-based Pexels/Unsplash fallback. SVG placeholder on total miss.
  */
 export async function fetchWordImageUrlDetailed(
   word: string,
   searchKeyword?: string | null,
   pos?: string | null,
   meaning?: string | null,
+  englishDefinition?: string | null,
 ): Promise<WordImageFetchResult> {
   if (requiresSafeImageOnly(word)) {
     return {
@@ -673,16 +674,15 @@ export async function fetchWordImageUrlDetailed(
     };
   }
 
-  const options = { searchKeyword, pos, meaning };
-  const trimmedMeaning = meaning?.trim() ?? "";
+  const options = { searchKeyword, pos, meaning, englishDefinition };
+  const geminiContext =
+    meaning?.trim() || englishDefinition?.trim() || "";
   const canUseGemini = Boolean(
-    process.env.GEMINI_API_KEY?.trim() && trimmedMeaning,
+    process.env.GEMINI_API_KEY?.trim() && geminiContext,
   );
 
-  const { hasStrongImageKeyword } = await import("@/lib/image-keyword");
-
-  if (canUseGemini && !hasStrongImageKeyword(word, options)) {
-    const gemini = await tryGeminiVocabImage(word, pos, trimmedMeaning);
+  if (canUseGemini) {
+    const gemini = await tryGeminiVocabImage(word, pos, geminiContext);
     if (gemini) {
       return {
         imageUrl: markSemanticImageUrl(gemini.imageUrl),
@@ -693,15 +693,6 @@ export async function fetchWordImageUrlDetailed(
 
   const queries = buildImageSearchQueries(word, options);
   if (queries.length === 0) {
-    if (canUseGemini) {
-      const gemini = await tryGeminiVocabImage(word, pos, trimmedMeaning);
-      if (gemini) {
-        return {
-          imageUrl: markSemanticImageUrl(gemini.imageUrl),
-          searchKeyword: gemini.searchPhrase,
-        };
-      }
-    }
     return {
       imageUrl: getDefaultLearningImageDataUrl(word, pos),
       searchKeyword: searchKeyword?.trim() || null,
@@ -724,16 +715,6 @@ export async function fetchWordImageUrlDetailed(
     };
   }
 
-  if (canUseGemini) {
-    const gemini = await tryGeminiVocabImage(word, pos, trimmedMeaning);
-    if (gemini) {
-      return {
-        imageUrl: markSemanticImageUrl(gemini.imageUrl),
-        searchKeyword: gemini.searchPhrase,
-      };
-    }
-  }
-
   return {
     imageUrl: getDefaultLearningImageDataUrl(word, pos),
     searchKeyword: searchKeyword?.trim() || null,
@@ -746,12 +727,14 @@ export async function fetchWordImageUrl(
   searchKeyword?: string | null,
   pos?: string | null,
   meaning?: string | null,
+  englishDefinition?: string | null,
 ): Promise<string> {
   const result = await fetchWordImageUrlDetailed(
     word,
     searchKeyword,
     pos,
     meaning,
+    englishDefinition,
   );
   return result.imageUrl;
 }

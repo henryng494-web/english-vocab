@@ -1,5 +1,5 @@
 /**
- * Test curated keywords → Pexels pipeline (same logic as the app).
+ * Test fallback keywords → Pexels pipeline (when Gemini is unavailable).
  *
  * Usage:
  *   npx tsx scripts/test-pexels-keywords.ts
@@ -12,7 +12,6 @@ import { resolve } from "node:path";
 import { getStandardSearchKeyword } from "../src/data/standard-vocab";
 import {
   buildImageSearchQueries,
-  hasCuratedVisualKeyword,
   resolveImageSearchKeyword,
 } from "../src/lib/image-keyword";
 import { scoreImageMetadata } from "../src/lib/unsplash";
@@ -50,7 +49,6 @@ type WordResult = {
   word: string;
   group: string;
   pos: string;
-  curated: boolean;
   standardKeyword: string;
   primaryQuery: string;
   queries: string[];
@@ -177,7 +175,6 @@ async function testWord(
     word,
     group,
     pos,
-    curated: hasCuratedVisualKeyword(word),
     standardKeyword,
     primaryQuery,
     queries,
@@ -199,7 +196,6 @@ function printSummary(results: WordResult[]) {
   console.log(
     "word".padEnd(12) +
       "group".padEnd(22) +
-      "curated".padEnd(10) +
       "primary query".padEnd(36) +
       "win query".padEnd(28) +
       "score".padEnd(7) +
@@ -211,7 +207,6 @@ function printSummary(results: WordResult[]) {
     console.log(
       r.word.padEnd(12) +
         r.group.padEnd(22) +
-        (r.curated ? "yes" : "no").padEnd(10) +
         r.primaryQuery.slice(0, 34).padEnd(36) +
         (r.winningQuery ?? "-").slice(0, 26).padEnd(28) +
         String(r.winningScore).padEnd(7) +
@@ -219,7 +214,7 @@ function printSummary(results: WordResult[]) {
     );
   }
 
-  console.log("\n--- Failures (need curated keyword or better query) ---");
+  console.log("\n--- Failures (need Gemini phrase or better fallback query) ---");
   for (const r of results.filter((x) => !x.pass)) {
     console.log(`• ${r.word} (${r.group}) — tried: ${r.queries.join(" → ")}`);
   }
@@ -267,7 +262,6 @@ async function main() {
         word: target.word,
         group: target.group,
         pos: target.pos,
-        curated: hasCuratedVisualKeyword(target.word),
         standardKeyword: getStandardSearchKeyword(target.word),
         primaryQuery: resolveImageSearchKeyword(target.word, { pos: target.pos }),
         queries: [],

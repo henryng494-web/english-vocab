@@ -71,7 +71,7 @@ function buildGeminiImagePrompt(
 
 Word: "${word}"
 Part of speech: ${partOfSpeech}
-Vietnamese meaning: ${meaning}
+Vietnamese or English meaning: ${meaning}
 
 Task: Analyze the PRIMARY everyday sense and output exactly ONE short English stock-photo search phrase.
 

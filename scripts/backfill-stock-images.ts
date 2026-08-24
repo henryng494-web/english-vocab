@@ -1,19 +1,19 @@
 /**
- * Backfill word_details.image_url with Pexels/Unsplash stock photos.
+ * Backfill word_details.image_url via Gemini→Pexels (primary) with fallbacks.
  *
  * Usage:
  *   npm run backfill:images
  *   npm run backfill:images -- --limit=100
  *   npm run backfill:images -- --dry-run
+ *   npm run backfill:images -- --force
  *   npm run backfill:images -- --word=night
  */
 
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { createClient } from "@supabase/supabase-js";
-import { resolveImageSearchKeyword } from "../src/lib/image-keyword";
 import {
-  fetchWordImageUrl,
+  fetchWordImageUrlDetailed,
   isRealCardImageUrl,
   shouldRefreshImageUrl,
 } from "../src/lib/unsplash";
@@ -40,23 +40,27 @@ type WordDetailRow = {
   word: string;
   word_type: string | null;
   vietnamese_meaning: string | null;
+  english_definition: string | null;
   image_url: string | null;
+  search_keyword: string | null;
 };
 
 function parseArgs() {
   const args = process.argv.slice(2);
   let limit = 0;
   let dryRun = false;
+  let force = false;
   let word: string | null = null;
   for (const arg of args) {
     if (arg === "--dry-run") dryRun = true;
+    else if (arg === "--force") force = true;
     else if (arg.startsWith("--limit=")) {
       limit = Number.parseInt(arg.slice("--limit=".length), 10) || 0;
     } else if (arg.startsWith("--word=")) {
       word = arg.slice("--word=".length).trim().toLowerCase() || null;
     }
   }
-  return { limit, dryRun, word };
+  return { limit, dryRun, force, word };
 }
 
 async function sleep(ms: number) {
@@ -65,7 +69,7 @@ async function sleep(ms: number) {
 
 async function main() {
   loadEnv();
-  const { limit, dryRun, word } = parseArgs();
+  const { limit, dryRun, force, word } = parseArgs();
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
   const serviceKey =
@@ -79,7 +83,9 @@ async function main() {
 
   let query = supabase
     .from("word_details")
-    .select("word, word_type, vietnamese_meaning, image_url")
+    .select(
+      "word, word_type, vietnamese_meaning, english_definition, image_url, search_keyword",
+    )
     .order("word", { ascending: true });
 
   if (word) {
@@ -90,9 +96,9 @@ async function main() {
   if (error) throw error;
 
   const rows = (data ?? []) as WordDetailRow[];
-  const targets = rows.filter((row) =>
-    shouldRefreshImageUrl(row.image_url, row.word),
-  );
+  const targets = force
+    ? rows
+    : rows.filter((row) => shouldRefreshImageUrl(row.image_url, row.word));
   const batch = limit > 0 ? targets.slice(0, limit) : targets;
 
   console.log(
@@ -107,28 +113,33 @@ async function main() {
   let failed = 0;
 
   for (const row of batch) {
-    const keyword = resolveImageSearchKeyword(row.word, {
-      pos: row.word_type,
-      meaning: row.vietnamese_meaning,
-    });
-
     try {
-      const resolved = await fetchWordImageUrl(row.word, keyword, row.word_type);
-      const isStock = isRealCardImageUrl(resolved, row.word);
+      const resolved = await fetchWordImageUrlDetailed(
+        row.word,
+        row.search_keyword,
+        row.word_type,
+        row.vietnamese_meaning,
+        row.english_definition,
+      );
+      const imageUrl = resolved.imageUrl;
+      const isStock = isRealCardImageUrl(imageUrl, row.word);
       if (isStock) stock += 1;
       else svg += 1;
 
-      if (!dryRun && resolved !== row.image_url) {
+      if (!dryRun && imageUrl !== row.image_url) {
         const { error: updateError } = await supabase
           .from("word_details")
-          .update({ image_url: resolved })
+          .update({
+            image_url: imageUrl,
+            search_keyword: resolved.searchKeyword ?? row.search_keyword,
+          })
           .eq("word", row.word);
         if (updateError) throw updateError;
         updated += 1;
       }
 
       console.log(
-        `${isStock ? "✓ stock" : "· svg "} ${row.word} → ${resolved.slice(0, 72)}${resolved.length > 72 ? "…" : ""}`,
+        `${isStock ? "✓ stock" : "· svg "} ${row.word} → ${imageUrl.slice(0, 72)}${imageUrl.length > 72 ? "…" : ""}`,
       );
     } catch (err) {
       failed += 1;
