@@ -9,6 +9,7 @@ type ReviewQuestionProps = {
   imageUrl?: string | null;
   searchKeyword?: string | null;
   wordType?: string | null;
+  meaning?: string | null;
   clue: string;
   choices: ReviewChoice[];
   selectedKey: string | null;
@@ -24,6 +25,7 @@ export function ReviewQuestion({
   imageUrl,
   searchKeyword,
   wordType,
+  meaning,
   clue,
   choices,
   selectedKey,
@@ -42,6 +44,7 @@ export function ReviewQuestion({
         imageUrl={imageUrl}
         searchKeyword={searchKeyword}
         wordType={wordType}
+        meaning={meaning}
         className="review-quiz__image"
         quizSafe
       />

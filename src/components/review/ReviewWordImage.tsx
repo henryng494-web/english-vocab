@@ -8,6 +8,7 @@ export function ReviewWordImage({
   imageUrl,
   searchKeyword,
   wordType,
+  meaning,
   className,
   quizSafe = false,
 }: {
@@ -15,6 +16,7 @@ export function ReviewWordImage({
   imageUrl?: string | null;
   searchKeyword?: string | null;
   wordType?: string | null;
+  meaning?: string | null;
   className?: string;
   /** When true, never show the SVG placeholder (it can spell the answer). */
   quizSafe?: boolean;
@@ -24,7 +26,7 @@ export function ReviewWordImage({
     imageUrl,
     searchKeyword,
     wordType,
-    { quizSafe },
+    { quizSafe, meaning },
   );
 
   return (

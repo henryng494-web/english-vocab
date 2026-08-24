@@ -39,12 +39,13 @@ async function resolveImageUrl(
   existingUrl?: string | null,
   searchKeyword?: string | null,
   pos?: string | null,
+  meaning?: string | null,
 ): Promise<string> {
   const trimmed = existingUrl?.trim();
   if (trimmed && !shouldRefreshImageUrl(trimmed, word)) {
     return trimmed;
   }
-  return fetchWordImageUrl(word, searchKeyword ?? word, pos);
+  return fetchWordImageUrl(word, searchKeyword ?? word, pos, meaning);
 }
 
 function imageSearchKeyword(
@@ -291,6 +292,7 @@ export async function GET(request: Request) {
         repairedDbDetail!.image_url,
         searchKeyword,
         repairedDbDetail!.word_type,
+        repairedDbDetail!.vietnamese_meaning,
       );
       if (repairedDbDetail!.image_url !== imageUrl) {
         await persistImageUrlIfChanged(
@@ -314,16 +316,20 @@ export async function GET(request: Request) {
     const enrichment = await enrichWord(word, { rank: frequencyRank, skipGemini });
     const responseWord = enrichmentToDiscoverWord(word, enrichment, null);
     const searchKeyword = responseWord.search_keyword ?? word;
+    const vietnameseMeaning =
+      sanitizeVietnameseText(responseWord.vietnamese_meaning) || word;
     let imageUrl = await fetchWordImageUrl(
       word,
       searchKeyword,
       responseWord.word_type ?? enrichment.wordType,
+      vietnameseMeaning,
     );
     if (!imageUrl || shouldRefreshImageUrl(imageUrl, word)) {
       imageUrl = await fetchWordImageUrl(
         word,
         searchKeyword,
         responseWord.word_type ?? enrichment.wordType,
+        vietnameseMeaning,
       );
     }
     responseWord.image_url = imageUrl;

@@ -12,6 +12,7 @@ export type WordImagePrefetchTarget = {
   imageUrl?: string | null;
   searchKeyword?: string | null;
   wordType?: string | null;
+  meaning?: string | null;
 };
 
 export const REVIEW_IMAGE_PREFETCH_CONCURRENCY = 8;
@@ -80,6 +81,7 @@ async function fetchWordImagesBatch(
           word: target.word,
           keyword: target.searchKeyword?.trim() || undefined,
           pos: target.wordType?.trim() || undefined,
+          meaning: target.meaning?.trim() || undefined,
         })),
       }),
     });
@@ -128,6 +130,9 @@ async function fetchWordImageFast(
       }
       if (target.wordType?.trim()) {
         params.set("pos", target.wordType.trim());
+      }
+      if (target.meaning?.trim()) {
+        params.set("meaning", target.meaning.trim());
       }
       const res = await fetch(`/api/word-image?${params}`);
       const data = (await res.json()) as { image_url?: string | null };

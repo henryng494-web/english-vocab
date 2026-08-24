@@ -37,6 +37,7 @@ function CardImage({
   imageUrl,
   searchKeyword,
   wordType,
+  meaning,
   compact = false,
   badge,
 }: {
@@ -44,6 +45,7 @@ function CardImage({
   imageUrl?: string | null;
   searchKeyword?: string | null;
   wordType?: string | null;
+  meaning?: string | null;
   compact?: boolean;
   badge?: string;
 }) {
@@ -52,6 +54,7 @@ function CardImage({
     imageUrl,
     searchKeyword,
     wordType,
+    { meaning },
   );
 
   return (
@@ -99,6 +102,7 @@ export function DiscoverCard({
         imageUrl={data.image_url}
         searchKeyword={data.search_keyword}
         wordType={data.word_type}
+        meaning={data.vietnamese_meaning}
         compact={compact}
         badge={imageBadge}
       />

@@ -23,6 +23,7 @@ export async function GET(request: Request) {
       word,
       searchParams.get("keyword")?.trim(),
       searchParams.get("pos")?.trim(),
+      searchParams.get("meaning")?.trim(),
     );
 
     return NextResponse.json({ image_url: imageUrl });

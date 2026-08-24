@@ -90,6 +90,7 @@ export function ReviewReveal({
           imageUrl={word.image_url}
           searchKeyword={word.search_keyword}
           wordType={word.word_type}
+          meaning={word.vietnamese_meaning}
           className="review-reveal__image"
         />
         <div className="review-reveal__body">

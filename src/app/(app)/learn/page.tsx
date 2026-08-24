@@ -537,6 +537,7 @@ export default function LearnPage() {
           imageUrl={currentWord.image_url}
           searchKeyword={currentWord.search_keyword}
           wordType={currentWord.word_type}
+          meaning={currentWord.vietnamese_meaning}
           sentence={pickReviewRecallSentence(
             currentWord.word,
             currentWord.examples,
@@ -558,6 +559,7 @@ export default function LearnPage() {
           imageUrl={currentWord.image_url}
           searchKeyword={currentWord.search_keyword}
           wordType={currentWord.word_type}
+          meaning={currentWord.vietnamese_meaning}
           clue={reviewClue(currentWord)}
           choices={choices}
           selectedKey={selectedKey}

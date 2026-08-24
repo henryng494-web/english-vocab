@@ -9,6 +9,7 @@ type ReviewRecallQuestionProps = {
   imageUrl?: string | null;
   searchKeyword?: string | null;
   wordType?: string | null;
+  meaning?: string | null;
   sentence: string;
   locked: boolean;
   remembered: boolean | null;
@@ -21,6 +22,7 @@ export function ReviewRecallQuestion({
   imageUrl,
   searchKeyword,
   wordType,
+  meaning,
   sentence,
   locked,
   remembered,
@@ -36,6 +38,7 @@ export function ReviewRecallQuestion({
         imageUrl={imageUrl}
         searchKeyword={searchKeyword}
         wordType={wordType}
+        meaning={meaning}
         className="review-recall__image"
         quizSafe
       />

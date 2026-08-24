@@ -626,26 +626,132 @@ function markSemanticImageUrl(url: string): string {
   return versionedUrl.toString();
 }
 
+export type WordImageFetchResult = {
+  imageUrl: string;
+  /** Keyword or Gemini phrase used for the resolved photo. */
+  searchKeyword: string | null;
+};
+
+async function tryGeminiVocabImage(
+  word: string,
+  pos: string | null | undefined,
+  meaning: string,
+): Promise<{ imageUrl: string; searchPhrase: string } | null> {
+  if (!process.env.GEMINI_API_KEY?.trim() || !meaning.trim()) return null;
+  try {
+    const { fetchVocabIllustrationImageOrNull } = await import(
+      "@/lib/gemini-pexels-image"
+    );
+    return fetchVocabIllustrationImageOrNull({
+      word,
+      partOfSpeech: pos?.trim() || "noun",
+      meaning,
+    });
+  } catch (error) {
+    console.warn(
+      `[fetchWordImageUrl] Gemini pipeline skipped for "${word}":`,
+      error instanceof Error ? error.message : error,
+    );
+    return null;
+  }
+}
+
 /**
- * Primary stock: Pexels (PEXELS_API_KEY), then Unsplash fallback.
- * SVG placeholder only for safe-image-only words or when both APIs miss.
+ * Primary stock: curated Pexels/Unsplash, then Gemini→Pexels when meaning is
+ * available. SVG placeholder only for safe-image-only words or total miss.
  */
+export async function fetchWordImageUrlDetailed(
+  word: string,
+  searchKeyword?: string | null,
+  pos?: string | null,
+  meaning?: string | null,
+): Promise<WordImageFetchResult> {
+  if (requiresSafeImageOnly(word)) {
+    return {
+      imageUrl: getDefaultLearningImageDataUrl(word, pos),
+      searchKeyword: null,
+    };
+  }
+
+  const options = { searchKeyword, pos, meaning };
+  const trimmedMeaning = meaning?.trim() ?? "";
+  const canUseGemini = Boolean(
+    process.env.GEMINI_API_KEY?.trim() && trimmedMeaning,
+  );
+
+  const { hasStrongImageKeyword } = await import("@/lib/image-keyword");
+
+  if (canUseGemini && !hasStrongImageKeyword(word, options)) {
+    const gemini = await tryGeminiVocabImage(word, pos, trimmedMeaning);
+    if (gemini) {
+      return {
+        imageUrl: markSemanticImageUrl(gemini.imageUrl),
+        searchKeyword: gemini.searchPhrase,
+      };
+    }
+  }
+
+  const queries = buildImageSearchQueries(word, options);
+  if (queries.length === 0) {
+    if (canUseGemini) {
+      const gemini = await tryGeminiVocabImage(word, pos, trimmedMeaning);
+      if (gemini) {
+        return {
+          imageUrl: markSemanticImageUrl(gemini.imageUrl),
+          searchKeyword: gemini.searchPhrase,
+        };
+      }
+    }
+    return {
+      imageUrl: getDefaultLearningImageDataUrl(word, pos),
+      searchKeyword: searchKeyword?.trim() || null,
+    };
+  }
+
+  const pexelsUrl = await pickPexelsFromQueries(word, queries);
+  if (pexelsUrl) {
+    return {
+      imageUrl: pexelsUrl,
+      searchKeyword: searchKeyword?.trim() || queries[0] || null,
+    };
+  }
+
+  const unsplashUrl = await pickUnsplashFromQueries(word, queries);
+  if (unsplashUrl) {
+    return {
+      imageUrl: unsplashUrl,
+      searchKeyword: searchKeyword?.trim() || queries[0] || null,
+    };
+  }
+
+  if (canUseGemini) {
+    const gemini = await tryGeminiVocabImage(word, pos, trimmedMeaning);
+    if (gemini) {
+      return {
+        imageUrl: markSemanticImageUrl(gemini.imageUrl),
+        searchKeyword: gemini.searchPhrase,
+      };
+    }
+  }
+
+  return {
+    imageUrl: getDefaultLearningImageDataUrl(word, pos),
+    searchKeyword: searchKeyword?.trim() || null,
+  };
+}
+
+/** @see fetchWordImageUrlDetailed */
 export async function fetchWordImageUrl(
   word: string,
   searchKeyword?: string | null,
   pos?: string | null,
+  meaning?: string | null,
 ): Promise<string> {
-  if (requiresSafeImageOnly(word)) {
-    return getDefaultLearningImageDataUrl(word, pos);
-  }
-  const queries = buildImageSearchQueries(word, { searchKeyword, pos });
-  if (queries.length === 0) return getDefaultLearningImageDataUrl(word, pos);
-
-  const pexelsUrl = await pickPexelsFromQueries(word, queries);
-  if (pexelsUrl) return pexelsUrl;
-
-  const unsplashUrl = await pickUnsplashFromQueries(word, queries);
-  if (unsplashUrl) return unsplashUrl;
-
-  return getDefaultLearningImageDataUrl(word, pos);
+  const result = await fetchWordImageUrlDetailed(
+    word,
+    searchKeyword,
+    pos,
+    meaning,
+  );
+  return result.imageUrl;
 }

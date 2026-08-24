@@ -20,6 +20,7 @@ function FlashcardImage({ word }: { word: VocabWord }) {
     word.image_url,
     word.search_keyword,
     word.word_type,
+    { meaning: word.vietnamese_meaning },
   );
 
   return (

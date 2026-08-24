@@ -31,6 +31,7 @@ export function collectReviewQuestionImageTargets(
           imageUrl: choice.imageUrl,
           searchKeyword: choice.searchKeyword,
           wordType: choice.wordType,
+          meaning: choice.meaning,
         }))
       : [
           {
@@ -38,6 +39,7 @@ export function collectReviewQuestionImageTargets(
             imageUrl: word.image_url,
             searchKeyword: word.search_keyword,
             wordType: word.word_type,
+            meaning: word.vietnamese_meaning,
           },
         ];
   return { kind, choices, targets };

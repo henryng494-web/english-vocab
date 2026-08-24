@@ -63,6 +63,7 @@ export function ReviewSenseQuestion({
                     imageUrl={choice.imageUrl}
                     searchKeyword={choice.searchKeyword}
                     wordType={choice.wordType}
+                    meaning={choice.meaning}
                     className="review-sense__photo"
                     quizSafe
                   />

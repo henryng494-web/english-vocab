@@ -145,6 +145,7 @@ export async function runAppBootstrap(
       word: item.word,
       searchKeyword: item.preview?.search_keyword ?? item.word,
       wordType: item.preview?.word_type ?? null,
+      meaning: item.preview?.vietnamese_meaning ?? null,
     }),
   );
   preloadWordImagesFromCache(imageWarmTargets);

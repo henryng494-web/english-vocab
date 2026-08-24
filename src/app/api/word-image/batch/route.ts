@@ -18,6 +18,7 @@ export async function POST(request: Request) {
           item.word,
           item.keyword,
           item.pos,
+          item.meaning,
         );
         return [item.word.trim().toLowerCase(), url] as const;
       }),

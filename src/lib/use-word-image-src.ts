@@ -39,13 +39,14 @@ export function useWordImageSrc(
   imageUrl?: string | null,
   searchKeyword?: string | null,
   wordType?: string | null,
-  options?: WordImageSrcOptions,
+  options?: WordImageSrcOptions & { meaning?: string | null },
 ): {
   src: string;
   ready: boolean;
   onError: () => void;
 } {
   const quizSafe = options?.quizSafe ?? false;
+  const meaning = options?.meaning?.trim() || null;
   const fallback = getDefaultLearningImageDataUrl(word, wordType);
 
   const resolveDisplay = (url?: string | null) => {
@@ -89,6 +90,7 @@ export function useWordImageSrc(
         searchKeyword,
         wordType,
         imageUrl,
+        meaning,
       );
       if (cancelled) return;
       if (quizSafe) {
@@ -106,7 +108,7 @@ export function useWordImageSrc(
     return () => {
       cancelled = true;
     };
-  }, [word, imageUrl, searchKeyword, wordType, quizSafe]);
+  }, [word, imageUrl, searchKeyword, wordType, meaning, quizSafe]);
 
   return {
     src,
@@ -119,6 +121,7 @@ export function useWordImageSrc(
             searchKeyword,
             wordType,
             imageUrl,
+            meaning,
           );
           if (fetched) {
             setSrc(fetched);
@@ -134,6 +137,7 @@ export function useWordImageSrc(
           searchKeyword,
           wordType,
           imageUrl,
+          meaning,
         );
         if (isUsableCardImageUrl(fetched, word) && fetched !== src) {
           setSrc(fetched!);
@@ -152,11 +156,13 @@ async function fetchFreshImageUrl(
   searchKeyword?: string | null,
   wordType?: string | null,
   imageUrl?: string | null,
+  meaning?: string | null,
 ): Promise<string | null> {
   return resolveWordImageForCard({
     word,
     imageUrl,
     searchKeyword,
     wordType,
+    meaning,
   });
 }
