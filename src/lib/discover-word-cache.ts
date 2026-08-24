@@ -7,7 +7,7 @@ import { hasAcceptableWordImage } from "@/lib/unsplash";
 import { normalizeWordType } from "@/lib/word-type";
 
 /** Bump when Gemini/Unsplash pipeline or image quality rules change. */
-export const DISCOVER_WORD_CACHE_VERSION = 62;
+export const DISCOVER_WORD_CACHE_VERSION = 63;
 
 const STORAGE_KEY = `discover-word-cache-v${DISCOVER_WORD_CACHE_VERSION}`;
 
@@ -63,6 +63,7 @@ const LEGACY_STORAGE_KEYS = [
   "discover-word-cache-v59",
   "discover-word-cache-v60",
   "discover-word-cache-v61",
+  "discover-word-cache-v62",
 ];
 
 const MAX_ENTRIES = 250;

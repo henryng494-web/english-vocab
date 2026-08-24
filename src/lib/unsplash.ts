@@ -44,9 +44,9 @@ const GENERIC_QUERY_TOKENS = new Set([
   "closeup",
 ]);
 
-const SEMANTIC_IMAGE_VERSION = "30";
-/** Marks URLs produced by the Gemini→Unsplash vocabulary image pipeline. */
-export const IMAGE_PIPELINE_ID = "gemini-unsplash";
+const SEMANTIC_IMAGE_VERSION = "31";
+/** Only URLs from a successful Gemini→Unsplash run carry this marker. */
+export const IMAGE_PIPELINE_ID = "gemini-unsplash-v2";
 
 /** Only Pexels and Unsplash are trusted learning-card photo sources. */
 const STOCK_IMAGE_HOSTS = new Set(["images.pexels.com", "images.unsplash.com"]);
@@ -98,6 +98,41 @@ function pickDisplayableMediaUrl(url?: string | null): string | null {
     return null;
   }
   return trimmed;
+}
+
+function getStockUrlMarkers(url: string): {
+  semantic: string | null;
+  imgpipe: string | null;
+} {
+  try {
+    const parsed = new URL(url);
+    return {
+      semantic: parsed.searchParams.get("semantic"),
+      imgpipe: parsed.searchParams.get("imgpipe"),
+    };
+  } catch {
+    return { semantic: null, imgpipe: null };
+  }
+}
+
+/** Internal picker — safe stock host, no pipeline tag required yet. */
+function isSelectableStockPhotoUrl(
+  url: string | null | undefined,
+  word?: string | null,
+): boolean {
+  const trimmed = url?.trim();
+  if (!trimmed?.startsWith("https://")) return false;
+  if (isUnsafeImageUrl(trimmed)) return false;
+  if (word && requiresSafeImageOnly(word)) return false;
+  if (isStalePresetFallbackUrl(trimmed)) return false;
+  if (isUntrustedRandomImageUrl(trimmed)) return false;
+  if (isBrokenOpenverseProxyUrl(trimmed)) return false;
+  try {
+    if (!isDisplayableImageHost(new URL(trimmed).hostname)) return false;
+  } catch {
+    return false;
+  }
+  return true;
 }
 
 function hashWord(word: string): number {
@@ -227,7 +262,22 @@ export function isDisplayableHttpImageUrl(
   if (isPlaceholderIllustrationUrl(trimmed)) return false;
   if (isBrokenOpenverseProxyUrl(trimmed)) return false;
   if (isOutdatedSemanticImageUrl(trimmed)) return false;
-  if (isStockImageUrl(trimmed) && !isCurrentPipelineImageUrl(trimmed)) return false;
+  if (isStockImageUrl(trimmed)) {
+    const { semantic, imgpipe } = getStockUrlMarkers(trimmed);
+    if (
+      imgpipe === IMAGE_PIPELINE_ID &&
+      semantic === SEMANTIC_IMAGE_VERSION
+    ) {
+      return true;
+    }
+    if (!imgpipe && semantic === SEMANTIC_IMAGE_VERSION) {
+      return true;
+    }
+    if (imgpipe && imgpipe !== IMAGE_PIPELINE_ID) {
+      return false;
+    }
+    return false;
+  }
   try {
     return isDisplayableImageHost(new URL(trimmed).hostname);
   } catch {
@@ -285,7 +335,20 @@ export function shouldRefreshImageUrl(
   if (trimmed.startsWith("http") && !isDisplayableHttpImageUrl(trimmed, word)) {
     return true;
   }
-  if (isStockImageUrl(trimmed) && !isCurrentPipelineImageUrl(trimmed)) {
+  if (isStockImageUrl(trimmed)) {
+    const { semantic, imgpipe } = getStockUrlMarkers(trimmed);
+    if (
+      imgpipe === IMAGE_PIPELINE_ID &&
+      semantic === SEMANTIC_IMAGE_VERSION
+    ) {
+      return false;
+    }
+    if (imgpipe) {
+      return true;
+    }
+    if (semantic === SEMANTIC_IMAGE_VERSION) {
+      return false;
+    }
     return true;
   }
   return (
@@ -443,7 +506,7 @@ async function pickScoredStockPhoto(
     const score = scoreImageMetadata(word, query, photo.alt);
     if (score <= 0) continue;
     const versioned = markSemanticImageUrl(photo.url);
-    if (!isDisplayableHttpImageUrl(versioned, word)) continue;
+    if (!isSelectableStockPhotoUrl(versioned, word)) continue;
     candidates.push({ url: versioned, score });
   }
   if (candidates.length > 0) {
@@ -467,7 +530,7 @@ function pickHashedSafeStockPhoto(
     if (isUnsafeImageMetadata(photo.alt, photo.extra, query)) continue;
     if (!photo.url || isUnsafeImageUrl(photo.url)) continue;
     const versioned = markSemanticImageUrl(photo.url);
-    if (!isDisplayableHttpImageUrl(versioned, word)) continue;
+    if (!isSelectableStockPhotoUrl(versioned, word)) continue;
     safe.push(versioned);
   }
   if (safe.length === 0) return null;
@@ -682,6 +745,14 @@ function isUngroundedSingleTokenQuery(
 function markSemanticImageUrl(url: string): string {
   const versionedUrl = new URL(url);
   versionedUrl.searchParams.set("semantic", SEMANTIC_IMAGE_VERSION);
+  versionedUrl.searchParams.delete("imgpipe");
+  return versionedUrl.toString();
+}
+
+/** Tag URLs produced only by the Gemini→Unsplash vocabulary pipeline. */
+export function markGeminiPipelineImageUrl(url: string): string {
+  const versionedUrl = new URL(url);
+  versionedUrl.searchParams.set("semantic", SEMANTIC_IMAGE_VERSION);
   versionedUrl.searchParams.set("imgpipe", IMAGE_PIPELINE_ID);
   return versionedUrl.toString();
 }
@@ -745,10 +816,16 @@ export async function fetchWordImageUrlDetailed(
     const gemini = await tryGeminiVocabImage(word, pos, geminiContext);
     if (gemini) {
       return {
-        imageUrl: markSemanticImageUrl(gemini.imageUrl),
+        imageUrl: markGeminiPipelineImageUrl(gemini.imageUrl),
         searchKeyword: gemini.searchPhrase,
       };
     }
+    // Meaning available but Gemini missed — do not fall back to generic stock
+    // queries (they produced wrong shared photos and were tagged as "fresh").
+    return {
+      imageUrl: getDefaultLearningImageDataUrl(word, pos),
+      searchKeyword: null,
+    };
   }
 
   const queries = buildImageSearchQueries(word, options);

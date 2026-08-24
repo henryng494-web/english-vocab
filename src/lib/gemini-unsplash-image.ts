@@ -8,6 +8,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import {
   fetchUnsplashImageForQuery,
   getDefaultLearningImageDataUrl,
+  markGeminiPipelineImageUrl,
 } from "@/lib/unsplash";
 
 /** Override with GEMINI_IMAGE_MODEL (e.g. gemini-1.5-flash) if your key supports it. */
@@ -201,7 +202,7 @@ export async function fetchVocabIllustrationImage(
     const unsplashUrl = await fetchUnsplashImageUrl(word, searchPhrase);
     if (unsplashUrl) {
       return {
-        imageUrl: unsplashUrl,
+        imageUrl: markGeminiPipelineImageUrl(unsplashUrl),
         searchPhrase,
         source: "unsplash",
       };

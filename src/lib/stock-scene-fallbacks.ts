@@ -28,3 +28,17 @@ export function diversifiedStockScene(word: string): string {
   const idx = hashWordSeed(word) % DIVERSIFIED_STOCK_SCENES.length;
   return DIVERSIFIED_STOCK_SCENES[idx]!;
 }
+
+const LEGACY_SCENE_SET = new Set<string>(
+  DIVERSIFIED_STOCK_SCENES.map((scene) =>
+    scene.toLowerCase().replace(/\s+/g, " ").trim(),
+  ),
+);
+
+/** Reject auto-generated rank-band / shared scene phrases stored in DB. */
+export function isLegacyStockScenePhrase(phrase: string): boolean {
+  const cleaned = phrase.trim().toLowerCase().replace(/\s+/g, " ");
+  if (!cleaned) return false;
+  if (LEGACY_SCENE_SET.has(cleaned)) return true;
+  return cleaned.includes("musical instruments practice room");
+}
