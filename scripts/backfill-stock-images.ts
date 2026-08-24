@@ -1,5 +1,5 @@
 /**
- * Backfill word_details.image_url via Gemini→Pexels (primary) with fallbacks.
+ * Backfill word_details.image_url via Gemini→Unsplash (primary) with fallbacks.
  *
  * Usage:
  *   npm run backfill:images

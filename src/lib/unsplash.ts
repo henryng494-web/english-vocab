@@ -479,6 +479,33 @@ async function pickPexelsFromQueries(
   return null;
 }
 
+/** Search Unsplash for one Gemini/rule-based query and return the best scored photo. */
+export async function fetchUnsplashImageForQuery(
+  word: string,
+  query: string,
+): Promise<string | null> {
+  if (!process.env.UNSPLASH_ACCESS_KEY?.trim()) return null;
+
+  const trimmed = query.trim();
+  if (!trimmed) return null;
+
+  try {
+    const photos = await searchPhotos(trimmed, 8);
+    const mapped = photos.map((photo) => ({
+      url: photo.url,
+      alt: photo.alt,
+      extra: photo.photographer,
+    }));
+    return pickScoredStockPhoto(word, trimmed, mapped);
+  } catch (error) {
+    console.warn(
+      `Unsplash search failed for "${trimmed}":`,
+      error instanceof Error ? error.message : error,
+    );
+    return null;
+  }
+}
+
 export async function searchPhotos(
   query: string,
   perPage = 1,
@@ -640,7 +667,7 @@ async function tryGeminiVocabImage(
   if (!process.env.GEMINI_API_KEY?.trim() || !meaning.trim()) return null;
   try {
     const { fetchVocabIllustrationImageOrNull } = await import(
-      "@/lib/gemini-pexels-image"
+      "@/lib/gemini-unsplash-image"
     );
     return fetchVocabIllustrationImageOrNull({
       word,
@@ -657,8 +684,8 @@ async function tryGeminiVocabImage(
 }
 
 /**
- * Primary stock: Gemini→Pexels when meaning/definition is available, then
- * rule-based Pexels/Unsplash fallback. SVG placeholder on total miss.
+ * Primary stock: Gemini→Unsplash when meaning/definition is available, then
+ * rule-based Unsplash/Pexels fallback. SVG placeholder on total miss.
  */
 export async function fetchWordImageUrlDetailed(
   word: string,
@@ -699,18 +726,18 @@ export async function fetchWordImageUrlDetailed(
     };
   }
 
-  const pexelsUrl = await pickPexelsFromQueries(word, queries);
-  if (pexelsUrl) {
-    return {
-      imageUrl: pexelsUrl,
-      searchKeyword: searchKeyword?.trim() || queries[0] || null,
-    };
-  }
-
   const unsplashUrl = await pickUnsplashFromQueries(word, queries);
   if (unsplashUrl) {
     return {
       imageUrl: unsplashUrl,
+      searchKeyword: searchKeyword?.trim() || queries[0] || null,
+    };
+  }
+
+  const pexelsUrl = await pickPexelsFromQueries(word, queries);
+  if (pexelsUrl) {
+    return {
+      imageUrl: pexelsUrl,
       searchKeyword: searchKeyword?.trim() || queries[0] || null,
     };
   }
