@@ -93,7 +93,7 @@ const GENERIC_QUERY_TOKENS = new Set([
   "scene",
 ]);
 
-const SEMANTIC_IMAGE_VERSION = "16";
+const SEMANTIC_IMAGE_VERSION = "17";
 
 const DISPLAYABLE_IMAGE_HOSTS = [
   "images.unsplash.com",
@@ -472,6 +472,46 @@ async function pickScoredStockPhoto(
     if (!best || score > best.score) best = { url: versioned, score };
   }
   return best?.url ?? null;
+}
+
+async function pickUnsplashFromQueries(
+  word: string,
+  queries: string[],
+): Promise<string | null> {
+  if (!process.env.UNSPLASH_ACCESS_KEY?.trim()) return null;
+
+  for (const query of queries) {
+    try {
+      const photos = await searchPhotos(query, 8);
+      const url = await pickScoredStockPhoto(
+        word,
+        query,
+        photos.map((photo) => ({
+          url: photo.url,
+          alt: photo.alt,
+          extra: photo.photographer,
+        })),
+      );
+      if (url) return url;
+    } catch (error) {
+      console.warn(`Unsplash search skipped for "${query}":`, error);
+    }
+  }
+  return null;
+}
+
+async function pickPexelsFromQueries(
+  word: string,
+  queries: string[],
+): Promise<string | null> {
+  if (!process.env.PEXELS_API_KEY?.trim()) return null;
+
+  for (const query of queries) {
+    const photos = await searchPexelsPhotos(query);
+    const url = await pickScoredStockPhoto(word, query, photos);
+    if (url) return url;
+  }
+  return null;
 }
 
 export async function searchPhotos(
@@ -1125,7 +1165,9 @@ export async function searchWikidataConceptImage(
  * homonyms (well the adverb, domestic = nội địa) must search a scene phrase
  * instead — Wiktionary/Wikipedia pick the encyclopedia sense.
  * Fox-mascot trial words skip this and use bundled illustrations.
- * Then Unsplash / optional Pexels, Wikimedia Commons, Openverse.
+ * Fox-mascot trial words skip this and use bundled illustrations.
+ * Primary stock: Unsplash (UNSPLASH_ACCESS_KEY), optional Pexels, then
+ * Wikimedia Commons, Openverse, and Wikipedia fallbacks.
  */
 export async function fetchWordImageUrl(
   word: string,
@@ -1145,7 +1187,9 @@ export async function fetchWordImageUrl(
   }
   const queries = buildImageSearchQueries(word, { searchKeyword, pos });
   if (queries.length === 0) return getDefaultLearningImageDataUrl(word, pos);
-  const primaryQuery = queries[0];
+
+  const unsplashUrl = await pickUnsplashFromQueries(word, queries);
+  if (unsplashUrl) return unsplashUrl;
 
   if (!isAbstractImagePos(pos)) {
     const wiktionaryUrl = await searchWiktionaryIllustration(word);
@@ -1158,26 +1202,7 @@ export async function fetchWordImageUrl(
     }
   }
 
-  if (process.env.UNSPLASH_ACCESS_KEY?.trim()) {
-    try {
-      const photos = await searchPhotos(primaryQuery, 8);
-      const unsplashUrl = await pickScoredStockPhoto(
-        word,
-        primaryQuery,
-        photos.map((photo) => ({
-          url: photo.url,
-          alt: photo.alt,
-          extra: photo.photographer,
-        })),
-      );
-      if (unsplashUrl) return unsplashUrl;
-    } catch (error) {
-      console.warn(`Unsplash API skipped for "${primaryQuery}":`, error);
-    }
-  }
-
-  const pexelsPhotos = await searchPexelsPhotos(primaryQuery);
-  const pexelsUrl = await pickScoredStockPhoto(word, primaryQuery, pexelsPhotos);
+  const pexelsUrl = await pickPexelsFromQueries(word, queries);
   if (pexelsUrl) return pexelsUrl;
 
   // Wikimedia titles are usually literal ("Lion at Wild Animal Sanctuary").

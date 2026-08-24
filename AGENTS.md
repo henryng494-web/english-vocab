@@ -7,7 +7,7 @@ Next.js 15 (App Router) flashcard app for learning English vocabulary. Vietnames
 - **Framework:** Next.js 15, React 19, TypeScript, Tailwind CSS v4
 - **Database / auth:** Supabase (`word_bank`, `word_details`, `user_learning`)
 - **AI enrichment:** Google Gemini (`GEMINI_API_KEY`)
-- **Images:** Unsplash (optional), LoremFlickr, Picsum fallbacks
+- **Images:** Unsplash (primary stock), fox bundled trial, Wikimedia fallbacks
 
 ## Commands
 
@@ -29,7 +29,8 @@ Configure these in **Cursor Dashboard → Cloud Agents → Secrets** (never comm
 | `GEMINI_API_KEY` | Yes | Word meaning, phonetic, POS, bilingual examples |
 | `NEXT_PUBLIC_SUPABASE_URL` | Yes | Supabase project URL |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Yes | Supabase anon key |
-| `UNSPLASH_ACCESS_KEY` | No | Primary image search; falls back to LoremFlickr |
+| `UNSPLASH_ACCESS_KEY` | No | Primary stock-photo search (curated keywords + alt-text scoring) |
+| `PEXELS_API_KEY` | No | Optional secondary stock search; skipped when unset |
 | `GEMINI_MODEL` | No | Defaults to `gemini-3.6-flash` |
 
 Local dev uses `.env.local` (gitignored). Cloud agents only see dashboard secrets.
