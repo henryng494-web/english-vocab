@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "generate:subtlex": "node scripts/generate-subtlex-ranks.mjs",
+    "generate:keywords": "npx tsx scripts/generate-curated-keywords.ts",
     "test:pexels": "npx tsx scripts/test-pexels-keywords.ts"
   },
   "dependencies": {

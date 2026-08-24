@@ -1,0 +1,241 @@
+/**
+ * Generate curated stock-photo keyword files for preset rank bands.
+ * Run: npx tsx scripts/generate-curated-keywords.ts
+ */
+import { writeFileSync } from "node:fs";
+import { resolve } from "node:path";
+import { getWordsByRangeId } from "../src/data/preset-vocabulary";
+import { getStaticWordDetail } from "../src/data/preset-word-details";
+import { getStandardVocab } from "../src/data/standard-vocab";
+import { hasCuratedVisualKeyword } from "../src/lib/image-keyword";
+
+const COLORS = new Set([
+  "orange",
+  "brown",
+  "pink",
+  "purple",
+  "gray",
+  "grey",
+  "green",
+  "red",
+  "blue",
+  "yellow",
+  "black",
+  "white",
+  "golden",
+  "silver",
+]);
+
+const WEEKDAYS = new Set([
+  "monday",
+  "tuesday",
+  "wednesday",
+  "thursday",
+  "friday",
+  "saturday",
+  "sunday",
+]);
+
+const MONTHS = new Set([
+  "january",
+  "february",
+  "march",
+  "april",
+  "may",
+  "june",
+  "july",
+  "august",
+  "september",
+  "october",
+  "november",
+  "december",
+]);
+
+/** Hand-tuned phrases for high-traffic or ambiguous words. */
+const OVERRIDES: Record<string, string> = {
+  orange: "fresh orange fruit sliced on plate",
+  brown: "brown leather wallet on wooden table",
+  pink: "pink flower bouquet soft petals",
+  purple: "purple grapes bunch on table",
+  gray: "gray cloudy sky over city",
+  grey: "gray cloudy sky over city",
+  pay: "person paying with credit card at counter",
+  happen: "unexpected surprise moment outdoors",
+  true: "green check mark correct answer",
+  mine: "person holding personal backpack belongings",
+  town: "small town main street shops",
+  afraid: "person scared covering face hands",
+  whatever: "person shrugging shoulders indifferent",
+  hurt: "bandage on injured knee closeup",
+  heart: "red heart shape hands gesture love",
+  young: "young couple smiling outdoors together",
+  everyone: "diverse crowd of people together",
+  chance: "rolling dice on game table luck",
+  read: "person reading book cozy chair",
+  number: "numbers written on classroom chalkboard",
+  change: "coins and cash money exchange",
+  anyway: "person continuing walk down road",
+  week: "weekly calendar planner on desk",
+  point: "finger pointing at map location",
+  police: "police officer uniform street patrol",
+  word: "dictionary open on wooden desk",
+  fun: "friends laughing playing board game",
+  wish: "person blowing dandelion seeds wish",
+  bit: "small bite taken from cookie",
+  game: "family playing board game table",
+  party: "birthday party balloons and cake",
+  set: "table place setting dinner plate",
+  cut: "kitchen knife cutting fresh vegetables",
+  sleep: "person sleeping peacefully in bed",
+  shot: "basketball player shooting hoop",
+  anybody: "open welcome door for anyone",
+  stand: "person standing in queue line",
+  monday: "calendar showing monday start week",
+  trouble: "person worried looking at broken car",
+  dear: "handwritten dear letter envelope",
+  couple: "romantic couple holding hands park",
+  marry: "wedding rings on hands ceremony",
+  president: "presidential podium flags speech",
+  million: "million dollars cash stack concept",
+  themselves: "group taking selfie together smiling",
+  free: "open birdcage door bird flying free",
+  wrong: "red X mark wrong answer paper",
+  month: "calendar month page on wall",
+  human: "diverse people faces together portrait",
+  hope: "person looking sunrise horizon hopeful",
+  room: "cozy furnished living room interior",
+  area: "map highlighted area zone marker",
+  truth: "magnifying glass on document truth",
+  school: "school building entrance students",
+  face: "closeup smiling human face portrait",
+  fact: "checked facts list on clipboard",
+  street: "busy city street crosswalk people",
+  full: "glass filled to brim with water",
+  country: "countryside green hills landscape flag",
+  watch: "wristwatch showing exact time closeup",
+  music: "person listening headphones enjoying music",
+  child: "happy child playing with toys",
+  send: "hand placing letter in mailbox",
+  clear: "clear blue sky after rain",
+  allow: "security guard allowing entry gate",
+  meet: "two people shaking hands meeting",
+  record: "vinyl record spinning on turntable",
+  return: "person returning package to store",
+  explain: "teacher explaining lesson whiteboard",
+  develop: "plant seedling growing in soil",
+  report: "news reporter microphone live broadcast",
+  support: "hands supporting stacked books together",
+  produce: "farmer harvesting fresh vegetables basket",
+  design: "architect drawing building blueprint desk",
+  compare: "two products side by side comparison",
+  consider: "person thinking chin hand decision",
+  create: "artist hands creating pottery clay",
+  provide: "hands giving food donation box",
+  require: "required field form asterisk mark",
+  increase: "graph arrow increasing upward chart",
+  include: "open suitcase including clothes items",
+  continue: "hiker continuing path through forest",
+  expect: "person waiting looking at watch",
+  suggest: "people brainstorming sticky notes wall",
+  remember: "person writing memories diary journal",
+  accept: "handshake accepting job offer",
+  agree: "two people nodding agreement together",
+  appear: "sun appearing over mountain horizon",
+  arrive: "train arriving at station platform",
+  become: "caterpillar becoming butterfly transformation",
+  believe: "person hand on heart trusting faith",
+  actually: "person surprised aha discovery moment",
+  important: "important document highlighted with marker",
+};
+
+function posOf(word: string): string {
+  return (
+    getStaticWordDetail(word)?.pos?.toLowerCase() ??
+    getStandardVocab(word)?.pos?.toLowerCase() ??
+    ""
+  );
+}
+
+function suggestKeyword(word: string): string {
+  const key = word.toLowerCase();
+  if (OVERRIDES[key]) return OVERRIDES[key];
+
+  const std = getStandardVocab(key);
+  const stdKw = std?.searchKeyword?.trim().toLowerCase();
+  if (stdKw && stdKw !== key && stdKw.includes(" ")) return stdKw;
+
+  const pos = posOf(key);
+
+  if (COLORS.has(key)) return `${key} color sample swatch paint`;
+  if (WEEKDAYS.has(key)) return `calendar showing ${key} weekday`;
+  if (MONTHS.has(key)) return `calendar page ${key} month`;
+  if (/^\d+$/.test(key) || key.endsWith("teen")) {
+    return `number ${key} written on chalkboard`;
+  }
+
+  if (pos === "verb") {
+    if (key.endsWith("ing")) return `person ${key} outdoors activity`;
+    return `person ${key} action everyday scene`;
+  }
+  if (pos === "adjective") {
+    return `${key} quality descriptive scene person`;
+  }
+  if (pos === "adverb") {
+    return `person acting ${key} in daily life`;
+  }
+  if (pos === "preposition" || pos === "conjunction") {
+    return `${key} spatial relationship people scene`;
+  }
+  if (pos === "pronoun" || pos === "determiner") {
+    return `people together ${key} gesture scene`;
+  }
+
+  if (key.endsWith("tion") || key.endsWith("ness") || key.endsWith("ment")) {
+    return `${key.replace(/(tion|ness|ment)$/, "")} concept office scene`;
+  }
+
+  return `${key} everyday object scene clear photo`;
+}
+
+function generateBand(rangeId: string, exportName: string, label: string) {
+  const words = getWordsByRangeId(rangeId);
+  const entries: Record<string, string> = {};
+
+  for (const { word } of words) {
+    if (hasCuratedVisualKeyword(word)) continue;
+    entries[word] = suggestKeyword(word);
+  }
+
+  const lines = Object.entries(entries)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([word, phrase]) => `  ${word}: "${phrase.replace(/"/g, '\\"')}",`)
+    .join("\n");
+
+  const content = `/**
+ * Stock-photo search phrases for preset rank ${label}.
+ * Auto-generated + hand-tuned overrides — concrete scenes, not the word alone.
+ */
+export const ${exportName}: Readonly<Record<string, string>> = {
+${lines}
+};
+`;
+
+  const out = resolve(
+    process.cwd(),
+    `src/data/curated-image-keywords-rank-${rangeId.replace("-plus", "-5001-plus").replace(/-/g, "-")}.ts`,
+  );
+  // Fix path for 301-500 and 501-1000
+  const fileName =
+    rangeId === "301-500"
+      ? "curated-image-keywords-rank-301-500.ts"
+      : rangeId === "501-1000"
+        ? "curated-image-keywords-rank-501-1000.ts"
+        : `curated-image-keywords-rank-${rangeId}.ts`;
+
+  const path = resolve(process.cwd(), `src/data/${fileName}`);
+  writeFileSync(path, content, "utf8");
+  console.log(`Wrote ${path} (${Object.keys(entries).length} entries)`);
+}
+
+generateBand("301-500", "CURATED_IMAGE_KEYWORDS_RANK_301_500", "301–500");
+generateBand("501-1000", "CURATED_IMAGE_KEYWORDS_RANK_501_1000", "501–1k");

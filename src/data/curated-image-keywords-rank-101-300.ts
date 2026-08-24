@@ -38,7 +38,7 @@ export const CURATED_IMAGE_KEYWORDS_RANK_101_300: Readonly<
   name: "hello name tag on shirt",
   seven: "seven colorful balloons bunch",
   feel: "hand touching soft fabric texture",
-  believe: "person reading inspiring book",
+  believe: "person hand on heart trusting faith",
   old: "elderly person reading newspaper",
   place: "map pin location on map",
   fine: "person giving okay thumbs up",

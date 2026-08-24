@@ -5,6 +5,8 @@
  */
 
 import { CURATED_IMAGE_KEYWORDS_RANK_101_300 } from "@/data/curated-image-keywords-rank-101-300";
+import { CURATED_IMAGE_KEYWORDS_RANK_301_500 } from "@/data/curated-image-keywords-rank-301-500";
+import { CURATED_IMAGE_KEYWORDS_RANK_501_1000 } from "@/data/curated-image-keywords-rank-501-1000";
 
 const CURATED_VISUAL_KEYWORDS: Record<string, string> = {
   hole: "hole in ground",
@@ -236,15 +238,12 @@ const CURATED_VISUAL_KEYWORDS: Record<string, string> = {
   amid: "person standing among trees",
   amidst: "person standing among trees",
   ...CURATED_IMAGE_KEYWORDS_RANK_101_300,
+  ...CURATED_IMAGE_KEYWORDS_RANK_301_500,
+  ...CURATED_IMAGE_KEYWORDS_RANK_501_1000,
 };
 
 export function hasCuratedVisualKeyword(word: string): boolean {
   return Boolean(CURATED_VISUAL_KEYWORDS[cleanPhrase(word)]);
-}
-
-export function isAbstractImagePos(pos?: string | null): boolean {
-  const normalized = pos?.trim().toLowerCase();
-  return Boolean(normalized && ABSTRACT_POS.has(normalized));
 }
 
 const ABSTRACT_POS = new Set([
@@ -255,6 +254,28 @@ const ABSTRACT_POS = new Set([
   "conjunction",
   "determiner",
   "pronoun",
+]);
+
+export function isAbstractImagePos(pos?: string | null): boolean {
+  const normalized = pos?.trim().toLowerCase();
+  return Boolean(normalized && ABSTRACT_POS.has(normalized));
+}
+
+const COLOR_WORDS = new Set([
+  "orange",
+  "brown",
+  "pink",
+  "purple",
+  "gray",
+  "grey",
+  "green",
+  "red",
+  "blue",
+  "yellow",
+  "black",
+  "white",
+  "golden",
+  "silver",
 ]);
 
 function cleanPhrase(value: string): string {
@@ -295,10 +316,15 @@ export function resolveImageSearchKeyword(
   }
 
   const pos = options.pos?.trim().toLowerCase();
-  // Do not invent "everyday scene" / "moment" suffixes — Unsplash treats
-  // those as the subject and returns unrelated landscapes.
-  if (pos === "verb") return `${normalizedWord} person`;
-  if (pos === "preposition") return `${normalizedWord} people`;
+  if (COLOR_WORDS.has(normalizedWord)) {
+    return `bright ${normalizedWord} color sample swatch`;
+  }
+  // Do not invent "everyday scene" / "moment" suffixes — stock sites treat
+  // those as the subject and return unrelated landscapes.
+  if (pos === "verb") return `${normalizedWord} person action`;
+  if (pos === "adjective") return `${normalizedWord} descriptive scene person`;
+  if (pos === "adverb") return `person ${normalizedWord} daily life scene`;
+  if (pos === "preposition") return `${normalizedWord} people spatial scene`;
 
   if (candidate) return candidate;
   return normalizedWord;

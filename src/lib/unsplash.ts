@@ -1,16 +1,4 @@
-import {
-  getStaticAiWordImagePath,
-  generateAiWordImageDataUrl,
-  isAiImageDataUrl,
-  isAiImageTrialWord,
-  isStaticAiWordImageUrl,
-} from "@/lib/ai-word-image";
-import {
-  buildImageSearchQueries,
-  hasCuratedVisualKeyword,
-  isAbstractImagePos,
-  isConcretePhrase,
-} from "@/lib/image-keyword";
+import { buildImageSearchQueries } from "@/lib/image-keyword";
 import { isUnsafeImageMetadata, isUnsafeImageUrl, shouldSkipEncyclopediaImage } from "@/lib/safe-image-metadata";
 import { requiresSafeImageOnly } from "@/lib/safe-image-search";
 
@@ -93,21 +81,25 @@ const GENERIC_QUERY_TOKENS = new Set([
   "scene",
 ]);
 
-const SEMANTIC_IMAGE_VERSION = "18";
+const SEMANTIC_IMAGE_VERSION = "19";
 
-const DISPLAYABLE_IMAGE_HOSTS = [
-  "images.unsplash.com",
-  "upload.wikimedia.org",
-  "images.pexels.com",
-  "live.staticflickr.com",
-];
+/** Only Pexels and Unsplash are trusted learning-card photo sources. */
+const STOCK_IMAGE_HOSTS = new Set(["images.pexels.com", "images.unsplash.com"]);
+
+const DISPLAYABLE_IMAGE_HOSTS = [...STOCK_IMAGE_HOSTS];
 
 function isDisplayableImageHost(hostname: string): boolean {
-  const host = hostname.toLowerCase();
-  return (
-    DISPLAYABLE_IMAGE_HOSTS.includes(host) ||
-    host.endsWith(".staticflickr.com")
-  );
+  return STOCK_IMAGE_HOSTS.has(hostname.toLowerCase());
+}
+
+export function isStockImageUrl(url: string | null | undefined): boolean {
+  const trimmed = url?.trim();
+  if (!trimmed?.startsWith("http")) return false;
+  try {
+    return isDisplayableImageHost(new URL(trimmed).hostname);
+  } catch {
+    return false;
+  }
 }
 
 /** Openverse API proxy thumbs often 424 in the browser — never display them. */
@@ -231,12 +223,7 @@ export function isOutdatedSemanticImageUrl(
     const parsed = new URL(trimmed);
     const host = parsed.hostname.toLowerCase();
     const requiresSemanticVersion =
-      host === "api.openverse.org" ||
-      host === "images.unsplash.com" ||
-      host === "upload.wikimedia.org" ||
-      host === "images.pexels.com" ||
-      host === "live.staticflickr.com" ||
-      host.endsWith(".staticflickr.com");
+      host === "images.unsplash.com" || host === "images.pexels.com";
     return (
       requiresSemanticVersion &&
       parsed.searchParams.get("semantic") !== SEMANTIC_IMAGE_VERSION
@@ -287,7 +274,7 @@ export function isUsableCardImageUrl(
   url: string | null | undefined,
   word?: string | null,
 ): boolean {
-  if (isStaticAiWordImageUrl(url) || isAiImageDataUrl(url)) return true;
+  void word;
   return isDisplayableHttpImageUrl(url, word);
 }
 
@@ -296,15 +283,12 @@ export function shouldRefreshImageUrl(
   word?: string | null,
 ): boolean {
   const trimmed = url?.trim();
-  if (word && isAiImageTrialWord(word)) {
-    const bundled = getStaticAiWordImagePath(word);
-    return trimmed !== bundled && !isAiImageDataUrl(trimmed);
-  }
   if (word && requiresSafeImageOnly(word)) {
     return !trimmed || trimmed.startsWith("http") || isUnsafeImageUrl(trimmed);
   }
   if (!trimmed) return true;
   if (isUnsafeImageUrl(trimmed)) return true;
+  if (trimmed.startsWith("http") && !isStockImageUrl(trimmed)) return true;
   if (trimmed.startsWith("http") && !isDisplayableHttpImageUrl(trimmed, word)) {
     return true;
   }
@@ -402,12 +386,6 @@ export function resolveWordImageUrl(
   void _searchKeyword;
   if (requiresSafeImageOnly(word)) {
     return getDefaultLearningImageDataUrl(word, pos);
-  }
-  if (isAiImageTrialWord(word)) {
-    if (isUsableCardImageUrl(imageUrl, word)) return imageUrl!.trim();
-    return (
-      getStaticAiWordImagePath(word) ?? getDefaultLearningImageDataUrl(word, pos)
-    );
   }
   const trimmed = imageUrl?.trim();
   if (isDisplayableHttpImageUrl(trimmed, word)) {
@@ -1161,12 +1139,8 @@ export async function searchWikidataConceptImage(
 }
 
 /**
- * Concrete nouns can use dictionary photos (lion). Abstract POS and
- * homonyms (well the adverb, domestic = nội địa) must search a scene phrase
- * instead — Wiktionary/Wikipedia pick the encyclopedia sense.
- * Fox-mascot trial words skip this and use bundled illustrations.
- * Primary stock: Pexels (PEXELS_API_KEY), then Unsplash fallback, then
- * Wikimedia Commons, Openverse, and Wikipedia.
+ * Primary stock: Pexels (PEXELS_API_KEY), then Unsplash fallback.
+ * SVG placeholder only for safe-image-only words or when both APIs miss.
  */
 export async function fetchWordImageUrl(
   word: string,
@@ -1176,14 +1150,6 @@ export async function fetchWordImageUrl(
   if (requiresSafeImageOnly(word)) {
     return getDefaultLearningImageDataUrl(word, pos);
   }
-  if (isAiImageTrialWord(word)) {
-    if (process.env.GEMINI_IMAGE_LIVE === "true") {
-      const generated = await generateAiWordImageDataUrl(word);
-      if (generated) return generated;
-    }
-    const bundled = getStaticAiWordImagePath(word);
-    if (bundled) return bundled;
-  }
   const queries = buildImageSearchQueries(word, { searchKeyword, pos });
   if (queries.length === 0) return getDefaultLearningImageDataUrl(word, pos);
 
@@ -1192,51 +1158,6 @@ export async function fetchWordImageUrl(
 
   const unsplashUrl = await pickUnsplashFromQueries(word, queries);
   if (unsplashUrl) return unsplashUrl;
-
-  if (!isAbstractImagePos(pos)) {
-    const wiktionaryUrl = await searchWiktionaryIllustration(word);
-    if (wiktionaryUrl && isDisplayableHttpImageUrl(wiktionaryUrl, word)) {
-      return wiktionaryUrl;
-    }
-    const wikidataUrl = await searchWikidataConceptImage(word);
-    if (wikidataUrl && isDisplayableHttpImageUrl(wikidataUrl, word)) {
-      return wikidataUrl;
-    }
-  }
-
-  for (const keyword of queries) {
-    const requireWordMatch = !isConcretePhrase(keyword, word);
-    const wikimediaUrl = await searchWikimediaPhoto(
-      word,
-      keyword,
-      requireWordMatch,
-    );
-    if (wikimediaUrl && isDisplayableHttpImageUrl(wikimediaUrl, word)) {
-      return wikimediaUrl;
-    }
-  }
-
-  for (const keyword of queries) {
-    const requireWordMatch = !isConcretePhrase(keyword, word);
-    const openverseUrl = await searchOpenversePhoto(
-      word,
-      keyword,
-      requireWordMatch,
-    );
-    if (openverseUrl && isDisplayableHttpImageUrl(openverseUrl, word)) {
-      return openverseUrl;
-    }
-  }
-
-  const wikipediaUrl =
-    shouldSkipEncyclopediaImage(word) ||
-    isAbstractImagePos(pos) ||
-    hasCuratedVisualKeyword(word)
-      ? null
-      : await searchWikipediaLeadImage(word);
-  if (wikipediaUrl && isDisplayableHttpImageUrl(wikipediaUrl, word)) {
-    return wikipediaUrl;
-  }
 
   return getDefaultLearningImageDataUrl(word, pos);
 }
