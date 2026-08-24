@@ -70,20 +70,20 @@ export function buildNaturalExamples(
     ],
     adjective: [
       {
-        en: `The room looks ${w} in this light.`,
-        vi: `Căn phòng trông ${viWord} trong ánh sáng này.`,
-      },
-      {
-        en: `It feels ${w} outside today.`,
-        vi: `Hôm nay ngoài trời cảm thấy ${viWord}.`,
-      },
-      {
         en: `Good rest is ${w} after a long day.`,
         vi: `Nghỉ ngơi tốt ${viWord} sau một ngày dài.`,
       },
       {
         en: `This step is ${w} for success.`,
         vi: `Bước này ${viWord} cho thành công.`,
+      },
+      {
+        en: `The room looks ${w} in this light.`,
+        vi: `Căn phòng trông ${viWord} trong ánh sáng này.`,
+      },
+      {
+        en: `It feels ${w} outside today.`,
+        vi: `Hôm nay ngoài trời cảm thấy ${viWord}.`,
       },
     ],
     adverb: [
