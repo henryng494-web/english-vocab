@@ -93,7 +93,7 @@ const GENERIC_QUERY_TOKENS = new Set([
   "scene",
 ]);
 
-const SEMANTIC_IMAGE_VERSION = "15";
+const SEMANTIC_IMAGE_VERSION = "16";
 
 const DISPLAYABLE_IMAGE_HOSTS = [
   "images.unsplash.com",

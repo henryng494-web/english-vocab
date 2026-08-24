@@ -4,6 +4,8 @@
  * scene — not an abstract English word alone).
  */
 
+import { CURATED_IMAGE_KEYWORDS_RANK_101_300 } from "@/data/curated-image-keywords-rank-101-300";
+
 const CURATED_VISUAL_KEYWORDS: Record<string, string> = {
   hole: "hole in ground",
   organic: "organic vegetables garden",
@@ -231,6 +233,7 @@ const CURATED_VISUAL_KEYWORDS: Record<string, string> = {
   amongst: "people together",
   amid: "person standing among trees",
   amidst: "person standing among trees",
+  ...CURATED_IMAGE_KEYWORDS_RANK_101_300,
 };
 
 export function hasCuratedVisualKeyword(word: string): boolean {
