@@ -21,6 +21,9 @@ function errorMessage(error: unknown): string {
 export async function POST(request: Request) {
   try {
     const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     const body = (await request.json()) as {
       word?: string;
       status?: LearningStatus;
@@ -41,27 +44,31 @@ export async function POST(request: Request) {
     }
 
     const now = new Date().toISOString();
+    const userId = user?.id ?? null;
 
-    const { data: existing } = await supabase
+    const existingQuery = supabase
       .from("user_learning")
       .select("id")
-      .eq("word", word)
-      .maybeSingle();
+      .eq("word", word);
+    const { data: existing } = userId
+      ? await existingQuery.eq("user_id", userId).maybeSingle()
+      : await existingQuery.is("user_id", null).maybeSingle();
 
     let result;
     if (existing) {
-      result = await supabase
+      const updateQuery = supabase
         .from("user_learning")
         .update({ status, last_reviewed_at: now })
-        .eq("word", word)
-        .select("*")
-        .single();
+        .eq("word", word);
+      result = userId
+        ? await updateQuery.eq("user_id", userId).select("*").single()
+        : await updateQuery.is("user_id", null).select("*").single();
     } else {
       result = await supabase
         .from("user_learning")
         .insert({
           word,
-          user_id: null,
+          user_id: userId,
           status,
           last_reviewed_at: now,
         })
@@ -69,7 +76,21 @@ export async function POST(request: Request) {
         .single();
     }
 
-    if (result.error) throw result.error;
+    if (result.error) {
+      const message = result.error.message ?? "";
+      if (
+        message.includes("row-level security") ||
+        message.includes("permission denied")
+      ) {
+        return NextResponse.json({
+          learning: null,
+          local_only: true,
+          warning:
+            "Saved on this device. Sign in or run Supabase guest-mode SQL to sync across devices.",
+        });
+      }
+      throw result.error;
+    }
 
     return NextResponse.json({ learning: result.data });
   } catch (error) {

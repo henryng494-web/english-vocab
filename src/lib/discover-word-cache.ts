@@ -7,7 +7,7 @@ import { hasAcceptableWordImage } from "@/lib/unsplash";
 import { normalizeWordType } from "@/lib/word-type";
 
 /** Bump when ranking, image quality, or enrichment output shape changes. */
-export const DISCOVER_WORD_CACHE_VERSION = 57;
+export const DISCOVER_WORD_CACHE_VERSION = 58;
 
 const STORAGE_KEY = `discover-word-cache-v${DISCOVER_WORD_CACHE_VERSION}`;
 
@@ -56,6 +56,9 @@ const LEGACY_STORAGE_KEYS = [
   "discover-word-cache-v52",
   "discover-word-cache-v53",
   "discover-word-cache-v54",
+  "discover-word-cache-v55",
+  "discover-word-cache-v56",
+  "discover-word-cache-v57",
 ];
 
 const MAX_ENTRIES = 250;

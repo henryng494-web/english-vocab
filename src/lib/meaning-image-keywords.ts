@@ -129,6 +129,10 @@ const MEANING_RULES: PatternRule[] = [
     query: "newspaper headline bold text closeup",
   },
   {
+    pattern: /đủ|đầy đủ|adequate|sufficient|enough for|good enough/i,
+    query: "enough food supplies containers stacked adequate kitchen",
+  },
+  {
     pattern: /chết|perish|die|death|fatal|mortality/i,
     query: "memorial candle quiet remembrance scene",
   },

@@ -371,6 +371,11 @@ export default function DiscoverPage() {
         });
         if (!statusRes.ok) {
           const statusData = await statusRes.json();
+          if (statusData.local_only) {
+            setWordsKnown(countMasteredWords());
+            setWordsReviewing(countLearningWords());
+            return;
+          }
           throw new Error(
             statusData.details ??
               statusData.error ??

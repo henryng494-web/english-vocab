@@ -1,6 +1,6 @@
 import { isRealCardImageUrl } from "@/lib/unsplash";
 
-const STORAGE_KEY = "word-image-url-cache-v1";
+const STORAGE_KEY = "word-image-url-cache-v2";
 const MAX_ENTRIES = 500;
 
 const cache = new Map<string, string>();
