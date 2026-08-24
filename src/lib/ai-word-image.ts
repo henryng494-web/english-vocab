@@ -1,10 +1,12 @@
 /**
  * Trial: the coach-fox mascot acting out words across POS
  * (grammar, noun, verb, adjective). Bundled JPEGs in /public/word-images.
- * Words not in this set still use stock photos. Live Gemini gen is off
- * unless GEMINI_IMAGE_LIVE=true.
+ * First 10 bundled via Cursor/Gemini trial; next 10 via Pollinations (see scripts/).
+ * Live Gemini gen is off unless GEMINI_IMAGE_LIVE=true.
+ * Live Pollinations gen is off unless POLLINATIONS_IMAGE_LIVE=true.
  */
 
+/** Original bundled fox trial (Cursor agent / early pipeline). */
 export const AI_IMAGE_TRIAL_WORDS: ReadonlySet<string> = new Set([
   "too",
   "then",
@@ -16,6 +18,25 @@ export const AI_IMAGE_TRIAL_WORDS: ReadonlySet<string> = new Set([
   "run",
   "big",
   "hot",
+]);
+
+/** Bundled via Pollinations (scripts/generate-pollinations-images.mjs). */
+export const POLLINATIONS_IMAGE_TRIAL_WORDS: ReadonlySet<string> = new Set([
+  "vital",
+  "water",
+  "sleep",
+  "cold",
+  "small",
+  "walk",
+  "happy",
+  "dog",
+  "rain",
+  "help",
+]);
+
+export const ALL_AI_IMAGE_TRIAL_WORDS: ReadonlySet<string> = new Set([
+  ...AI_IMAGE_TRIAL_WORDS,
+  ...POLLINATIONS_IMAGE_TRIAL_WORDS,
 ]);
 
 const FOX =
@@ -32,18 +53,32 @@ export const AI_IMAGE_PROMPTS: Readonly<Record<string, string>> = {
   run: `${FOX} Excited pose, running on a beige path through green fields, motion dashes behind the legs.`,
   big: `${FOX} Tiny fox looking up in wonder at a giant teal gift box as tall as a house. Green grass, blue sky.`,
   hot: `${FOX} Leaning away from a white mug with thick rising steam, paw shielding its face. The drink is hot. Wooden table.`,
+  vital: `${FOX} Serious caring pose. Points with one paw at a glowing teal heart above a glass of water and a small green plant — all essential for life.`,
+  water: `${FOX} Happy squint eyes. Holds a clear glass of water in both paws on a wooden table. Simple cream background.`,
+  sleep: `${FOX} Peaceful closed eyes, curled up on a soft teal blanket with tiny Zzz bubbles floating above.`,
+  cold: `${FOX} Shivering slightly, wrapped in a thick teal scarf. Light snowflakes falling, pale blue winter background.`,
+  small: `${FOX} Kneeling beside a tiny teal flower in grass, looking at it with gentle wonder. Blue sky.`,
+  walk: `${FOX} Calm happy pose, walking along a beige path through green fields toward a distant white house.`,
+  happy: `${FOX} Jumping with joy, arms spread, big squint smile. Confetti-like teal dots in the air. Sunny cream background.`,
+  dog: `${FOX} Friendly pose, gently patting a happy golden retriever puppy. Green grass, warm sunny day.`,
+  rain: `${FOX} Holding a teal umbrella in light rain, one paw catching a raindrop. Soft gray-blue sky.`,
+  help: `${FOX} Kind expression, helping a tiny teal bird back into a small nest on a tree branch.`,
 };
 
 const STATIC_PATH_RE = /^\/word-images\/[a-z]+\.jpg(?:\?v=[\w-]+)?$/;
-const BUNDLE_VERSION = "fox2";
+const BUNDLE_VERSION = "polli1";
 
 export function isAiImageTrialWord(word: string): boolean {
-  return AI_IMAGE_TRIAL_WORDS.has(word.trim().toLowerCase());
+  return ALL_AI_IMAGE_TRIAL_WORDS.has(word.trim().toLowerCase());
+}
+
+export function isPollinationsImageTrialWord(word: string): boolean {
+  return POLLINATIONS_IMAGE_TRIAL_WORDS.has(word.trim().toLowerCase());
 }
 
 export function getStaticAiWordImagePath(word: string): string | null {
   const key = word.trim().toLowerCase();
-  if (!AI_IMAGE_TRIAL_WORDS.has(key)) return null;
+  if (!ALL_AI_IMAGE_TRIAL_WORDS.has(key)) return null;
   return `/word-images/${key}.jpg?v=${BUNDLE_VERSION}`;
 }
 
@@ -114,6 +149,49 @@ export async function generateAiWordImageDataUrl(
       return `data:${inline.mime};base64,${inline.data}`;
     } catch (error) {
       console.warn(`Gemini image ${model} failed for "${key}":`, error);
+    }
+  }
+  return null;
+}
+
+/** Returns a JPEG/PNG data URL via Pollinations, or null if unavailable. */
+export async function generatePollinationsWordImageDataUrl(
+  word: string,
+): Promise<string | null> {
+  const key = word.trim().toLowerCase();
+  const prompt = AI_IMAGE_PROMPTS[key];
+  if (!prompt) return null;
+
+  const apiKey = process.env.POLLINATIONS_API_KEY?.trim();
+  const encoded = encodeURIComponent(prompt);
+  const seed = [...key].reduce((acc, ch) => acc + ch.charCodeAt(0), 0) % 9999;
+  const query = `model=flux&width=1280&height=720&seed=${seed}`;
+
+  const urls = apiKey
+    ? [`https://gen.pollinations.ai/image/${encoded}?${query}`]
+    : [`https://image.pollinations.ai/prompt/${encoded}?${query}`];
+
+  for (const url of urls) {
+    try {
+      const headers: Record<string, string> = {};
+      if (apiKey) headers.Authorization = `Bearer ${apiKey}`;
+      const response = await fetch(url, {
+        headers,
+        signal: AbortSignal.timeout(120_000),
+      });
+      if (!response.ok) {
+        console.warn(
+          `Pollinations image skipped for "${key}": ${response.status}`,
+        );
+        continue;
+      }
+      const type = response.headers.get("content-type") ?? "image/jpeg";
+      if (!type.startsWith("image/")) continue;
+      const buf = Buffer.from(await response.arrayBuffer());
+      const mime = type.split(";")[0]?.trim() || "image/jpeg";
+      return `data:${mime};base64,${buf.toString("base64")}`;
+    } catch (error) {
+      console.warn(`Pollinations image failed for "${key}":`, error);
     }
   }
   return null;

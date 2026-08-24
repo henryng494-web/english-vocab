@@ -1,8 +1,10 @@
 import {
   getStaticAiWordImagePath,
   generateAiWordImageDataUrl,
+  generatePollinationsWordImageDataUrl,
   isAiImageDataUrl,
   isAiImageTrialWord,
+  isPollinationsImageTrialWord,
   isStaticAiWordImageUrl,
 } from "@/lib/ai-word-image";
 import {
@@ -1138,6 +1140,13 @@ export async function fetchWordImageUrl(
   if (isAiImageTrialWord(word)) {
     if (process.env.GEMINI_IMAGE_LIVE === "true") {
       const generated = await generateAiWordImageDataUrl(word);
+      if (generated) return generated;
+    }
+    if (
+      process.env.POLLINATIONS_IMAGE_LIVE === "true" &&
+      isPollinationsImageTrialWord(word)
+    ) {
+      const generated = await generatePollinationsWordImageDataUrl(word);
       if (generated) return generated;
     }
     const bundled = getStaticAiWordImagePath(word);
