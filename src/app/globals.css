@@ -1655,10 +1655,30 @@ body {
 }
 
 .word-library,
-.word-search,
-.word-detail {
+.word-search {
   padding-top: 0.75rem;
   padding-bottom: 1rem;
+}
+
+.word-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  min-height: 0;
+  overflow: hidden;
+  padding-top: 0.5rem;
+  padding-bottom: 0.35rem;
+}
+
+.word-detail__card {
+  flex: 1 1 0;
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+}
+
+.word-detail .journey-card-slot {
+  flex: 1 1 0;
 }
 
 .word-library__count {

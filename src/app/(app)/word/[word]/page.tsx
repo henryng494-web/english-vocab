@@ -121,7 +121,7 @@ export default function WordDetailPage() {
   }, [word]);
 
   return (
-    <div className="app-screen app-screen--home">
+    <div className="app-screen app-screen--journey">
       <AppHeader
         title={word ? capitalizeFirst(word) : "Word"}
         leading={
@@ -141,7 +141,7 @@ export default function WordDetailPage() {
         }
       />
 
-      <div className="word-detail page-scroll px-4">
+      <div className="word-detail px-4">
         {statusText ? (
           <p className="word-detail__status">{statusText}</p>
         ) : null}
@@ -152,16 +152,21 @@ export default function WordDetailPage() {
             <p className="text-sm text-foreground/70">{error}</p>
           </div>
         ) : (
-          <DiscoverCard
-            data={
-              data ?? {
-                word,
-                rank: getPresetRank(word) ?? 10000,
-                importance_tier: getImportanceTier(getPresetRank(word) ?? 10000),
-              }
-            }
-            loading={loading}
-          />
+          <div className="word-detail__card">
+            <div className="journey-card-slot">
+              <DiscoverCard
+                data={
+                  data ?? {
+                    word,
+                    rank: getPresetRank(word) ?? 10000,
+                    importance_tier: getImportanceTier(getPresetRank(word) ?? 10000),
+                  }
+                }
+                loading={loading}
+                compact
+              />
+            </div>
+          </div>
         )}
       </div>
     </div>
