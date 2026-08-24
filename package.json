@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "generate:subtlex": "node scripts/generate-subtlex-ranks.mjs"
+    "generate:subtlex": "node scripts/generate-subtlex-ranks.mjs",
+    "test:pexels": "npx tsx scripts/test-pexels-keywords.ts"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.0",

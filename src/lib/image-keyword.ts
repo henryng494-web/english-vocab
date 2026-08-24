@@ -191,6 +191,8 @@ const CURATED_VISUAL_KEYWORDS: Record<string, string> = {
   sometimes: "half full half empty glass",
   again: "person redoing a puzzle",
   very: "extremely tall skyscraper building",
+  important: "important document highlight",
+  actually: "person having lightbulb idea moment",
   more: "pouring more coffee into cup",
   most: "largest slice of pizza on plate",
   yes: "person giving thumbs up",
