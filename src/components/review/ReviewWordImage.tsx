@@ -8,26 +8,37 @@ export function ReviewWordImage({
   imageUrl,
   wordType,
   className,
+  quizSafe = false,
 }: {
   word: string;
   imageUrl?: string | null;
   wordType?: string | null;
   className?: string;
+  /** When true, never show the SVG placeholder (it can spell the answer). */
+  quizSafe?: boolean;
 }) {
-  const { src, onError } = useWordImageSrc(word, imageUrl, undefined, wordType);
+  const { src, ready, onError } = useWordImageSrc(
+    word,
+    imageUrl,
+    undefined,
+    wordType,
+    { quizSafe },
+  );
 
   return (
     <div className={`relative overflow-hidden ${className ?? ""}`}>
-      <Image
-        src={src}
-        alt=""
-        fill
-        className="object-cover"
-        sizes="(max-width: 768px) 100vw, 400px"
-        priority
-        unoptimized
-        onError={onError}
-      />
+      {ready && src ? (
+        <Image
+          src={src}
+          alt=""
+          fill
+          className="object-cover"
+          sizes="(max-width: 768px) 100vw, 400px"
+          priority
+          unoptimized
+          onError={onError}
+        />
+      ) : null}
     </div>
   );
 }

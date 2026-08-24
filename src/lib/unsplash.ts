@@ -273,6 +273,16 @@ export function isPlaceholderIllustrationUrl(
   return Boolean(url?.trim().startsWith("data:image/svg+xml"));
 }
 
+/** True when the URL is a real photo/illustration, not the local SVG fallback. */
+export function isRealCardImageUrl(
+  url: string | null | undefined,
+  word?: string | null,
+): boolean {
+  const trimmed = url?.trim();
+  if (!trimmed || isPlaceholderIllustrationUrl(trimmed)) return false;
+  return isUsableCardImageUrl(trimmed, word);
+}
+
 export function isUsableCardImageUrl(
   url: string | null | undefined,
   word?: string | null,
@@ -317,11 +327,6 @@ export function getDefaultLearningImageDataUrl(
 ): string {
   const normalizedWord =
     word.trim().toLowerCase().replace(/[^a-z0-9'-]/g, "") || "word";
-  const safeWord = normalizedWord
-    .toUpperCase()
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
   const safePos = (pos?.trim().toUpperCase() || "VOCABULARY")
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
@@ -379,7 +384,6 @@ export function getDefaultLearningImageDataUrl(
     <g fill="#ffffff" opacity="0.94">
       ${relationGraphic}
     </g>
-    <text x="300" y="310" text-anchor="middle" font-family="Arial,sans-serif" font-size="34" font-weight="800" letter-spacing="3" fill="#fff">${safeWord}</text>
   </svg>`;
   const base64 =
     typeof Buffer !== "undefined"

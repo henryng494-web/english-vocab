@@ -40,6 +40,7 @@ export function ReviewQuestion({
         imageUrl={imageUrl}
         wordType={wordType}
         className="review-quiz__image"
+        quizSafe
       />
 
       <p className={`review-quiz__clue ${displayFontClass}`}>{clue}</p>

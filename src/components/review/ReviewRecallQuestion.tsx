@@ -34,6 +34,7 @@ export function ReviewRecallQuestion({
         imageUrl={imageUrl}
         wordType={wordType}
         className="review-recall__image"
+        quizSafe
       />
 
       <p className={`review-recall__sentence ${displayFontClass}`}>

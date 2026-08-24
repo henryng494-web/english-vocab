@@ -63,6 +63,7 @@ export function ReviewSenseQuestion({
                     imageUrl={choice.imageUrl}
                     wordType={choice.wordType}
                     className="review-sense__photo"
+                    quizSafe
                   />
                 </span>
                 <span className={`review-sense__letter ${displayFontClass}`}>
