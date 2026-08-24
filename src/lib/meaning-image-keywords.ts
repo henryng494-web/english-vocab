@@ -133,6 +133,14 @@ const MEANING_RULES: PatternRule[] = [
     query: "enough food supplies containers stacked adequate kitchen",
   },
   {
+    pattern: /tận tụy|hết lòng|devoted|dedicated|loyal|faithful/i,
+    query: "loyal dog owner bonding devoted care affection",
+  },
+  {
+    pattern: /nhợt nhạc|tái|pale|wan|pallid|ashen/i,
+    query: "pale person face sick tired closeup portrait",
+  },
+  {
     pattern: /chết|perish|die|death|fatal|mortality/i,
     query: "memorial candle quiet remembrance scene",
   },

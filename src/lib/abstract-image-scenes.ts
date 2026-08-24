@@ -4,6 +4,7 @@
  */
 
 import { singularizeForLookup } from "@/lib/word-singularize";
+import { diversifiedStockScene } from "@/lib/stock-scene-fallbacks";
 
 const WORD_SCENES: Readonly<Record<string, string>> = {
   unless: "rain storm window person staying indoors",
@@ -519,7 +520,7 @@ export function lookupAbstractImageScene(
     return "diverse group people together smiling portrait";
   }
   if (normalizedPos === "adjective") {
-    return "descriptive scene person environment portrait natural light";
+    return diversifiedStockScene(word);
   }
   if (normalizedPos === "verb") {
     return "person action everyday activity candid photo";

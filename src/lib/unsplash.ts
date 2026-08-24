@@ -44,7 +44,7 @@ const GENERIC_QUERY_TOKENS = new Set([
   "closeup",
 ]);
 
-const SEMANTIC_IMAGE_VERSION = "26";
+const SEMANTIC_IMAGE_VERSION = "27";
 
 /** Only Pexels and Unsplash are trusted learning-card photo sources. */
 const STOCK_IMAGE_HOSTS = new Set(["images.pexels.com", "images.unsplash.com"]);
@@ -414,12 +414,32 @@ async function pickScoredStockPhoto(
     if (!isDisplayableHttpImageUrl(versioned, word)) continue;
     candidates.push({ url: versioned, score });
   }
-  if (candidates.length === 0) return null;
-  candidates.sort((a, b) => b.score - a.score);
-  const topScore = candidates[0]!.score;
-  const topTier = candidates.filter((candidate) => candidate.score >= topScore);
-  const idx = hashWord(word) % topTier.length;
-  return topTier[idx]!.url;
+  if (candidates.length > 0) {
+    candidates.sort((a, b) => b.score - a.score);
+    const topScore = candidates[0]!.score;
+    const topTier = candidates.filter((candidate) => candidate.score >= topScore);
+    const idx = hashWord(word) % topTier.length;
+    return topTier[idx]!.url;
+  }
+  return pickHashedSafeStockPhoto(word, photos, query);
+}
+
+/** Last resort: pick a safe photo deterministically per word (avoids shared skull). */
+function pickHashedSafeStockPhoto(
+  word: string,
+  photos: Array<{ url: string; alt: string; extra?: string }>,
+  query: string,
+): string | null {
+  const safe: string[] = [];
+  for (const photo of photos) {
+    if (isUnsafeImageMetadata(photo.alt, photo.extra, query)) continue;
+    if (!photo.url || isUnsafeImageUrl(photo.url)) continue;
+    const versioned = markSemanticImageUrl(photo.url);
+    if (!isDisplayableHttpImageUrl(versioned, word)) continue;
+    safe.push(versioned);
+  }
+  if (safe.length === 0) return null;
+  return safe[hashWord(word) % safe.length]!;
 }
 
 async function pickUnsplashFromQueries(
