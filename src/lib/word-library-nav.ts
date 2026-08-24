@@ -19,6 +19,14 @@ export function parseWordLibraryNavContext(
   };
 }
 
+export function buildWordLibraryListHref(context: WordLibraryNavContext): string {
+  const params = new URLSearchParams({
+    filter: context.filter,
+    sort: context.sort,
+  });
+  return `/words?${params.toString()}`;
+}
+
 export function buildWordLibraryDetailHref(
   word: string,
   context: WordLibraryNavContext,

@@ -19,6 +19,7 @@ import { getPresetRank } from "@/data/preset-vocabulary";
 import { getImportanceTier } from "@/lib/word-rank";
 import { WordLibraryPager } from "@/components/words/WordLibraryPager";
 import {
+  buildWordLibraryListHref,
   getWordLibraryNeighbors,
   parseWordLibraryNavContext,
 } from "@/lib/word-library-nav";
@@ -136,14 +137,24 @@ function WordDetailPageContent() {
       <AppHeader
         title={word ? capitalizeFirst(word) : "Word"}
         leading={
-          <button
-            type="button"
-            className="app-header__icon-btn"
-            aria-label="Back"
-            onClick={() => window.history.back()}
-          >
-            ←
-          </button>
+          libraryContext ? (
+            <Link
+              href={buildWordLibraryListHref(libraryContext)}
+              className="app-header__icon-btn"
+              aria-label="Back to word list"
+            >
+              ←
+            </Link>
+          ) : (
+            <button
+              type="button"
+              className="app-header__icon-btn"
+              aria-label="Back"
+              onClick={() => window.history.back()}
+            >
+              ←
+            </button>
+          )
         }
         trailing={
           <Link href="/search" className="app-header__icon-btn" aria-label="Search">
