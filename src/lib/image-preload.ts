@@ -14,6 +14,8 @@ export type WordImagePrefetchTarget = {
   wordType?: string | null;
 };
 
+export const REVIEW_IMAGE_PREFETCH_CONCURRENCY = 8;
+
 /** Browser-preload an image URL once per session. */
 export function preloadImageUrlDeduped(url: string | null | undefined): void {
   if (!url || typeof window === "undefined") return;
@@ -30,6 +32,77 @@ export function preloadWordImagesFromCache(
     const known = peekCachedWordImageUrl(target.word, target.imageUrl);
     if (known) preloadImageUrlDeduped(known);
   }
+}
+
+function cacheResolvedUrl(word: string, url: string | null): string | null {
+  if (url && isRealCardImageUrl(url, word)) {
+    setCachedWordImageUrl(word, url);
+    preloadImageUrlDeduped(url);
+    return url;
+  }
+  return null;
+}
+
+async function fetchWordImagesBatch(
+  targets: WordImagePrefetchTarget[],
+): Promise<Record<string, string>> {
+  const updates: Record<string, string> = {};
+  const pending: WordImagePrefetchTarget[] = [];
+
+  for (const target of targets) {
+    const word = target.word.trim().toLowerCase();
+    if (!word) continue;
+    const cached = peekCachedWordImageUrl(word, target.imageUrl);
+    if (cached) {
+      updates[word] = cached;
+      preloadImageUrlDeduped(cached);
+      continue;
+    }
+    pending.push(target);
+  }
+
+  if (pending.length === 0) return updates;
+
+  if (pending.length === 1) {
+    const only = pending[0]!;
+    const word = only.word.trim().toLowerCase();
+    const url = await fetchWordImageFast(only);
+    if (url) updates[word] = url;
+    return updates;
+  }
+
+  try {
+    const res = await fetch("/api/word-image/batch", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        items: pending.map((target) => ({
+          word: target.word,
+          keyword: target.searchKeyword?.trim() || undefined,
+          pos: target.wordType?.trim() || undefined,
+        })),
+      }),
+    });
+    const data = (await res.json()) as {
+      images?: Record<string, string | null>;
+    };
+    for (const target of pending) {
+      const word = target.word.trim().toLowerCase();
+      const url = data.images?.[word]?.trim() ?? null;
+      const cached = cacheResolvedUrl(word, url);
+      if (cached) updates[word] = cached;
+    }
+  } catch {
+    await Promise.all(
+      pending.map(async (target) => {
+        const word = target.word.trim().toLowerCase();
+        const url = await fetchWordImageFast(target);
+        if (url) updates[word] = url;
+      }),
+    );
+  }
+
+  return updates;
 }
 
 async function fetchWordImageFast(
@@ -59,11 +132,7 @@ async function fetchWordImageFast(
       const res = await fetch(`/api/word-image?${params}`);
       const data = (await res.json()) as { image_url?: string | null };
       const url = data.image_url?.trim() ?? null;
-      if (url && isRealCardImageUrl(url, word)) {
-        setCachedWordImageUrl(word, url);
-        preloadImageUrlDeduped(url);
-        return url;
-      }
+      return cacheResolvedUrl(word, url);
     } catch {
       /* ignore */
     }
@@ -76,11 +145,18 @@ async function fetchWordImageFast(
   return promise;
 }
 
+/** Shared deduped lookup for card hooks and review prefetch. */
+export async function resolveWordImageForCard(
+  target: WordImagePrefetchTarget,
+): Promise<string | null> {
+  return fetchWordImageFast(target);
+}
+
 /** Resolve photos via the lightweight word-image API and warm the browser cache. */
 export async function prefetchWordImages(
   targets: WordImagePrefetchTarget[],
   concurrency = 4,
-): Promise<void> {
+): Promise<Record<string, string>> {
   const unique: WordImagePrefetchTarget[] = [];
   const seen = new Set<string>();
 
@@ -91,18 +167,34 @@ export async function prefetchWordImages(
     unique.push(target);
   }
 
-  if (unique.length === 0) return;
+  if (unique.length === 0) return {};
 
+  if (unique.length >= 2) {
+    return fetchWordImagesBatch(unique);
+  }
+
+  const updates: Record<string, string> = {};
   let index = 0;
   async function worker() {
     while (index < unique.length) {
       const current = index;
       index += 1;
-      await fetchWordImageFast(unique[current]!);
+      const target = unique[current]!;
+      const word = target.word.trim().toLowerCase();
+      const url = await fetchWordImageFast(target);
+      if (url) updates[word] = url;
     }
   }
 
   await Promise.all(
     Array.from({ length: Math.min(concurrency, unique.length) }, () => worker()),
   );
+
+  for (const target of unique) {
+    const word = target.word.trim().toLowerCase();
+    const known = peekCachedWordImageUrl(word, target.imageUrl);
+    if (known) updates[word] = known;
+  }
+
+  return updates;
 }

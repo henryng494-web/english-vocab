@@ -7,11 +7,8 @@ import {
   isUsableCardImageUrl,
   resolveWordImageUrl,
 } from "@/lib/unsplash";
-import {
-  peekCachedWordImageUrl,
-  setCachedWordImageUrl,
-} from "@/lib/word-image-cache";
-import { preloadImageUrlDeduped } from "@/lib/image-preload";
+import { peekCachedWordImageUrl } from "@/lib/word-image-cache";
+import { resolveWordImageForCard } from "@/lib/image-preload";
 
 type WordImageSrcOptions = {
   /** Hide SVG placeholders until a real photo loads (review quizzes). */
@@ -87,7 +84,12 @@ export function useWordImageSrc(
 
     let cancelled = false;
     void (async () => {
-      const fetched = await fetchFreshImageUrl(word, searchKeyword, wordType);
+      const fetched = await fetchFreshImageUrl(
+        word,
+        searchKeyword,
+        wordType,
+        imageUrl,
+      );
       if (cancelled) return;
       if (quizSafe) {
         if (!fetched) return;
@@ -112,7 +114,12 @@ export function useWordImageSrc(
     onError: () => {
       if (quizSafe) {
         void (async () => {
-          const fetched = await fetchFreshImageUrl(word, searchKeyword, wordType);
+          const fetched = await fetchFreshImageUrl(
+            word,
+            searchKeyword,
+            wordType,
+            imageUrl,
+          );
           if (fetched) {
             setSrc(fetched);
             setReady(true);
@@ -122,7 +129,12 @@ export function useWordImageSrc(
       }
       if (src === fallback) return;
       void (async () => {
-        const fetched = await fetchFreshImageUrl(word, searchKeyword, wordType);
+        const fetched = await fetchFreshImageUrl(
+          word,
+          searchKeyword,
+          wordType,
+          imageUrl,
+        );
         if (isUsableCardImageUrl(fetched, word) && fetched !== src) {
           setSrc(fetched!);
           setReady(true);
@@ -139,28 +151,12 @@ async function fetchFreshImageUrl(
   word: string,
   searchKeyword?: string | null,
   wordType?: string | null,
+  imageUrl?: string | null,
 ): Promise<string | null> {
-  const cached = peekCachedWordImageUrl(word);
-  if (cached) return cached;
-
-  try {
-    const params = new URLSearchParams({ word });
-    if (searchKeyword?.trim()) {
-      params.set("keyword", searchKeyword.trim());
-    }
-    if (wordType?.trim()) {
-      params.set("pos", wordType.trim());
-    }
-    const res = await fetch(`/api/word-image?${params}`);
-    const data = (await res.json()) as { image_url?: string | null };
-    const url = data.image_url?.trim() ?? null;
-    if (url && isRealCardImageUrl(url, word)) {
-      setCachedWordImageUrl(word, url);
-      preloadImageUrlDeduped(url);
-      return url;
-    }
-  } catch {
-    /* ignore */
-  }
-  return null;
+  return resolveWordImageForCard({
+    word,
+    imageUrl,
+    searchKeyword,
+    wordType,
+  });
 }

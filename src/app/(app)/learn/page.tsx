@@ -10,16 +10,16 @@ import {
   writeLocalLearning,
 } from "@/lib/learning-storage";
 import {
-  buildReviewChoices,
-  buildReviewSenseChoices,
+  buildReviewQuestionPlan,
   pickReviewRecallSentence,
   reviewClue,
-  reviewQuizKindForIndex,
   type ReviewChoice,
   type ReviewQuizKind,
 } from "@/lib/review-quiz";
 import {
+  collectReviewQuestionImageTargets,
   prefetchReviewImages,
+  prefetchReviewQuestionRange,
   preloadReviewImageBatch,
 } from "@/lib/review-image-preload";
 import { useAppBootstrap } from "@/context/AppBootstrapContext";
@@ -43,6 +43,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 type Phase = "question" | "reveal";
 
 const REVEAL_DELAY_MS = 850;
+const REVIEW_PREFETCH_AHEAD = 6;
+const REVIEW_WARM_COUNT = 20;
 
 function mergeQueueWordData(
   queue: VocabWord[],
@@ -54,41 +56,34 @@ function mergeQueueWordData(
   return queue.map((item) => byWord.get(item.word.trim().toLowerCase()) ?? item);
 }
 
-function reviewImageTargets(
-  word: VocabWord,
-  kind: ReviewQuizKind,
-  choices: ReviewChoice[],
-): Array<{
-  word: string;
-  imageUrl?: string | null;
-  searchKeyword?: string | null;
-  wordType?: string | null;
-}> {
-  if (kind === "sense") {
-    return choices.map((choice) => ({
-      word: choice.word,
-      imageUrl: choice.imageUrl,
-      searchKeyword: choice.searchKeyword,
-      wordType: choice.wordType,
-    }));
-  }
-  return [{
-    word: word.word,
-    imageUrl: word.image_url,
-    searchKeyword: word.search_keyword,
-    wordType: word.word_type,
-  }];
+function patchImageUpdates(
+  updates: Record<string, string>,
+): {
+  patchWord: (item: VocabWord) => VocabWord;
+  patchChoice: (choice: ReviewChoice) => ReviewChoice;
+} {
+  const patchWord = (item: VocabWord) => {
+    const key = item.word.trim().toLowerCase();
+    return updates[key] ? { ...item, image_url: updates[key] } : item;
+  };
+  const patchChoice = (choice: ReviewChoice) => {
+    const key = choice.word.trim().toLowerCase();
+    return updates[key] ? { ...choice, imageUrl: updates[key] } : choice;
+  };
+  return { patchWord, patchChoice };
 }
 
-function warmReviewQueueImages(words: VocabWord[]): void {
-  const batch = words.slice(0, 12).map((item) => ({
-    word: item.word,
-    imageUrl: item.image_url,
-    searchKeyword: item.search_keyword,
-    wordType: item.word_type,
-  }));
-  preloadReviewImageBatch(batch);
-  void prefetchReviewImages(batch);
+function applyImageUpdatesToState(
+  updates: Record<string, string>,
+  setAllWords: (value: VocabWord[] | ((prev: VocabWord[]) => VocabWord[])) => void,
+  setQueue: (value: VocabWord[] | ((prev: VocabWord[]) => VocabWord[])) => void,
+  setChoices: (value: ReviewChoice[] | ((prev: ReviewChoice[]) => ReviewChoice[])) => void,
+) {
+  if (Object.keys(updates).length === 0) return;
+  const { patchWord, patchChoice } = patchImageUpdates(updates);
+  setAllWords((prev) => prev.map(patchWord));
+  setQueue((prev) => prev.map(patchWord));
+  setChoices((prev) => prev.map(patchChoice));
 }
 
 export default function LearnPage() {
@@ -116,38 +111,101 @@ export default function LearnPage() {
   const phaseRef = useRef<Phase>("question");
   const lockedRef = useRef(false);
   const indexRef = useRef(0);
+  const queueRef = useRef<VocabWord[]>([]);
+  const allWordsRef = useRef<VocabWord[]>([]);
+  const prefetchedChoicesRef = useRef<Map<number, ReviewChoice[]>>(new Map());
+  const prefetchInflightRef = useRef<Map<number, Promise<void>>>(new Map());
 
   const currentWord = queue[index];
   phaseRef.current = phase;
   lockedRef.current = locked;
   indexRef.current = index;
+  queueRef.current = queue;
+  allWordsRef.current = allWords;
+
+  const mergePrefetchedSenseChoices = useCallback(
+    (senseChoices: Map<number, ReviewChoice[]>) => {
+      for (const [questionIndex, cachedChoices] of senseChoices.entries()) {
+        prefetchedChoicesRef.current.set(questionIndex, cachedChoices);
+      }
+    },
+    [],
+  );
+
+  const warmReviewImages = useCallback(
+    (due: VocabWord[], pool: VocabWord[], startIndex = 0) => {
+      void prefetchReviewQuestionRange(
+        due,
+        pool,
+        startIndex,
+        REVIEW_WARM_COUNT,
+      ).then(mergePrefetchedSenseChoices);
+    },
+    [mergePrefetchedSenseChoices],
+  );
+
+  const prefetchQuestionAt = useCallback(
+    (questionIndex: number) => {
+      const pending = prefetchInflightRef.current.get(questionIndex);
+      if (pending) return;
+
+      const promise = (async () => {
+        const q = queueRef.current;
+        const pool = allWordsRef.current;
+        const word = q[questionIndex];
+        if (!word) return;
+
+        const plan = collectReviewQuestionImageTargets(word, pool, questionIndex);
+        if (plan.kind === "sense" && plan.choices.length === 3) {
+          prefetchedChoicesRef.current.set(questionIndex, plan.choices);
+        }
+
+        preloadReviewImageBatch(plan.targets);
+        const updates = await prefetchReviewImages(plan.targets);
+        applyImageUpdatesToState(updates, setAllWords, setQueue, setChoices);
+
+        if (plan.kind === "sense" && Object.keys(updates).length > 0) {
+          const cached =
+            prefetchedChoicesRef.current.get(questionIndex) ?? plan.choices;
+          prefetchedChoicesRef.current.set(
+            questionIndex,
+            cached.map((choice) => {
+              const key = choice.word.trim().toLowerCase();
+              return updates[key] ? { ...choice, imageUrl: updates[key] } : choice;
+            }),
+          );
+        }
+      })().finally(() => {
+        prefetchInflightRef.current.delete(questionIndex);
+      });
+
+      prefetchInflightRef.current.set(questionIndex, promise);
+    },
+    [],
+  );
+
+  const prefetchQuestionsAhead = useCallback(
+    (fromIndex: number, count = REVIEW_PREFETCH_AHEAD) => {
+      for (let offset = 1; offset <= count; offset++) {
+        prefetchQuestionAt(fromIndex + offset);
+      }
+    },
+    [prefetchQuestionAt],
+  );
 
   const startQuestion = useCallback((word: VocabWord, pool: VocabWord[], questionIndex = 0) => {
     const schedule = getReviewSchedule(word.word);
-    const wanted = reviewQuizKindForIndex(questionIndex);
-    let kind: ReviewQuizKind = "word";
-    let nextChoices: ReviewChoice[] = [];
-    if (wanted === "sense") {
-      const senseChoices = buildReviewSenseChoices(word.word, pool);
-      if (senseChoices.length === 3) {
-        kind = "sense";
-        nextChoices = senseChoices;
-      }
-    } else if (wanted === "recall") {
-      kind = "recall";
+    const cachedSenseChoices = prefetchedChoicesRef.current.get(questionIndex);
+    const planned = buildReviewQuestionPlan(word, pool, questionIndex);
+    let kind = planned.kind;
+    let nextChoices = planned.choices;
+
+    if (cachedSenseChoices) {
+      kind = "sense";
+      nextChoices = cachedSenseChoices;
+      prefetchedChoicesRef.current.delete(questionIndex);
     }
-    if (kind === "word") {
-      nextChoices = buildReviewChoices(
-        word.word,
-        pool.filter(
-          (item) =>
-            /^[a-z]+$/i.test(item.word) &&
-            item.word.length >= 3 &&
-            Boolean(item.english_definition?.trim()),
-        ),
-        word.rank,
-      );
-    }
+
     setPhase("question");
     setQuizKind(kind);
     setChoices(nextChoices);
@@ -158,24 +216,33 @@ export default function LearnPage() {
     setIntervalDays(schedule.intervalDays);
     setTimesReviewed(schedule.timesReviewed);
 
-    const targets = reviewImageTargets(word, kind, nextChoices);
-    preloadReviewImageBatch(targets);
-    void prefetchReviewImages(targets).then((updates) => {
-      if (Object.keys(updates).length === 0) return;
-      const patchWord = (item: VocabWord) => {
-        const key = item.word.trim().toLowerCase();
-        return updates[key] ? { ...item, image_url: updates[key] } : item;
-      };
-      setAllWords((prev) => prev.map(patchWord));
-      setQueue((prev) => prev.map(patchWord));
-      setChoices((prev) =>
-        prev.map((choice) => {
-          const key = choice.word.trim().toLowerCase();
-          return updates[key] ? { ...choice, imageUrl: updates[key] } : choice;
-        }),
+    const { targets } = collectReviewQuestionImageTargets(word, pool, questionIndex);
+    if (cachedSenseChoices) {
+      preloadReviewImageBatch(
+        cachedSenseChoices.map((choice) => ({
+          word: choice.word,
+          imageUrl: choice.imageUrl,
+          searchKeyword: choice.searchKeyword,
+          wordType: choice.wordType,
+        })),
       );
-    });
-  }, []);
+    } else {
+      preloadReviewImageBatch(targets);
+      void prefetchReviewImages(targets).then((updates) => {
+        applyImageUpdatesToState(updates, setAllWords, setQueue, setChoices);
+        if (kind === "sense" && Object.keys(updates).length > 0) {
+          setChoices((prev) =>
+            prev.map((choice) => {
+              const key = choice.word.trim().toLowerCase();
+              return updates[key] ? { ...choice, imageUrl: updates[key] } : choice;
+            }),
+          );
+        }
+      });
+    }
+
+    prefetchQuestionsAhead(questionIndex);
+  }, [prefetchQuestionsAhead]);
 
   const applyReviewSession = useCallback(
     (fetched: VocabWord[], due: VocabWord[], startFirst = true) => {
@@ -183,10 +250,10 @@ export default function LearnPage() {
       setQueue(due);
       setIndex(0);
       setSessionDone(false);
-      warmReviewQueueImages(due);
+      warmReviewImages(due, fetched);
       if (startFirst && due[0]) startQuestion(due[0], fetched, 0);
     },
-    [startQuestion],
+    [startQuestion, warmReviewImages],
   );
 
   const fetchWords = useCallback(

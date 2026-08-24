@@ -1,8 +1,5 @@
 import { mergeLocalLearning } from "@/lib/learning-storage";
-import {
-  prefetchReviewImages,
-  preloadReviewImageBatch,
-} from "@/lib/review-image-preload";
+import { prefetchReviewQuestionRange } from "@/lib/review-image-preload";
 import { isDueReviewWord } from "@/lib/review-schedule";
 import { getImportanceTier } from "@/lib/word-rank";
 import type { VocabWord } from "@/types/database";
@@ -40,14 +37,7 @@ export async function prepareReviewSession(
   allWords: VocabWord[],
 ): Promise<ReviewSessionData> {
   const dueQueue = buildDueReviewQueue(allWords);
-  const batch = dueQueue.slice(0, 12).map((item) => ({
-    word: item.word,
-    imageUrl: item.image_url,
-    searchKeyword: item.search_keyword,
-    wordType: item.word_type,
-  }));
-  preloadReviewImageBatch(batch);
-  await prefetchReviewImages(batch);
+  void prefetchReviewQuestionRange(dueQueue, allWords, 0, 20);
   return { allWords, dueQueue };
 }
 

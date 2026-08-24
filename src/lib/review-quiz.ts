@@ -158,6 +158,46 @@ export function reviewQuizKindForIndex(index: number): ReviewQuizKind {
   return "word";
 }
 
+type ReviewPoolWord = SenseSource & {
+  family_head?: string | null;
+};
+
+/** Build quiz kind + choices for a review slot (shared by UI and image prefetch). */
+export function buildReviewQuestionPlan(
+  word: ReviewPoolWord,
+  pool: ReviewPoolWord[],
+  questionIndex: number,
+): { kind: ReviewQuizKind; choices: ReviewChoice[] } {
+  const wanted = reviewQuizKindForIndex(questionIndex);
+  let kind: ReviewQuizKind = "word";
+  let choices: ReviewChoice[] = [];
+
+  if (wanted === "sense") {
+    const senseChoices = buildReviewSenseChoices(word.word, pool);
+    if (senseChoices.length === 3) {
+      kind = "sense";
+      choices = senseChoices;
+    }
+  } else if (wanted === "recall") {
+    kind = "recall";
+  }
+
+  if (kind === "word") {
+    choices = buildReviewChoices(
+      word.word,
+      pool.filter(
+        (item) =>
+          /^[a-z]+$/i.test(item.word) &&
+          item.word.length >= 3 &&
+          Boolean(item.english_definition?.trim()),
+      ),
+      word.rank,
+    );
+  }
+
+  return { kind, choices };
+}
+
 function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
