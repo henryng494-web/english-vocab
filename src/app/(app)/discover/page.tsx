@@ -29,6 +29,11 @@ import {
   stubFromListItem,
 } from "@/lib/discover-word-cache";
 import {
+  prefetchWordImages,
+  preloadWordImagesFromCache,
+  type WordImagePrefetchTarget,
+} from "@/lib/image-preload";
+import {
   getDailyGoalTarget,
   getTodayWordsLearned,
   incrementTodayWordsLearned,
@@ -38,11 +43,21 @@ import {
   countMasteredWords,
   writeLocalLearning,
 } from "@/lib/learning-storage";
+import { seedWordImageCacheFromEntries } from "@/lib/word-image-cache";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-const PRELOAD_AHEAD = 5;
+const PRELOAD_AHEAD = 10;
+const IMAGE_WARM_COUNT = 12;
+
+function listItemImageTarget(item: DiscoverListItem): WordImagePrefetchTarget {
+  return {
+    word: item.word,
+    searchKeyword: item.preview?.search_keyword ?? item.word,
+    wordType: item.preview?.word_type ?? null,
+  };
+}
 
 export default function DiscoverPage() {
   const pathname = usePathname();
@@ -82,7 +97,11 @@ export default function DiscoverPage() {
   const initializedRangeRef = useRef<string | null>(null);
   const wordCacheHydratedRef = useRef(false);
 
-  const currentItem = queue[currentIndex];
+  const warmRangeImages = useCallback((items: DiscoverListItem[]) => {
+    const batch = items.slice(0, IMAGE_WARM_COUNT).map(listItemImageTarget);
+    preloadWordImagesFromCache(batch);
+    void prefetchWordImages(batch, 4);
+  }, []);
 
   const fetchWordFromApi = useCallback(
     async (item: DiscoverListItem): Promise<DiscoverWordData> => {
@@ -132,16 +151,21 @@ export default function DiscoverPage() {
 
   const preloadWords = useCallback(
     (startIndex: number, items: DiscoverListItem[]) => {
-      for (let offset = 1; offset <= PRELOAD_AHEAD; offset++) {
+      const imageTargets: WordImagePrefetchTarget[] = [];
+      for (let offset = 0; offset <= PRELOAD_AHEAD; offset++) {
         const item = items[startIndex + offset];
         if (!item) break;
+        imageTargets.push(listItemImageTarget(item));
+
         const cached = wordCache.current.get(item.word);
         if (isWordDetailComplete(cached, item.word)) {
-          preloadImageUrl(cached!.image_url);
           continue;
         }
+        if (offset === 0) continue;
         ensureWordFetched(item).catch(() => {});
       }
+      preloadWordImagesFromCache(imageTargets);
+      void prefetchWordImages(imageTargets, 4);
     },
     [ensureWordFetched],
   );
@@ -203,6 +227,8 @@ export default function DiscoverPage() {
     }
   }, [rangeId]);
 
+  const currentItem = queue[currentIndex];
+
   useEffect(() => {
     if (!wordCacheHydratedRef.current) {
       wordCache.current = loadPersistedWordCache();
@@ -213,10 +239,18 @@ export default function DiscoverPage() {
           }
         }
         persistWordCache(wordCache.current);
+        seedWordImageCacheFromEntries(wordCache.current.entries());
+      } else {
+        seedWordImageCacheFromEntries(wordCache.current.entries());
       }
       wordCacheHydratedRef.current = true;
     }
   }, [bootstrapWordCache]);
+
+  useEffect(() => {
+    if (queue.length === 0) return;
+    warmRangeImages(queue);
+  }, [queue, warmRangeImages]);
 
   useEffect(() => {
     if (initializedRangeRef.current === rangeId) return;

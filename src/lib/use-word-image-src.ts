@@ -11,6 +11,7 @@ import {
   peekCachedWordImageUrl,
   setCachedWordImageUrl,
 } from "@/lib/word-image-cache";
+import { preloadImageUrlDeduped } from "@/lib/image-preload";
 
 type WordImageSrcOptions = {
   /** Hide SVG placeholders until a real photo loads (review quizzes). */
@@ -51,6 +52,8 @@ export function useWordImageSrc(
   const fallback = getDefaultLearningImageDataUrl(word, wordType);
 
   const resolveDisplay = (url?: string | null) => {
+    const cached = peekCachedWordImageUrl(word, url);
+    if (cached) return cached;
     if (quizSafe) return pickQuizSrc(word, url, searchKeyword, wordType);
     return resolveWordImageUrl(word, url, searchKeyword, wordType);
   };
@@ -76,7 +79,10 @@ export function useWordImageSrc(
       setReady(true);
     }
 
-    if (!quizSafe && isUsableCardImageUrl(imageUrl, word)) return;
+    if (!quizSafe) {
+      if (isUsableCardImageUrl(imageUrl, word)) return;
+      if (isRealCardImageUrl(next, word)) return;
+    }
     if (quizSafe && next) return;
 
     let cancelled = false;
@@ -150,6 +156,7 @@ async function fetchFreshImageUrl(
     const url = data.image_url?.trim() ?? null;
     if (url && isRealCardImageUrl(url, word)) {
       setCachedWordImageUrl(word, url);
+      preloadImageUrlDeduped(url);
       return url;
     }
   } catch {

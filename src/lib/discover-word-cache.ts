@@ -130,11 +130,7 @@ export function persistWordCache(cache: Map<string, DiscoverWordData>): void {
   }
 }
 
-export function preloadImageUrl(url: string | null | undefined): void {
-  if (!url || typeof window === "undefined") return;
-  const img = new window.Image();
-  img.src = url;
-}
+export { preloadImageUrlDeduped as preloadImageUrl } from "@/lib/image-preload";
 
 /** Empty shell — no leaked fields from previous word. */
 export function stubFromListItem(item: {

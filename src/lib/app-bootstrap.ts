@@ -14,14 +14,20 @@ import {
   type DiscoverListItem,
   type DiscoverRangeStats,
 } from "@/lib/discover-fetch";
+import {
+  prefetchWordImages,
+  preloadWordImagesFromCache,
+  type WordImagePrefetchTarget,
+} from "@/lib/image-preload";
 import { loadReviewSession, type ReviewSessionData } from "@/lib/review-fetch";
+import { seedWordImageCacheFromEntries } from "@/lib/word-image-cache";
 
 export const DEFAULT_BOOTSTRAP_RANGE = "1-100";
 /** First band — enough for home + journey preload-ahead. */
-export const BOOTSTRAP_PRELOAD_DEFAULT = 4;
+export const BOOTSTRAP_PRELOAD_DEFAULT = 8;
 /** Other bands — first card ready when learner switches rank. */
-export const BOOTSTRAP_PRELOAD_OTHER = 2;
-export const BOOTSTRAP_WORD_CONCURRENCY = 4;
+export const BOOTSTRAP_PRELOAD_OTHER = 5;
+export const BOOTSTRAP_WORD_CONCURRENCY = 6;
 export const MIN_WELCOME_MS = 1600;
 
 export type BootstrapProgress = {
@@ -103,6 +109,7 @@ export async function runAppBootstrap(
 
   purgeLegacyDiscoverWordCaches();
   const wordCache = loadPersistedWordCache();
+  seedWordImageCacheFromEntries(wordCache.entries());
 
   preloadAsset("/mascot/fox-happy.png");
   preloadAsset("/mascot/fox-wave.png");
@@ -133,6 +140,16 @@ export async function runAppBootstrap(
   report(onProgress, 62, "Preparing flashcards…");
 
   const preloadTargets = collectPreloadTargets(ranges);
+  const imageWarmTargets: WordImagePrefetchTarget[] = preloadTargets.map(
+    (item) => ({
+      word: item.word,
+      searchKeyword: item.preview?.search_keyword ?? item.word,
+      wordType: item.preview?.word_type ?? null,
+    }),
+  );
+  preloadWordImagesFromCache(imageWarmTargets);
+  const imageWarmPromise = prefetchWordImages(imageWarmTargets, BOOTSTRAP_WORD_CONCURRENCY);
+
   let wordsDone = 0;
 
   await mapWithConcurrency(
@@ -163,6 +180,8 @@ export async function runAppBootstrap(
   );
 
   persistWordCache(wordCache);
+  seedWordImageCacheFromEntries(wordCache.entries());
+  await imageWarmPromise.catch(() => {});
 
   report(onProgress, 96, "Loading review queue…");
   const review = await reviewPromise;

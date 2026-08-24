@@ -348,7 +348,7 @@ type PexelsSearchResponse = {
   photos?: Array<{
     alt?: string | null;
     photographer?: string | null;
-    src?: { large?: string; landscape?: string };
+    src?: { medium?: string; large?: string; landscape?: string };
   }>;
 };
 
@@ -373,7 +373,8 @@ async function searchPexelsPhotos(
     const data = (await response.json()) as PexelsSearchResponse;
     return (data.photos ?? [])
       .map((photo) => ({
-        url: pickDisplayableMediaUrl(photo.src?.landscape) ??
+        url: pickDisplayableMediaUrl(photo.src?.medium) ??
+          pickDisplayableMediaUrl(photo.src?.landscape) ??
           pickDisplayableMediaUrl(photo.src?.large) ??
           "",
         alt: photo.alt ?? query,
