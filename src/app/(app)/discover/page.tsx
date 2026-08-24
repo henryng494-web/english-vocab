@@ -11,15 +11,21 @@ import {
 import { AppHeader } from "@/components/layout/AppHeader";
 import { HeaderSelect } from "@/components/layout/HeaderSelect";
 import { CoachDog } from "@/components/mascot/CoachDog";
+import { useAppBootstrap } from "@/context/AppBootstrapContext";
 import { WORD_RANGES } from "@/data/word-ranges";
+import { DEFAULT_BOOTSTRAP_RANGE } from "@/lib/app-bootstrap";
 import {
-  DISCOVER_WORD_CACHE_VERSION,
+  fetchDiscoverRange,
+  fetchDiscoverWordDetail,
+  listItemToDiscoverData,
+  type DiscoverListItem,
+} from "@/lib/discover-fetch";
+import {
   isCacheEntryValid,
   isWordDetailComplete,
   loadPersistedWordCache,
   persistWordCache,
   preloadImageUrl,
-  purgeLegacyDiscoverWordCaches,
   stubFromListItem,
 } from "@/lib/discover-word-cache";
 import {
@@ -30,83 +36,24 @@ import {
 import {
   countLearningWords,
   countMasteredWords,
-  getLocallyTakenWords,
   writeLocalLearning,
 } from "@/lib/learning-storage";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-type DiscoverListPreview = {
-  phonetic?: string | null;
-  word_type?: string | null;
-  vietnamese_meaning?: string | null;
-  english_definition?: string | null;
-  examples?: string | null;
-  search_keyword?: string | null;
-};
-
-type DiscoverListItem = {
-  word: string;
-  rank: number;
-  importance_tier: string;
-  from_static?: boolean;
-  has_vietnamese?: boolean;
-  needs_fetch?: boolean;
-  family_members?: string[] | null;
-  preview?: DiscoverListPreview | null;
-};
-
 const PRELOAD_AHEAD = 5;
-
-function listItemToDiscoverData(item: DiscoverListItem): DiscoverWordData {
-  const base = stubFromListItem(item);
-  const preview = item.preview;
-  if (!preview?.vietnamese_meaning?.trim()) {
-    return base;
-  }
-  return {
-    ...base,
-    phonetic: preview.phonetic,
-    word_type: preview.word_type ?? null,
-    vietnamese_meaning: preview.vietnamese_meaning,
-    english_definition: preview.english_definition ?? null,
-    examples: preview.examples ?? null,
-    search_keyword: preview.search_keyword ?? item.word,
-  };
-}
-
-function mapApiWord(
-  item: DiscoverListItem,
-  apiWord: Record<string, unknown>,
-): DiscoverWordData {
-  return {
-    word: item.word,
-    rank: Number(apiWord.rank ?? item.rank),
-    importance_tier: String(apiWord.importance_tier ?? item.importance_tier),
-    phonetic: apiWord.phonetic as string | null | undefined,
-    word_type: apiWord.word_type as string | null | undefined,
-    vietnamese_meaning: apiWord.vietnamese_meaning as string | null | undefined,
-    english_definition: apiWord.english_definition as string | null | undefined,
-    examples: apiWord.examples as string | null | undefined,
-    image_url: (apiWord.image_url as string | null | undefined) ?? null,
-    collocations: apiWord.collocations as string | null | undefined,
-    search_keyword: (apiWord.search_keyword as string | null | undefined) ?? item.word,
-    word_family: Array.isArray(apiWord.word_family)
-      ? (apiWord.word_family as DiscoverWordData["word_family"])
-      : null,
-  };
-}
 
 export default function DiscoverPage() {
   const pathname = usePathname();
   const router = useRouter();
+  const { consumeSnapshot } = useAppBootstrap();
   const inSession = pathname.startsWith("/journey");
-  const [rangeId, setRangeId] = useState("1-100");
+  const [rangeId, setRangeId] = useState(DEFAULT_BOOTSTRAP_RANGE);
   const [queue, setQueue] = useState<DiscoverListItem[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [currentWord, setCurrentWord] = useState<DiscoverWordData | null>(null);
-  const [loadingList, setLoadingList] = useState(true);
+  const [loadingList, setLoadingList] = useState(false);
   const [loadingWord, setLoadingWord] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [stats, setStats] = useState({ total: 0, hidden: 0 });
@@ -128,42 +75,16 @@ export default function DiscoverPage() {
     setTodayLearned(getTodayWordsLearned());
   }, [queue.length, currentIndex]);
 
-  const wordCache = useRef<Map<string, DiscoverWordData>>(
-    loadPersistedWordCache(),
-  );
+  const wordCache = useRef<Map<string, DiscoverWordData>>(new Map());
   const inflight = useRef<Map<string, Promise<DiscoverWordData>>>(new Map());
   const activeWordRef = useRef<string | null>(null);
+  const initializedRangeRef = useRef<string | null>(null);
 
   const currentItem = queue[currentIndex];
 
-  const filterLocalTaken = useCallback((items: DiscoverListItem[]) => {
-    const taken = new Set(
-      getLocallyTakenWords().map((word) => word.trim().toLowerCase()),
-    );
-    return items.filter((item) => {
-      const family = item.family_members?.length
-        ? item.family_members
-        : [item.word];
-      return !family.some((member) => taken.has(member.trim().toLowerCase()));
-    });
-  }, []);
-
   const fetchWordFromApi = useCallback(
     async (item: DiscoverListItem): Promise<DiscoverWordData> => {
-      const params = new URLSearchParams({
-        word: item.word,
-        rank: String(item.rank),
-        skipGemini: item.from_static ? "true" : "false",
-        cacheVersion: String(DISCOVER_WORD_CACHE_VERSION),
-      });
-      const res = await fetch(`/api/discover/word?${params}`, {
-        cache: "no-store",
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.details ?? data.error ?? "Failed to load word");
-      }
-      const loaded = mapApiWord(item, data.word);
+      const loaded = await fetchDiscoverWordDetail(item);
       if (!isCacheEntryValid(loaded, item.word)) {
         throw new Error(
           `Data for "${item.word}" is incomplete — try again later.`,
@@ -266,27 +187,11 @@ export default function DiscoverPage() {
     setError(null);
     inflight.current.clear();
     try {
-      const params = new URLSearchParams({
-        range: rangeId,
-        cacheVersion: String(DISCOVER_WORD_CACHE_VERSION),
-      });
-      const res = await fetch(`/api/discover?${params}`, {
-        cache: "no-store",
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.details ?? data.error ?? "Failed to load word bank");
-      }
-
-      const filtered = filterLocalTaken(data.words ?? []);
+      const { words: filtered, stats: nextStats } =
+        await fetchDiscoverRange(rangeId);
       setQueue(filtered);
       setCurrentIndex(0);
-      setStats({
-        total: data.total_in_range ?? filtered.length,
-        hidden:
-          (data.hidden_mastered ?? 0) +
-          ((data.words?.length ?? 0) - filtered.length),
-      });
+      setStats(nextStats);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load data");
       setQueue([]);
@@ -294,16 +199,31 @@ export default function DiscoverPage() {
     } finally {
       setLoadingList(false);
     }
-  }, [rangeId, filterLocalTaken]);
+  }, [rangeId]);
 
   useEffect(() => {
-    purgeLegacyDiscoverWordCaches();
+    if (initializedRangeRef.current === rangeId) return;
+
     wordCache.current = loadPersistedWordCache();
-  }, []);
+    const snapshot = consumeSnapshot(rangeId);
+    if (snapshot) {
+      initializedRangeRef.current = rangeId;
+      for (const [word, entry] of Object.entries(snapshot.wordCache)) {
+        if (isCacheEntryValid(entry, word)) {
+          wordCache.current.set(word, entry);
+        }
+      }
+      persistWordCache(wordCache.current);
+      setQueue(snapshot.queue);
+      setStats(snapshot.stats);
+      setCurrentIndex(0);
+      setLoadingList(false);
+      return;
+    }
 
-  useEffect(() => {
-    fetchRange();
-  }, [fetchRange]);
+    initializedRangeRef.current = rangeId;
+    void fetchRange();
+  }, [consumeSnapshot, fetchRange, rangeId]);
 
   useEffect(() => {
     if (!currentItem) {

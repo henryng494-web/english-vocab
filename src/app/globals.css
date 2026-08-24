@@ -111,8 +111,99 @@ body {
 }
 
 .app-shell .shell-content {
+  position: relative;
   min-height: 0;
   overflow: hidden;
+}
+
+.welcome-splash {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: linear-gradient(
+    165deg,
+    color-mix(in srgb, var(--primary) 18%, var(--background)) 0%,
+    var(--background) 45%,
+    color-mix(in srgb, var(--primary-100) 55%, var(--background)) 100%
+  );
+}
+
+.welcome-splash__glow {
+  position: absolute;
+  top: 12%;
+  left: 50%;
+  width: min(18rem, 70vw);
+  height: min(18rem, 70vw);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--primary) 24%, transparent);
+  filter: blur(40px);
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.welcome-splash__content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  width: min(100%, 22rem);
+  flex-direction: column;
+  align-items: center;
+  padding: 1.5rem 1.25rem 2rem;
+  text-align: center;
+}
+
+.welcome-splash__fox {
+  animation: welcome-fox-bob 2.4s ease-in-out infinite;
+}
+
+@keyframes welcome-fox-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+.welcome-splash__title {
+  margin: 0.85rem 0 0;
+  font-size: 1.75rem;
+  line-height: 1.2;
+  color: var(--foreground);
+}
+
+.welcome-splash__subtitle {
+  margin: 0.55rem 0 0;
+  max-width: 16rem;
+  font-size: 0.9375rem;
+  line-height: 1.45;
+  color: var(--header-muted);
+}
+
+.welcome-splash__progress-wrap {
+  width: 100%;
+  margin-top: 1.35rem;
+}
+
+.welcome-splash__progress {
+  height: 0.55rem;
+}
+
+.welcome-splash__progress-fill {
+  transition: width 0.35s ease;
+}
+
+.welcome-splash__status {
+  margin: 0.65rem 0 0;
+  min-height: 1.25rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--primary-800);
 }
 
 .app-screen {
