@@ -394,7 +394,14 @@ export default function DiscoverPage() {
               ☰
             </Link>
           }
-          trailing={<CoinBadge value={wordsKnown + wordsReviewing} />}
+          trailing={
+            <div className="app-header__actions">
+              <Link href="/search" className="app-header__icon-btn" aria-label="Search words">
+                🔍
+              </Link>
+              <CoinBadge value={wordsKnown + wordsReviewing} />
+            </div>
+          }
         />
 
         {loadingList ? (
@@ -412,6 +419,8 @@ export default function DiscoverPage() {
             todayLearned={todayLearned}
             todayGoal={todayGoal}
             onStartLearning={() => router.push("/journey")}
+            onOpenKnown={() => router.push("/words?filter=known")}
+            onOpenReview={() => router.push("/words?filter=review")}
           />
         )}
       </div>

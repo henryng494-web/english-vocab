@@ -13,6 +13,8 @@ type DiscoverDashboardProps = {
   todayLearned: number;
   todayGoal: number;
   onStartLearning: () => void;
+  onOpenKnown: () => void;
+  onOpenReview: () => void;
 };
 
 function CoinBadge({ value }: { value: number }) {
@@ -45,6 +47,8 @@ export function DiscoverDashboard({
   todayLearned,
   todayGoal,
   onStartLearning,
+  onOpenKnown,
+  onOpenReview,
 }: DiscoverDashboardProps) {
   const rankProgress =
     queueLength > 0
@@ -102,20 +106,28 @@ export function DiscoverDashboard({
             <h3 className="home-section-label">Your Progress</h3>
           </div>
           <div className="home-stat-grid">
-            <div className="home-card home-stat-card">
+            <button
+              type="button"
+              onClick={onOpenKnown}
+              className="home-card home-stat-card home-stat-card--link"
+            >
               <span className="home-stat-icon text-xl" aria-hidden>
                 🌟
               </span>
               <p className="home-stat-label">You know</p>
               <p className={`home-stat-value ${displayFontClass}`}>{wordsKnown}</p>
-            </div>
-            <div className="home-card home-stat-card">
+            </button>
+            <button
+              type="button"
+              onClick={onOpenReview}
+              className="home-card home-stat-card home-stat-card--link"
+            >
               <span className="home-stat-icon text-xl" aria-hidden>
                 🔁
               </span>
               <p className="home-stat-label">In review</p>
               <p className={`home-stat-value ${displayFontClass}`}>{wordsReviewing}</p>
-            </div>
+            </button>
             <div className="home-card home-stat-card">
               <span className="home-stat-icon text-xl" aria-hidden>
                 🏆

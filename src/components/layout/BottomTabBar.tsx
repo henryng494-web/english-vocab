@@ -117,7 +117,11 @@ export function BottomTabBar() {
     {
       href: "/discover",
       label: "Home",
-      match: (path) => path.startsWith("/discover"),
+      match: (path) =>
+        path.startsWith("/discover") ||
+        path.startsWith("/words") ||
+        path.startsWith("/search") ||
+        path.startsWith("/word/"),
       icon: (active) => <DiscoverIcon active={active} />,
     },
     {

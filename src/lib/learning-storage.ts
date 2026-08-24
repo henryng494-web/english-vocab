@@ -79,3 +79,37 @@ export function getLocallyMasteredWords(): string[] {
 export function getLocallyTakenWords(): string[] {
   return Object.keys(readLocalLearning()).filter(isCountableWord);
 }
+
+export type WordLibraryFilter = "known" | "review";
+
+export type LocalWordEntry = {
+  word: string;
+  status: LearningStatus;
+  last_reviewed_at: string;
+};
+
+export function getLocalWordStatus(word: string): LearningStatus | null {
+  return readLocalLearning()[word.trim()]?.status ?? null;
+}
+
+export function getLocalWordsByFilter(
+  filter: WordLibraryFilter,
+): LocalWordEntry[] {
+  const map = readLocalLearning();
+  return Object.entries(map)
+    .filter(([word, entry]) => {
+      if (!isCountableWord(word)) return false;
+      if (filter === "known") return entry.status === "mastered";
+      return (
+        entry.status === "new" ||
+        entry.status === "learning" ||
+        entry.status === "need_review"
+      );
+    })
+    .map(([word, entry]) => ({
+      word,
+      status: entry.status,
+      last_reviewed_at: entry.last_reviewed_at,
+    }))
+    .sort((a, b) => b.last_reviewed_at.localeCompare(a.last_reviewed_at));
+}
