@@ -60,35 +60,35 @@ async function finalizeExamples(
   meaning?: string | null,
   allowGemini?: boolean,
 ): Promise<VocabExample[]> {
-  const existing = keepNaturalExamples(word, examples);
-  if (hasQualityExamples(word, existing)) {
+  const existing = keepNaturalExamples(word, examples, pos);
+  if (hasQualityExamples(word, existing, pos)) {
     return existing.slice(0, 2);
   }
 
   if (allowGemini) {
     const generated = await generateExamplesWithGemini(word, pos, meaning);
-    if (hasQualityExamples(word, generated ?? undefined)) {
+    if (hasQualityExamples(word, generated ?? undefined, pos)) {
       return (generated ?? []).slice(0, 2);
     }
     if (generated?.length) {
-      const merged = keepNaturalExamples(word, [...existing, ...generated]);
-      if (hasQualityExamples(word, merged)) return merged.slice(0, 2);
+      const merged = keepNaturalExamples(word, [...existing, ...generated], pos);
+      if (hasQualityExamples(word, merged, pos)) return merged.slice(0, 2);
     }
   }
 
-  const naturalOnly = keepNaturalExamples(word, existing);
+  const naturalOnly = keepNaturalExamples(word, existing, pos);
   if (naturalOnly.length >= 2) {
     const translated = await fillExampleTranslations(naturalOnly);
-    if (hasQualityExamples(word, translated)) {
+    if (hasQualityExamples(word, translated, pos)) {
       return translated.slice(0, 2);
     }
   }
 
   const ensured = ensureExamples(word, existing, pos, meaning);
-  if (hasQualityExamples(word, ensured)) return ensured.slice(0, 2);
+  if (hasQualityExamples(word, ensured, pos)) return ensured.slice(0, 2);
 
   const translatedEnsured = await fillExampleTranslations(ensured);
-  if (hasQualityExamples(word, translatedEnsured)) {
+  if (hasQualityExamples(word, translatedEnsured, pos)) {
     return translatedEnsured.slice(0, 2);
   }
 

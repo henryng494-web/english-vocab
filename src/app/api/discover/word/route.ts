@@ -110,13 +110,13 @@ async function repairExamplesIfNeeded(
   meaning?: string | null,
 ): Promise<string> {
   const parsed = parseExamples(examples);
-  if (hasQualityExamples(word, parsed)) {
+  if (hasQualityExamples(word, parsed, wordType)) {
     return examples?.trim() ? examples : serializeExamples(parsed);
   }
 
   const ensured = ensureExamples(word, parsed, wordType, meaning);
   const translated = await fillExampleTranslations(ensured);
-  const finalExamples = hasQualityExamples(word, translated)
+  const finalExamples = hasQualityExamples(word, translated, wordType)
     ? translated
     : ensured;
   return serializeExamples(finalExamples);

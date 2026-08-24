@@ -77,6 +77,14 @@ export function buildNaturalExamples(
         en: `It feels ${w} outside today.`,
         vi: `Hôm nay ngoài trời cảm thấy ${viWord}.`,
       },
+      {
+        en: `Good rest is ${w} after a long day.`,
+        vi: `Nghỉ ngơi tốt ${viWord} sau một ngày dài.`,
+      },
+      {
+        en: `This step is ${w} for success.`,
+        vi: `Bước này ${viWord} cho thành công.`,
+      },
     ],
     adverb: [
       {
@@ -197,7 +205,7 @@ export function ensureExamples(
   pos?: string | null,
   meaning?: string | null,
 ): VocabExample[] {
-  const kept = keepNaturalExamples(word, examples);
+  const kept = keepNaturalExamples(word, examples, pos);
   if (kept.length >= TARGET_COUNT) return kept.slice(0, TARGET_COUNT);
 
   const fallback = buildNaturalExamples(word, pos, meaning);

@@ -23,6 +23,8 @@ import {
   prefetchReviewImages,
   preloadReviewImageBatch,
 } from "@/lib/review-image-preload";
+import { hasQualityExamples } from "@/lib/example-quality";
+import { parseExamples } from "@/lib/parse-examples";
 import {
   advanceReviewInterval,
   getReviewSchedule,
@@ -198,10 +200,15 @@ export default function LearnPage() {
     const missingExamples =
       quizKind === "recall" &&
       !pickReviewRecallSentence(currentWord.word, currentWord.examples);
-    if (!missingImage && !badVi && !missingExamples) return;
+    const badExamples = !hasQualityExamples(
+      currentWord.word,
+      parseExamples(currentWord.examples),
+      currentWord.word_type,
+    );
+    if (!missingImage && !badVi && !missingExamples && !badExamples) return;
 
     let cancelled = false;
-    if (missingImage && !badVi && !missingExamples) {
+    if (missingImage && !badVi && !missingExamples && !badExamples) {
       fetch(`/api/word-image?word=${encodeURIComponent(currentWord.word)}`)
         .then((res) => res.json())
         .then((data: { image_url?: string | null }) => {

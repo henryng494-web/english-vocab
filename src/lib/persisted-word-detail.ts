@@ -17,7 +17,7 @@ export function isPersistedWordDetailComplete(
   }
   if (!detail.vietnamese_meaning?.trim()) return false;
   if (containsForeignScript(detail.vietnamese_meaning)) return false;
-  if (!hasQualityExamples(word, parseExamples(detail.examples))) return false;
+  if (!hasQualityExamples(word, parseExamples(detail.examples), detail.word_type)) return false;
   const image = detail.image_url?.trim();
   if (!image) return false;
   if (shouldRefreshImageUrl(image, word)) return false;

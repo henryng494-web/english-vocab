@@ -5,7 +5,7 @@ import { containsForeignScript } from "@/lib/sanitize-vi";
 import { shouldRefreshImageUrl } from "@/lib/unsplash";
 
 /** Bump when ranking, image quality, or enrichment output shape changes. */
-export const DISCOVER_WORD_CACHE_VERSION = 45;
+export const DISCOVER_WORD_CACHE_VERSION = 46;
 
 const STORAGE_KEY = `discover-word-cache-v${DISCOVER_WORD_CACHE_VERSION}`;
 
@@ -63,7 +63,7 @@ export function isWordDetailComplete(
   if (containsForeignScript(data.vietnamese_meaning)) return false;
   if (!data.image_url?.trim()) return false;
   if (shouldRefreshImageUrl(data.image_url, data.word)) return false;
-  if (!hasQualityExamples(data.word, parseExamples(data.examples))) {
+  if (!hasQualityExamples(data.word, parseExamples(data.examples), data.word_type)) {
     return false;
   }
   if (expectedWord && data.word.toLowerCase() !== expectedWord.toLowerCase()) {
