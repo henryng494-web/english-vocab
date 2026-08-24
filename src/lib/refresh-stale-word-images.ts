@@ -1,4 +1,4 @@
-import { shouldRefreshImageUrl } from "@/lib/unsplash";
+import { isCurrentPipelineImageUrl, shouldRefreshImageUrl } from "@/lib/unsplash";
 import { setCachedWordImageUrl } from "@/lib/word-image-cache";
 
 export type StaleWordImageTarget = {
@@ -90,12 +90,41 @@ export async function refreshStaleWordImages(
   return updates;
 }
 
-/** Refresh one word photo (word detail, card tap). */
+/** Keep calling batch refresh until no stale targets remain (background warm). */
+export async function refreshAllStaleWordImages(
+  targets: StaleWordImageTarget[],
+  concurrency = 3,
+  maxRounds = 20,
+): Promise<Record<string, string>> {
+  const allUpdates: Record<string, string> = {};
+  let round = 0;
+  let remaining = collectStaleWordImageTargets(targets);
+
+  while (remaining.length > 0 && round < maxRounds) {
+    round += 1;
+    const updates = await refreshStaleWordImages(remaining, concurrency);
+    if (Object.keys(updates).length === 0) break;
+    Object.assign(allUpdates, updates);
+    remaining = collectStaleWordImageTargets(
+      targets.map((target) => {
+        const key = target.word.trim().toLowerCase();
+        return updates[key]
+          ? { ...target, imageUrl: updates[key] }
+          : target;
+      }),
+    );
+  }
+
+  return allUpdates;
+}
+
+/** Refresh one word photo when the stored URL is not from the current pipeline. */
 export async function refreshSingleWordImage(
   target: StaleWordImageTarget,
 ): Promise<string | null> {
   const word = target.word.trim().toLowerCase();
-  if (!word || !isStaleWordImage(word, target.imageUrl)) {
+  if (!word) return null;
+  if (isCurrentPipelineImageUrl(target.imageUrl)) {
     return target.imageUrl?.trim() ?? null;
   }
 

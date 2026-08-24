@@ -227,6 +227,7 @@ export function isDisplayableHttpImageUrl(
   if (isPlaceholderIllustrationUrl(trimmed)) return false;
   if (isBrokenOpenverseProxyUrl(trimmed)) return false;
   if (isOutdatedSemanticImageUrl(trimmed)) return false;
+  if (isStockImageUrl(trimmed) && !isCurrentPipelineImageUrl(trimmed)) return false;
   try {
     return isDisplayableImageHost(new URL(trimmed).hostname);
   } catch {
@@ -266,7 +267,6 @@ export function isUsableCardImageUrl(
   url: string | null | undefined,
   word?: string | null,
 ): boolean {
-  void word;
   return isDisplayableHttpImageUrl(url, word);
 }
 

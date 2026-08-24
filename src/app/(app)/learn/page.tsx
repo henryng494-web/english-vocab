@@ -37,7 +37,7 @@ import {
   type ReviewIntervalDays,
 } from "@/lib/review-schedule";
 import { shouldRefreshImageUrl } from "@/lib/unsplash";
-import { refreshStaleWordImages } from "@/lib/refresh-stale-word-images";
+import { refreshAllStaleWordImages } from "@/lib/refresh-stale-word-images";
 import type { LearningStatus, VocabWord } from "@/types/database";
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -254,7 +254,7 @@ export default function LearnPage() {
       warmReviewImages(due, fetched);
       if (startFirst && due[0]) startQuestion(due[0], fetched, 0);
 
-      void refreshStaleWordImages(
+      void refreshAllStaleWordImages(
         fetched.map((word) => ({
           word: word.word,
           imageUrl: word.image_url,

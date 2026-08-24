@@ -20,6 +20,7 @@ import {
   type WordImagePrefetchTarget,
 } from "@/lib/image-preload";
 import { loadReviewSession, type ReviewSessionData } from "@/lib/review-fetch";
+import { refreshAllStaleWordImages } from "@/lib/refresh-stale-word-images";
 import { seedWordImageCacheFromEntries } from "@/lib/word-image-cache";
 
 export const DEFAULT_BOOTSTRAP_RANGE = "1-100";
@@ -186,6 +187,19 @@ export async function runAppBootstrap(
 
   report(onProgress, 96, "Loading review queue…");
   const review = await reviewPromise;
+  if (review?.allWords?.length) {
+    void refreshAllStaleWordImages(
+      review.allWords.map((word) => ({
+        word: word.word,
+        imageUrl: word.image_url,
+        meaning: word.vietnamese_meaning,
+        wordType: word.word_type,
+        searchKeyword: word.search_keyword,
+      })),
+      2,
+      15,
+    );
+  }
 
   report(onProgress, 100, "Ready to learn!");
 

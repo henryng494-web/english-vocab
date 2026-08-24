@@ -1,6 +1,6 @@
 import { isRealCardImageUrl } from "@/lib/unsplash";
 
-const STORAGE_KEY = "word-image-url-cache-v5";
+const STORAGE_KEY = "word-image-url-cache-v6";
 const MAX_ENTRIES = 500;
 
 const cache = new Map<string, string>();
@@ -54,7 +54,7 @@ export function peekCachedWordImageUrl(
 ): string | undefined {
   hydrateFromStorage();
   const cached = getCachedWordImageUrl(word);
-  if (cached) return cached;
+  if (cached && isRealCardImageUrl(cached, word)) return cached;
   const trimmed = imageUrl?.trim();
   if (trimmed && isRealCardImageUrl(trimmed, word)) {
     setCachedWordImageUrl(word, trimmed);

@@ -9,11 +9,11 @@ import { CoachDog } from "@/components/mascot/CoachDog";
 import {
   DISCOVER_WORD_CACHE_VERSION,
   isCacheEntryValid,
-  isWordDetailComplete,
   loadPersistedWordCache,
   persistWordCache,
 } from "@/lib/discover-word-cache";
 import { refreshSingleWordImage } from "@/lib/refresh-stale-word-images";
+import { isCurrentPipelineImageUrl } from "@/lib/unsplash";
 import { capitalizeFirst } from "@/lib/format-text";
 import { getLocalWordStatus } from "@/lib/learning-storage";
 import { getPresetRank } from "@/data/preset-vocabulary";
@@ -68,14 +68,14 @@ function WordDetailPageContent() {
 
     const cache = loadPersistedWordCache();
     const cached = cache.get(word);
-    if (isWordDetailComplete(cached, word)) {
-      setData(cached!);
-      setLoading(false);
-      return;
+    if (cached && isCacheEntryValid(cached, word)) {
+      setData(cached);
+      setLoading(!isCurrentPipelineImageUrl(cached.image_url));
+    } else {
+      setLoading(true);
     }
 
     let cancelled = false;
-    setLoading(true);
     setError(null);
 
     const rank = getPresetRank(word) ?? 10000;

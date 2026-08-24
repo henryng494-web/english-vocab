@@ -17,7 +17,6 @@ import { withWordFamily } from "@/lib/word-family-display";
 import { resolveImageSearchKeyword } from "@/lib/image-keyword";
 import {
   fetchWordImageUrl,
-  isCurrentPipelineImageUrl,
   shouldRefreshImageUrl,
 } from "@/lib/unsplash";
 import { isExcludedVocabWord } from "@/lib/proper-noun";
@@ -37,16 +36,13 @@ function errorMessage(error: unknown): string {
 
 async function resolveImageUrl(
   word: string,
-  existingUrl?: string | null,
+  _existingUrl?: string | null,
   searchKeyword?: string | null,
   pos?: string | null,
   meaning?: string | null,
   englishDefinition?: string | null,
 ): Promise<string> {
-  const trimmed = existingUrl?.trim();
-  if (trimmed && isCurrentPipelineImageUrl(trimmed)) {
-    return trimmed;
-  }
+  void _existingUrl;
   return fetchWordImageUrl(
     word,
     searchKeyword ?? word,

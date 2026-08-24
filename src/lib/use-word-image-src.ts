@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import {
   getDefaultLearningImageDataUrl,
+  isCurrentPipelineImageUrl,
   isRealCardImageUrl,
   isUsableCardImageUrl,
   resolveWordImageUrl,
@@ -56,6 +57,9 @@ export function useWordImageSrc(
     return resolveWordImageUrl(word, url, searchKeyword, wordType);
   };
 
+  const needsFreshImage = (url?: string | null) =>
+    !isCurrentPipelineImageUrl(url) || !isUsableCardImageUrl(url, word);
+
   const initial = resolveDisplay(imageUrl);
   const initialReady = quizSafe ? Boolean(initial) : true;
 
@@ -78,10 +82,9 @@ export function useWordImageSrc(
     }
 
     if (!quizSafe) {
-      if (isUsableCardImageUrl(imageUrl, word)) return;
-      if (isRealCardImageUrl(next, word)) return;
+      if (!needsFreshImage(imageUrl)) return;
     }
-    if (quizSafe && next) return;
+    if (quizSafe && !needsFreshImage(imageUrl) && next) return;
 
     let cancelled = false;
     void (async () => {
