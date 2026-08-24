@@ -1,12 +1,16 @@
+import { getPresetRank } from "@/data/preset-vocabulary";
 import type { LearningStatus } from "@/types/database";
 import { isExcludedVocabWord } from "@/lib/proper-noun";
 
 const STORAGE_KEY = "english-vocab-learning";
 
-type LocalLearningMap = Record<
-  string,
-  { status: LearningStatus; last_reviewed_at: string }
->;
+type LocalLearningEntry = {
+  status: LearningStatus;
+  last_reviewed_at: string;
+  added_at?: string;
+};
+
+type LocalLearningMap = Record<string, LocalLearningEntry>;
 
 function isCountableWord(word: string): boolean {
   return !isExcludedVocabWord(word);
@@ -25,7 +29,13 @@ export function readLocalLearning(): LocalLearningMap {
 export function writeLocalLearning(word: string, status: LearningStatus) {
   if (typeof window === "undefined") return;
   const map = readLocalLearning();
-  map[word] = { status, last_reviewed_at: new Date().toISOString() };
+  const now = new Date().toISOString();
+  const existing = map[word];
+  map[word] = {
+    status,
+    last_reviewed_at: now,
+    added_at: existing?.added_at ?? now,
+  };
   localStorage.setItem(STORAGE_KEY, JSON.stringify(map));
   window.dispatchEvent(new Event("vocab-learning-changed"));
 }
@@ -81,12 +91,30 @@ export function getLocallyTakenWords(): string[] {
 }
 
 export type WordLibraryFilter = "known" | "review";
+export type WordLibrarySort = "rank" | "recent";
 
 export type LocalWordEntry = {
   word: string;
   status: LearningStatus;
   last_reviewed_at: string;
+  added_at: string;
 };
+
+export function sortLocalWordEntries(
+  entries: LocalWordEntry[],
+  sort: WordLibrarySort,
+): LocalWordEntry[] {
+  const sorted = [...entries];
+  if (sort === "recent") {
+    return sorted.sort((a, b) => b.added_at.localeCompare(a.added_at));
+  }
+  return sorted.sort((a, b) => {
+    const rankA = getPresetRank(a.word) ?? 99999;
+    const rankB = getPresetRank(b.word) ?? 99999;
+    if (rankA !== rankB) return rankA - rankB;
+    return a.word.localeCompare(b.word);
+  });
+}
 
 export function getLocalWordStatus(word: string): LearningStatus | null {
   return readLocalLearning()[word.trim()]?.status ?? null;
@@ -94,9 +122,10 @@ export function getLocalWordStatus(word: string): LearningStatus | null {
 
 export function getLocalWordsByFilter(
   filter: WordLibraryFilter,
+  sort: WordLibrarySort = "recent",
 ): LocalWordEntry[] {
   const map = readLocalLearning();
-  return Object.entries(map)
+  const entries = Object.entries(map)
     .filter(([word, entry]) => {
       if (!isCountableWord(word)) return false;
       if (filter === "known") return entry.status === "mastered";
@@ -110,6 +139,7 @@ export function getLocalWordsByFilter(
       word,
       status: entry.status,
       last_reviewed_at: entry.last_reviewed_at,
-    }))
-    .sort((a, b) => b.last_reviewed_at.localeCompare(a.last_reviewed_at));
+      added_at: entry.added_at ?? entry.last_reviewed_at,
+    }));
+  return sortLocalWordEntries(entries, sort);
 }

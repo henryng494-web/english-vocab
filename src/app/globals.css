@@ -1772,11 +1772,27 @@ body {
   flex: 1 1 0;
 }
 
+.word-library__toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  margin-bottom: 0.65rem;
+}
+
 .word-library__count {
-  margin: 0 0 0.65rem;
+  margin: 0;
   font-size: 0.875rem;
   font-weight: 700;
   color: var(--header-muted);
+}
+
+.word-library__sort {
+  width: 100%;
+}
+
+.word-library__sort button {
+  font-size: 0.8125rem;
+  padding: 0.5rem 0.55rem;
 }
 
 .word-list {

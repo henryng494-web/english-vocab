@@ -1,13 +1,14 @@
 "use client";
 
-import { Suspense, useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { AppHeader } from "@/components/layout/AppHeader";
+import { WordLibrarySortBar } from "@/components/words/WordLibrarySortBar";
 import { WordList } from "@/components/words/WordList";
-import { displayFontClass } from "@/lib/fonts";
 import {
   getLocalWordsByFilter,
   type WordLibraryFilter,
+  type WordLibrarySort,
 } from "@/lib/learning-storage";
 import { getStaticVietnamese } from "@/lib/static-vietnamese";
 import type { LearningStatus } from "@/types/database";
@@ -47,11 +48,27 @@ function parseFilter(value: string | null): WordLibraryFilter {
   return value === "known" ? "known" : "review";
 }
 
+function parseSort(value: string | null): WordLibrarySort {
+  return value === "rank" ? "rank" : "recent";
+}
+
 function WordsPageContent() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const filter = parseFilter(searchParams.get("filter"));
+  const sort = parseSort(searchParams.get("sort"));
   const meta = filterMeta(filter);
   const [tick, setTick] = useState(0);
+
+  const setSort = useCallback(
+    (next: WordLibrarySort) => {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("filter", filter);
+      params.set("sort", next);
+      router.replace(`/words?${params.toString()}`);
+    },
+    [filter, router, searchParams],
+  );
 
   useEffect(() => {
     const refresh = () => setTick((value) => value + 1);
@@ -65,12 +82,12 @@ function WordsPageContent() {
 
   const rows = useMemo(() => {
     void tick;
-    return getLocalWordsByFilter(filter).map((entry) => ({
+    return getLocalWordsByFilter(filter, sort).map((entry) => ({
       word: entry.word,
       subtitle: getStaticVietnamese(entry.word) ?? null,
       badge: filter === "review" ? statusBadge(entry.status) : "Known",
     }));
-  }, [filter, tick]);
+  }, [filter, sort, tick]);
 
   return (
     <>
@@ -84,9 +101,11 @@ function WordsPageContent() {
       />
 
       <div className="word-library page-scroll px-4">
-        <p className={`word-library__count ${displayFontClass}`}>
-          {rows.length} {rows.length === 1 ? "word" : "words"}
-        </p>
+        <WordLibrarySortBar
+          count={rows.length}
+          sort={sort}
+          onSortChange={setSort}
+        />
         <WordList
           rows={rows}
           emptyTitle={meta.emptyTitle}
