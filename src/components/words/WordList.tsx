@@ -3,6 +3,10 @@
 import Link from "next/link";
 import { capitalizeFirst } from "@/lib/format-text";
 import { displayFontClass } from "@/lib/fonts";
+import {
+  buildWordLibraryDetailHref,
+  type WordLibraryNavContext,
+} from "@/lib/word-library-nav";
 
 export type WordListRowData = {
   word: string;
@@ -15,9 +19,22 @@ type WordListProps = {
   rows: WordListRowData[];
   emptyTitle: string;
   emptyHint?: string;
+  libraryContext?: WordLibraryNavContext;
 };
 
-export function WordList({ rows, emptyTitle, emptyHint }: WordListProps) {
+function wordHref(word: string, libraryContext?: WordLibraryNavContext): string {
+  if (!libraryContext) {
+    return `/word/${encodeURIComponent(word.toLowerCase())}`;
+  }
+  return buildWordLibraryDetailHref(word, libraryContext);
+}
+
+export function WordList({
+  rows,
+  emptyTitle,
+  emptyHint,
+  libraryContext,
+}: WordListProps) {
   if (rows.length === 0) {
     return (
       <div className="word-list-empty">
@@ -34,7 +51,7 @@ export function WordList({ rows, emptyTitle, emptyHint }: WordListProps) {
       {rows.map((row) => (
         <li key={row.word}>
           <Link
-            href={`/word/${encodeURIComponent(row.word.toLowerCase())}`}
+            href={wordHref(row.word, libraryContext)}
             className="word-list__row"
           >
             <div className="word-list__main">

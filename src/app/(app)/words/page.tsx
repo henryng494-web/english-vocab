@@ -110,6 +110,7 @@ function WordsPageContent() {
           rows={rows}
           emptyTitle={meta.emptyTitle}
           emptyHint={meta.emptyHint}
+          libraryContext={{ filter, sort }}
         />
       </div>
     </>

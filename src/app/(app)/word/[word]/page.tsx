@@ -17,9 +17,14 @@ import { capitalizeFirst } from "@/lib/format-text";
 import { getLocalWordStatus } from "@/lib/learning-storage";
 import { getPresetRank } from "@/data/preset-vocabulary";
 import { getImportanceTier } from "@/lib/word-rank";
+import { WordLibraryPager } from "@/components/words/WordLibraryPager";
+import {
+  getWordLibraryNeighbors,
+  parseWordLibraryNavContext,
+} from "@/lib/word-library-nav";
 import Link from "next/link";
-import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useParams, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useMemo, useState } from "react";
 
 function statusLabel(status: ReturnType<typeof getLocalWordStatus>): string | null {
   if (!status) return null;
@@ -37,9 +42,15 @@ function statusLabel(status: ReturnType<typeof getLocalWordStatus>): string | nu
   }
 }
 
-export default function WordDetailPage() {
+function WordDetailPageContent() {
   const params = useParams<{ word: string }>();
+  const searchParams = useSearchParams();
   const word = decodeURIComponent(params.word ?? "").trim().toLowerCase();
+  const libraryContext = parseWordLibraryNavContext(searchParams);
+  const libraryNeighbors = useMemo(() => {
+    if (!word || !libraryContext) return null;
+    return getWordLibraryNeighbors(word, libraryContext);
+  }, [libraryContext, word]);
   const [data, setData] = useState<DiscoverWordData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -152,23 +163,45 @@ export default function WordDetailPage() {
             <p className="text-sm text-foreground/70">{error}</p>
           </div>
         ) : (
-          <div className="word-detail__card">
-            <div className="journey-card-slot">
-              <DiscoverCard
-                data={
-                  data ?? {
-                    word,
-                    rank: getPresetRank(word) ?? 10000,
-                    importance_tier: getImportanceTier(getPresetRank(word) ?? 10000),
+          <>
+            <div className="word-detail__card">
+              <div className="journey-card-slot">
+                <DiscoverCard
+                  data={
+                    data ?? {
+                      word,
+                      rank: getPresetRank(word) ?? 10000,
+                      importance_tier: getImportanceTier(getPresetRank(word) ?? 10000),
+                    }
                   }
-                }
-                loading={loading}
-                compact
-              />
+                  loading={loading}
+                  compact
+                />
+              </div>
             </div>
-          </div>
+            {libraryContext && libraryNeighbors ? (
+              <WordLibraryPager
+                context={libraryContext}
+                neighbors={libraryNeighbors}
+              />
+            ) : null}
+          </>
         )}
       </div>
     </div>
+  );
+}
+
+export default function WordDetailPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="app-screen app-screen--journey flex flex-1 items-center justify-center">
+          <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary-100 border-t-primary" />
+        </div>
+      }
+    >
+      <WordDetailPageContent />
+    </Suspense>
   );
 }
