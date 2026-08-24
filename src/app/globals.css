@@ -276,18 +276,23 @@ body {
 }
 
 .card-details--flow .card-details__flip {
+  display: grid;
   height: auto;
   min-height: 0;
 }
 
 .card-details--flow .card-details__face {
+  grid-area: 1 / 1;
   position: relative;
   inset: auto;
   overflow: visible;
+  backface-visibility: visible;
+  -webkit-backface-visibility: visible;
 }
 
 .card-details--flow .card-details__face--family {
   display: none;
+  transform: none;
 }
 
 .card-details--flow .card-details__flip.is-family {
@@ -300,6 +305,8 @@ body {
 
 .card-details--flow .card-details__flip.is-family .card-details__face--family {
   display: flex;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .review-reveal__body ul.space-y-2 {
@@ -328,6 +335,17 @@ body {
 
 .review-reveal__body .vocab-meaning {
   font-size: 1.125rem;
+  line-height: 1.35;
+}
+
+.review-reveal__body .card-details__face--family {
+  justify-content: flex-start;
+  gap: 0.45rem;
+  padding-top: 0.1rem;
+}
+
+.review-reveal__body .card-family__row {
+  font-size: 0.9375rem;
   line-height: 1.35;
 }
 
