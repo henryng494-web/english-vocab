@@ -7,6 +7,7 @@ import type { ReviewChoice } from "@/lib/review-quiz";
 type ReviewQuestionProps = {
   word: string;
   imageUrl?: string | null;
+  searchKeyword?: string | null;
   wordType?: string | null;
   clue: string;
   choices: ReviewChoice[];
@@ -21,6 +22,7 @@ type ReviewQuestionProps = {
 export function ReviewQuestion({
   word,
   imageUrl,
+  searchKeyword,
   wordType,
   clue,
   choices,
@@ -38,6 +40,7 @@ export function ReviewQuestion({
       <ReviewWordImage
         word={word}
         imageUrl={imageUrl}
+        searchKeyword={searchKeyword}
         wordType={wordType}
         className="review-quiz__image"
         quizSafe

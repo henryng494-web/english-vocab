@@ -88,6 +88,7 @@ export function ReviewReveal({
         <ReviewWordImage
           word={word.word}
           imageUrl={word.image_url}
+          searchKeyword={word.search_keyword}
           wordType={word.word_type}
           className="review-reveal__image"
         />

@@ -1,4 +1,5 @@
 import { getPresetRank } from "@/data/preset-word-details";
+import { resolveImageSearchKeyword } from "@/lib/image-keyword";
 import { createClient } from "@/lib/supabase/server";
 import { cleanupCorruptWords } from "@/lib/cleanup-corrupt-words";
 import { getImportanceTier } from "@/lib/word-rank";
@@ -85,6 +86,10 @@ export async function GET(request: Request) {
           importance_tier: getImportanceTier(rank),
           learning_status: (learning?.status as LearningStatus) ?? "new",
           last_reviewed_at: learning?.last_reviewed_at ?? null,
+          search_keyword: resolveImageSearchKeyword(detail.word, {
+            pos: detail.word_type,
+            meaning: detail.vietnamese_meaning,
+          }),
           family_head: getFamilyHeadword(detail.word),
         });
       });

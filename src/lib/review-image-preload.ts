@@ -8,14 +8,25 @@ import { isRealCardImageUrl } from "@/lib/unsplash";
 type ReviewImageTarget = {
   word: string;
   imageUrl?: string | null;
+  searchKeyword?: string | null;
+  wordType?: string | null;
 };
 
-async function fetchWordImageFast(word: string): Promise<string | null> {
+async function fetchWordImageFast(target: ReviewImageTarget): Promise<string | null> {
+  const word = target.word.trim().toLowerCase();
+  if (!word) return null;
+
   const cached = peekCachedWordImageUrl(word);
   if (cached) return cached;
 
   try {
     const params = new URLSearchParams({ word });
+    if (target.searchKeyword?.trim()) {
+      params.set("keyword", target.searchKeyword.trim());
+    }
+    if (target.wordType?.trim()) {
+      params.set("pos", target.wordType.trim());
+    }
     const res = await fetch(`/api/word-image?${params}`);
     const data = (await res.json()) as { image_url?: string | null };
     const url = data.image_url?.trim() ?? null;
@@ -49,7 +60,7 @@ export async function prefetchReviewImages(
     }
 
     pending.push(
-      fetchWordImageFast(word).then((url) => {
+      fetchWordImageFast(target).then((url) => {
         if (url) updates[word] = url;
       }),
     );

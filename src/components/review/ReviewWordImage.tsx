@@ -6,12 +6,14 @@ import { useWordImageSrc } from "@/lib/use-word-image-src";
 export function ReviewWordImage({
   word,
   imageUrl,
+  searchKeyword,
   wordType,
   className,
   quizSafe = false,
 }: {
   word: string;
   imageUrl?: string | null;
+  searchKeyword?: string | null;
   wordType?: string | null;
   className?: string;
   /** When true, never show the SVG placeholder (it can spell the answer). */
@@ -20,7 +22,7 @@ export function ReviewWordImage({
   const { src, ready, onError } = useWordImageSrc(
     word,
     imageUrl,
-    undefined,
+    searchKeyword,
     wordType,
     { quizSafe },
   );

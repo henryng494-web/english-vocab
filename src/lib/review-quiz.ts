@@ -29,6 +29,7 @@ export type ReviewChoice = {
   word: string;
   meaning?: string;
   imageUrl?: string | null;
+  searchKeyword?: string | null;
   wordType?: string | null;
 };
 
@@ -58,6 +59,7 @@ type SenseSource = {
   vietnamese_meaning?: string | null;
   english_definition?: string | null;
   image_url?: string | null;
+  search_keyword?: string | null;
   word_type?: string | null;
 };
 
@@ -144,6 +146,7 @@ export function buildReviewSenseChoices(
     word: capitalizeFirst(item.word),
     meaning: reviewSenseText(item) || correctMeaning,
     imageUrl: item.image_url ?? null,
+    searchKeyword: item.search_keyword ?? null,
     wordType: item.word_type ?? null,
   }));
 }

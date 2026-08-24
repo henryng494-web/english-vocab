@@ -86,6 +86,7 @@ export type VocabWord = WordDetail & {
   importance_tier: string;
   learning_status: LearningStatus;
   last_reviewed_at: string | null;
+  search_keyword?: string | null;
   word_family?: WordFamilyMember[];
   family_head?: string;
 };

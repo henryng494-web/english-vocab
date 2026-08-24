@@ -7,6 +7,7 @@ import { splitSentenceAroundWord } from "@/lib/review-quiz";
 type ReviewRecallQuestionProps = {
   word: string;
   imageUrl?: string | null;
+  searchKeyword?: string | null;
   wordType?: string | null;
   sentence: string;
   locked: boolean;
@@ -18,6 +19,7 @@ type ReviewRecallQuestionProps = {
 export function ReviewRecallQuestion({
   word,
   imageUrl,
+  searchKeyword,
   wordType,
   sentence,
   locked,
@@ -32,6 +34,7 @@ export function ReviewRecallQuestion({
       <ReviewWordImage
         word={word}
         imageUrl={imageUrl}
+        searchKeyword={searchKeyword}
         wordType={wordType}
         className="review-recall__image"
         quizSafe

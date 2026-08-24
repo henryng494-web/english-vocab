@@ -25,6 +25,9 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "Word not available" }, { status: 404 });
     }
 
+    const keywordParam = searchParams.get("keyword")?.trim();
+    const posParam = searchParams.get("pos")?.trim();
+
     const supabase = await createClient();
     const { data: detail } = await supabase
       .from("word_details")
@@ -32,10 +35,13 @@ export async function GET(request: Request) {
       .eq("word", word)
       .maybeSingle();
 
-    const searchKeyword = resolveImageSearchKeyword(word, {
-      pos: detail?.word_type,
-      meaning: detail?.vietnamese_meaning,
-    });
+    const searchKeyword =
+      keywordParam ||
+      resolveImageSearchKeyword(word, {
+        pos: posParam || detail?.word_type,
+        meaning: detail?.vietnamese_meaning,
+      });
+    const pos = posParam || detail?.word_type || null;
 
     const stored = detail?.image_url?.trim();
     if (stored && !shouldRefreshImageUrl(stored, word) && isRealCardImageUrl(stored, word)) {
@@ -45,7 +51,7 @@ export async function GET(request: Request) {
     const resolved = await fetchWordImageUrl(
       word,
       searchKeyword,
-      detail?.word_type,
+      pos,
     );
     const imageUrl = isRealCardImageUrl(resolved, word) ? resolved : null;
 

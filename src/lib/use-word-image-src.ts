@@ -81,7 +81,7 @@ export function useWordImageSrc(
 
     let cancelled = false;
     void (async () => {
-      const fetched = await fetchFreshImageUrl(word);
+      const fetched = await fetchFreshImageUrl(word, searchKeyword, wordType);
       if (cancelled) return;
       if (quizSafe) {
         if (!fetched) return;
@@ -106,7 +106,7 @@ export function useWordImageSrc(
     onError: () => {
       if (quizSafe) {
         void (async () => {
-          const fetched = await fetchFreshImageUrl(word);
+          const fetched = await fetchFreshImageUrl(word, searchKeyword, wordType);
           if (fetched) {
             setSrc(fetched);
             setReady(true);
@@ -116,7 +116,7 @@ export function useWordImageSrc(
       }
       if (src === fallback) return;
       void (async () => {
-        const fetched = await fetchFreshImageUrl(word);
+        const fetched = await fetchFreshImageUrl(word, searchKeyword, wordType);
         if (isUsableCardImageUrl(fetched, word) && fetched !== src) {
           setSrc(fetched!);
           setReady(true);
@@ -129,12 +129,22 @@ export function useWordImageSrc(
   };
 }
 
-async function fetchFreshImageUrl(word: string): Promise<string | null> {
+async function fetchFreshImageUrl(
+  word: string,
+  searchKeyword?: string | null,
+  wordType?: string | null,
+): Promise<string | null> {
   const cached = peekCachedWordImageUrl(word);
   if (cached) return cached;
 
   try {
     const params = new URLSearchParams({ word });
+    if (searchKeyword?.trim()) {
+      params.set("keyword", searchKeyword.trim());
+    }
+    if (wordType?.trim()) {
+      params.set("pos", wordType.trim());
+    }
     const res = await fetch(`/api/word-image?${params}`);
     const data = (await res.json()) as { image_url?: string | null };
     const url = data.image_url?.trim() ?? null;

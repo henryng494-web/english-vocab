@@ -43,6 +43,8 @@ export async function prepareReviewSession(
   const batch = dueQueue.slice(0, 12).map((item) => ({
     word: item.word,
     imageUrl: item.image_url,
+    searchKeyword: item.search_keyword,
+    wordType: item.word_type,
   }));
   preloadReviewImageBatch(batch);
   await prefetchReviewImages(batch);

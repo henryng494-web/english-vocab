@@ -7,7 +7,7 @@ Next.js 15 (App Router) flashcard app for learning English vocabulary. Vietnames
 - **Framework:** Next.js 15, React 19, TypeScript, Tailwind CSS v4
 - **Database / auth:** Supabase (`word_bank`, `word_details`, `user_learning`)
 - **AI enrichment:** Google Gemini (`GEMINI_API_KEY`)
-- **Images:** Pexels (primary stock), Unsplash fallback, fox bundled trial, Wikimedia fallbacks
+- **Images:** Pexels (primary stock) → Unsplash fallback → local SVG placeholder for abstract/safe words only
 
 ## Commands
 
@@ -17,6 +17,8 @@ Next.js 15 (App Router) flashcard app for learning English vocabulary. Vietnames
 | `npm run dev` | Dev server at http://localhost:3000 |
 | `npm run build` | Production build — only when TypeScript or Next.js config changed, and not while `npm run dev` is on port 3000 |
 | `npm run lint` | ESLint — only on files you edited |
+| `npm run test:pexels` | Sample curated keywords against live Pexels scoring |
+| `npm run backfill:images` | Refresh stale `word_details.image_url` rows to stock photos |
 
 Do not run `npm run build` for docs, copy, or CSS-only changes.
 
@@ -52,7 +54,9 @@ src/
 - **Gemini prompts:** `src/lib/gemini-core.ts`
 - **Example quality:** `src/lib/example-fallback.ts` (`keepNaturalExamples`, no generic study templates)
 - **Discover API:** `src/app/api/discover/word/route.ts`
-- **Client cache:** `src/lib/discover-word-cache.ts` (key `discover-word-cache-v4`)
+- **Word image API:** `src/app/api/word-image/route.ts` (fast stock lookup, no Gemini)
+- **Stock image pipeline:** `src/lib/unsplash.ts` (`fetchWordImageUrl`, `SEMANTIC_IMAGE_VERSION`)
+- **Client cache:** `src/lib/discover-word-cache.ts` (key `discover-word-cache-v53`)
 
 ## Locked flashcard UI — do not change layout
 
@@ -76,8 +80,9 @@ You may fix bugs inside these files but preserve the layout contract.
 
 - Prefer curated entries in `src/data/standard-vocab.ts` before calling Gemini.
 - Examples must be natural everyday sentences (see **hole** entry as gold standard), not meta lines like "I learned the word…".
-- Use `search_keyword` from enrichment for image lookup (`src/lib/unsplash.ts`).
-- Bump `discover-word-cache` version only when cache schema or completeness rules change.
+- Use `search_keyword` from enrichment for image lookup (`src/lib/image-keyword.ts` → `src/lib/unsplash.ts`).
+- Only `images.pexels.com` and `images.unsplash.com` URLs are displayed on cards; stale/non-stock DB URLs auto-refresh via `/api/word-image`.
+- Bump `SEMANTIC_IMAGE_VERSION` in `unsplash.ts` and `DISCOVER_WORD_CACHE_VERSION` when image scoring or cache rules change.
 
 ## Cursor Cloud specific instructions
 

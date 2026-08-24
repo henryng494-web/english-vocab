@@ -5,7 +5,7 @@ import { containsForeignScript } from "@/lib/sanitize-vi";
 import { shouldRefreshImageUrl } from "@/lib/unsplash";
 
 /** Bump when ranking, image quality, or enrichment output shape changes. */
-export const DISCOVER_WORD_CACHE_VERSION = 52;
+export const DISCOVER_WORD_CACHE_VERSION = 53;
 
 const STORAGE_KEY = `discover-word-cache-v${DISCOVER_WORD_CACHE_VERSION}`;
 
@@ -51,6 +51,7 @@ const LEGACY_STORAGE_KEYS = [
   "discover-word-cache-v42",
   "discover-word-cache-v43",
   "discover-word-cache-v44",
+  "discover-word-cache-v52",
 ];
 
 const MAX_ENTRIES = 250;

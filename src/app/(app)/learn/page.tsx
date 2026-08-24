@@ -46,20 +46,34 @@ function reviewImageTargets(
   word: VocabWord,
   kind: ReviewQuizKind,
   choices: ReviewChoice[],
-): Array<{ word: string; imageUrl?: string | null }> {
+): Array<{
+  word: string;
+  imageUrl?: string | null;
+  searchKeyword?: string | null;
+  wordType?: string | null;
+}> {
   if (kind === "sense") {
     return choices.map((choice) => ({
       word: choice.word,
       imageUrl: choice.imageUrl,
+      searchKeyword: choice.searchKeyword,
+      wordType: choice.wordType,
     }));
   }
-  return [{ word: word.word, imageUrl: word.image_url }];
+  return [{
+    word: word.word,
+    imageUrl: word.image_url,
+    searchKeyword: word.search_keyword,
+    wordType: word.word_type,
+  }];
 }
 
 function warmReviewQueueImages(words: VocabWord[]): void {
   const batch = words.slice(0, 12).map((item) => ({
     word: item.word,
     imageUrl: item.image_url,
+    searchKeyword: item.search_keyword,
+    wordType: item.word_type,
   }));
   preloadReviewImageBatch(batch);
   void prefetchReviewImages(batch);
@@ -426,6 +440,7 @@ export default function LearnPage() {
         <ReviewRecallQuestion
           word={currentWord.word}
           imageUrl={currentWord.image_url}
+          searchKeyword={currentWord.search_keyword}
           wordType={currentWord.word_type}
           sentence={pickReviewRecallSentence(
             currentWord.word,
@@ -446,6 +461,7 @@ export default function LearnPage() {
         <ReviewQuestion
           word={currentWord.word}
           imageUrl={currentWord.image_url}
+          searchKeyword={currentWord.search_keyword}
           wordType={currentWord.word_type}
           clue={reviewClue(currentWord)}
           choices={choices}

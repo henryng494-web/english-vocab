@@ -61,6 +61,7 @@ export function ReviewSenseQuestion({
                   <ReviewWordImage
                     word={choice.word}
                     imageUrl={choice.imageUrl}
+                    searchKeyword={choice.searchKeyword}
                     wordType={choice.wordType}
                     className="review-sense__photo"
                     quizSafe

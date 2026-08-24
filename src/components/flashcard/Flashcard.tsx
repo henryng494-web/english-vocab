@@ -18,7 +18,7 @@ function FlashcardImage({ word }: { word: VocabWord }) {
   const { src, onError } = useWordImageSrc(
     word.word,
     word.image_url,
-    undefined,
+    word.search_keyword,
     word.word_type,
   );
 
