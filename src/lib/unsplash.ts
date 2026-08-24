@@ -93,7 +93,7 @@ const GENERIC_QUERY_TOKENS = new Set([
   "scene",
 ]);
 
-const SEMANTIC_IMAGE_VERSION = "17";
+const SEMANTIC_IMAGE_VERSION = "18";
 
 const DISPLAYABLE_IMAGE_HOSTS = [
   "images.unsplash.com",
@@ -1165,9 +1165,8 @@ export async function searchWikidataConceptImage(
  * homonyms (well the adverb, domestic = nội địa) must search a scene phrase
  * instead — Wiktionary/Wikipedia pick the encyclopedia sense.
  * Fox-mascot trial words skip this and use bundled illustrations.
- * Fox-mascot trial words skip this and use bundled illustrations.
- * Primary stock: Unsplash (UNSPLASH_ACCESS_KEY), optional Pexels, then
- * Wikimedia Commons, Openverse, and Wikipedia fallbacks.
+ * Primary stock: Pexels (PEXELS_API_KEY), then Unsplash fallback, then
+ * Wikimedia Commons, Openverse, and Wikipedia.
  */
 export async function fetchWordImageUrl(
   word: string,
@@ -1188,6 +1187,9 @@ export async function fetchWordImageUrl(
   const queries = buildImageSearchQueries(word, { searchKeyword, pos });
   if (queries.length === 0) return getDefaultLearningImageDataUrl(word, pos);
 
+  const pexelsUrl = await pickPexelsFromQueries(word, queries);
+  if (pexelsUrl) return pexelsUrl;
+
   const unsplashUrl = await pickUnsplashFromQueries(word, queries);
   if (unsplashUrl) return unsplashUrl;
 
@@ -1202,11 +1204,6 @@ export async function fetchWordImageUrl(
     }
   }
 
-  const pexelsUrl = await pickPexelsFromQueries(word, queries);
-  if (pexelsUrl) return pexelsUrl;
-
-  // Wikimedia titles are usually literal ("Lion at Wild Animal Sanctuary").
-  // Openverse tags are noisier and used to win with jets tagged "lion".
   for (const keyword of queries) {
     const requireWordMatch = !isConcretePhrase(keyword, word);
     const wikimediaUrl = await searchWikimediaPhoto(
