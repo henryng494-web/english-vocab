@@ -302,18 +302,20 @@ body {
   display: flex;
 }
 
-.review-reveal__body .vocab-examples {
+.review-reveal__body ul.space-y-2 {
+  display: flex;
+  flex-direction: column;
   gap: 0.35rem;
 }
 
-.review-reveal__body .vocab-examples li {
+.review-reveal__body ul.space-y-2 > li {
   overflow: visible;
   padding: 0.5rem 0.7rem;
   font-size: 0.9375rem;
   line-height: 1.4;
 }
 
-.review-reveal__body .vocab-examples li p {
+.review-reveal__body ul.space-y-2 > li p {
   overflow: visible;
   display: block;
   -webkit-line-clamp: unset;
