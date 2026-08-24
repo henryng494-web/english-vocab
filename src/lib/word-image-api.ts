@@ -65,19 +65,16 @@ export async function resolveWordImageForApi(
   const imageUrl = isRealCardImageUrl(resolved.imageUrl, word)
     ? resolved.imageUrl
     : null;
-  const persistedKeyword = resolved.searchKeyword ?? searchKeyword;
-
-  if (imageUrl && (imageUrl !== stored || persistedKeyword)) {
-    try {
-      await supabase
-        .from("word_details")
-        .update({
-          image_url: imageUrl,
-          search_keyword: persistedKeyword,
-        })
-        .eq("word", word);
-    } catch {
-      /* best-effort persist */
+  if (imageUrl && imageUrl !== stored) {
+    const { error } = await supabase
+      .from("word_details")
+      .update({ image_url: imageUrl })
+      .eq("word", word);
+    if (error) {
+      console.warn(
+        `[word-image-api] Failed to persist image_url for "${word}":`,
+        error.message,
+      );
     }
   }
 

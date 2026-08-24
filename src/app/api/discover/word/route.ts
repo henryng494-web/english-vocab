@@ -100,13 +100,12 @@ async function persistImageUrlIfChanged(
   resolvedUrl: string,
 ): Promise<void> {
   if (previousUrl?.trim() === resolvedUrl) return;
-  try {
-    await supabase
-      .from("word_details")
-      .update({ image_url: resolvedUrl })
-      .eq("word", word);
-  } catch (error) {
-    console.warn(`Failed to persist refreshed image_url for "${word}":`, error);
+  const { error } = await supabase
+    .from("word_details")
+    .update({ image_url: resolvedUrl })
+    .eq("word", word);
+  if (error) {
+    console.warn(`Failed to persist refreshed image_url for "${word}":`, error.message);
   }
 }
 

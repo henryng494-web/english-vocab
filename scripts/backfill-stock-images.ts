@@ -42,7 +42,6 @@ type WordDetailRow = {
   vietnamese_meaning: string | null;
   english_definition: string | null;
   image_url: string | null;
-  search_keyword: string | null;
 };
 
 function parseArgs() {
@@ -84,7 +83,7 @@ async function main() {
   let query = supabase
     .from("word_details")
     .select(
-      "word, word_type, vietnamese_meaning, english_definition, image_url, search_keyword",
+      "word, word_type, vietnamese_meaning, english_definition, image_url",
     )
     .order("word", { ascending: true });
 
@@ -119,7 +118,7 @@ async function main() {
     try {
       const resolved = await fetchWordImageUrlDetailed(
         row.word,
-        row.search_keyword,
+        null,
         row.word_type,
         row.vietnamese_meaning,
         row.english_definition,
@@ -132,10 +131,7 @@ async function main() {
       if (!dryRun && imageUrl !== row.image_url) {
         const { error: updateError } = await supabase
           .from("word_details")
-          .update({
-            image_url: imageUrl,
-            search_keyword: resolved.searchKeyword ?? row.search_keyword,
-          })
+          .update({ image_url: imageUrl })
           .eq("word", row.word);
         if (updateError) throw updateError;
         updated += 1;
