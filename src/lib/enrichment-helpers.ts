@@ -17,6 +17,7 @@ export function enrichmentToDiscoverWord(
   const keyword = resolveImageSearchKeyword(word, {
     searchKeyword: enrichment.searchKeyword,
     meaning: enrichment.vietnameseMeaning,
+    englishDefinition: enrichment.englishDefinition,
     pos: enrichment.wordType,
   });
   return withWordFamily({

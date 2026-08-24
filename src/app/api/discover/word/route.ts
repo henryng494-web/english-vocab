@@ -51,11 +51,13 @@ function imageSearchKeyword(
   word: string,
   pos?: string | null,
   meaning?: string | null,
+  englishDefinition?: string | null,
 ): string {
   return resolveImageSearchKeyword(word, {
     searchKeyword: getStandardSearchKeyword(word),
     pos,
     meaning,
+    englishDefinition,
   });
 }
 
@@ -282,6 +284,7 @@ export async function GET(request: Request) {
         word,
         repairedDbDetail!.word_type,
         repairedDbDetail!.vietnamese_meaning,
+        repairedDbDetail!.english_definition,
       );
       const imageUrl = await resolveImageUrl(
         word,
@@ -312,6 +315,7 @@ export async function GET(request: Request) {
       word,
       dbDetail?.word_type,
       dbDetail?.vietnamese_meaning,
+      dbDetail?.english_definition,
     );
     const enrichmentPromise = enrichWord(word, { rank: frequencyRank, skipGemini });
     const imagePromise = resolveImageUrl(

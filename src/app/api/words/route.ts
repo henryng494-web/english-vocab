@@ -89,6 +89,7 @@ export async function GET(request: Request) {
           search_keyword: resolveImageSearchKeyword(detail.word, {
             pos: detail.word_type,
             meaning: detail.vietnamese_meaning,
+            englishDefinition: detail.english_definition,
           }),
           family_head: getFamilyHeadword(detail.word),
         });

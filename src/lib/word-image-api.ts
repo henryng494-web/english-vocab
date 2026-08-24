@@ -33,7 +33,7 @@ export async function resolveWordImageForApi(
   const supabase = await createClient();
   const { data: detail } = await supabase
     .from("word_details")
-    .select("image_url, word_type, vietnamese_meaning")
+    .select("image_url, word_type, vietnamese_meaning, english_definition")
     .eq("word", word)
     .maybeSingle();
 
@@ -42,6 +42,7 @@ export async function resolveWordImageForApi(
     resolveImageSearchKeyword(word, {
       pos: posParam?.trim() || detail?.word_type,
       meaning: detail?.vietnamese_meaning,
+      englishDefinition: detail?.english_definition,
     });
   const pos = posParam?.trim() || detail?.word_type || null;
 
@@ -57,11 +58,14 @@ export async function resolveWordImageForApi(
   const resolved = await fetchWordImageUrl(word, searchKeyword, pos);
   const imageUrl = isRealCardImageUrl(resolved, word) ? resolved : null;
 
-  if (imageUrl && imageUrl !== stored) {
+  if (imageUrl && (imageUrl !== stored || searchKeyword)) {
     try {
       await supabase
         .from("word_details")
-        .update({ image_url: imageUrl })
+        .update({
+          image_url: imageUrl,
+          search_keyword: searchKeyword,
+        })
         .eq("word", word);
     } catch {
       /* best-effort persist */
