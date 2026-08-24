@@ -44,7 +44,9 @@ const GENERIC_QUERY_TOKENS = new Set([
   "closeup",
 ]);
 
-const SEMANTIC_IMAGE_VERSION = "29";
+const SEMANTIC_IMAGE_VERSION = "30";
+/** Marks URLs produced by the Gemini→Unsplash vocabulary image pipeline. */
+export const IMAGE_PIPELINE_ID = "gemini-unsplash";
 
 /** Only Pexels and Unsplash are trusted learning-card photo sources. */
 const STOCK_IMAGE_HOSTS = new Set(["images.pexels.com", "images.unsplash.com"]);
@@ -166,6 +168,22 @@ export function isUntrustedRandomImageUrl(
   }
 }
 
+export function isCurrentPipelineImageUrl(
+  url: string | null | undefined,
+): boolean {
+  const trimmed = url?.trim();
+  if (!trimmed?.startsWith("http") || !isStockImageUrl(trimmed)) return false;
+  try {
+    const parsed = new URL(trimmed);
+    return (
+      parsed.searchParams.get("semantic") === SEMANTIC_IMAGE_VERSION &&
+      parsed.searchParams.get("imgpipe") === IMAGE_PIPELINE_ID
+    );
+  } catch {
+    return false;
+  }
+}
+
 export function isPexelsImageUrl(url: string | null | undefined): boolean {
   const trimmed = url?.trim();
   if (!trimmed?.startsWith("http")) return false;
@@ -265,6 +283,9 @@ export function shouldRefreshImageUrl(
   if (isUnsafeImageUrl(trimmed)) return true;
   if (trimmed.startsWith("http") && !isStockImageUrl(trimmed)) return true;
   if (trimmed.startsWith("http") && !isDisplayableHttpImageUrl(trimmed, word)) {
+    return true;
+  }
+  if (isStockImageUrl(trimmed) && !isCurrentPipelineImageUrl(trimmed)) {
     return true;
   }
   return (
@@ -661,6 +682,7 @@ function isUngroundedSingleTokenQuery(
 function markSemanticImageUrl(url: string): string {
   const versionedUrl = new URL(url);
   versionedUrl.searchParams.set("semantic", SEMANTIC_IMAGE_VERSION);
+  versionedUrl.searchParams.set("imgpipe", IMAGE_PIPELINE_ID);
   return versionedUrl.toString();
 }
 

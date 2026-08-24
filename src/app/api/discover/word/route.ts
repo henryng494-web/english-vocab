@@ -17,6 +17,7 @@ import { withWordFamily } from "@/lib/word-family-display";
 import { resolveImageSearchKeyword } from "@/lib/image-keyword";
 import {
   fetchWordImageUrl,
+  isCurrentPipelineImageUrl,
   shouldRefreshImageUrl,
 } from "@/lib/unsplash";
 import { isExcludedVocabWord } from "@/lib/proper-noun";
@@ -43,7 +44,7 @@ async function resolveImageUrl(
   englishDefinition?: string | null,
 ): Promise<string> {
   const trimmed = existingUrl?.trim();
-  if (trimmed && !shouldRefreshImageUrl(trimmed, word)) {
+  if (trimmed && isCurrentPipelineImageUrl(trimmed)) {
     return trimmed;
   }
   return fetchWordImageUrl(

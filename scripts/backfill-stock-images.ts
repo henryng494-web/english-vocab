@@ -93,7 +93,10 @@ async function main() {
   }
 
   const { data, error } = await query;
-  if (error) throw error;
+  if (error) {
+    console.error("Backfill query failed:", error);
+    throw new Error(error.message ?? "Failed to load word_details");
+  }
 
   const rows = (data ?? []) as WordDetailRow[];
   const targets = force

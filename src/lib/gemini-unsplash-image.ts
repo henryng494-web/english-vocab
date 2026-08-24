@@ -124,6 +124,34 @@ export async function generateStockSearchPhraseWithGemini(
   }
 }
 
+async function fetchUnsplashForPhrase(
+  word: string,
+  searchPhrase: string,
+): Promise<string | null> {
+  const query = searchPhrase.trim();
+  if (!query) return null;
+
+  const primary = await fetchUnsplashImageForQuery(word, query);
+  if (primary) return primary;
+
+  const tokens = query.split(/\s+/).filter(Boolean);
+  if (tokens.length > 3) {
+    const shorter = await fetchUnsplashImageForQuery(
+      word,
+      tokens.slice(0, 3).join(" "),
+    );
+    if (shorter) return shorter;
+  }
+  if (tokens.length > 2) {
+    const tail = await fetchUnsplashImageForQuery(
+      word,
+      tokens.slice(-2).join(" "),
+    );
+    if (tail) return tail;
+  }
+  return null;
+}
+
 /**
  * Step 2 — Search Unsplash and return the best scored photo URL.
  */
@@ -140,7 +168,7 @@ export async function fetchUnsplashImageUrl(
     return null;
   }
 
-  return fetchUnsplashImageForQuery(normalizedWord, query);
+  return fetchUnsplashForPhrase(normalizedWord, query);
 }
 
 /**

@@ -37,6 +37,7 @@ import {
   type ReviewIntervalDays,
 } from "@/lib/review-schedule";
 import { shouldRefreshImageUrl } from "@/lib/unsplash";
+import { refreshStaleWordImages } from "@/lib/refresh-stale-word-images";
 import type { LearningStatus, VocabWord } from "@/types/database";
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -252,6 +253,19 @@ export default function LearnPage() {
       setSessionDone(false);
       warmReviewImages(due, fetched);
       if (startFirst && due[0]) startQuestion(due[0], fetched, 0);
+
+      void refreshStaleWordImages(
+        fetched.map((word) => ({
+          word: word.word,
+          imageUrl: word.image_url,
+          meaning: word.vietnamese_meaning,
+          wordType: word.word_type,
+          searchKeyword: word.search_keyword,
+        })),
+        3,
+      ).then((updates) => {
+        applyImageUpdatesToState(updates, setAllWords, setQueue, setChoices);
+      });
     },
     [startQuestion, warmReviewImages],
   );

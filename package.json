@@ -12,7 +12,8 @@
     "test:gemini-unsplash-image": "npx tsx scripts/test-gemini-unsplash-image.ts",
     "test:gemini-pexels-image": "npm run test:gemini-unsplash-image",
     "test:pexels": "npx tsx scripts/test-pexels-keywords.ts",
-    "backfill:images": "npx tsx scripts/backfill-stock-images.ts"
+    "backfill:images": "npx tsx scripts/backfill-stock-images.ts",
+    "refresh:all-images": "npm run backfill:images -- --force"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.0",

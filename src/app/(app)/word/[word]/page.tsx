@@ -13,6 +13,7 @@ import {
   loadPersistedWordCache,
   persistWordCache,
 } from "@/lib/discover-word-cache";
+import { refreshSingleWordImage } from "@/lib/refresh-stale-word-images";
 import { capitalizeFirst } from "@/lib/format-text";
 import { getLocalWordStatus } from "@/lib/learning-storage";
 import { getPresetRank } from "@/data/preset-vocabulary";
@@ -131,6 +132,32 @@ function WordDetailPageContent() {
       cancelled = true;
     };
   }, [word]);
+
+  useEffect(() => {
+    if (!data?.word || !data.vietnamese_meaning?.trim()) return;
+
+    let cancelled = false;
+    void refreshSingleWordImage({
+      word: data.word,
+      imageUrl: data.image_url,
+      meaning: data.vietnamese_meaning,
+      wordType: data.word_type,
+      searchKeyword: data.search_keyword,
+    }).then((imageUrl) => {
+      if (cancelled || !imageUrl || imageUrl === data.image_url) return;
+      setData((prev) => (prev ? { ...prev, image_url: imageUrl } : prev));
+      const cache = loadPersistedWordCache();
+      const existing = cache.get(data.word);
+      if (existing) {
+        cache.set(data.word, { ...existing, image_url: imageUrl });
+        persistWordCache(cache);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [data?.word, data?.image_url, data?.vietnamese_meaning, data?.word_type, data?.search_keyword]);
 
   return (
     <div className="app-screen app-screen--journey">
