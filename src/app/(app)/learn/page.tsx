@@ -42,6 +42,18 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 type Phase = "question" | "reveal";
 
+const REVEAL_DELAY_MS = 850;
+
+function mergeQueueWordData(
+  queue: VocabWord[],
+  fresh: VocabWord[],
+): VocabWord[] {
+  const byWord = new Map(
+    fresh.map((item) => [item.word.trim().toLowerCase(), item]),
+  );
+  return queue.map((item) => byWord.get(item.word.trim().toLowerCase()) ?? item);
+}
+
 function reviewImageTargets(
   word: VocabWord,
   kind: ReviewQuizKind,
@@ -99,16 +111,18 @@ export default function LearnPage() {
   const [adding, setAdding] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sessionDone, setSessionDone] = useState(false);
-  const resultTimer = useRef<number | null>(null);
   const hydratedRef = useRef(false);
+  const revealDelayRef = useRef(REVEAL_DELAY_MS);
+  const phaseRef = useRef<Phase>("question");
+  const lockedRef = useRef(false);
+  const indexRef = useRef(0);
 
   const currentWord = queue[index];
+  phaseRef.current = phase;
+  lockedRef.current = locked;
+  indexRef.current = index;
 
   const startQuestion = useCallback((word: VocabWord, pool: VocabWord[], questionIndex = 0) => {
-    if (resultTimer.current) {
-      window.clearTimeout(resultTimer.current);
-      resultTimer.current = null;
-    }
     const schedule = getReviewSchedule(word.word);
     const wanted = reviewQuizKindForIndex(questionIndex);
     let kind: ReviewQuizKind = "word";
@@ -187,7 +201,17 @@ export default function LearnPage() {
         updateReviewCache({ allWords: all, dueQueue: due });
         if (options?.silent) {
           setAllWords(all);
-          setQueue(due);
+          setQueue((prev) => {
+            if (prev.length === 0) return due;
+            if (
+              lockedRef.current ||
+              phaseRef.current === "reveal" ||
+              indexRef.current > 0
+            ) {
+              return mergeQueueWordData(prev, due);
+            }
+            return due;
+          });
           void prepareReviewSession(all);
           return;
         }
@@ -220,11 +244,18 @@ export default function LearnPage() {
     } else {
       void fetchWords();
     }
-
-    return () => {
-      if (resultTimer.current) window.clearTimeout(resultTimer.current);
-    };
   }, [applyReviewSession, bootstrapReview, fetchWords]);
+
+  useEffect(() => {
+    if (!locked || phase !== "question") return;
+    const delay = revealDelayRef.current;
+    const timer = window.setTimeout(() => {
+      setPhase("reveal");
+    }, delay);
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [locked, phase]);
 
   useEffect(() => {
     if (!currentWord) return;
@@ -332,13 +363,10 @@ export default function LearnPage() {
     setTimesReviewed(
       isCorrect ? schedule.timesReviewed + 1 : schedule.timesReviewed,
     );
+    revealDelayRef.current = immediate ? 0 : REVEAL_DELAY_MS;
     if (immediate) {
       setPhase("reveal");
-      return;
     }
-    resultTimer.current = window.setTimeout(() => {
-      setPhase("reveal");
-    }, 850);
   }
 
   function handleChoose(choice: ReviewChoice) {
