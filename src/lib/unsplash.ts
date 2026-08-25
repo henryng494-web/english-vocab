@@ -12,6 +12,11 @@ import {
   isApprovedFunctionWordStockUrl,
 } from "@/lib/function-word-images";
 import {
+  isMascotIllustrationUrl,
+  resolveMascotWordImageUrl,
+  shouldUseMascotIllustration,
+} from "@/lib/mascot-word-images";
+import {
   isClosedClassWord,
   resolveWordImagePlan,
 } from "@/lib/word-image-strategy";
@@ -360,6 +365,7 @@ export function hasAcceptableWordImage(
 ): boolean {
   const trimmed = url?.trim();
   if (!trimmed) return false;
+  if (isMascotIllustrationUrl(trimmed)) return true;
   if (isPlaceholderIllustrationUrl(trimmed)) return true;
   if (!isStockImageUrl(trimmed)) return false;
   return !shouldRefreshImageUrl(trimmed, word);
@@ -390,6 +396,10 @@ export function shouldRefreshImageUrl(
   pos?: string | null,
 ): boolean {
   const trimmed = url?.trim();
+  if (word && shouldUseMascotIllustration(word)) {
+    if (isMascotIllustrationUrl(trimmed)) return false;
+    return true;
+  }
   if (word && requiresSafeImageOnly(word)) {
     return !trimmed || trimmed.startsWith("http") || isUnsafeImageUrl(trimmed);
   }
@@ -559,12 +569,20 @@ function isLegacyDisplayableStockUrl(
 export function resolveWordImageUrl(
   word: string,
   imageUrl?: string | null,
-  _searchKeyword?: string | null,
+  searchKeyword?: string | null,
   pos?: string | null,
 ): string {
-  void _searchKeyword;
   if (requiresSafeImageOnly(word)) {
     return getDefaultLearningImageDataUrl(word, pos);
+  }
+  if (shouldUseMascotIllustration(word)) {
+    const mascot = resolveMascotWordImageUrl(
+      word,
+      pos,
+      searchKeyword,
+      null,
+    );
+    if (mascot) return mascot;
   }
   if (isClosedClassWord(word, pos)) {
     const trimmed = imageUrl?.trim();
@@ -574,6 +592,7 @@ export function resolveWordImageUrl(
     return getDefaultLearningImageDataUrl(word, pos);
   }
   const trimmed = imageUrl?.trim();
+  if (isMascotIllustrationUrl(trimmed)) return trimmed!;
   if (isDisplayableHttpImageUrl(trimmed, word, pos)) {
     return trimmed!;
   }
@@ -592,6 +611,12 @@ export function finalizeWordImageDisplayUrl(
 ): string {
   const resolved = candidate?.trim() ?? "";
   const existing = stored?.trim() ?? "";
+
+  if (shouldUseMascotIllustration(word)) {
+    if (resolved && isMascotIllustrationUrl(resolved)) return resolved;
+    const mascot = resolveMascotWordImageUrl(word, pos, null, null);
+    if (mascot) return mascot;
+  }
 
   if (isClosedClassWord(word, pos)) {
     if (resolved && isApprovedFunctionWordStockUrl(resolved, word)) {
@@ -1083,6 +1108,29 @@ export async function fetchWordImageUrlDetailed(
       getDefaultLearningImageDataUrl(word, pos),
       WORD_IMAGE_SOURCES.SVG_PLACEHOLDER,
     );
+  }
+
+  if (shouldUseMascotIllustration(word)) {
+    try {
+      const mascotUrl = resolveMascotWordImageUrl(
+        word,
+        pos,
+        searchKeyword,
+        meaning,
+      );
+      if (mascotUrl) {
+        return okWordImageResult(
+          mascotUrl,
+          WORD_IMAGE_SOURCES.MASCOT_ILLUSTRATION,
+          keywordOut,
+        );
+      }
+    } catch (error) {
+      console.warn(
+        `[fetchWordImageUrl] Mascot pipeline failed for "${word}":`,
+        error instanceof Error ? error.message : error,
+      );
+    }
   }
 
   const options = { searchKeyword, pos, meaning, englishDefinition };

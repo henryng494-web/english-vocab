@@ -12,6 +12,7 @@ export const WORD_IMAGE_SOURCES = {
   DIRECT_STOCK: "direct-stock",
   SVG_PLACEHOLDER: "svg-placeholder",
   COALESCE: "coalesce",
+  MASCOT_ILLUSTRATION: "mascot-illustration",
   ERROR: "error",
 } as const;
 

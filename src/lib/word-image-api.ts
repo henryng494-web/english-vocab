@@ -17,6 +17,10 @@ import {
   shouldRefreshImageUrl,
 } from "@/lib/unsplash";
 import { isApprovedFunctionWordStockUrl } from "@/lib/function-word-images";
+import {
+  resolveMascotWordImageUrl,
+  shouldUseMascotIllustration,
+} from "@/lib/mascot-word-images";
 import { isClosedClassWord } from "@/lib/word-image-strategy";
 import { normalizeVocabInput } from "@/lib/word-validation";
 
@@ -84,6 +88,35 @@ export async function resolveWordImageForApi(
     const pos = posParam?.trim() || detail?.word_type || null;
 
     const stored = detail?.image_url?.trim();
+
+    if (shouldUseMascotIllustration(word)) {
+      const mascotUrl = resolveMascotWordImageUrl(
+        word,
+        pos,
+        searchKeyword,
+        meaning,
+      );
+      if (mascotUrl) {
+        if (stored && isPersistableWordImageUrl(stored, word)) {
+          const { error } = await supabase
+            .from("word_details")
+            .update({ image_url: null })
+            .eq("word", word);
+          if (error) {
+            console.warn(
+              `[word-image-api] Failed to clear stale stock for mascot "${word}":`,
+              error.message,
+            );
+          }
+        }
+        return okWordImageResult(
+          mascotUrl,
+          WORD_IMAGE_SOURCES.MASCOT_ILLUSTRATION,
+          searchKeyword,
+        );
+      }
+    }
+
     if (
       stored &&
       isRealCardImageUrl(stored, word) &&
