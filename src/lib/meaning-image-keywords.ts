@@ -11,7 +11,28 @@ type PatternRule = {
   query: string;
 };
 
+/** High-confidence queries for headwords that stock search mishandles. */
+const WORD_HEADWORD_RULES: Record<string, string> = {
+  martyr: "memorial candle remembrance sacrifice honor quiet",
+  obstacle: "road barrier fallen tree blocked path obstacle",
+  lug: "person carrying heavy boxes luggage moving",
+  descent: "person walking down stairs hill slope",
+  preacher: "preacher speaking church pulpit congregation",
+};
+
 const MEANING_RULES: PatternRule[] = [
+  {
+    pattern: /tử vì đạo|hy sinh|martyr|sacrifice for faith/i,
+    query: "memorial candle remembrance sacrifice honor quiet",
+  },
+  {
+    pattern: /vật cản|chướng ngại|obstacle|barrier blocking/i,
+    query: "road barrier fallen tree blocked path obstacle",
+  },
+  {
+    pattern: /kéo|vác|khuân vác|lug heavy|carry heavy/i,
+    query: "person carrying heavy boxes luggage moving",
+  },
   {
     pattern: /phẫu thuật|surgical|surgeon|operating room|surgery medical/i,
     query: "surgeon operating room surgery medical team",
@@ -174,9 +195,19 @@ function contextBlob(context: MeaningImageContext): string {
   return [context.meaning, context.englishDefinition].filter(Boolean).join(" ");
 }
 
+export function resolveWordHeadwordImageKeyword(word: string): string | null {
+  const normalized = word.trim().toLowerCase().replace(/[^a-z0-9'-]/g, "");
+  if (!normalized) return null;
+  return WORD_HEADWORD_RULES[normalized] ?? null;
+}
+
 export function resolveMeaningImageKeyword(
   context: MeaningImageContext,
+  word?: string | null,
 ): string | null {
+  const headwordRule = word ? resolveWordHeadwordImageKeyword(word) : null;
+  if (headwordRule) return headwordRule;
+
   const text = contextBlob(context);
   if (!text.trim()) return null;
 

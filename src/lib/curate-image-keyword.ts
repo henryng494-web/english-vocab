@@ -160,7 +160,10 @@ export function curateImageSearchPhrase(
   const homonym = resolveHomonymImageKeyword(key, { meaning, englishDefinition, pos });
   if (homonym) return homonym;
 
-  const meaningKeyword = resolveMeaningImageKeyword({ meaning, englishDefinition, pos });
+  const meaningKeyword = resolveMeaningImageKeyword(
+    { meaning, englishDefinition, pos },
+    key,
+  );
   if (meaningKeyword) return meaningKeyword;
 
   const handTuned = CURATED_IMAGE_KEYWORDS_RANK_1_100[key];

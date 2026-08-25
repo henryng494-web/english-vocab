@@ -256,7 +256,7 @@ export async function fetchVocabIllustrationImage(
         `[gemini-unsplash-image] Meaning-based stock fallback for "${word}" → "${directStock.query}"`,
       );
       return {
-        imageUrl: directStock.url,
+        imageUrl: markGeminiPipelineImageUrl(directStock.url),
         searchPhrase: directStock.query,
         source: "direct-stock",
       };
@@ -279,7 +279,7 @@ export async function fetchVocabIllustrationImage(
     );
     if (directStock) {
       return {
-        imageUrl: directStock.url,
+        imageUrl: markGeminiPipelineImageUrl(directStock.url),
         searchPhrase: directStock.query,
         source: "direct-stock",
       };

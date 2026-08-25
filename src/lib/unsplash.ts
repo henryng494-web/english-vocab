@@ -44,9 +44,9 @@ const GENERIC_QUERY_TOKENS = new Set([
   "closeup",
 ]);
 
-const SEMANTIC_IMAGE_VERSION = "32";
+const SEMANTIC_IMAGE_VERSION = "33";
 /** Only URLs from a successful Gemini→Unsplash run carry this marker. */
-export const IMAGE_PIPELINE_ID = "gemini-unsplash-v3";
+export const IMAGE_PIPELINE_ID = "gemini-unsplash-v4";
 
 /** Only Pexels and Unsplash are trusted learning-card photo sources. */
 const STOCK_IMAGE_HOSTS = new Set(["images.pexels.com", "images.unsplash.com"]);
@@ -320,7 +320,6 @@ export function shouldRefreshImageUrl(
     return !trimmed || trimmed.startsWith("http") || isUnsafeImageUrl(trimmed);
   }
   if (!trimmed) return true;
-  if (isPexelsImageUrl(trimmed)) return true;
   if (isUnsafeImageUrl(trimmed)) return true;
   if (trimmed.startsWith("http") && !isStockImageUrl(trimmed)) return true;
   if (trimmed.startsWith("http") && !isDisplayableHttpImageUrl(trimmed, word)) {
@@ -332,12 +331,6 @@ export function shouldRefreshImageUrl(
       imgpipe === IMAGE_PIPELINE_ID &&
       semantic === SEMANTIC_IMAGE_VERSION
     ) {
-      return false;
-    }
-    if (imgpipe) {
-      return true;
-    }
-    if (semantic === SEMANTIC_IMAGE_VERSION) {
       return false;
     }
     return true;
@@ -507,25 +500,7 @@ async function pickScoredStockPhoto(
     const idx = hashWord(word) % topTier.length;
     return topTier[idx]!.url;
   }
-  return pickHashedSafeStockPhoto(word, photos, query);
-}
-
-/** Last resort: pick a safe photo deterministically per word (avoids shared skull). */
-function pickHashedSafeStockPhoto(
-  word: string,
-  photos: Array<{ url: string; alt: string; extra?: string }>,
-  query: string,
-): string | null {
-  const safe: string[] = [];
-  for (const photo of photos) {
-    if (isUnsafeImageMetadata(photo.alt, photo.extra, query)) continue;
-    if (!photo.url || isUnsafeImageUrl(photo.url)) continue;
-    const versioned = markSemanticImageUrl(photo.url);
-    if (!isSelectableStockPhotoUrl(versioned, word)) continue;
-    safe.push(versioned);
-  }
-  if (safe.length === 0) return null;
-  return safe[hashWord(word) % safe.length]!;
+  return null;
 }
 
 async function pickUnsplashFromQueries(
@@ -787,16 +762,21 @@ async function tryGeminiVocabImage(
   pos: string | null | undefined,
   meaning: string,
 ): Promise<{ imageUrl: string; searchPhrase: string } | null> {
-  if (!process.env.GEMINI_API_KEY?.trim() || !meaning.trim()) return null;
+  if (!meaning.trim()) return null;
   try {
-    const { fetchVocabIllustrationImageOrNull } = await import(
+    const { fetchVocabIllustrationImage } = await import(
       "@/lib/gemini-unsplash-image"
     );
-    return fetchVocabIllustrationImageOrNull({
+    const result = await fetchVocabIllustrationImage({
       word,
       partOfSpeech: pos?.trim() || "noun",
       meaning,
     });
+    if (result.source === "placeholder") return null;
+    return {
+      imageUrl: result.imageUrl,
+      searchPhrase: result.searchPhrase ?? word,
+    };
   } catch (error) {
     console.warn(
       `[fetchWordImageUrl] Gemini pipeline skipped for "${word}":`,
@@ -804,6 +784,10 @@ async function tryGeminiVocabImage(
     );
     return null;
   }
+}
+
+function finalizeResolvedImageUrl(url: string): string {
+  return markGeminiPipelineImageUrl(url);
 }
 
 /**
@@ -827,19 +811,15 @@ export async function fetchWordImageUrlDetailed(
   const options = { searchKeyword, pos, meaning, englishDefinition };
   const geminiContext =
     meaning?.trim() || englishDefinition?.trim() || "";
-  const canUseGemini = Boolean(
-    process.env.GEMINI_API_KEY?.trim() && geminiContext,
-  );
 
-  if (canUseGemini) {
-    const gemini = await tryGeminiVocabImage(word, pos, geminiContext);
-    if (gemini) {
+  if (geminiContext) {
+    const pipeline = await tryGeminiVocabImage(word, pos, geminiContext);
+    if (pipeline) {
       return {
-        imageUrl: gemini.imageUrl,
-        searchKeyword: gemini.searchPhrase,
+        imageUrl: finalizeResolvedImageUrl(pipeline.imageUrl),
+        searchKeyword: pipeline.searchPhrase,
       };
     }
-    // Gemini unavailable or missed — fall through to meaning-based stock search.
   }
 
   const queries = buildImageSearchQueries(word, options);
@@ -853,7 +833,7 @@ export async function fetchWordImageUrlDetailed(
   const unsplashUrl = await pickUnsplashFromQueries(word, queries);
   if (unsplashUrl) {
     return {
-      imageUrl: unsplashUrl,
+      imageUrl: finalizeResolvedImageUrl(unsplashUrl),
       searchKeyword: searchKeyword?.trim() || queries[0] || null,
     };
   }
@@ -861,7 +841,7 @@ export async function fetchWordImageUrlDetailed(
   const pexelsUrl = await pickPexelsFromQueries(word, queries);
   if (pexelsUrl) {
     return {
-      imageUrl: pexelsUrl,
+      imageUrl: finalizeResolvedImageUrl(pexelsUrl),
       searchKeyword: searchKeyword?.trim() || queries[0] || null,
     };
   }
