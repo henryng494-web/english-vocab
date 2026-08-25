@@ -16,11 +16,20 @@ const WORD_HEADWORD_RULES: Record<string, string> = {
   martyr: "memorial candle remembrance sacrifice honor quiet",
   obstacle: "road barrier fallen tree blocked path obstacle",
   lug: "person carrying heavy boxes luggage moving",
-  descent: "person walking down stairs hill slope",
+  descent: "walking down mountain trail hikers",
   preacher: "preacher speaking church pulpit congregation",
+  technician: "technician repairing computer",
 };
 
 const MEANING_RULES: PatternRule[] = [
+  {
+    pattern: /kỹ thuật viên|technician|repair technician|service technician/i,
+    query: "technician repairing computer",
+  },
+  {
+    pattern: /đi xuống|hạ xuống|descent|going down|downward/i,
+    query: "walking down mountain trail hikers",
+  },
   {
     pattern: /tử vì đạo|hy sinh|martyr|sacrifice for faith/i,
     query: "memorial candle remembrance sacrifice honor quiet",
