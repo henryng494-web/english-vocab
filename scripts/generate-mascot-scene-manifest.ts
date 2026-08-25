@@ -6,7 +6,7 @@
 import { writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { getWordsInRange } from "@/data/preset-vocabulary";
-import type { MascotSceneType } from "@/lib/mascot-cast";
+import { MASCOT_TOP_RANK_LIMIT, type MascotSceneType } from "@/lib/mascot-cast";
 
 // Inline planner logic (avoid importing manifest we're generating).
 import { lookupCuratedImageKeyword } from "@/data/curated-image-keywords-loader";
@@ -143,7 +143,7 @@ function planScene(word: string): MascotSceneType {
   return "default_duo";
 }
 
-const words = getWordsInRange(1, 1000);
+const words = getWordsInRange(1, MASCOT_TOP_RANK_LIMIT);
 const manifest: Record<string, MascotSceneType> = {};
 for (const entry of words) {
   manifest[entry.word] = planScene(entry.word);

@@ -1,3 +1,4 @@
+import { getCastLineupDataUrl } from "@/lib/mascot-cast-lineup-data";
 import { isExcludedVocabWord } from "@/lib/proper-noun";
 import { planMascotScene } from "@/lib/mascot-scene-planner";
 import { renderMascotSceneSvg } from "@/lib/mascot-svg-render";
@@ -28,7 +29,12 @@ export async function GET(request: Request) {
   }
 
   const plan = planMascotScene(word, pos);
-  const svg = renderMascotSceneSvg(plan.scene, word, pos);
+  const svg = renderMascotSceneSvg(
+    plan.scene,
+    word,
+    pos,
+    getCastLineupDataUrl(),
+  );
 
   return new NextResponse(svg, {
     headers: {

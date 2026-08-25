@@ -1,7 +1,7 @@
-/** Mascot cast v3 — approved PNG sprite sheet (`public/mascot/cast-lineup.png`). */
+/** Mascot cast v4 — pilot on preset rank 1–100 only. */
 
-export const MASCOT_CAST_VERSION = "mascot-cast-v3";
-export const MASCOT_TOP_RANK_LIMIT = 1000;
+export const MASCOT_CAST_VERSION = "mascot-cast-v4";
+export const MASCOT_TOP_RANK_LIMIT = 100;
 
 export type MascotCharacter = "cat" | "cow" | "dog" | "pig";
 
