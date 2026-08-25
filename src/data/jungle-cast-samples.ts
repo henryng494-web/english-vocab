@@ -13,8 +13,11 @@ export const JUNGLE_CAST_SHAPE_LOCK =
   "(3) CROCODILE: lime green #84CC16; body ALWAYS one horizontal rectangle log (width 3x height); jagged dorsal scales; four stubby short legs (never long legs); one blunt white tooth.\n" +
   "(4) TIGER: orange ball #F97316; body ALWAYS one sphere (head+body merged chibi ball); bold dark zigzag stripes; cream muzzle patch; legs ALWAYS tiny stubs (never long legs); small striped tail.";
 
+export const JUNGLE_CAST_ANATOMY_RULES =
+  "ANATOMY & PROPS: Monkey has EXACTLY two arms and two legs (four limbs total) — never three arms, never extra limbs. Elephant: four stick legs + trunk (trunk is NOT a third arm). Tiger: two stub arms two stub legs. Crocodile: four stub legs. ALL objects must be physically grounded or held — candy jars, puzzles, props resting on table/floor OR held by a visible hand/arm. NO floating objects in mid-air.";
+
 export const JUNGLE_CAST_DESIGN_ONLY =
-  `Flat 2D humorous cartoon illustration, wide 16:9 landscape. NOT realistic. ${JUNGLE_CAST_SHAPE_LOCK} CAST SIZE: use 1–4 characters as scene needs — not all four every time. SETTING: everyday modern life (home, school, park, office, cafe, street) — NOT jungle. NO text, NO letters, NO watermark.`;
+  `Flat 2D humorous cartoon illustration, wide 16:9 landscape. NOT realistic. ${JUNGLE_CAST_SHAPE_LOCK} ${JUNGLE_CAST_ANATOMY_RULES} CAST SIZE: use 1–4 characters as scene needs — not all four every time. SETTING: everyday modern life (home, school, park, office, cafe, street) — NOT jungle. NO text, NO letters, NO watermark.`;
 
 export type JungleCastSampleEntry = {
   label: string;
@@ -50,19 +53,19 @@ export const JUNGLE_CAST_EXPRESSION_SAMPLES: Readonly<
     label: "Từ chối — kiên quyết",
     cast: ["monkey", "tiger"],
     scene:
-      "ONLY monkey and tiger — school gate sidewalk, refuse giant candy jar from off-screen hand.",
+      "ONLY monkey and tiger on school sidewalk. Large candy jar sits ON the pavement between them (grounded, not floating, no disembodied hand). Both step back refusing.",
     expressions:
-      "Monkey: stern stop gesture. Tiger: serious head-shake — tiger stays round ball shape.",
+      "Monkey: stern refusal — both hands on hips (two arms only, front view). Tiger: both hands on hips, angry frown.",
     outfits: "Monkey: school backpack. Tiger: student cap.",
   },
   think: {
     label: "Suy nghĩ — tò mò",
     cast: ["monkey"],
     scene:
-      "ONLY monkey — bright classroom desk with puzzle and blocks, hand on chin, curved hook shapes floating.",
+      "ONLY monkey in bright classroom. Monkey sits on chair behind desk — puzzle flat on desk surface, blocks on desk. One hand touches chin, OTHER arm hangs down long to floor. Curved hook shapes near head. All props on desk, nothing floating.",
     expressions:
-      "Monkey: curious thinking, one eyebrow up — arms still long reaching near floor.",
-    outfits: "Monkey: reading glasses pushed on forehead.",
+      "Monkey: curious thinking, one eyebrow up. Exactly two arms: one on chin, one hanging down.",
+    outfits: "Monkey: reading glasses on forehead.",
   },
   love: {
     label: "Yêu thương — ấm áp",
