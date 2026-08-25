@@ -1,8 +1,7 @@
 {
   "ok": 100,
   "fail": 0,
-  "bundle": "jungle3",
-  "note": "Full Jungle Jokers regen rank 1-100. Skipped but/can/on (modified today, cast unchanged). Per-character refs only, no lineup.",
-  "skipped": ["but", "can", "on"],
-  "regenerated": 97
+  "bundle": "jungle4",
+  "note": "jungle3 full regen complete; jungle4 adds cast rebalance (25% all-four) + automated QA scan/fix pipeline",
+  "qaReport": "public/word-images/jungle-qa-report.json"
 }
