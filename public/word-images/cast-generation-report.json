@@ -1,10 +1,7 @@
 {
   "ok": 100,
   "fail": 0,
-  "bundle": "jungle1",
-  "cast": "Jungle Jokers",
-  "provider": "GenerateImage",
-  "multiRef": true,
-  "expressionFlexible": true,
-  "everydaySettings": true
+  "bundle": "jungle2",
+  "note": "Monkey extra-limb fix: exclude lineup ref when monkey in cast; sitting/side-profile poses; regen priority words",
+  "fixedWords": ["will", "as", "who", "why", "see", "you", "the", "maybe"]
 }

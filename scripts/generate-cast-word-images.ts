@@ -12,13 +12,29 @@ import { resolve } from "node:path";
 import { getWordsInRange } from "@/data/preset-vocabulary";
 import {
   buildJungleCastWordImagePrompt,
+  getJungleCastWordReferences,
   JUNGLE_WORD_IMAGE_SCENES,
 } from "@/data/jungle-cast-word-image-prompts";
 
 const OUT_DIR = resolve(process.cwd(), "public/word-images");
 const DELAY_MS = Number(process.env.CAST_IMAGE_DELAY_MS ?? 14_000);
 const PROVIDER = (process.env.CAST_IMAGE_PROVIDER ?? "pollinations").toLowerCase();
-const REFERENCE_PATH = resolve(process.cwd(), "public/mascot/jungle-jokers-lineup.png");
+
+function loadReferenceParts(word: string): Array<Record<string, unknown>> {
+  const refs = getJungleCastWordReferences(word) ?? [];
+  const parts: Array<Record<string, unknown>> = [];
+  for (const rel of refs) {
+    const abs = resolve(process.cwd(), rel);
+    if (!existsSync(abs)) continue;
+    parts.push({
+      inlineData: {
+        mimeType: abs.endsWith(".png") ? "image/png" : "image/jpeg",
+        data: readFileSync(abs).toString("base64"),
+      },
+    });
+  }
+  return parts;
+}
 
 function sleep(ms: number): Promise<void> {
   return new Promise((r) => setTimeout(r, ms));
@@ -99,19 +115,17 @@ async function generateViaGemini(
     "gemini-2.5-flash-image",
   ].filter((name): name is string => Boolean(name));
 
-  const referenceB64 = existsSync(REFERENCE_PATH)
-    ? readFileSync(REFERENCE_PATH).toString("base64")
-    : null;
+  const refParts = loadReferenceParts(word);
 
   for (const model of models) {
     try {
-      const parts: Array<Record<string, unknown>> = [{ text: prompt }];
-      if (referenceB64) {
-        parts.unshift({
-          inlineData: { mimeType: "image/png", data: referenceB64 },
-        });
+      const parts: Array<Record<string, unknown>> = [
+        ...refParts,
+        { text: prompt },
+      ];
+      if (refParts.length) {
         parts.push({
-          text: "Match the reference lineup for exact character designs.",
+          text: "Match attached character reference PNGs for exact body proportions. Monkey must have exactly two arms and two legs.",
         });
       }
 
@@ -221,7 +235,7 @@ async function main(): Promise<void> {
 
   writeFileSync(
     resolve(OUT_DIR, "cast-generation-report.json"),
-    JSON.stringify({ ok, fail, words, bundle: "jungle1", provider: PROVIDER }, null, 2),
+    JSON.stringify({ ok, fail, words, bundle: "jungle2", provider: PROVIDER }, null, 2),
   );
   console.log(`Done: ${ok} ok, ${fail} failed`);
   if (fail > 0) process.exit(1);

@@ -25,18 +25,16 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
       "monkey",
       "tiger"
     ],
-    "scene": "Orange tiger and purple monkey face the viewer with welcoming paws outstretched in a sunny park path.",
-    "expressions": "Monkey: warm friendly smile, bright open eyes inviting the viewer (NOT bored half-lidded). Tiger: cheerful welcoming grin, paws open toward viewer (NOT frozen shocked O-mouth). Cow and pig in background: happy wave, friendly eyes."
+    "scene": "Sunny park path — purple monkey SITS on wooden bench side profile, waving one hand toward viewer, other arm on bench. Orange tiger stands on path with welcoming paws open.",
+    "expressions": "Monkey: warm friendly smile, sitting side profile, one hand waving only (exactly two arms). Tiger: cheerful welcoming grin, paws open toward viewer (NOT frozen shocked O-mouth)."
   },
   "the": {
     "cast": [
       "monkey",
-      "elephant",
-      "crocodile",
-      "tiger"
+      "elephant"
     ],
-    "scene": "Purple monkey points its paw at ONE bright red apple on a wooden table while other apples are faded gray — definite article.",
-    "expressions": "Monkey: focused teaching expression, one paw pointing precisely, confident eyes (NOT lazy). Tiger: attentive curious look following the cat's point (NOT shocked). Elephant: interested lean-in. Crocodile: nodding understanding."
+    "scene": "Modern kitchen — purple monkey SITS on chair side profile, ONE arm pointing at ONE bright red apple on wooden table while other apples are faded gray. Pink elephant stands beside table.",
+    "expressions": "Monkey: focused teaching expression, sitting side profile, one arm pointing only (other arm hidden behind body). Elephant: interested lean-in, stick body unchanged."
   },
   "to": {
     "cast": [
@@ -500,8 +498,8 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
       "crocodile",
       "tiger"
     ],
-    "scene": "Orange tiger shrugging with confused expression, scattered puzzle pieces — why?",
-    "expressions": "Tiger: baffled shrug, raised eyebrows, palms up (NOT O-mouth shock — puzzled not scared). Monkey: equally confused head tilt. Elephant: pondering deeply. Crocodile: question-curve shapes above head."
+    "scene": "Living room with scattered puzzle pieces on floor. Orange tiger shrugging confused. Purple monkey SITS on sofa cushion side profile, hands on hips — puzzled head tilt.",
+    "expressions": "Tiger: baffled shrug, raised eyebrows, palms up (NOT O-mouth shock). Monkey: confused head tilt, sitting side profile, hands on hips (two arms only). Elephant: pondering. Crocodile: question marks above head."
   },
   "who": {
     "cast": [
@@ -510,8 +508,8 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
       "crocodile",
       "tiger"
     ],
-    "scene": "All mascots in a lineup behind a curtain, one peeking — who is it?",
-    "expressions": "All four: mystery guessing game — curious suspicious playful faces (Cat sly peek, Dog excited guess, Cow thoughtful, Pig wide curious eyes). Identity mystery."
+    "scene": "School stage with purple curtain — mascots guessing mystery. Purple monkey SITS on stage edge side profile, one hand on chin thinking, other arm hidden behind body.",
+    "expressions": "All four: mystery guessing game — curious playful faces. Monkey: sitting side profile, one hand on chin only (exactly two arms total). Tiger: peeking from curtain. Elephant: thoughtful. Crocodile: suspicious look."
   },
   "as": {
     "cast": [
@@ -530,8 +528,28 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
       "crocodile",
       "tiger"
     ],
-    "scene": "Orange tiger pointing at a calendar future date with a planned picnic marked — will happen.",
-    "expressions": "Tiger: confident future-planning smile pointing ahead (NOT shocked). Monkey: excited anticipation for future event. Elephant: marking calendar carefully. Crocodile: packing picnic basket early."
+    "scene": "Home living room — orange tiger pointing at wall calendar future date with picnic icon circled. Pink elephant marks calendar with trunk. Green crocodile packs picnic basket on floor. Purple monkey SITS on green rug beside basket, hands clasped together excitedly — side profile view.",
+    "expressions": "Tiger: confident future-planning smile pointing ahead (NOT shocked). Monkey: excited anticipation, sitting side profile, hands clasped — exactly two arms visible, two legs tucked under (NOT standing). Elephant: marking calendar carefully. Crocodile: packing picnic basket early."
+  },
+  "who": {
+    "cast": [
+      "monkey",
+      "elephant",
+      "crocodile",
+      "tiger"
+    ],
+    "scene": "School stage with purple curtain — mascots guessing mystery. Purple monkey SITS on stage edge side profile, one hand on chin thinking, other arm hidden behind body.",
+    "expressions": "All four: mystery guessing game — curious playful faces. Monkey: sitting side profile, one hand on chin only (exactly two arms total). Tiger: peeking from curtain. Elephant: thoughtful. Crocodile: suspicious look."
+  },
+  "why": {
+    "cast": [
+      "monkey",
+      "elephant",
+      "crocodile",
+      "tiger"
+    ],
+    "scene": "Living room with scattered puzzle pieces on floor. Orange tiger shrugging confused. Purple monkey SITS on sofa cushion side profile, hands on hips — puzzled head tilt.",
+    "expressions": "Tiger: baffled shrug, raised eyebrows, palms up (NOT O-mouth shock). Monkey: confused head tilt, sitting side profile, hands on hips (two arms only). Elephant: pondering. Crocodile: question marks above head."
   },
   "from": {
     "cast": [
@@ -965,8 +983,8 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
       "crocodile",
       "tiger"
     ],
-    "scene": "Orange tiger balancing on a fence looking unsure between two paths — maybe.",
-    "expressions": "Tiger: uncertain maybe shrug, wobbly balance, hesitant eyes (NOT shocked). Monkey: equally undecided. Elephant: listing pros on hooves. Crocodile: flipping coin comedic."
+    "scene": "Park fork in path with wooden fence — orange tiger balances on fence post shrugging unsure. Purple monkey SITS on grass side profile, hands clasped uncertainly. Pink elephant with clipboard. Green crocodile behind fence.",
+    "expressions": "Tiger: uncertain maybe shrug, wobbly balance. Monkey: sitting side profile, hands clasped (two arms only). Elephant: listing pros. Crocodile: curious peek over fence."
   },
   "help": {
     "cast": [

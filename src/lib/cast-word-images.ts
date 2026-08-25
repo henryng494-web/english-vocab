@@ -1,7 +1,7 @@
 /**
  * Cast mascot word images — fox-trial delivery:
  * full-scene bundled JPEGs in /public/word-images/{word}.jpg
- * Jungle Jokers cast (jungle1 bundle).
+ * Jungle Jokers cast (jungle2 bundle).
  */
 
 import { getWordsInRange } from "@/data/preset-vocabulary";

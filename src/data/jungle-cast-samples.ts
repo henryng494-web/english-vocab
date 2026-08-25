@@ -22,7 +22,7 @@ export const JUNGLE_CAST_SHAPE_LOCK =
   "(4) TIGER: orange ball #F97316; body ALWAYS one sphere (head+body merged chibi ball); bold dark zigzag stripes; cream muzzle patch; legs ALWAYS tiny stubs (never long legs); small striped tail.";
 
 export const JUNGLE_CAST_MONKEY_POSE_RULE =
-  "MONKEY ANATOMY (critical): Purple monkey has EXACTLY two arms and two legs — never three arms, never four legs, never extra hands. Front or 3/4 view. Only ONE hand action at a time; other arm rests at side or on hip. Safe poses: hands-on-hips, one arm pointing (other at side), sitting with arms on lap/desk. Do NOT draw long arms touching floor as extra supports.";
+  "MONKEY ANATOMY (critical): Purple monkey has EXACTLY two arms and two legs — never three or four arms. Draw monkey SITTING or in SIDE PROFILE (not front-standing). Use simple poses only: hands clasped together, hands on hips, or ONE hand gesturing with other arm hidden behind body. NEVER both arms raised high. NEVER front view with arms and legs all vertical. Do NOT use lineup monkey long-arm pose.";
 
 export const JUNGLE_CAST_ANATOMY_RULES =
   "ANATOMY & PROPS: Monkey has EXACTLY two arms and two legs (four limbs total) — never three arms, never extra limbs. Elephant: four stick legs + trunk (trunk is NOT a third arm). Tiger: two stub arms two stub legs. Crocodile: four stub legs. ALL objects must be physically grounded or held — candy jars, puzzles, props resting on table/floor OR held by a visible hand/arm. NO floating objects in mid-air.";
