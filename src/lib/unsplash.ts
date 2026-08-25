@@ -3,8 +3,11 @@ import { cleanPhrase } from "@/lib/image-keyword-utils";
 import {
   FUNCTION_WORD_IMAGE_MARKER,
   isHighTrafficFunctionWord,
-  prefersCuratedFunctionWordImage,
 } from "@/lib/function-word-images";
+import {
+  isClosedClassWord,
+  resolveWordImagePlan,
+} from "@/lib/word-image-strategy";
 import { isUnsafeImageMetadata, isUnsafeImageUrl } from "@/lib/safe-image-metadata";
 import { requiresSafeImageOnly } from "@/lib/safe-image-search";
 
@@ -73,7 +76,7 @@ function tagStockPhotoUrl(
   word: string,
   pos?: string | null,
 ): string | null {
-  if (prefersCuratedFunctionWordImage(word, pos)) {
+  if (isClosedClassWord(word, pos)) {
     return markFunctionWordStockUrl(url);
   }
   return markRuleStockImageUrl(url);
@@ -511,7 +514,7 @@ export function coalesceWordImageUrl(
   word: string,
   pos?: string | null,
 ): string {
-  const functionWord = prefersCuratedFunctionWordImage(word, pos);
+  const functionWord = isClosedClassWord(word, pos);
   if (candidate && isRealCardImageUrl(candidate, word)) return candidate;
   if (functionWord) {
     return getDefaultLearningImageDataUrl(word, pos);
@@ -640,8 +643,8 @@ async function pickScoredStockPhoto(
   photos: Array<{ url: string; alt: string; extra?: string }>,
   pos?: string | null,
 ): Promise<string | null> {
-  const functionWord = prefersCuratedFunctionWordImage(word, pos);
-  const minScore = functionWord ? 4 : 0;
+  const plan = resolveWordImagePlan(word, pos);
+  const minScore = plan.minMetadataScore;
   const candidates: Array<{ url: string; score: number }> = [];
   for (const photo of photos) {
     if (isUnsafeImageMetadata(photo.alt, photo.extra, query)) continue;
@@ -659,7 +662,7 @@ async function pickScoredStockPhoto(
     const idx = hashWord(word) % topTier.length;
     return topTier[idx]!.url;
   }
-  if (functionWord) return null;
+  if (plan.skipHashFallback) return null;
   return pickHashedSafeStockPhoto(word, photos, query);
 }
 
@@ -984,8 +987,10 @@ async function tryGeminiVocabImage(
 }
 
 /**
- * Primary stock: Gemini→Unsplash when meaning/definition is available, then
- * rule-based Unsplash/Pexels fallback. SVG placeholder on total miss.
+ * Primary stock resolver — routes by word tier (see word-image-strategy.ts).
+ *
+ * Function words: curated scene → strict stock → SVG (Gemini skipped).
+ * Concrete words: Gemini → curated → stock → SVG.
  */
 export async function fetchWordImageUrlDetailed(
   word: string,
@@ -995,7 +1000,9 @@ export async function fetchWordImageUrlDetailed(
   englishDefinition?: string | null,
   existingImageUrl?: string | null,
 ): Promise<WordImageFetchResult> {
-  if (requiresSafeImageOnly(word)) {
+  const plan = resolveWordImagePlan(word, pos);
+
+  if (plan.tier === "safe-svg") {
     return {
       imageUrl: getDefaultLearningImageDataUrl(word, pos),
       searchKeyword: null,
@@ -1006,7 +1013,7 @@ export async function fetchWordImageUrlDetailed(
   const geminiContext =
     meaning?.trim() || englishDefinition?.trim() || "";
 
-  if (geminiContext) {
+  if (geminiContext && !plan.skipGemini) {
     const pipeline = await tryGeminiVocabImage(word, pos, geminiContext);
     if (pipeline) {
       return {

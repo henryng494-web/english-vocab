@@ -5,7 +5,7 @@
 
 import { lookupAbstractImageScene } from "@/lib/abstract-image-scenes";
 import { lookupCuratedImageKeyword } from "@/data/curated-image-keywords-loader";
-import { prefersCuratedFunctionWordImage } from "@/lib/function-word-images";
+import { isClosedClassWord } from "@/lib/word-image-strategy";
 import {
   isHomonymWord,
   resolveHomonymImageKeyword,
@@ -118,7 +118,7 @@ export function resolveImageSearchKeyword(
 
   const pos =
     options.pos?.trim().toLowerCase() || inferPosFromWord(normalizedWord);
-  const functionWord = prefersCuratedFunctionWordImage(normalizedWord, pos);
+  const functionWord = isClosedClassWord(normalizedWord, pos);
 
   // When a gloss exists, prefer meaning-aware queries over suffix/hash scenes.
   if (options.meaning?.trim() || options.englishDefinition?.trim()) {

@@ -1,9 +1,7 @@
-import { isAbstractImagePos } from "@/lib/image-keyword";
-
-/** Closed-class words where literal stock search returns misleading photos. */
+/** Closed-class headwords where literal stock search returns misleading photos. */
 export const FUNCTION_WORD_IMAGE_MARKER = "fw1";
 
-const HIGH_TRAFFIC_FUNCTION_WORDS = new Set([
+export const HIGH_TRAFFIC_FUNCTION_WORDS = new Set([
   "the",
   "a",
   "an",
@@ -87,12 +85,4 @@ const HIGH_TRAFFIC_FUNCTION_WORDS = new Set([
 
 export function isHighTrafficFunctionWord(word: string): boolean {
   return HIGH_TRAFFIC_FUNCTION_WORDS.has(word.trim().toLowerCase());
-}
-
-/** Function words need curated scenes or SVG — never random stock fallbacks. */
-export function prefersCuratedFunctionWordImage(
-  word: string,
-  pos?: string | null,
-): boolean {
-  return isHighTrafficFunctionWord(word) || isAbstractImagePos(pos);
 }
