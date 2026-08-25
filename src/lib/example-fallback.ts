@@ -2,6 +2,8 @@ import { capitalizeFirst } from "@/lib/format-text";
 import {
   hasQualityExamples,
   isGenericExample,
+  containsUntranslatedHeadword,
+  isLikelyVietnameseGloss,
   isNaturalExample,
   keepNaturalExamples,
 } from "@/lib/example-quality";
@@ -33,6 +35,17 @@ function meaningLabel(meaning?: string | null): string {
   return primaryMeaningLabel(meaning);
 }
 
+function vietnameseExampleWord(
+  meaning?: string | null,
+  fallback = "từ này",
+): string {
+  const label = meaningLabel(meaning);
+  if (label && isLikelyVietnameseGloss(label)) {
+    return label.toLowerCase();
+  }
+  return fallback;
+}
+
 /**
  * Last-resort everyday sentences (Hole-style), never meta study templates.
  * Used only when Gemini is unavailable.
@@ -43,9 +56,8 @@ export function buildNaturalExamples(
   meaning?: string | null,
 ): VocabExample[] {
   const w = displayWord(word);
-  const type = normalizeWordType(pos, w) ?? "unknown";
-  const vi = meaningLabel(meaning);
-  const viWord = vi ? vi.toLowerCase() : w;
+  const type = normalizeWordType(pos, w) ?? "noun";
+  const viWord = vietnameseExampleWord(meaning, "từ này");
 
   const byPos: Record<string, VocabExample[]> = {
     noun: [
@@ -169,30 +181,38 @@ export function buildNaturalExamples(
   };
 
   return (
-    byPos[type] ?? [
+    byPos[type] ?? byPos.noun ?? [
       {
-        en: `I noticed the ${w} on my walk.`,
-        vi: `Tôi để ý ${viWord} khi đi bộ.`,
+        en: `I saw a ${w} on the table.`,
+        vi: `Tôi thấy ${viWord} trên bàn.`,
       },
       {
-        en: `We talked about the ${w} at lunch.`,
-        vi: `Chúng tôi nói về ${viWord} trong bữa trưa.`,
+        en: `The ${w} is in the kitchen.`,
+        vi: `${capitalizeFirst(viWord)} ở trong bếp.`,
       },
     ]
   );
 }
 
-/** Fill missing Vietnamese lines via free EN→VI lookup (static preset cards). */
+/** Fill missing or English-leaked Vietnamese lines via EN→VI lookup. */
 export async function fillExampleTranslations(
   examples: VocabExample[],
+  word?: string,
 ): Promise<VocabExample[]> {
   const filled: VocabExample[] = [];
   for (const item of examples) {
     const en = item.en?.trim() ?? "";
     if (!en) continue;
-    const existingVi = item.vi?.trim() ?? "";
-    const vi = existingVi || (await fetchMyMemoryTranslation(en)) || "";
+    let vi = item.vi?.trim() ?? "";
+    const head = word?.trim() ?? "";
+    if (
+      !vi ||
+      (head && containsUntranslatedHeadword(vi, head))
+    ) {
+      vi = (await fetchMyMemoryTranslation(en)) || vi;
+    }
     if (!vi) continue;
+    if (head && containsUntranslatedHeadword(vi, head)) continue;
     filled.push({ en, vi });
   }
   return filled;

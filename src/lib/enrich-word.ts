@@ -78,7 +78,7 @@ async function finalizeExamples(
 
   const naturalOnly = keepNaturalExamples(word, existing, pos);
   if (naturalOnly.length >= 2) {
-    const translated = await fillExampleTranslations(naturalOnly);
+    const translated = await fillExampleTranslations(naturalOnly, word);
     if (hasQualityExamples(word, translated, pos)) {
       return translated.slice(0, 2);
     }
@@ -87,7 +87,7 @@ async function finalizeExamples(
   const ensured = ensureExamples(word, existing, pos, meaning);
   if (hasQualityExamples(word, ensured, pos)) return ensured.slice(0, 2);
 
-  const translatedEnsured = await fillExampleTranslations(ensured);
+  const translatedEnsured = await fillExampleTranslations(ensured, word);
   if (hasQualityExamples(word, translatedEnsured, pos)) {
     return translatedEnsured.slice(0, 2);
   }

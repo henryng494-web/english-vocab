@@ -54,8 +54,41 @@ function isFallbackTemplate(text: string): boolean {
     /^.+ is waiting outside\.?$/i.test(text) ||
     /^.+ cat sat on the chair\.?$/i.test(text) ||
     /^.+! the food is ready\.?$/i.test(text) ||
-    /^.+ students arrived early\.?$/i.test(text)
+    /^.+ students arrived early\.?$/i.test(text) ||
+    /^i noticed the .+ on my walk\.?$/i.test(text) ||
+    /^we talked about the .+ at lunch\.?$/i.test(text)
   );
+}
+
+const VI_DIACRITICS =
+  /[àáảãạăắằẳẵặâấầẩẫậèéẻẽẹêếềểễệìíỉĩịòóỏõọôốồổỗộơớờởỡợùúủũụưứừửữựỳýỷỹỵđ]/i;
+
+/** True when the Vietnamese line still contains the English headword untranslated. */
+export function containsUntranslatedHeadword(
+  vi: string,
+  word: string,
+): boolean {
+  const viTrimmed = vi.trim();
+  const head = word.trim().toLowerCase();
+  if (!viTrimmed || !head || head.length < 3) return false;
+  if (!VI_DIACRITICS.test(viTrimmed)) return true;
+  const escaped = head.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return new RegExp(`\\b${escaped}\\b`, "i").test(viTrimmed);
+}
+
+export function isLikelyVietnameseGloss(text: string | null | undefined): boolean {
+  const trimmed = text?.trim();
+  if (!trimmed) return false;
+  return VI_DIACRITICS.test(trimmed);
+}
+
+export function isQualityExampleTranslation(
+  example: VocabExample,
+  word: string,
+): boolean {
+  const vi = example.vi?.trim() ?? "";
+  if (!vi) return false;
+  return !containsUntranslatedHeadword(vi, word);
 }
 
 function wordCount(text: string): number {
@@ -95,6 +128,7 @@ export function isNaturalExample(
   ) {
     return false;
   }
+  if (!isQualityExampleTranslation(example, word)) return false;
   return true;
 }
 

@@ -8,6 +8,7 @@ import {
   fillExampleTranslations,
 } from "@/lib/example-fallback";
 import { hasQualityExamples } from "@/lib/example-quality";
+import { generateExamplesWithGemini } from "@/lib/gemini-core";
 import { isPersistedWordDetailComplete } from "@/lib/persisted-word-detail";
 import { generatePhoneticWithGemini } from "@/lib/gemini-core";
 import { isPlaceholderPhonetic, formatIpa } from "@/lib/phonetic";
@@ -122,8 +123,15 @@ async function repairExamplesIfNeeded(
     return examples?.trim() ? examples : serializeExamples(parsed);
   }
 
+  if (process.env.GEMINI_API_KEY?.trim()) {
+    const generated = await generateExamplesWithGemini(word, wordType, meaning);
+    if (hasQualityExamples(word, generated ?? undefined, wordType)) {
+      return serializeExamples(generated!.slice(0, 2));
+    }
+  }
+
   const ensured = ensureExamples(word, parsed, wordType, meaning);
-  const translated = await fillExampleTranslations(ensured);
+  const translated = await fillExampleTranslations(ensured, word);
   const finalExamples = hasQualityExamples(word, translated, wordType)
     ? translated
     : ensured;
