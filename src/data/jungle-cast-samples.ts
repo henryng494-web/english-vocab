@@ -1,24 +1,30 @@
 /**
  * Jungle Jokers cast (option 3) — locked design + 5 preview word prompts.
- * Style: flat 2D silly exaggerated animals, NOT realistic.
- * Settings: everyday life (school, work, park, home) — NOT jungle backgrounds.
- * Cast size: use 1–4 characters per scene as the word needs — NOT all four every time.
+ * RULE: body shape/colors NEVER change — only expression + optional outfit/accessories.
  */
 
 export const JUNGLE_CAST_NAME = "Jungle Jokers";
 
+/** Immutable silhouette spec — must match jungle-jokers-lineup.png exactly. */
+export const JUNGLE_CAST_SHAPE_LOCK =
+  "CRITICAL — match reference lineup EXACTLY every time. Body proportions are LOCKED; NEVER slim down, fatten up, or resize any character. ONLY change: facial expression (eyes, mouth, eyebrows) and optional clothing/accessories (hat, scarf, backpack, apron). NEVER change species colors or silhouette.\n" +
+  "(1) MONKEY: purple body #8B5CF6, lavender face/ears/palms #C4B5FD; tiny rectangular torso; arms ALWAYS extremely long thin tubes reaching the ground (never short arms); small curly tail.\n" +
+  "(2) ELEPHANT: pink #F472B6; head ALWAYS one giant perfect circle (40% of character height); huge flat semicircle ears; body and legs ALWAYS pencil-thin stick lines (never chubby body, never thick legs, never round fat torso); trunk thin tube curving up with small heart tip.\n" +
+  "(3) CROCODILE: lime green #84CC16; body ALWAYS one horizontal rectangle log (width 3x height); jagged dorsal scales; four stubby short legs (never long legs); one blunt white tooth.\n" +
+  "(4) TIGER: orange ball #F97316; body ALWAYS one sphere (head+body merged chibi ball); bold dark zigzag stripes; cream muzzle patch; legs ALWAYS tiny stubs (never long legs); small striped tail.";
+
 export const JUNGLE_CAST_DESIGN_ONLY =
-  "Flat 2D humorous cartoon illustration, wide 16:9 landscape. Keep exact character DESIGNS only — silly exaggerated shapes, NOT realistic: (1) purple monkey with lavender face/ears/hands, extremely long arms reaching the ground, tiny torso, curly tail; (2) pink elephant with giant round head, huge semicircle ears, pencil-thin stick body and legs, trunk curled upward; (3) lime-green crocodile with horizontal rectangle log body, jagged back scales, stubby legs, one blunt tooth; (4) orange tiger cub with spherical chibi ball body, bold dark zigzag stripes, cream muzzle, tiny stubby legs. Same colors and body shapes every time. CAST SIZE: include only the characters the scene needs — one, two, three, or all four. Do NOT force all four into every image. IMPORTANT: Do NOT lock one default face — change eyes, mouth, eyebrows, and body language to match each word. SETTING: everyday modern life — classroom, office, city park, home living room, cafe, playground, bus stop, supermarket — NOT jungle NOT rainforest NOT wilderness. NO text, NO letters, NO watermark.";
+  `Flat 2D humorous cartoon illustration, wide 16:9 landscape. NOT realistic. ${JUNGLE_CAST_SHAPE_LOCK} CAST SIZE: use 1–4 characters as scene needs — not all four every time. SETTING: everyday modern life (home, school, park, office, cafe, street) — NOT jungle. NO text, NO letters, NO watermark.`;
 
 export type JungleCastSampleEntry = {
   label: string;
-  /** Which cast members appear (1–4). */
   cast: readonly string[];
   scene: string;
   expressions: string;
+  /** Optional outfit tweaks — never body shape. */
+  outfits?: string;
 };
 
-/** Five preview words before bulk regen. */
 export const JUNGLE_CAST_EXPRESSION_SAMPLES: Readonly<
   Record<string, JungleCastSampleEntry>
 > = {
@@ -26,47 +32,53 @@ export const JUNGLE_CAST_EXPRESSION_SAMPLES: Readonly<
     label: "Xin lỗi — buồn / hối hận",
     cast: ["monkey", "elephant"],
     scene:
-      "ONLY two characters in frame — in a cozy home living room: purple monkey offering a small flower bouquet to pink elephant sitting with drooped ears on a sofa after a broken blue vase on the carpet. Empty room details, no other mascots.",
+      "ONLY monkey and elephant — cozy home living room. Monkey offers flower bouquet to elephant on sofa after broken blue vase on carpet.",
     expressions:
-      "Monkey: guilty apologetic face — downturned mouth, ears back, teary eyes (NOT mischievous wink). Elephant: sad disappointed but forgiving — soft eyes, small frown, trunk drooped (NOT cheerful default).",
+      "Monkey: guilty teary eyes, ears back (NOT wink). Elephant: sad forgiving, trunk drooped — SAME giant circle head and stick-thin body as lineup.",
+    outfits: "Monkey: none. Elephant: none.",
   },
   yes: {
     label: "Đồng ý — vui / phấn khích",
     cast: ["monkey", "elephant", "tiger", "crocodile"],
     scene:
-      "All four mascots at a sunny city park picnic celebrating a birthday — green checkmark flag planted in a cake on a checkered blanket, confetti in air, playground in background.",
+      "All four at city park birthday picnic — checkmark flag in cake, confetti, playground behind.",
     expressions:
-      "Monkey: big happy squint-smile, long arms up cheering (NOT sly wink). Elephant: joyful open smile, trunk raised happily. Crocodile: delighted toothy grin. Tiger: laughing with closed happy crescents for eyes.",
+      "All cheering — happy faces only. Elephant MUST keep giant round head + pencil stick body (NOT fat). Tiger MUST stay spherical ball.",
+    outfits: "Monkey: party cone hat. Elephant: blue birthday sash. Crocodile: none. Tiger: none.",
   },
   no: {
     label: "Từ chối — kiên quyết",
     cast: ["monkey", "tiger"],
     scene:
-      "ONLY two characters — outside a colorful school gate: purple monkey and orange tiger firmly refuse a giant tempting candy jar offered by a shadowy hand from off-screen, arms crossed on sidewalk. No elephant or crocodile in scene.",
+      "ONLY monkey and tiger — school gate sidewalk, refuse giant candy jar from off-screen hand.",
     expressions:
-      "Monkey: stern firm NO — narrowed eyes, flat mouth, one long arm in stop gesture (NOT playful wink). Tiger: serious head-shake, lips pressed (NOT goofy tongue-out).",
+      "Monkey: stern stop gesture. Tiger: serious head-shake — tiger stays round ball shape.",
+    outfits: "Monkey: school backpack. Tiger: student cap.",
   },
   think: {
     label: "Suy nghĩ — tò mò",
     cast: ["monkey"],
     scene:
-      "ONLY one character — in a bright classroom: purple monkey alone at a student desk with puzzle pieces and colorful block tower, one hand on chin, looking up at floating curved hook shapes (no letters). Chalkboard and backpacks in background. No other mascots visible.",
+      "ONLY monkey — bright classroom desk with puzzle and blocks, hand on chin, curved hook shapes floating.",
     expressions:
-      "Monkey: curious thinking — one eyebrow up, eyes looking upward, hand on chin (thoughtful wonder, NOT mischievous grin).",
+      "Monkey: curious thinking, one eyebrow up — arms still long reaching near floor.",
+    outfits: "Monkey: reading glasses pushed on forehead.",
   },
   love: {
     label: "Yêu thương — ấm áp",
     cast: ["monkey", "elephant", "tiger"],
     scene:
-      "Three characters only — purple monkey, pink elephant, and orange tiger forming a warm group hug on a park bench at golden sunset. Lime-green crocodile NOT in frame. Small floating heart shapes in sky, city soft in distance.",
+      "Three only (no crocodile) — group hug on park bench at sunset, floating hearts.",
     expressions:
-      "Monkey: warm gentle closed-eye smile, long arms wrapping hug (affectionate, NOT sly). Elephant: tender happy eyes, trunk around friends. Tiger: blissful happy grin, rosy cheeks on round face.",
+      "Warm closed-eye smiles. Elephant: stick-thin body + giant round head unchanged. Tiger: sphere unchanged.",
+    outfits: "Monkey: red scarf. Elephant: none. Tiger: none.",
   },
 };
 
 export function buildJungleCastSamplePrompt(word: string): string | null {
   const sample = JUNGLE_CAST_EXPRESSION_SAMPLES[word.trim().toLowerCase()];
   if (!sample) return null;
-  const castNote = `Characters in scene (${sample.cast.length}): ${sample.cast.join(", ")}.`;
-  return `${JUNGLE_CAST_DESIGN_ONLY} ${castNote} Word "${word}": ${sample.scene} EXPRESSIONS: ${sample.expressions}`;
+  const castNote = `Characters (${sample.cast.length}): ${sample.cast.join(", ")}.`;
+  const outfitNote = sample.outfits ? ` OUTFITS: ${sample.outfits}` : "";
+  return `${JUNGLE_CAST_DESIGN_ONLY} ${castNote} Word "${word}": ${sample.scene} EXPRESSIONS: ${sample.expressions}.${outfitNote} Match reference lineup body shapes exactly.`;
 }
