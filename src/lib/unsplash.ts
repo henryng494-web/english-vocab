@@ -565,6 +565,34 @@ async function pickPexelsFromQueries(
   return null;
 }
 
+/** Search Pexels for one query and return the best scored photo. */
+export async function fetchPexelsImageForQuery(
+  word: string,
+  query: string,
+): Promise<string | null> {
+  if (!process.env.PEXELS_API_KEY?.trim()) return null;
+
+  const trimmed = query.trim();
+  if (!trimmed) return null;
+
+  const photos = await searchPexelsPhotos(trimmed);
+  return pickScoredStockPhoto(word, trimmed, photos);
+}
+
+/** Try Unsplash then Pexels for one stock search phrase. */
+export async function fetchStockImageForQuery(
+  word: string,
+  query: string,
+): Promise<string | null> {
+  const trimmed = query.trim();
+  if (!trimmed) return null;
+
+  const unsplashUrl = await fetchUnsplashImageForQuery(word, trimmed);
+  if (unsplashUrl) return unsplashUrl;
+
+  return fetchPexelsImageForQuery(word, trimmed);
+}
+
 /** Search Unsplash for one Gemini/rule-based query and return the best scored photo. */
 export async function fetchUnsplashImageForQuery(
   word: string,
@@ -733,7 +761,7 @@ function isUngroundedSingleTokenQuery(
   return queryTokens.size === 1 && overlapCount(wordTokens, queryTokens) === 0;
 }
 
-function markSemanticImageUrl(url: string): string {
+export function markSemanticImageUrl(url: string): string {
   const versionedUrl = new URL(url);
   versionedUrl.searchParams.set("semantic", SEMANTIC_IMAGE_VERSION);
   versionedUrl.searchParams.delete("imgpipe");

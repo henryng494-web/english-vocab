@@ -7,6 +7,7 @@
  *   npm run backfill:images -- --dry-run
  *   npm run backfill:images -- --force
  *   npm run backfill:images -- --word=night
+ *   npm run backfill:images -- --delay=3000
  */
 
 import { readFileSync } from "node:fs";
@@ -44,12 +45,16 @@ type WordDetailRow = {
   image_url: string | null;
 };
 
+/** Delay between words when batch-fetching images (ms). Override: --delay=3000 */
+const DEFAULT_BATCH_DELAY_MS = 2500;
+
 function parseArgs() {
   const args = process.argv.slice(2);
   let limit = 0;
   let dryRun = false;
   let force = false;
   let word: string | null = null;
+  let delayMs = DEFAULT_BATCH_DELAY_MS;
   for (const arg of args) {
     if (arg === "--dry-run") dryRun = true;
     else if (arg === "--force") force = true;
@@ -57,9 +62,11 @@ function parseArgs() {
       limit = Number.parseInt(arg.slice("--limit=".length), 10) || 0;
     } else if (arg.startsWith("--word=")) {
       word = arg.slice("--word=".length).trim().toLowerCase() || null;
+    } else if (arg.startsWith("--delay=")) {
+      delayMs = Number.parseInt(arg.slice("--delay=".length), 10) || DEFAULT_BATCH_DELAY_MS;
     }
   }
-  return { limit, dryRun, force, word };
+  return { limit, dryRun, force, word, delayMs };
 }
 
 async function sleep(ms: number) {
@@ -68,7 +75,7 @@ async function sleep(ms: number) {
 
 async function main() {
   loadEnv();
-  const { limit, dryRun, force, word } = parseArgs();
+  const { limit, dryRun, force, word, delayMs } = parseArgs();
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
   const serviceKey =
@@ -106,7 +113,8 @@ async function main() {
   console.log(
     `Stock image backfill: ${batch.length}/${targets.length} stale rows` +
       (word ? ` (word=${word})` : "") +
-      (dryRun ? " [dry-run]" : ""),
+      (dryRun ? " [dry-run]" : "") +
+      ` · delay=${delayMs}ms`,
   );
 
   let updated = 0;
@@ -145,7 +153,9 @@ async function main() {
       console.warn(`✗ ${row.word}:`, err instanceof Error ? err.message : err);
     }
 
-    await sleep(350);
+    if (batch.indexOf(row) < batch.length - 1) {
+      await sleep(delayMs);
+    }
   }
 
   console.log(
