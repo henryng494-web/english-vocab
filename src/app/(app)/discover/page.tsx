@@ -331,6 +331,15 @@ export default function DiscoverPage() {
     if (!currentItem || savingStatus) return;
 
     const word = currentItem.word;
+    const snapshot = {
+      queue,
+      currentIndex,
+      stats,
+      todayLearned: getTodayWordsLearned(),
+      wordsKnown: countMasteredWords(),
+      wordsReviewing: countLearningWords(),
+    };
+
     setSavingStatus(true);
     setError(null);
     writeLocalLearning(word, status === "mastered" ? "mastered" : "new");
@@ -386,6 +395,12 @@ export default function DiscoverPage() {
         setWordsKnown(countMasteredWords());
         setWordsReviewing(countLearningWords());
       } catch (err) {
+        setQueue(snapshot.queue);
+        setCurrentIndex(snapshot.currentIndex);
+        setStats(snapshot.stats);
+        setTodayLearned(snapshot.todayLearned);
+        setWordsKnown(snapshot.wordsKnown);
+        setWordsReviewing(snapshot.wordsReviewing);
         setError(err instanceof Error ? err.message : "Update failed");
       } finally {
         setSavingStatus(false);

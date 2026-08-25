@@ -13,7 +13,10 @@ export async function GET(request: Request) {
       );
     }
 
-    const perPage = Number(searchParams.get("per_page") ?? "1");
+    const perPage = Math.min(
+      30,
+      Math.max(1, Number(searchParams.get("per_page") ?? "1") || 1),
+    );
     const photos = await searchPhotos(query.trim(), perPage);
     return NextResponse.json({ photos });
   } catch (error) {

@@ -19,6 +19,9 @@ function errorMessage(error: unknown): string {
 export async function POST(request: Request) {
   try {
     const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
     const { word } = (await request.json()) as { word?: string };
     if (!word?.trim()) {
@@ -33,6 +36,7 @@ export async function POST(request: Request) {
       );
     }
     const trimmedWord = getFamilyHeadword(normalized);
+    const userId = user?.id ?? null;
 
     if (isExcludedVocabWord(trimmedWord)) {
       return NextResponse.json(
@@ -62,7 +66,7 @@ export async function POST(request: Request) {
         );
       }
 
-      await supabase
+      const { error: detailUpdateError } = await supabase
         .from("word_details")
         .update({
           image_url: imageUrl,
@@ -73,11 +77,13 @@ export async function POST(request: Request) {
           examples: serializeExamples(standard.examples),
         })
         .eq("word", trimmedWord);
+      if (detailUpdateError) throw detailUpdateError;
 
-      await supabase
+      const { error: bankUpdateError } = await supabase
         .from("word_bank")
         .update({ rank: frequencyRank })
         .eq("word", trimmedWord);
+      if (bankUpdateError) throw bankUpdateError;
 
       return NextResponse.json({
         word: {
@@ -117,10 +123,11 @@ export async function POST(request: Request) {
 
       if (wordError) throw wordError;
     } else {
-      await supabase
+      const { error: bankUpdateError } = await supabase
         .from("word_bank")
         .update({ rank: enrichment.frequencyRank })
         .eq("word", trimmedWord);
+      if (bankUpdateError) throw bankUpdateError;
     }
 
     const { data: wordData, error: detailError } = await supabase
@@ -145,18 +152,20 @@ export async function POST(request: Request) {
       throw detailError ?? new Error("Failed to create word details");
     }
 
-    const { data: existingLearning } = await supabase
+    const existingLearningQuery = supabase
       .from("user_learning")
       .select("id")
-      .eq("word", trimmedWord)
-      .maybeSingle();
+      .eq("word", trimmedWord);
+    const { data: existingLearning } = userId
+      ? await existingLearningQuery.eq("user_id", userId).maybeSingle()
+      : await existingLearningQuery.is("user_id", null).maybeSingle();
 
     if (!existingLearning) {
       const { error: learningInsertError } = await supabase
         .from("user_learning")
         .insert({
           word: trimmedWord,
-          user_id: null,
+          user_id: userId,
           status: "new",
           last_reviewed_at: new Date().toISOString(),
         });

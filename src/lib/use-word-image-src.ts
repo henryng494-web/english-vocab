@@ -142,12 +142,12 @@ export function useWordImageSrc(
           imageUrl,
           meaning,
         );
-        if (isUsableCardImageUrl(fetched, word) && fetched !== src) {
-          setSrc(fetched!);
-          setReady(true);
-          return;
-        }
-        setSrc(fallback);
+        setSrc((prev) => {
+          if (isUsableCardImageUrl(fetched, word) && fetched && fetched !== prev) {
+            return fetched;
+          }
+          return fallback;
+        });
         setReady(true);
       })();
     },

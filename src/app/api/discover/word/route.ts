@@ -19,7 +19,6 @@ import { resolveImageSearchKeyword } from "@/lib/image-keyword";
 import {
   fetchWordImageUrl,
   isRealCardImageUrl,
-  shouldRefreshImageUrl,
 } from "@/lib/unsplash";
 import { isExcludedVocabWord } from "@/lib/proper-noun";
 import { sanitizeVietnameseText } from "@/lib/sanitize-vi";
@@ -95,6 +94,29 @@ function persistedDetailToDiscoverWord(
 }
 
 /** Self-heal: persist a freshly regenerated image URL so it's fixed for good. */
+function parseOptionalRank(rankParam: string | null): number | undefined {
+  if (!rankParam) return undefined;
+  const parsed = Number(rankParam);
+  return Number.isFinite(parsed) ? parsed : undefined;
+}
+
+async function persistRepairField(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  word: string,
+  field: "phonetic" | "examples" | "vietnamese_meaning",
+  value: string,
+  previous: string | null | undefined,
+): Promise<void> {
+  if (value === previous) return;
+  const { error } = await supabase
+    .from("word_details")
+    .update({ [field]: value })
+    .eq("word", word);
+  if (error) {
+    console.warn(`Failed to persist repaired ${field} for "${word}":`, error.message);
+  }
+}
+/** Self-heal: persist a freshly regenerated image URL so it's fixed for good. */
 async function persistImageUrlIfChanged(
   supabase: Awaited<ReturnType<typeof createClient>>,
   word: string,
@@ -155,16 +177,7 @@ async function repairPersistedPhoneticIfNeeded(
   detail: WordDetail,
 ): Promise<string> {
   const repaired = await repairPhoneticIfNeeded(word, detail.phonetic);
-  if (repaired !== detail.phonetic) {
-    try {
-      await supabase
-        .from("word_details")
-        .update({ phonetic: repaired })
-        .eq("word", word);
-    } catch (error) {
-      console.warn(`Failed to persist repaired phonetic for "${word}":`, error);
-    }
-  }
+  await persistRepairField(supabase, word, "phonetic", repaired, detail.phonetic);
   return repaired;
 }
 
@@ -179,16 +192,7 @@ async function repairPersistedExamplesIfNeeded(
     detail.word_type,
     detail.vietnamese_meaning,
   );
-  if (repaired !== detail.examples) {
-    try {
-      await supabase
-        .from("word_details")
-        .update({ examples: repaired })
-        .eq("word", word);
-    } catch (error) {
-      console.warn(`Failed to persist repaired examples for "${word}":`, error);
-    }
-  }
+  await persistRepairField(supabase, word, "examples", repaired, detail.examples);
   return repaired;
 }
 
@@ -198,15 +202,14 @@ async function repairPersistedMeaningIfNeeded(
   detail: WordDetail,
 ): Promise<string> {
   const repaired = sanitizeVietnameseText(detail.vietnamese_meaning);
-  if (repaired && repaired !== detail.vietnamese_meaning) {
-    try {
-      await supabase
-        .from("word_details")
-        .update({ vietnamese_meaning: repaired })
-        .eq("word", word);
-    } catch (error) {
-      console.warn(`Failed to persist repaired meaning for "${word}":`, error);
-    }
+  if (repaired) {
+    await persistRepairField(
+      supabase,
+      word,
+      "vietnamese_meaning",
+      repaired,
+      detail.vietnamese_meaning,
+    );
   }
   return repaired || detail.vietnamese_meaning;
 }
@@ -245,7 +248,7 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const word = normalizeVocabInput(searchParams.get("word") ?? "");
     const rankParam = searchParams.get("rank");
-    const rank = rankParam ? Number(rankParam) : undefined;
+    const rank = parseOptionalRank(rankParam);
     const skipGemini =
       searchParams.get("skipGemini") === "true" &&
       hasQualityStandardVocab(word ?? "");
@@ -333,22 +336,13 @@ export async function GET(request: Request) {
     const vietnameseMeaning =
       sanitizeVietnameseText(responseWord.vietnamese_meaning) || word;
     const englishDefinition = responseWord.english_definition?.trim() || null;
-    let imageUrl = await fetchWordImageUrl(
+    const imageUrl = await fetchWordImageUrl(
       word,
       searchKeyword,
       responseWord.word_type ?? enrichment.wordType,
       vietnameseMeaning,
       englishDefinition,
     );
-    if (!imageUrl || shouldRefreshImageUrl(imageUrl, word)) {
-      imageUrl = await fetchWordImageUrl(
-        word,
-        searchKeyword,
-        responseWord.word_type ?? enrichment.wordType,
-        vietnameseMeaning,
-        englishDefinition,
-      );
-    }
     responseWord.image_url = isRealCardImageUrl(imageUrl, word)
       ? imageUrl
       : isRealCardImageUrl(dbDetail?.image_url, word)

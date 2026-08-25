@@ -40,7 +40,10 @@ export async function GET(request: Request) {
       return NextResponse.json({ words });
     }
 
-    await cleanupCorruptWords(supabase);
+    // Corrupt-word cleanup belongs in scripts/admin — not on every list read.
+    if (searchParams.get("repair") === "true") {
+      await cleanupCorruptWords(supabase);
+    }
 
     const { data: bankRows, error: bankError } = await supabase
       .from("word_bank")

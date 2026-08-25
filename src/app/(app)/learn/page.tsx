@@ -201,7 +201,7 @@ export default function LearnPage() {
     let kind = planned.kind;
     let nextChoices = planned.choices;
 
-    if (cachedSenseChoices) {
+    if (cachedSenseChoices && planned.kind === "sense") {
       kind = "sense";
       nextChoices = cachedSenseChoices;
       prefetchedChoicesRef.current.delete(questionIndex);
@@ -284,14 +284,7 @@ export default function LearnPage() {
           setAllWords(all);
           setQueue((prev) => {
             if (prev.length === 0) return due;
-            if (
-              lockedRef.current ||
-              phaseRef.current === "reveal" ||
-              indexRef.current > 0
-            ) {
-              return mergeQueueWordData(prev, due);
-            }
-            return due;
+            return mergeQueueWordData(prev, due);
           });
           void prepareReviewSession(all);
           return;

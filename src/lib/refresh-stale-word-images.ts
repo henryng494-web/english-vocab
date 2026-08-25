@@ -1,4 +1,4 @@
-import { isCurrentPipelineImageUrl, shouldRefreshImageUrl } from "@/lib/unsplash";
+import { shouldRefreshImageUrl } from "@/lib/unsplash";
 import { setCachedWordImageUrl } from "@/lib/word-image-cache";
 
 export type StaleWordImageTarget = {
@@ -66,6 +66,7 @@ export async function refreshStaleWordImages(
             })),
           }),
         });
+        if (!res.ok) throw new Error(`batch ${res.status}`);
         const data = (await res.json()) as {
           images?: Record<string, string | null>;
         };
@@ -124,7 +125,7 @@ export async function refreshSingleWordImage(
 ): Promise<string | null> {
   const word = target.word.trim().toLowerCase();
   if (!word) return null;
-  if (isCurrentPipelineImageUrl(target.imageUrl)) {
+  if (!shouldRefreshImageUrl(target.imageUrl, word)) {
     return target.imageUrl?.trim() ?? null;
   }
 

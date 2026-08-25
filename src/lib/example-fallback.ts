@@ -1,10 +1,7 @@
 import { capitalizeFirst } from "@/lib/format-text";
 import {
-  hasQualityExamples,
-  isGenericExample,
   containsUntranslatedHeadword,
   isLikelyVietnameseGloss,
-  isNaturalExample,
   keepNaturalExamples,
 } from "@/lib/example-quality";
 import type { VocabExample } from "@/lib/parse-examples";
@@ -232,7 +229,6 @@ export function ensureExamples(
   const usedEn = new Set(kept.map((item) => item.en.toLowerCase()));
   for (const item of fallback) {
     if (kept.length >= TARGET_COUNT) break;
-    if (isGenericExample(item.en)) continue;
     if (usedEn.has(item.en.toLowerCase())) continue;
     kept.push(item);
   }

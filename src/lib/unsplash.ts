@@ -1,4 +1,4 @@
-import { buildImageSearchQueries, isAbstractImagePos } from "@/lib/image-keyword";
+import { buildImageSearchQueries } from "@/lib/image-keyword";
 import { isUnsafeImageMetadata, isUnsafeImageUrl } from "@/lib/safe-image-metadata";
 import { requiresSafeImageOnly } from "@/lib/safe-image-search";
 
@@ -50,8 +50,6 @@ export const IMAGE_PIPELINE_ID = "gemini-unsplash-v4";
 
 /** Only Pexels and Unsplash are trusted learning-card photo sources. */
 const STOCK_IMAGE_HOSTS = new Set(["images.pexels.com", "images.unsplash.com"]);
-
-const DISPLAYABLE_IMAGE_HOSTS = [...STOCK_IMAGE_HOSTS];
 
 function isDisplayableImageHost(hostname: string): boolean {
   return STOCK_IMAGE_HOSTS.has(hostname.toLowerCase());

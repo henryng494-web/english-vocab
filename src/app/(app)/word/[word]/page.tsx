@@ -68,9 +68,10 @@ function WordDetailPageContent() {
 
     const cache = loadPersistedWordCache();
     const cached = cache.get(word);
-    if (cached && isCacheEntryValid(cached, word)) {
-      setData(cached);
-      setLoading(!isCurrentPipelineImageUrl(cached.image_url));
+    const hadValidCache = Boolean(cached && isCacheEntryValid(cached, word));
+    if (hadValidCache) {
+      setData(cached!);
+      setLoading(!isCurrentPipelineImageUrl(cached!.image_url));
     } else {
       setLoading(true);
     }
@@ -122,7 +123,7 @@ function WordDetailPageContent() {
       .catch((err) => {
         if (cancelled) return;
         setError(err instanceof Error ? err.message : "Failed to load word");
-        setData(null);
+        if (!hadValidCache) setData(null);
       })
       .finally(() => {
         if (!cancelled) setLoading(false);

@@ -32,12 +32,13 @@ function SearchPageContent() {
       return;
     }
 
+    const controller = new AbortController();
     const timer = window.setTimeout(async () => {
       setLoading(true);
       try {
         const res = await fetch(
           `/api/words/search?q=${encodeURIComponent(trimmed)}&limit=40`,
-          { cache: "no-store" },
+          { cache: "no-store", signal: controller.signal },
         );
         const data = (await res.json()) as {
           words?: Array<{ word: string; rank: number }>;
@@ -49,14 +50,18 @@ function SearchPageContent() {
             meta: `Rank ${item.rank}`,
           })),
         );
-      } catch {
+      } catch (error) {
+        if (error instanceof DOMException && error.name === "AbortError") return;
         setRows([]);
       } finally {
         setLoading(false);
       }
     }, 250);
 
-    return () => window.clearTimeout(timer);
+    return () => {
+      controller.abort();
+      window.clearTimeout(timer);
+    };
   }, [query, router]);
 
   return (

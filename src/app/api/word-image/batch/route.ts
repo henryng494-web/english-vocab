@@ -14,21 +14,27 @@ export async function POST(request: Request) {
 
     const entries = await Promise.all(
       items.map(async (item) => {
+        const word = item?.word?.trim().toLowerCase();
+        if (!word) return null;
         const url = await resolveWordImageForApi(
-          item.word,
+          word,
           item.keyword,
           item.pos,
           item.meaning,
         );
-        return [item.word.trim().toLowerCase(), url] as const;
+        return [word, url] as const;
       }),
     );
 
     return NextResponse.json({
-      images: Object.fromEntries(entries),
+      images: Object.fromEntries(
+        entries.filter((entry): entry is readonly [string, string | null] =>
+          Boolean(entry),
+        ),
+      ),
     });
   } catch (error) {
     console.error("word-image batch error:", error);
-    return NextResponse.json({ images: {} });
+    return NextResponse.json({ images: {} }, { status: 500 });
   }
 }

@@ -7,7 +7,7 @@ export async function GET(request: Request) {
     const query = searchParams.get("q") ?? "";
     const limit = Math.min(
       60,
-      Math.max(1, Number(searchParams.get("limit") ?? "30")),
+      Math.max(1, Number(searchParams.get("limit") ?? "30") || 30),
     );
 
     if (!query.trim()) {

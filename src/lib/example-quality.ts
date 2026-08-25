@@ -31,7 +31,7 @@ function isAdjectiveMisusedAsSubject(en: string, word: string): boolean {
   return COMMON_ADJECTIVE_SUBJECTS.has(subject);
 }
 
-function isFallbackTemplate(text: string): boolean {
+function isBannedStudyTemplate(text: string): boolean {
   return (
     /^there is a .+ near the door\.?$/i.test(text) ||
     /^she talked about the .+\.?$/i.test(text) ||
@@ -43,18 +43,6 @@ function isFallbackTemplate(text: string): boolean {
     /^she wore a .+ dress\.?$/i.test(text) ||
     /^please speak .+ to them\.?$/i.test(text) ||
     /^he walked .+ down the street\.?$/i.test(text) ||
-    /^i have .+ books at home\.?$/i.test(text) ||
-    /^she is .+ years old\.?$/i.test(text) ||
-    /^the keys are .+ the bag\.?$/i.test(text) ||
-    /^we sat .+ the old tree\.?$/i.test(text) ||
-    /^i like tea .+ coffee\.?$/i.test(text) ||
-    /^stay here .+ wait for me\.?$/i.test(text) ||
-    /^i like .+ song a lot\.?$/i.test(text) ||
-    /^i saw .+ at school today\.?$/i.test(text) ||
-    /^.+ is waiting outside\.?$/i.test(text) ||
-    /^.+ cat sat on the chair\.?$/i.test(text) ||
-    /^.+! the food is ready\.?$/i.test(text) ||
-    /^.+ students arrived early\.?$/i.test(text) ||
     /^i noticed the .+ on my walk\.?$/i.test(text) ||
     /^we talked about the .+ at lunch\.?$/i.test(text)
   );
@@ -71,7 +59,6 @@ export function containsUntranslatedHeadword(
   const viTrimmed = vi.trim();
   const head = word.trim().toLowerCase();
   if (!viTrimmed || !head || head.length < 3) return false;
-  if (!VI_DIACRITICS.test(viTrimmed)) return true;
   const escaped = head.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   return new RegExp(`\\b${escaped}\\b`, "i").test(viTrimmed);
 }
@@ -102,7 +89,7 @@ export function isGenericExample(en: string): boolean {
   const text = en.trim();
   if (!text) return true;
   if (GENERIC_EXAMPLE.test(text)) return true;
-  if (isFallbackTemplate(text)) return true;
+  if (isBannedStudyTemplate(text)) return true;
   return false;
 }
 

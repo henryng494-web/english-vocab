@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import type { LearningStatus } from "@/types/database";
+import { getFamilyHeadword } from "@/lib/word-family";
 import { normalizeVocabInput } from "@/lib/word-validation";
 import { NextResponse } from "next/server";
 
@@ -29,7 +30,8 @@ export async function POST(request: Request) {
       status?: LearningStatus;
     };
 
-    const word = normalizeVocabInput(body.word ?? "");
+    const normalized = normalizeVocabInput(body.word ?? "");
+    const word = normalized ? getFamilyHeadword(normalized) : null;
     const status = body.status;
 
     if (!word) {

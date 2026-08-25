@@ -1,6 +1,6 @@
-import { isRealCardImageUrl } from "@/lib/unsplash";
+import { isRealCardImageUrl, shouldRefreshImageUrl } from "@/lib/unsplash";
 
-const STORAGE_KEY = "word-image-url-cache-v9";
+const STORAGE_KEY = "word-image-url-cache-v11";
 const MAX_ENTRIES = 500;
 
 const cache = new Map<string, string>();
@@ -15,7 +15,11 @@ function hydrateFromStorage(): void {
     const parsed = JSON.parse(raw) as Record<string, string>;
     for (const [word, url] of Object.entries(parsed)) {
       const key = word.trim().toLowerCase();
-      if (url?.trim() && isRealCardImageUrl(url.trim(), key)) {
+      if (
+        url?.trim() &&
+        isRealCardImageUrl(url.trim(), key) &&
+        !shouldRefreshImageUrl(url.trim(), key)
+      ) {
         cache.set(key, url.trim());
       }
     }
@@ -37,13 +41,16 @@ function persistToStorage(): void {
 export function getCachedWordImageUrl(word: string): string | undefined {
   hydrateFromStorage();
   const key = word.trim().toLowerCase();
-  return cache.get(key);
+  const cached = cache.get(key);
+  if (cached && !shouldRefreshImageUrl(cached, key)) return cached;
+  if (cached) cache.delete(key);
+  return undefined;
 }
 
 export function setCachedWordImageUrl(word: string, url: string): void {
   hydrateFromStorage();
   const key = word.trim().toLowerCase();
-  if (!isRealCardImageUrl(url, key)) return;
+  if (!isRealCardImageUrl(url, key) || shouldRefreshImageUrl(url, key)) return;
   cache.set(key, url.trim());
   persistToStorage();
 }
@@ -56,7 +63,11 @@ export function peekCachedWordImageUrl(
   const cached = getCachedWordImageUrl(word);
   if (cached && isRealCardImageUrl(cached, word)) return cached;
   const trimmed = imageUrl?.trim();
-  if (trimmed && isRealCardImageUrl(trimmed, word)) {
+  if (
+    trimmed &&
+    isRealCardImageUrl(trimmed, word) &&
+    !shouldRefreshImageUrl(trimmed, word)
+  ) {
     setCachedWordImageUrl(word, trimmed);
     return trimmed;
   }
@@ -70,11 +81,13 @@ export function seedWordImageCacheFromEntries(
   hydrateFromStorage();
   for (const [word, entry] of entries) {
     const url = entry.image_url?.trim();
-    if (url && isRealCardImageUrl(url, word)) {
+    if (
+      url &&
+      isRealCardImageUrl(url, word) &&
+      !shouldRefreshImageUrl(url, word)
+    ) {
       const key = word.trim().toLowerCase();
-      if (!cache.has(key)) {
-        cache.set(key, url);
-      }
+      cache.set(key, url);
     }
   }
   persistToStorage();

@@ -16,6 +16,7 @@ export type WordImagePrefetchTarget = {
 };
 
 export const REVIEW_IMAGE_PREFETCH_CONCURRENCY = 8;
+const BATCH_SIZE = 12;
 
 /** Browser-preload an image URL once per session. */
 export function preloadImageUrlDeduped(url: string | null | undefined): void {
@@ -44,23 +45,10 @@ function cacheResolvedUrl(word: string, url: string | null): string | null {
   return null;
 }
 
-async function fetchWordImagesBatch(
-  targets: WordImagePrefetchTarget[],
+async function fetchWordImagesBatchChunk(
+  pending: WordImagePrefetchTarget[],
 ): Promise<Record<string, string>> {
   const updates: Record<string, string> = {};
-  const pending: WordImagePrefetchTarget[] = [];
-
-  for (const target of targets) {
-    const word = target.word.trim().toLowerCase();
-    if (!word) continue;
-    const cached = peekCachedWordImageUrl(word, target.imageUrl);
-    if (cached) {
-      updates[word] = cached;
-      preloadImageUrlDeduped(cached);
-      continue;
-    }
-    pending.push(target);
-  }
 
   if (pending.length === 0) return updates;
 
@@ -85,6 +73,7 @@ async function fetchWordImagesBatch(
         })),
       }),
     });
+    if (!res.ok) throw new Error(`batch ${res.status}`);
     const data = (await res.json()) as {
       images?: Record<string, string | null>;
     };
@@ -102,6 +91,33 @@ async function fetchWordImagesBatch(
         if (url) updates[word] = url;
       }),
     );
+  }
+
+  return updates;
+}
+
+async function fetchWordImagesBatch(
+  targets: WordImagePrefetchTarget[],
+): Promise<Record<string, string>> {
+  const updates: Record<string, string> = {};
+  const pending: WordImagePrefetchTarget[] = [];
+
+  for (const target of targets) {
+    const word = target.word.trim().toLowerCase();
+    if (!word) continue;
+    const cached = peekCachedWordImageUrl(word, target.imageUrl);
+    if (cached) {
+      updates[word] = cached;
+      preloadImageUrlDeduped(cached);
+      continue;
+    }
+    pending.push(target);
+  }
+
+  for (let i = 0; i < pending.length; i += BATCH_SIZE) {
+    const chunk = pending.slice(i, i + BATCH_SIZE);
+    const chunkUpdates = await fetchWordImagesBatchChunk(chunk);
+    Object.assign(updates, chunkUpdates);
   }
 
   return updates;
