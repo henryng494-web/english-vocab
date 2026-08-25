@@ -1,7 +1,8 @@
 {
   "ok": 100,
   "fail": 0,
-  "bundle": "jungle2",
-  "note": "Monkey extra-limb fix: exclude lineup ref when monkey in cast; sitting/side-profile poses; regen priority words",
-  "fixedWords": ["will", "as", "who", "why", "see", "you", "the", "maybe"]
+  "bundle": "jungle3",
+  "note": "Full Jungle Jokers regen rank 1-100. Skipped but/can/on (modified today, cast unchanged). Per-character refs only, no lineup.",
+  "skipped": ["but", "can", "on"],
+  "regenerated": 97
 }
