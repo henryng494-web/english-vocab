@@ -111,7 +111,7 @@ function WordDetailPageContent() {
             ? (apiWord.word_family as DiscoverWordData["word_family"])
             : null,
         };
-        if (!isCacheEntryValid(loaded, word)) {
+        if (!loaded.vietnamese_meaning?.trim()) {
           throw new Error(`Incomplete data for "${word}"`);
         }
         if (cancelled) return;
