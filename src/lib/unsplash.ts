@@ -12,10 +12,11 @@ import {
   isApprovedFunctionWordStockUrl,
 } from "@/lib/function-word-images";
 import {
-  isMascotIllustrationUrl,
-  resolveMascotWordImageUrl,
-  shouldUseMascotIllustration,
-} from "@/lib/mascot-word-images";
+  getStaticCastWordImagePath,
+  isCastWordImageWord,
+  isLegacyMascotPipelineUrl,
+  isStaticCastWordImageUrl,
+} from "@/lib/cast-word-images";
 import {
   isClosedClassWord,
   resolveWordImagePlan,
@@ -365,7 +366,7 @@ export function hasAcceptableWordImage(
 ): boolean {
   const trimmed = url?.trim();
   if (!trimmed) return false;
-  if (isMascotIllustrationUrl(trimmed)) return true;
+  if (isStaticCastWordImageUrl(trimmed)) return true;
   if (isPlaceholderIllustrationUrl(trimmed)) return true;
   if (!isStockImageUrl(trimmed)) return false;
   return !shouldRefreshImageUrl(trimmed, word);
@@ -378,7 +379,7 @@ export function isRealCardImageUrl(
 ): boolean {
   const trimmed = url?.trim();
   if (!trimmed) return false;
-  if (isMascotIllustrationUrl(trimmed)) return true;
+  if (isStaticCastWordImageUrl(trimmed)) return true;
   if (isPlaceholderIllustrationUrl(trimmed)) return false;
   return isUsableCardImageUrl(trimmed, word);
 }
@@ -388,7 +389,7 @@ export function isUsableCardImageUrl(
   word?: string | null,
   pos?: string | null,
 ): boolean {
-  if (isMascotIllustrationUrl(url)) return true;
+  if (isStaticCastWordImageUrl(url)) return true;
   if (isPlaceholderIllustrationUrl(url)) return true;
   return isDisplayableHttpImageUrl(url, word, pos);
 }
@@ -399,8 +400,10 @@ export function shouldRefreshImageUrl(
   pos?: string | null,
 ): boolean {
   const trimmed = url?.trim();
-  if (word && shouldUseMascotIllustration(word)) {
-    if (isMascotIllustrationUrl(trimmed)) return false;
+  if (word && isCastWordImageWord(word)) {
+    const bundled = getStaticCastWordImagePath(word);
+    if (bundled && trimmed === bundled) return false;
+    if (isStaticCastWordImageUrl(trimmed)) return trimmed !== bundled;
     return true;
   }
   if (word && requiresSafeImageOnly(word)) {
@@ -578,14 +581,11 @@ export function resolveWordImageUrl(
   if (requiresSafeImageOnly(word)) {
     return getDefaultLearningImageDataUrl(word, pos);
   }
-  if (shouldUseMascotIllustration(word)) {
-    const mascot = resolveMascotWordImageUrl(
-      word,
-      pos,
-      searchKeyword,
-      null,
+  if (isCastWordImageWord(word)) {
+    return (
+      getStaticCastWordImagePath(word) ??
+      getDefaultLearningImageDataUrl(word, pos)
     );
-    if (mascot) return mascot;
   }
   if (isClosedClassWord(word, pos)) {
     const trimmed = imageUrl?.trim();
@@ -595,7 +595,11 @@ export function resolveWordImageUrl(
     return getDefaultLearningImageDataUrl(word, pos);
   }
   const trimmed = imageUrl?.trim();
-  if (isMascotIllustrationUrl(trimmed)) return trimmed!;
+  if (isStaticCastWordImageUrl(trimmed)) return trimmed!;
+  if (isLegacyMascotPipelineUrl(trimmed)) {
+    const bundled = getStaticCastWordImagePath(word);
+    if (bundled) return bundled;
+  }
   if (isDisplayableHttpImageUrl(trimmed, word, pos)) {
     return trimmed!;
   }
@@ -615,10 +619,10 @@ export function finalizeWordImageDisplayUrl(
   const resolved = candidate?.trim() ?? "";
   const existing = stored?.trim() ?? "";
 
-  if (shouldUseMascotIllustration(word)) {
-    if (resolved && isMascotIllustrationUrl(resolved)) return resolved;
-    const mascot = resolveMascotWordImageUrl(word, pos, null, null);
-    if (mascot) return mascot;
+  if (isCastWordImageWord(word)) {
+    if (resolved && isStaticCastWordImageUrl(resolved)) return resolved;
+    const bundled = getStaticCastWordImagePath(word);
+    if (bundled) return bundled;
   }
 
   if (isClosedClassWord(word, pos)) {
@@ -1113,25 +1117,13 @@ export async function fetchWordImageUrlDetailed(
     );
   }
 
-  if (shouldUseMascotIllustration(word)) {
-    try {
-      const mascotUrl = resolveMascotWordImageUrl(
-        word,
-        pos,
-        searchKeyword,
-        meaning,
-      );
-      if (mascotUrl) {
-        return okWordImageResult(
-          mascotUrl,
-          WORD_IMAGE_SOURCES.MASCOT_ILLUSTRATION,
-          keywordOut,
-        );
-      }
-    } catch (error) {
-      console.warn(
-        `[fetchWordImageUrl] Mascot pipeline failed for "${word}":`,
-        error instanceof Error ? error.message : error,
+  if (isCastWordImageWord(word)) {
+    const bundled = getStaticCastWordImagePath(word);
+    if (bundled) {
+      return okWordImageResult(
+        bundled,
+        WORD_IMAGE_SOURCES.MASCOT_ILLUSTRATION,
+        keywordOut,
       );
     }
   }

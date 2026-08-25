@@ -18,9 +18,9 @@ import {
 } from "@/lib/unsplash";
 import { isApprovedFunctionWordStockUrl } from "@/lib/function-word-images";
 import {
-  resolveMascotWordImageUrl,
-  shouldUseMascotIllustration,
-} from "@/lib/mascot-word-images";
+  getStaticCastWordImagePath,
+  isCastWordImageWord,
+} from "@/lib/cast-word-images";
 import { isClosedClassWord } from "@/lib/word-image-strategy";
 import { normalizeVocabInput } from "@/lib/word-validation";
 
@@ -89,14 +89,9 @@ export async function resolveWordImageForApi(
 
     const stored = detail?.image_url?.trim();
 
-    if (shouldUseMascotIllustration(word)) {
-      const mascotUrl = resolveMascotWordImageUrl(
-        word,
-        pos,
-        searchKeyword,
-        meaning,
-      );
-      if (mascotUrl) {
+    if (isCastWordImageWord(word)) {
+      const bundled = getStaticCastWordImagePath(word);
+      if (bundled) {
         if (stored && isPersistableWordImageUrl(stored, word)) {
           const { error } = await supabase
             .from("word_details")
@@ -104,13 +99,13 @@ export async function resolveWordImageForApi(
             .eq("word", word);
           if (error) {
             console.warn(
-              `[word-image-api] Failed to clear stale stock for mascot "${word}":`,
+              `[word-image-api] Failed to clear stale stock for cast "${word}":`,
               error.message,
             );
           }
         }
         return okWordImageResult(
-          mascotUrl,
+          bundled,
           WORD_IMAGE_SOURCES.MASCOT_ILLUSTRATION,
           searchKeyword,
         );

@@ -11,6 +11,7 @@
     "generate:keywords": "npx tsx scripts/generate-curated-keywords.ts",
     "generate:mascot-manifest": "npx tsx scripts/generate-mascot-scene-manifest.ts",
     "extract:mascot-sprites": "python3 scripts/extract-mascot-sprites.py",
+    "render:cast-word-images": "python3 scripts/render-cast-word-images.py",
     "test:gemini-unsplash-image": "npx tsx scripts/test-gemini-unsplash-image.ts",
     "test:gemini-pexels-image": "npm run test:gemini-unsplash-image",
     "test:pexels": "npx tsx scripts/test-pexels-keywords.ts",
