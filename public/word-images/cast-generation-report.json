@@ -1,7 +1,8 @@
 {
-  "ok": 100,
+  "bundle": "jungle5",
+  "target": 95,
+  "ok": 95,
   "fail": 0,
-  "bundle": "jungle4",
-  "note": "jungle3 full regen complete; jungle4 adds cast rebalance (25% all-four) + automated QA scan/fix pipeline",
-  "qaReport": "public/word-images/jungle-qa-report.json"
+  "failed": [],
+  "at": "2026-08-25T22:46:15.472Z"
 }
