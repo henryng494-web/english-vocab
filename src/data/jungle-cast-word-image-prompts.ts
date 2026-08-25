@@ -1,9 +1,11 @@
 /** Jungle Jokers word prompts — rank 1–100. Shape locked via multi-ref PNGs. */
 import {
   JUNGLE_CAST_DESIGN_ONLY,
+  JUNGLE_CAST_CROCODILE_SHAPE_RULE,
   JUNGLE_CAST_ELEPHANT_ARM_RULE,
   JUNGLE_CAST_EXPRESSION_SAMPLES,
   JUNGLE_CAST_MONKEY_POSE_RULE,
+  JUNGLE_CAST_TIGER_SHAPE_RULE,
 } from "@/data/jungle-cast-samples";
 import {
   getJungleCastReferencePaths,
@@ -41,21 +43,21 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
     "cast": [
       "tiger"
     ],
-    "scene": "ONLY tiger — ",
+    "scene": "ONLY tiger —",
     "expressions": "Tiger: eager excited trot beside cat, happy anticipation (NOT O-mouth shock)."
   },
   "it": {
     "cast": [
       "tiger"
     ],
-    "scene": "ONLY tiger — ",
+    "scene": "ONLY tiger —",
     "expressions": "Tiger: impressed admiring eyes, small clap (NOT shocked)."
   },
   "that": {
     "cast": [
       "tiger"
     ],
-    "scene": "ONLY tiger — ",
+    "scene": "ONLY tiger —",
     "expressions": "Tiger: looking where cat points, curious interested face (NOT frozen shock)."
   },
   "and": {
@@ -63,14 +65,14 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
       "tiger",
       "elephant"
     ],
-    "scene": "ONLY tiger and elephant — ",
+    "scene": "ONLY tiger and elephant —",
     "expressions": "Tiger: delighted grateful grin eating together (NOT O-mouth). Cow and pig: cozy together on same bench, content smiles."
   },
   "of": {
     "cast": [
       "elephant"
     ],
-    "scene": "ONLY elephant — ",
+    "scene": "ONLY elephant —",
     "expressions": "Elephant: gentle pleased smile, mouth closed."
   },
   "what": {
@@ -84,21 +86,21 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
     "cast": [
       "crocodile"
     ],
-    "scene": "ONLY crocodile — ",
+    "scene": "ONLY crocodile —",
     "expressions": "Crocodile: giggling."
   },
   "me": {
     "cast": [
       "monkey"
     ],
-    "scene": "ONLY monkey — ",
+    "scene": "ONLY monkey —",
     "expressions": "Monkey: warm acknowledging nod."
   },
   "is": {
     "cast": [
       "tiger"
     ],
-    "scene": "ONLY tiger — ",
+    "scene": "ONLY tiger —",
     "expressions": "Tiger: impressed wide happy eyes."
   },
   "we": {
@@ -108,8 +110,8 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
       "crocodile",
       "tiger"
     ],
-    "scene": "All four mascots — All four mascots — All four mascots — All four mascots stand together as a team on a neighborhood park, arms linked — 'we' together.",
-    "expressions": "All four: united team pride — warm smiles, linked arms, belonging (Cat NOT bored, Dog NOT O-mouth, Cow NO tongue, Pig NOT tired). Each looks happy to be together."
+    "scene": "All four mascots — sunny park lawn holding paws/hands in a line. Crocodile horizontal log low between others. Tiger orange sphere. Elephant circle head + stick arms visible.",
+    "expressions": "All four: united team smiles linked together. Tiger: sphere only. Crocodile: log body only, not standing upright."
   },
   "this": {
     "cast": [
@@ -122,7 +124,7 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
     "cast": [
       "tiger"
     ],
-    "scene": "ONLY tiger — ",
+    "scene": "ONLY tiger —",
     "expressions": "Tiger: waving back cheerfully."
   },
   "on": {
@@ -136,7 +138,7 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
     "cast": [
       "elephant"
     ],
-    "scene": "ONLY elephant — ",
+    "scene": "ONLY elephant —",
     "expressions": "Elephant: touched aww expression."
   },
   "have": {
@@ -144,14 +146,14 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
       "elephant",
       "tiger"
     ],
-    "scene": "ONLY elephant and tiger — ",
+    "scene": "ONLY elephant and tiger —",
     "expressions": "Tiger: amazed happy eyes at pile. Elephant: gentle laugh at pig's hoard."
   },
   "do": {
     "cast": [
       "tiger"
     ],
-    "scene": "ONLY tiger — ",
+    "scene": "ONLY tiger —",
     "expressions": "Tiger: drying dishes helpfully, earnest helpful smile."
   },
   "no": {
@@ -195,38 +197,36 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
       "crocodile",
       "tiger"
     ],
-    "scene": "All four mascots — All four mascots — All four mascots — All four mascots gather around a table covered with every kind of fruit — all of them.",
-    "expressions": "All four: excited abundance — happy eyes at full table (Cat alert not bored, Dog joyful not shocked, Cow delighted mouth closed, Pig happy not tired). Gesturing at ALL the fruit."
+    "scene": "All four mascots — round table full of colorful fruit. Tiger sphere leaning toward fruit. Crocodile log body at table height on four legs. Elephant stick arms visible.",
+    "expressions": "All four: excited at abundance. Tiger: merged sphere ball. Crocodile: horizontal log shape."
   },
   "with": {
     "cast": [
-      "monkey",
-      "elephant",
-      "crocodile",
-      "tiger"
+      "tiger",
+      "crocodile"
     ],
-    "scene": "All four mascots — ",
-    "expressions": "Tiger: happy walking together, content side-glance (NOT O-mouth). Cow and pig: also paired under second umbrella, warm friendship."
+    "scene": "ONLY orange tiger and lime-green crocodile — rainy sidewalk. Tiger holds blue umbrella over both. Crocodile walks low as horizontal log beside tiger.",
+    "expressions": "Tiger: orange SPHERE body unchanged, happy walking together. Crocodile: horizontal LOG body low to ground, four stub legs, NEVER upright."
   },
   "just": {
     "cast": [
       "tiger"
     ],
-    "scene": "ONLY tiger — ",
+    "scene": "ONLY tiger —",
     "expressions": "Tiger: understanding nod at single cookie."
   },
   "get": {
     "cast": [
       "tiger"
     ],
-    "scene": "ONLY tiger — ",
+    "scene": "ONLY tiger —",
     "expressions": ""
   },
   "here": {
     "cast": [
       "tiger"
     ],
-    "scene": "ONLY tiger — ",
+    "scene": "ONLY tiger —",
     "expressions": "Tiger: looking down at exact spot, understanding nod."
   },
   "but": {
@@ -272,14 +272,14 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
     "cast": [
       "tiger"
     ],
-    "scene": "ONLY tiger — ",
+    "scene": "ONLY tiger —",
     "expressions": "Tiger: warm smile watching."
   },
   "out": {
     "cast": [
       "tiger"
     ],
-    "scene": "ONLY tiger — ",
+    "scene": "ONLY tiger —",
     "expressions": ""
   },
   "go": {
@@ -293,21 +293,21 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
     "cast": [
       "elephant"
     ],
-    "scene": "ONLY elephant — ",
+    "scene": "ONLY elephant —",
     "expressions": "Elephant: kind warm expression."
   },
   "up": {
     "cast": [
       "tiger"
     ],
-    "scene": "ONLY tiger — ",
+    "scene": "ONLY tiger —",
     "expressions": "Tiger: jumping trying to reach."
   },
   "about": {
     "cast": [
       "elephant"
     ],
-    "scene": "ONLY elephant — ",
+    "scene": "ONLY elephant —",
     "expressions": "Elephant: thoughtful nod at each icon."
   },
   "if": {
@@ -346,14 +346,14 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
     "cast": [
       "tiger"
     ],
-    "scene": "ONLY tiger — ",
+    "scene": "ONLY tiger —",
     "expressions": "Tiger: counting on paw confirming one."
   },
   "how": {
     "cast": [
       "crocodile"
     ],
-    "scene": "ONLY crocodile — ",
+    "scene": "ONLY crocodile —",
     "expressions": "Crocodile: confused by instructions."
   },
   "well": {
@@ -434,8 +434,8 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
     "cast": [
       "monkey"
     ],
-    "scene": "ONLY purple monkey — modern kitchen, chef hat and apron. Monkey sits on stool side profile stirring pot on stove.",
-    "expressions": "Monkey: proud chef smile, sitting side profile, one hand stirring (other on lap). Exactly two arms two legs."
+    "scene": "ONLY purple monkey — modern kitchen, chef hat. Monkey sits on stool side profile stirring pot.",
+    "expressions": "Monkey: proud chef smile, sitting side profile, one hand stirring. Exactly two arms two legs."
   },
   "will": {
     "cast": [
@@ -449,7 +449,7 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
     "cast": [
       "tiger"
     ],
-    "scene": "ONLY tiger — ",
+    "scene": "ONLY tiger —",
     "expressions": ""
   },
   "when": {
@@ -463,7 +463,7 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
     "cast": [
       "tiger"
     ],
-    "scene": "ONLY tiger — ",
+    "scene": "ONLY tiger —",
     "expressions": ""
   },
   "okay": {
@@ -483,7 +483,7 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
       "crocodile",
       "tiger"
     ],
-    "scene": "All four mascots — All four mascots — All four mascots — All four at city park birthday picnic — checkmark flag in cake, confetti, playground behind.",
+    "scene": "All four mascots — All four at city park birthday picnic — checkmark flag in cake, confetti, playground behind.",
     "expressions": "All cheering — happy faces only. Elephant MUST keep giant round head + pencil stick body (NOT fat). Tiger MUST stay spherical ball.",
     "outfits": "Monkey: party cone hat. Elephant: blue birthday sash. Crocodile: none. Tiger: none."
   },
@@ -491,7 +491,7 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
     "cast": [
       "elephant"
     ],
-    "scene": "ONLY elephant — ",
+    "scene": "ONLY elephant —",
     "expressions": "Elephant: calm punctual nod."
   },
   "look": {
@@ -519,21 +519,21 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
     "cast": [
       "elephant"
     ],
-    "scene": "ONLY elephant — ",
+    "scene": "ONLY elephant —",
     "expressions": "Elephant: courteous bow."
   },
   "where": {
     "cast": [
       "elephant"
     ],
-    "scene": "ONLY elephant — ",
+    "scene": "ONLY elephant —",
     "expressions": "Elephant: rotating map helpfully."
   },
   "would": {
     "cast": [
       "tiger"
     ],
-    "scene": "ONLY tiger — ",
+    "scene": "ONLY tiger —",
     "expressions": "Tiger: imagining same dream happily."
   },
   "some": {
@@ -543,7 +543,7 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
       "crocodile",
       "tiger"
     ],
-    "scene": "All four mascots — ",
+    "scene": "All four mascots —",
     "expressions": "Elephant: indicating SOME remaining on bush."
   },
   "hey": {
@@ -564,14 +564,14 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
     "cast": [
       "tiger"
     ],
-    "scene": "ONLY tiger — ",
+    "scene": "ONLY tiger —",
     "expressions": "Tiger: pointing at both options helpfully."
   },
   "say": {
     "cast": [
       "monkey"
     ],
-    "scene": "ONLY monkey — ",
+    "scene": "ONLY monkey —",
     "expressions": "Monkey: listening attentively nodding."
   },
   "something": {
@@ -585,21 +585,21 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
     "cast": [
       "tiger"
     ],
-    "scene": "ONLY tiger — ",
+    "scene": "ONLY tiger —",
     "expressions": ""
   },
   "then": {
     "cast": [
       "tiger"
     ],
-    "scene": "ONLY tiger — ",
+    "scene": "ONLY tiger —",
     "expressions": "Tiger: pointing from plate to door teaching sequence."
   },
   "little": {
     "cast": [
       "crocodile"
     ],
-    "scene": "ONLY crocodile — ",
+    "scene": "ONLY crocodile —",
     "expressions": "Crocodile: small cute proud standing on stool, happy little smile (NOT tired)."
   },
   "way": {
@@ -614,7 +614,7 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
       "tiger",
       "elephant"
     ],
-    "scene": "ONLY tiger and elephant — ",
+    "scene": "ONLY tiger and elephant —",
     "expressions": "Tiger: cracking eggs helpfully. Elephant: stirring gently."
   },
   "too": {
@@ -631,14 +631,14 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
       "crocodile",
       "tiger"
     ],
-    "scene": "All four mascots — ",
+    "scene": "All four mascots —",
     "expressions": "Tiger: supporting stern head-shake."
   },
   "by": {
     "cast": [
       "crocodile"
     ],
-    "scene": "ONLY crocodile — ",
+    "scene": "ONLY crocodile —",
     "expressions": "Crocodile: signing painting proudly."
   },
   "over": {
@@ -655,28 +655,28 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
       "crocodile",
       "tiger"
     ],
-    "scene": "All four mascots — ",
+    "scene": "All four mascots —",
     "expressions": "Tiger: excited at growing pile."
   },
   "mean": {
     "cast": [
       "elephant"
     ],
-    "scene": "ONLY elephant — ",
+    "scene": "ONLY elephant —",
     "expressions": "Elephant: sad disapproving look."
   },
   "very": {
     "cast": [
       "elephant"
     ],
-    "scene": "ONLY elephant — ",
+    "scene": "ONLY elephant —",
     "expressions": "Elephant: measuring tower height."
   },
   "off": {
     "cast": [
       "tiger"
     ],
-    "scene": "ONLY tiger — ",
+    "scene": "ONLY tiger —",
     "expressions": ""
   },
   "sorry": {
@@ -695,7 +695,7 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
       "crocodile",
       "tiger"
     ],
-    "scene": "All four mascots — ",
+    "scene": "All four mascots —",
     "expressions": "Monkey: surprised-touched receiving, happy eyes (NOT bored)."
   },
   "thank": {
@@ -705,7 +705,7 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
       "crocodile",
       "tiger"
     ],
-    "scene": "All four mascots — ",
+    "scene": "All four mascots —",
     "expressions": "Elephant: touched hand on heart."
   },
   "love": {
@@ -726,7 +726,7 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
       "crocodile",
       "tiger"
     ],
-    "scene": "All four mascots — All four mascots — All four mascots — Four diverse stick-figure people silhouettes chatting in a park while mascots picnic nearby.",
+    "scene": "All four mascots — Four diverse stick-figure people silhouettes chatting in a park while mascots picnic nearby.",
     "expressions": "Mascots: friendly observing PEOPLE — warm curious smiles watching humans (Cat interested, Dog happy calm, Cow gentle wave to people, Pig excited pointing). Not interacting as main focus."
   },
   "please": {
@@ -736,7 +736,7 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
       "crocodile",
       "tiger"
     ],
-    "scene": "All four mascots — ",
+    "scene": "All four mascots —",
     "expressions": "Elephant: kindly reaching to help."
   },
   "sure": {
@@ -753,14 +753,14 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
     "cast": [
       "tiger"
     ],
-    "scene": "ONLY tiger — ",
+    "scene": "ONLY tiger —",
     "expressions": "Tiger: opening one door experimentally."
   },
   "only": {
     "cast": [
       "tiger"
     ],
-    "scene": "ONLY tiger — ",
+    "scene": "ONLY tiger —",
     "expressions": "Tiger: negotiating trade."
   },
   "because": {
@@ -780,21 +780,21 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
       "crocodile",
       "tiger"
     ],
-    "scene": "All four mascots — ",
+    "scene": "All four mascots —",
     "expressions": "Tiger: confirming count nodding. Elephant: holding up two hooves."
   },
   "much": {
     "cast": [
       "elephant"
     ],
-    "scene": "ONLY elephant — ",
+    "scene": "ONLY elephant —",
     "expressions": "Elephant: concerned gentle rescue."
   },
   "sir": {
     "cast": [
       "elephant"
     ],
-    "scene": "ONLY elephant — ",
+    "scene": "ONLY elephant —",
     "expressions": "Elephant: curtsy-like polite nod."
   },
   "maybe": {
@@ -839,8 +839,14 @@ export function buildJungleCastWordImagePrompt(word: string): string | null {
   const elephantNote = cast.includes("elephant")
     ? ` ${JUNGLE_CAST_ELEPHANT_ARM_RULE}`
     : "";
+  const tigerNote = cast.includes("tiger")
+    ? ` ${JUNGLE_CAST_TIGER_SHAPE_RULE}`
+    : "";
+  const crocodileNote = cast.includes("crocodile")
+    ? ` ${JUNGLE_CAST_CROCODILE_SHAPE_RULE}`
+    : "";
 
-  return `${JUNGLE_CAST_DESIGN_ONLY} ${castNote} ${JUNGLE_CAST_SHAPE_REMINDER}${monkeyNote}${elephantNote} Word "${key}": ${entry.scene} EXPRESSIONS: ${entry.expressions}.${outfitNote}`;
+  return `${JUNGLE_CAST_DESIGN_ONLY} ${castNote} ${JUNGLE_CAST_SHAPE_REMINDER}${monkeyNote}${elephantNote}${tigerNote}${crocodileNote} Word "${key}": ${entry.scene} EXPRESSIONS: ${entry.expressions}.${outfitNote}`;
 }
 
 export function getJungleCastWordReferences(word: string): string[] | null {

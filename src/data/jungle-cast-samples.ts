@@ -21,6 +21,12 @@ export const JUNGLE_CAST_SHAPE_LOCK =
   "(3) CROCODILE: lime green #84CC16; body ALWAYS one horizontal rectangle log (width 3x height); jagged dorsal scales; four stubby short legs (never long legs); one blunt white tooth.\n" +
   "(4) TIGER: orange ball #F97316; body ALWAYS one sphere (head+body merged chibi ball); bold dark zigzag stripes; cream muzzle patch; legs ALWAYS tiny stubs (never long legs); small striped tail.";
 
+export const JUNGLE_CAST_TIGER_SHAPE_RULE =
+  "TIGER SHAPE (critical): Copy reference exactly — ONE orange sphere #F97316 (head+body merged ball). Cream muzzle patch on front of sphere. Dark zigzag stripes. Tiny stub arms + tiny stub legs only. NEVER separate round head on oval body. NEVER humanoid tiger. NEVER long legs.";
+
+export const JUNGLE_CAST_CROCODILE_SHAPE_RULE =
+  "CROCODILE SHAPE (critical): Copy reference exactly — ONE horizontal lime-green LOG rectangle #84CC16 (width 3× height), low to ground. Eyes on top of log. Four short stub legs pointing down. Side view crawling/walking. NEVER upright standing like human. NEVER vertical body. NEVER thick rounded torso.";
+
 export const JUNGLE_CAST_ELEPHANT_ARM_RULE =
   "ELEPHANT ANATOMY (critical): Pink elephant ALWAYS has TWO thin stick arms with small three-finger hands visible — at sides, on hips, or holding props. Trunk is separate from arms. NEVER draw elephant without arms.";
 

@@ -1,7 +1,7 @@
 /**
  * Cast mascot word images — fox-trial delivery:
  * full-scene bundled JPEGs in /public/word-images/{word}.jpg
- * Jungle Jokers cast (jungle2 bundle).
+ * Jungle Jokers cast (jungle5 bundle).
  */
 
 import { getWordsInRange } from "@/data/preset-vocabulary";
@@ -13,9 +13,16 @@ export {
   JUNGLE_WORD_IMAGE_ENTRIES as CAST_WORD_IMAGE_ENTRIES,
   JUNGLE_WORD_IMAGE_SCENES as CAST_WORD_IMAGE_SCENES,
 } from "@/data/jungle-cast-word-image-prompts";
+export {
+  APP_MASCOT_BRAND,
+  MASCOT_BRAND_COLORS,
+  MASCOT_PUBLIC_PATHS,
+  MASCOT_SHAPE_SPEC,
+  getMascotPublicPath,
+} from "@/data/jungle-cast-brand";
 
 /** Bump when replacing bundled cast JPEGs in public/word-images. */
-export const CAST_WORD_IMAGE_BUNDLE = "jungle4";
+export const CAST_WORD_IMAGE_BUNDLE = "jungle5";
 export const CAST_WORD_IMAGE_TOP_RANK = 100;
 
 const CAST_WORDS = new Set(

@@ -130,6 +130,8 @@ Return ONLY JSON:
   "elephantHasTwoArms": boolean|null,
   "elephantArmOk": boolean|null,
   "extraCharacters": boolean,
+  "tigerSphereOk": boolean|null,
+  "crocodileLogOk": boolean|null,
   "issues": [string],
   "confidence": "high"|"medium"|"low"
 }
@@ -137,6 +139,8 @@ Return ONLY JSON:
 Rules:
 - monkeyLimbOk: exactly 2 arms AND 2 legs (no extras)
 - elephantArmOk: two thin stick arms with hands visible if elephant present
+- tigerSphereOk: if tiger present, body must be ONE merged orange sphere (not separate head+torso)
+- crocodileLogOk: if crocodile present, body must be horizontal log low to ground (not upright humanoid)
 - extraCharacters: any mascot not in [${cast.join(", ")}]
 - visibleCount must not exceed ${cast.length}`;
 
@@ -177,6 +181,8 @@ Rules:
     monkeyLimbOk?: boolean | null;
     elephantHasTwoArms?: boolean | null;
     elephantArmOk?: boolean | null;
+    tigerSphereOk?: boolean | null;
+    crocodileLogOk?: boolean | null;
     extraCharacters?: boolean;
     issues?: string[];
     confidence?: "high" | "medium" | "low";

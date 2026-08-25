@@ -112,6 +112,7 @@ const CAST_OVERRIDE: Record<string, readonly JungleCastMember[]> = {
   off: ["tiger"],
   sorry: ["monkey", "elephant"],
   maybe: ["tiger", "elephant"],
+  with: ["tiger", "crocodile"],
 };
 
 const SCENE_PATCH: Record<string, { scene: string; expressions: string }> = {
@@ -159,17 +160,43 @@ const SCENE_PATCH: Record<string, { scene: string; expressions: string }> = {
   },
   as: {
     scene:
-      "ONLY purple monkey — modern kitchen, chef hat and apron. Monkey sits on stool side profile stirring pot on stove.",
+      "ONLY purple monkey — modern kitchen, chef hat. Monkey sits on stool side profile stirring pot.",
     expressions:
-      "Monkey: proud chef smile, sitting side profile, one hand stirring (other on lap). Exactly two arms two legs.",
+      "Monkey: proud chef smile, sitting side profile, one hand stirring. Exactly two arms two legs.",
+  },
+  with: {
+    scene:
+      "ONLY orange tiger and lime-green crocodile — rainy sidewalk. Tiger holds blue umbrella over both. Crocodile walks low as horizontal log beside tiger.",
+    expressions:
+      "Tiger: orange SPHERE body unchanged, happy walking together. Crocodile: horizontal LOG body low to ground, four stub legs, NEVER upright.",
+  },
+  we: {
+    scene:
+      "All four mascots — sunny park lawn holding paws/hands in a line. Crocodile horizontal log low between others. Tiger orange sphere. Elephant circle head + stick arms visible.",
+    expressions:
+      "All four: united team smiles linked together. Tiger: sphere only. Crocodile: log body only, not standing upright.",
+  },
+  all: {
+    scene:
+      "All four mascots — round table full of colorful fruit. Tiger sphere leaning toward fruit. Crocodile log body at table height on four legs. Elephant stick arms visible.",
+    expressions:
+      "All four: excited at abundance. Tiger: merged sphere ball. Crocodile: horizontal log shape.",
   },
 };
+
+function cleanScene(text: string): string {
+  return text
+    .replace(/(?:All four mascots —\s*)+/gi, "All four mascots — ")
+    .replace(/^ONLY[^—]+—\s*All four mascots —\s*/i, "All four mascots — ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
 
 function stripOtherCharacters(
   text: string,
   cast: readonly JungleCastMember[],
 ): string {
-  let out = text;
+  let out = cleanScene(text);
   const remove: Record<JungleCastMember, RegExp[]> = {
     monkey: [/purple monkey[^.]*\.?\s*/gi, /monkey:[^.]*\.?\s*/gi],
     elephant: [/pink elephant[^.]*\.?\s*/gi, /elephant:[^.]*\.?\s*/gi],
@@ -206,10 +233,12 @@ for (const [word, entry] of Object.entries(JUNGLE_WORD_IMAGE_ENTRIES)) {
       : ([entry.cast[0] ?? "tiger"] as readonly JungleCastMember[]));
 
   const patch = SCENE_PATCH[word];
-  const scene = patch
-    ? patch.scene
-    : onlyPrefix(cast) +
-      stripOtherCharacters(entry.scene.replace(/^ONLY[^—]+—\s*/i, ""), cast);
+  const scene = cleanScene(
+    patch
+      ? patch.scene
+      : onlyPrefix(cast) +
+        stripOtherCharacters(entry.scene.replace(/^ONLY[^—]+—\s*/i, ""), cast),
+  );
   const expressions = patch
     ? patch.expressions
     : stripOtherCharacters(entry.expressions, cast);

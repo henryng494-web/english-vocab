@@ -23,4 +23,4 @@ export function getJungleCastReferencePaths(
 }
 
 export const JUNGLE_CAST_SHAPE_REMINDER =
-  "Copy EXACT body proportions from attached character reference images — do not redesign, resize, or reinterpret silhouettes. Only change face expression and optional outfit.";
+  "Copy EXACT body proportions from attached character reference PNGs — match silhouette pixel-perfect. Do not redesign, resize, or reinterpret. Tiger = orange sphere. Crocodile = horizontal log. Elephant = circle head + stick limbs. Monkey = compact purple. Only change face expression and optional outfit.";
