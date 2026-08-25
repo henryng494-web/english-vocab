@@ -57,11 +57,11 @@ async function main() {
   );
 
   console.log("searchKeyword:", result.searchKeyword);
-  console.log("imageUrl:", result.imageUrl.slice(0, 140) + "…");
-  console.log("isCurrentPipeline:", isCurrentPipelineImageUrl(result.imageUrl));
-  console.log("shouldRefresh:", shouldRefreshImageUrl(result.imageUrl, word));
+  console.log("imageUrl:", result.url.slice(0, 140) + "…");
+  console.log("isCurrentPipeline:", isCurrentPipelineImageUrl(result.url));
+  console.log("shouldRefresh:", shouldRefreshImageUrl(result.url, word));
   try {
-    const parsed = new URL(result.imageUrl);
+    const parsed = new URL(result.url);
     console.log("imgpipe:", parsed.searchParams.get("imgpipe"));
     console.log("semantic:", parsed.searchParams.get("semantic"));
   } catch {

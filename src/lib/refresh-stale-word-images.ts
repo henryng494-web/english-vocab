@@ -1,3 +1,7 @@
+import {
+  fetchWordImageFromApi,
+  fetchWordImagesBatchFromApi,
+} from "@/lib/word-image-client";
 import { shouldRefreshImageUrl } from "@/lib/unsplash";
 import { setCachedWordImageUrl } from "@/lib/word-image-cache";
 
@@ -33,6 +37,19 @@ export function collectStaleWordImageTargets<
   return stale;
 }
 
+function applyBatchResult(
+  item: StaleWordImageTarget,
+  url: string | undefined,
+  updates: Record<string, string>,
+): void {
+  const word = item.word.trim().toLowerCase();
+  const trimmed = url?.trim();
+  if (trimmed && !shouldRefreshImageUrl(trimmed, word, item.wordType)) {
+    updates[word] = trimmed;
+    setCachedWordImageUrl(word, trimmed);
+  }
+}
+
 /** Refresh stale photos via /api/word-image/batch and return word→url updates. */
 export async function refreshStaleWordImages(
   targets: StaleWordImageTarget[],
@@ -54,54 +71,29 @@ export async function refreshStaleWordImages(
       batchIndex += 1;
       const batch = batches[current]!;
       try {
-        const res = await fetch("/api/word-image/batch", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            items: batch.map((item) => ({
-              word: item.word,
-              keyword: item.searchKeyword?.trim() || undefined,
-              pos: item.wordType?.trim() || undefined,
-              meaning: item.meaning?.trim() || undefined,
-            })),
-          }),
-        });
-        if (!res.ok) throw new Error(`batch ${res.status}`);
-        const data = (await res.json()) as {
-          images?: Record<string, string | null>;
-        };
+        const batchResults = await fetchWordImagesBatchFromApi(
+          batch.map((item) => ({
+            word: item.word,
+            keyword: item.searchKeyword?.trim() || undefined,
+            pos: item.wordType?.trim() || undefined,
+            meaning: item.meaning?.trim() || undefined,
+          })),
+        );
         for (const item of batch) {
           const word = item.word.trim().toLowerCase();
-          const url = data.images?.[word]?.trim();
-          if (url && !shouldRefreshImageUrl(url, word, item.wordType)) {
-            updates[word] = url;
-            setCachedWordImageUrl(word, url);
-          }
+          applyBatchResult(item, batchResults[word]?.url, updates);
         }
       } catch {
         await Promise.all(
           batch.map(async (item) => {
-            const word = item.word.trim().toLowerCase();
-            const params = new URLSearchParams({ word: item.word });
-            if (item.searchKeyword?.trim()) {
-              params.set("keyword", item.searchKeyword.trim());
-            }
-            if (item.wordType?.trim()) {
-              params.set("pos", item.wordType.trim());
-            }
-            if (item.meaning?.trim()) {
-              params.set("meaning", item.meaning.trim());
-            }
             try {
-              const res = await fetch(`/api/word-image?${params}`, {
-                cache: "no-store",
+              const result = await fetchWordImageFromApi({
+                word: item.word,
+                searchKeyword: item.searchKeyword,
+                wordType: item.wordType,
+                meaning: item.meaning,
               });
-              const data = (await res.json()) as { image_url?: string | null };
-              const url = data.image_url?.trim();
-              if (url && !shouldRefreshImageUrl(url, word, item.wordType)) {
-                updates[word] = url;
-                setCachedWordImageUrl(word, url);
-              }
+              applyBatchResult(item, result.url, updates);
             } catch {
               /* best-effort */
             }
@@ -156,21 +148,14 @@ export async function refreshSingleWordImage(
     return target.imageUrl?.trim() ?? null;
   }
 
-  const params = new URLSearchParams({ word });
-  if (target.searchKeyword?.trim()) {
-    params.set("keyword", target.searchKeyword.trim());
-  }
-  if (target.wordType?.trim()) {
-    params.set("pos", target.wordType.trim());
-  }
-  if (target.meaning?.trim()) {
-    params.set("meaning", target.meaning.trim());
-  }
-
   try {
-    const res = await fetch(`/api/word-image?${params}`, { cache: "no-store" });
-    const data = (await res.json()) as { image_url?: string | null };
-    const url = data.image_url?.trim() ?? null;
+    const result = await fetchWordImageFromApi({
+      word: target.word,
+      searchKeyword: target.searchKeyword,
+      wordType: target.wordType,
+      meaning: target.meaning,
+    });
+    const url = result.url.trim();
     if (url && !shouldRefreshImageUrl(url, word, target.wordType)) {
       setCachedWordImageUrl(word, url);
       return url;

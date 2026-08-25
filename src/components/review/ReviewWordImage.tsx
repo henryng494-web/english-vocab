@@ -1,7 +1,6 @@
 "use client";
 
-import Image from "next/image";
-import { useWordImageSrc } from "@/lib/use-word-image-src";
+import { WordImage } from "@/components/word/WordImage";
 
 export function ReviewWordImage({
   word,
@@ -21,28 +20,18 @@ export function ReviewWordImage({
   /** When true, never show the SVG placeholder (it can spell the answer). */
   quizSafe?: boolean;
 }) {
-  const { src, ready, onError } = useWordImageSrc(
-    word,
-    imageUrl,
-    searchKeyword,
-    wordType,
-    { quizSafe, meaning },
-  );
-
   return (
     <div className={`relative overflow-hidden ${className ?? ""}`}>
-      {ready && src ? (
-        <Image
-          src={src}
-          alt=""
-          fill
-          className="object-cover"
-          sizes="(max-width: 768px) 100vw, 400px"
-          priority
-          unoptimized
-          onError={onError}
-        />
-      ) : null}
+      <WordImage
+        word={word}
+        imageUrl={imageUrl}
+        searchKeyword={searchKeyword}
+        wordType={wordType}
+        meaning={meaning}
+        alt=""
+        quizSafe={quizSafe}
+        priority
+      />
     </div>
   );
 }

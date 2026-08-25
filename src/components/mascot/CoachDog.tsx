@@ -1,4 +1,7 @@
+"use client";
+
 import Image from "next/image";
+import { useEffect, useState } from "react";
 
 export type CoachDogPose =
   | "neutral"
@@ -37,7 +40,12 @@ export function CoachDog({
   className = "",
   title = "Coach Fox",
 }: CoachDogProps) {
-  const src = POSE_SRC[pose] ?? POSE_SRC.neutral;
+  const initialSrc = POSE_SRC[pose] ?? POSE_SRC.neutral;
+  const [src, setSrc] = useState(initialSrc);
+
+  useEffect(() => {
+    setSrc(POSE_SRC[pose] ?? POSE_SRC.neutral);
+  }, [pose]);
 
   return (
     <Image
@@ -49,6 +57,9 @@ export function CoachDog({
       style={{ width: size, height: size, objectFit: "contain" }}
       priority={size >= 80}
       unoptimized
+      onError={() => {
+        if (src !== POSE_SRC.neutral) setSrc(POSE_SRC.neutral);
+      }}
     />
   );
 }

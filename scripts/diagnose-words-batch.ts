@@ -70,8 +70,8 @@ async function main() {
       data?.english_definition,
     );
     console.log("fresh keyword:", fresh.searchKeyword);
-    console.log("fresh url:", fresh.imageUrl.slice(0, 110));
-    console.log("fresh pipeline:", isCurrentPipelineImageUrl(fresh.imageUrl));
+    console.log("fresh url:", fresh.url.slice(0, 110));
+    console.log("fresh pipeline:", isCurrentPipelineImageUrl(fresh.url));
   }
 }
 

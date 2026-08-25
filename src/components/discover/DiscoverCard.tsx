@@ -1,10 +1,9 @@
 "use client";
 
-import Image from "next/image";
 import { WordCardHeader } from "@/components/flashcard/WordCardHeader";
 import { WordCardDetails } from "@/components/flashcard/WordCardDetails";
+import { WordImage } from "@/components/word/WordImage";
 import { displayPhonetic } from "@/lib/phonetic";
-import { useWordImageSrc } from "@/lib/use-word-image-src";
 import type { WordFamilyMember } from "@/types/database";
 
 export type DiscoverWordData = {
@@ -49,29 +48,19 @@ function CardImage({
   compact?: boolean;
   badge?: string;
 }) {
-  const { src, onError } = useWordImageSrc(
-    word,
-    imageUrl,
-    searchKeyword,
-    wordType,
-    { meaning },
-  );
-
   return (
     <div
       className={`relative w-full ${
         compact ? "card-image-frame h-full min-h-0" : "h-44 shrink-0 bg-gradient-to-br from-primary-100 via-primary to-primary-hover"
       }`}
     >
-      <Image
-        src={src}
-        alt={word}
-        fill
-        className="object-cover"
-        sizes="(max-width: 768px) 100vw, 400px"
+      <WordImage
+        word={word}
+        imageUrl={imageUrl}
+        searchKeyword={searchKeyword}
+        wordType={wordType}
+        meaning={meaning}
         priority
-        unoptimized
-        onError={onError}
       />
       {compact && badge ? (
         <span className="card-image-badge" aria-label={`Word ${badge}`}>

@@ -54,7 +54,7 @@ async function resolveImageUrl(
     existingUrl,
   );
   return finalizeWordImageDisplayUrl(
-    fetched.imageUrl,
+    fetched.url,
     existingUrl,
     word,
     pos,
@@ -363,7 +363,7 @@ export async function GET(request: Request) {
       dbDetail?.image_url,
     );
     const imageUrl = finalizeWordImageDisplayUrl(
-      fetched.imageUrl,
+      fetched.url,
       dbDetail?.image_url,
       word,
       responseWord.word_type ?? enrichment.wordType,

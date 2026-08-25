@@ -125,7 +125,7 @@ export function useWordImageSrc(
   }, [word, imageUrl, searchKeyword, wordType, meaning, quizSafe]);
 
   return {
-    src,
+    src: quizSafe ? src : src || fallback,
     ready,
     onError: () => {
       if (quizSafe) {

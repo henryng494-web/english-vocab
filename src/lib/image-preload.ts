@@ -1,4 +1,9 @@
 import {
+  fetchWordImageFromApi,
+  fetchWordImagesBatchFromApi,
+  type WordImagePrefetchTarget,
+} from "@/lib/word-image-client";
+import {
   peekCachedWordImageUrl,
   setCachedWordImageUrl,
 } from "@/lib/word-image-cache";
@@ -15,13 +20,7 @@ function inflightKey(target: WordImagePrefetchTarget): string {
   return `${word}|${keyword}|${meaning}|${pos}`;
 }
 
-export type WordImagePrefetchTarget = {
-  word: string;
-  imageUrl?: string | null;
-  searchKeyword?: string | null;
-  wordType?: string | null;
-  meaning?: string | null;
-};
+export type { WordImagePrefetchTarget };
 
 export const REVIEW_IMAGE_PREFETCH_CONCURRENCY = 8;
 const BATCH_SIZE = 12;
@@ -74,26 +73,18 @@ async function fetchWordImagesBatchChunk(
   }
 
   try {
-    const res = await fetch("/api/word-image/batch", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        items: pending.map((target) => ({
-          word: target.word,
-          keyword: target.searchKeyword?.trim() || undefined,
-          pos: target.wordType?.trim() || undefined,
-          meaning: target.meaning?.trim() || undefined,
-        })),
-      }),
-    });
-    if (!res.ok) throw new Error(`batch ${res.status}`);
-    const data = (await res.json()) as {
-      images?: Record<string, string | null>;
-    };
+    const batchResults = await fetchWordImagesBatchFromApi(
+      pending.map((target) => ({
+        word: target.word,
+        keyword: target.searchKeyword?.trim() || undefined,
+        pos: target.wordType?.trim() || undefined,
+        meaning: target.meaning?.trim() || undefined,
+      })),
+    );
     for (const target of pending) {
       const word = target.word.trim().toLowerCase();
-      const url = data.images?.[word]?.trim() ?? null;
-      const cached = cacheResolvedUrl(word, url);
+      const result = batchResults[word];
+      const cached = cacheResolvedUrl(word, result?.url ?? null);
       if (cached) updates[word] = cached;
     }
   } catch {
@@ -154,20 +145,8 @@ async function fetchWordImageFast(
 
   const promise = (async () => {
     try {
-      const params = new URLSearchParams({ word });
-      if (target.searchKeyword?.trim()) {
-        params.set("keyword", target.searchKeyword.trim());
-      }
-      if (target.wordType?.trim()) {
-        params.set("pos", target.wordType.trim());
-      }
-      if (target.meaning?.trim()) {
-        params.set("meaning", target.meaning.trim());
-      }
-      const res = await fetch(`/api/word-image?${params}`);
-      const data = (await res.json()) as { image_url?: string | null };
-      const url = data.image_url?.trim() ?? null;
-      return cacheResolvedUrl(word, url);
+      const result = await fetchWordImageFromApi(target);
+      return cacheResolvedUrl(word, result.url);
     } catch {
       /* ignore */
     }

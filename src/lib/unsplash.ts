@@ -1,6 +1,13 @@
 import { buildImageSearchQueries } from "@/lib/image-keyword";
 import { cleanPhrase } from "@/lib/image-keyword-utils";
 import {
+  errWordImageResult,
+  okWordImageResult,
+  WORD_IMAGE_SOURCES,
+  type WordImageFetchResult,
+  type WordImageResult,
+} from "@/lib/word-image-result";
+import {
   FUNCTION_WORD_IMAGE_MARKER,
   isApprovedFunctionWordStockUrl,
 } from "@/lib/function-word-images";
@@ -744,9 +751,13 @@ async function pickPexelsFromQueries(
   if (!process.env.PEXELS_API_KEY?.trim()) return null;
 
   for (const query of queries) {
-    const photos = await searchPexelsPhotos(query);
-    const url = await pickScoredStockPhoto(word, query, photos, pos);
-    if (url) return url;
+    try {
+      const photos = await searchPexelsPhotos(query);
+      const url = await pickScoredStockPhoto(word, query, photos, pos);
+      if (url) return url;
+    } catch (error) {
+      console.warn(`Pexels search skipped for "${query}":`, error);
+    }
   }
   return null;
 }
@@ -997,11 +1008,7 @@ export function markGeminiPipelineImageUrl(url: string): string | null {
   }
 }
 
-export type WordImageFetchResult = {
-  imageUrl: string;
-  /** Keyword or Gemini phrase used for the resolved photo. */
-  searchKeyword: string | null;
-};
+export type { WordImageFetchResult, WordImageResult } from "@/lib/word-image-result";
 
 async function tryGeminiVocabImage(
   word: string,
@@ -1038,6 +1045,28 @@ async function tryGeminiVocabImage(
  * Function words: curated scene → strict stock → SVG (Gemini skipped).
  * Concrete words: Gemini → curated → stock → SVG.
  */
+function finalizePipelineResult(
+  word: string,
+  pos: string | null | undefined,
+  url: string,
+  source: string,
+  searchKeyword?: string | null,
+  pipelineFailed = false,
+): WordImageResult {
+  const trimmed = url.trim();
+  if (!trimmed) {
+    return errWordImageResult(
+      getDefaultLearningImageDataUrl(word, pos),
+      WORD_IMAGE_SOURCES.ERROR,
+      searchKeyword,
+    );
+  }
+  if (pipelineFailed && isPlaceholderIllustrationUrl(trimmed)) {
+    return errWordImageResult(trimmed, source, searchKeyword);
+  }
+  return okWordImageResult(trimmed, source, searchKeyword);
+}
+
 export async function fetchWordImageUrlDetailed(
   word: string,
   searchKeyword?: string | null,
@@ -1047,12 +1076,13 @@ export async function fetchWordImageUrlDetailed(
   existingImageUrl?: string | null,
 ): Promise<WordImageFetchResult> {
   const plan = resolveWordImagePlan(word, pos);
+  const keywordOut = searchKeyword?.trim() || null;
 
   if (plan.tier === "safe-svg") {
-    return {
-      imageUrl: getDefaultLearningImageDataUrl(word, pos),
-      searchKeyword: null,
-    };
+    return okWordImageResult(
+      getDefaultLearningImageDataUrl(word, pos),
+      WORD_IMAGE_SOURCES.SVG_PLACEHOLDER,
+    );
   }
 
   const options = { searchKeyword, pos, meaning, englishDefinition };
@@ -1060,43 +1090,102 @@ export async function fetchWordImageUrlDetailed(
     meaning?.trim() || englishDefinition?.trim() || "";
 
   if (geminiContext && !plan.skipGemini) {
-    const pipeline = await tryGeminiVocabImage(word, pos, geminiContext);
-    if (pipeline) {
-      return {
-        imageUrl: pipeline.imageUrl,
-        searchKeyword: pipeline.searchPhrase,
-      };
+    try {
+      const pipeline = await tryGeminiVocabImage(word, pos, geminiContext);
+      if (pipeline) {
+        return okWordImageResult(
+          pipeline.imageUrl,
+          WORD_IMAGE_SOURCES.GEMINI_STOCK,
+          pipeline.searchPhrase,
+        );
+      }
+    } catch (error) {
+      console.warn(
+        `[fetchWordImageUrl] Gemini step failed for "${word}":`,
+        error instanceof Error ? error.message : error,
+      );
     }
   }
 
-  const queries = buildImageSearchQueries(word, options);
+  let queries: string[] = [];
+  try {
+    queries = buildImageSearchQueries(word, options);
+  } catch (error) {
+    console.warn(
+      `[fetchWordImageUrl] Query build failed for "${word}":`,
+      error instanceof Error ? error.message : error,
+    );
+  }
+
   if (queries.length === 0) {
-    return {
-      imageUrl: coalesceWordImageUrl(null, existingImageUrl, word, pos),
-      searchKeyword: searchKeyword?.trim() || null,
-    };
+    const coalesced = coalesceWordImageUrl(
+      null,
+      existingImageUrl,
+      word,
+      pos,
+    );
+    const source = isPlaceholderIllustrationUrl(coalesced)
+      ? WORD_IMAGE_SOURCES.SVG_PLACEHOLDER
+      : WORD_IMAGE_SOURCES.COALESCE;
+    return finalizePipelineResult(
+      word,
+      pos,
+      coalesced,
+      source,
+      keywordOut,
+      source === WORD_IMAGE_SOURCES.SVG_PLACEHOLDER,
+    );
   }
 
-  const unsplashUrl = await pickUnsplashFromQueries(word, queries, pos);
-  if (unsplashUrl) {
-    return {
-      imageUrl: unsplashUrl,
-      searchKeyword: searchKeyword?.trim() || queries[0] || null,
-    };
+  try {
+    const unsplashUrl = await pickUnsplashFromQueries(word, queries, pos);
+    if (unsplashUrl) {
+      return okWordImageResult(
+        unsplashUrl,
+        WORD_IMAGE_SOURCES.UNSPLASH,
+        keywordOut || queries[0] || null,
+      );
+    }
+  } catch (error) {
+    console.warn(
+      `[fetchWordImageUrl] Unsplash pipeline failed for "${word}":`,
+      error instanceof Error ? error.message : error,
+    );
   }
 
-  const pexelsUrl = await pickPexelsFromQueries(word, queries, pos);
-  if (pexelsUrl) {
-    return {
-      imageUrl: pexelsUrl,
-      searchKeyword: searchKeyword?.trim() || queries[0] || null,
-    };
+  try {
+    const pexelsUrl = await pickPexelsFromQueries(word, queries, pos);
+    if (pexelsUrl) {
+      return okWordImageResult(
+        pexelsUrl,
+        WORD_IMAGE_SOURCES.PEXELS,
+        keywordOut || queries[0] || null,
+      );
+    }
+  } catch (error) {
+    console.warn(
+      `[fetchWordImageUrl] Pexels pipeline failed for "${word}":`,
+      error instanceof Error ? error.message : error,
+    );
   }
 
-  return {
-    imageUrl: coalesceWordImageUrl(null, existingImageUrl, word, pos),
-    searchKeyword: searchKeyword?.trim() || null,
-  };
+  const coalesced = coalesceWordImageUrl(
+    null,
+    existingImageUrl,
+    word,
+    pos,
+  );
+  const source = isPlaceholderIllustrationUrl(coalesced)
+    ? WORD_IMAGE_SOURCES.SVG_PLACEHOLDER
+    : WORD_IMAGE_SOURCES.COALESCE;
+  return finalizePipelineResult(
+    word,
+    pos,
+    coalesced,
+    source,
+    keywordOut,
+    source === WORD_IMAGE_SOURCES.SVG_PLACEHOLDER,
+  );
 }
 
 /** @see fetchWordImageUrlDetailed */
@@ -1116,5 +1205,5 @@ export async function fetchWordImageUrl(
     englishDefinition,
     existingImageUrl,
   );
-  return result.imageUrl;
+  return result.url;
 }

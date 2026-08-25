@@ -137,7 +137,7 @@ async function main() {
         row.english_definition,
         row.image_url,
       );
-      const imageUrl = resolved.imageUrl;
+      const imageUrl = resolved.url;
       const isStock = isPersistableWordImageUrl(imageUrl, row.word);
       if (isStock) stock += 1;
       else svg += 1;

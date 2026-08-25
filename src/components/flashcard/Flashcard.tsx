@@ -1,9 +1,8 @@
 "use client";
 
-import Image from "next/image";
 import { formatVietnameseMeaning } from "@/lib/sanitize-vi";
 import { parseExamples } from "@/lib/parse-examples";
-import { useWordImageSrc } from "@/lib/use-word-image-src";
+import { WordImage } from "@/components/word/WordImage";
 import type { VocabWord } from "@/types/database";
 import { WordCardHeader } from "./WordCardHeader";
 import { VocabExampleList } from "./VocabExampleList";
@@ -15,25 +14,15 @@ type FlashcardProps = {
 };
 
 function FlashcardImage({ word }: { word: VocabWord }) {
-  const { src, onError } = useWordImageSrc(
-    word.word,
-    word.image_url,
-    word.search_keyword,
-    word.word_type,
-    { meaning: word.vietnamese_meaning },
-  );
-
   return (
     <div className="relative h-44 w-full shrink-0 bg-gradient-to-br from-primary-100 via-primary to-primary-hover">
-      <Image
-        src={src}
-        alt={word.word}
-        fill
-        className="object-cover"
-        sizes="(max-width: 768px) 100vw, 400px"
+      <WordImage
+        word={word.word}
+        imageUrl={word.image_url}
+        searchKeyword={word.search_keyword}
+        wordType={word.word_type}
+        meaning={word.vietnamese_meaning}
         priority
-        unoptimized
-        onError={onError}
       />
     </div>
   );
