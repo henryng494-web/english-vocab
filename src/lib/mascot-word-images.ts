@@ -3,10 +3,6 @@ import {
   isTopRankMascotWord,
   planMascotScene,
 } from "@/lib/mascot-scene-planner";
-import {
-  mascotSvgToDataUrl,
-  renderMascotSceneSvg,
-} from "@/lib/mascot-svg-render";
 import { requiresSafeImageOnly } from "@/lib/safe-image-search";
 
 export function shouldUseMascotIllustration(word: string): boolean {
@@ -20,7 +16,24 @@ export function isMascotIllustrationUrl(
 ): boolean {
   const trimmed = url?.trim();
   if (!trimmed) return false;
-  return trimmed.includes(MASCOT_CAST_VERSION);
+  if (!trimmed.includes(MASCOT_CAST_VERSION)) return false;
+  return (
+    trimmed.includes("/api/mascot-image") ||
+    trimmed.startsWith("data:image/svg+xml")
+  );
+}
+
+export function buildMascotImageApiUrl(
+  word: string,
+  pos?: string | null,
+): string {
+  const normalized = word.trim().toLowerCase();
+  const params = new URLSearchParams({
+    word: normalized,
+    v: MASCOT_CAST_VERSION,
+  });
+  if (pos?.trim()) params.set("pos", pos.trim());
+  return `/api/mascot-image?${params.toString()}`;
 }
 
 export function resolveMascotWordImageUrl(
@@ -29,11 +42,12 @@ export function resolveMascotWordImageUrl(
   searchKeyword?: string | null,
   meaning?: string | null,
 ): string | null {
+  void searchKeyword;
+  void meaning;
   if (!shouldUseMascotIllustration(word)) return null;
   try {
-    const plan = planMascotScene(word, pos, searchKeyword, meaning);
-    const svg = renderMascotSceneSvg(plan.scene, word, pos);
-    return mascotSvgToDataUrl(svg);
+    void planMascotScene(word, pos, searchKeyword, meaning);
+    return buildMascotImageApiUrl(word, pos);
   } catch (error) {
     console.warn(
       `[mascot-word-images] Failed for "${word}":`,

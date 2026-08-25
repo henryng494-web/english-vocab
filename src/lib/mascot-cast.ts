@@ -1,11 +1,18 @@
-/** Mascot cast v1 — Cat 😒, Cow 😛, Dog 😲, Pig 😫 */
+/** Mascot cast v3 — approved PNG sprite sheet (`public/mascot/cast-lineup.png`). */
 
-export const MASCOT_CAST_VERSION = "mascot-cast-v1";
+export const MASCOT_CAST_VERSION = "mascot-cast-v3";
 export const MASCOT_TOP_RANK_LIMIT = 1000;
 
 export type MascotCharacter = "cat" | "cow" | "dog" | "pig";
 
-export type MascotExpression = "default" | "unamused" | "silly" | "surprised" | "tired";
+export type MascotExpression =
+  | "default"
+  | "unamused"
+  | "silly"
+  | "surprised"
+  | "tired"
+  | "happy"
+  | "sad";
 
 export type MascotSceneType =
   | "lazy_cat"
@@ -35,11 +42,12 @@ export type MascotSceneType =
   | "sad_pig"
   | "angry_cat"
   | "big_small"
+  | "broken_thing"
+  | "important_badge"
   | "default_duo";
 
 export type MascotScenePlan = {
   scene: MascotSceneType;
-  /** Optional prop hint from curated keyword. */
   propHint?: string | null;
 };
 
@@ -49,10 +57,11 @@ export const MASCOT_COLORS = {
   catCollar: "#14B8A6",
   cowBody: "#93C5FD",
   cowPatch: "#3B82F6",
+  cowMuzzle: "#BFDBFE",
   cowHorn: "#FDE68A",
   cowHoof: "#1E3A5F",
   dogBody: "#FBBF24",
-  dogEar: "#D97706",
+  dogEar: "#B45309",
   dogCollar: "#2563EB",
   pigBody: "#F472B6",
   pigSnout: "#EC4899",

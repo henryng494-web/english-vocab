@@ -377,7 +377,9 @@ export function isRealCardImageUrl(
   word?: string | null,
 ): boolean {
   const trimmed = url?.trim();
-  if (!trimmed || isPlaceholderIllustrationUrl(trimmed)) return false;
+  if (!trimmed) return false;
+  if (isMascotIllustrationUrl(trimmed)) return true;
+  if (isPlaceholderIllustrationUrl(trimmed)) return false;
   return isUsableCardImageUrl(trimmed, word);
 }
 
@@ -386,6 +388,7 @@ export function isUsableCardImageUrl(
   word?: string | null,
   pos?: string | null,
 ): boolean {
+  if (isMascotIllustrationUrl(url)) return true;
   if (isPlaceholderIllustrationUrl(url)) return true;
   return isDisplayableHttpImageUrl(url, word, pos);
 }
