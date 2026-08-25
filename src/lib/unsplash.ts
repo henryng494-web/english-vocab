@@ -248,7 +248,7 @@ export function isOutdatedSemanticImageUrl(
   }
 }
 
-/** Client display — accept real http photos even before semantic refresh completes. */
+/** Client display — show safe stock photos; pipeline v2 is preferred but not required. */
 export function isDisplayableHttpImageUrl(
   url: string | null | undefined,
   word?: string | null,
@@ -261,22 +261,13 @@ export function isDisplayableHttpImageUrl(
   if (isUntrustedRandomImageUrl(trimmed)) return false;
   if (isPlaceholderIllustrationUrl(trimmed)) return false;
   if (isBrokenOpenverseProxyUrl(trimmed)) return false;
-  if (isOutdatedSemanticImageUrl(trimmed)) return false;
   if (isStockImageUrl(trimmed)) {
-    const { semantic, imgpipe } = getStockUrlMarkers(trimmed);
-    if (
-      imgpipe === IMAGE_PIPELINE_ID &&
-      semantic === SEMANTIC_IMAGE_VERSION
-    ) {
-      return true;
-    }
-    if (!imgpipe && semantic === SEMANTIC_IMAGE_VERSION) {
-      return true;
-    }
+    const { imgpipe } = getStockUrlMarkers(trimmed);
+    // Reject URLs tagged by the old poisoned pipeline (wrong photos marked "fresh").
     if (imgpipe && imgpipe !== IMAGE_PIPELINE_ID) {
       return false;
     }
-    return false;
+    return true;
   }
   try {
     return isDisplayableImageHost(new URL(trimmed).hostname);
@@ -820,12 +811,7 @@ export async function fetchWordImageUrlDetailed(
         searchKeyword: gemini.searchPhrase,
       };
     }
-    // Meaning available but Gemini missed — do not fall back to generic stock
-    // queries (they produced wrong shared photos and were tagged as "fresh").
-    return {
-      imageUrl: getDefaultLearningImageDataUrl(word, pos),
-      searchKeyword: null,
-    };
+    // Gemini unavailable or missed — fall through to meaning-based stock search.
   }
 
   const queries = buildImageSearchQueries(word, options);

@@ -13,6 +13,18 @@ type PatternRule = {
 
 const MEANING_RULES: PatternRule[] = [
   {
+    pattern: /mục sư|preacher|pastor|sermon|pulpit|minister/i,
+    query: "preacher speaking church pulpit congregation",
+  },
+  {
+    pattern: /gác mái|sàn thượng|attic|loft storage/i,
+    query: "dusty wooden attic interior storage boxes",
+  },
+  {
+    pattern: /phúc lợi|trợ cấp|welfare|social support/i,
+    query: "social worker helping community food support",
+  },
+  {
     pattern: /tên lửa|rocket|missile|warhead|launch/i,
     query: "rocket missile launch smoke sky military",
   },

@@ -116,6 +116,15 @@ export function resolveImageSearchKeyword(
     return `bright ${normalizedWord} color sample swatch`;
   }
 
+  if (options.meaning?.trim() || options.englishDefinition?.trim()) {
+    if (pos === "verb") {
+      return `person ${normalizedWord} action scene`;
+    }
+    return normalizedWord.includes(" ")
+      ? normalizedWord
+      : `${normalizedWord} object`;
+  }
+
   if (pos === "noun") {
     return normalizedWord.includes(" ")
       ? normalizedWord

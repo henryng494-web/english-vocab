@@ -17,6 +17,7 @@ import { withWordFamily } from "@/lib/word-family-display";
 import { resolveImageSearchKeyword } from "@/lib/image-keyword";
 import {
   fetchWordImageUrl,
+  isRealCardImageUrl,
   shouldRefreshImageUrl,
 } from "@/lib/unsplash";
 import { isExcludedVocabWord } from "@/lib/proper-noun";
@@ -99,6 +100,7 @@ async function persistImageUrlIfChanged(
   previousUrl: string | null | undefined,
   resolvedUrl: string,
 ): Promise<void> {
+  if (!isRealCardImageUrl(resolvedUrl, word)) return;
   if (previousUrl?.trim() === resolvedUrl) return;
   const { error } = await supabase
     .from("word_details")
@@ -211,7 +213,7 @@ async function persistEnrichedWordDetail(
     english_definition: string;
     examples: string;
     collocations: string | null;
-    image_url: string;
+    image_url: string | null;
   },
 ): Promise<void> {
   try {
@@ -339,7 +341,11 @@ export async function GET(request: Request) {
         englishDefinition,
       );
     }
-    responseWord.image_url = imageUrl;
+    responseWord.image_url = isRealCardImageUrl(imageUrl, word)
+      ? imageUrl
+      : isRealCardImageUrl(dbDetail?.image_url, word)
+        ? dbDetail!.image_url!
+        : imageUrl;
     const examples = await repairExamplesIfNeeded(
       word,
       responseWord.examples,
@@ -356,7 +362,11 @@ export async function GET(request: Request) {
       english_definition: responseWord.english_definition ?? "",
       examples,
       collocations: responseWord.collocations ?? null,
-      image_url: imageUrl,
+      image_url: isRealCardImageUrl(imageUrl, word)
+        ? imageUrl
+        : isRealCardImageUrl(dbDetail?.image_url, word)
+          ? dbDetail!.image_url!
+          : null,
     });
 
     if (dbDetail) {
