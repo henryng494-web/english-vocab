@@ -73,7 +73,7 @@ export async function refreshStaleWordImages(
         for (const item of batch) {
           const word = item.word.trim().toLowerCase();
           const url = data.images?.[word]?.trim();
-          if (url && !shouldRefreshImageUrl(url, word)) {
+          if (url && !shouldRefreshImageUrl(url, word, item.wordType)) {
             updates[word] = url;
             setCachedWordImageUrl(word, url);
           }
@@ -98,7 +98,7 @@ export async function refreshStaleWordImages(
               });
               const data = (await res.json()) as { image_url?: string | null };
               const url = data.image_url?.trim();
-              if (url && !shouldRefreshImageUrl(url, word)) {
+              if (url && !shouldRefreshImageUrl(url, word, item.wordType)) {
                 updates[word] = url;
                 setCachedWordImageUrl(word, url);
               }
@@ -152,7 +152,7 @@ export async function refreshSingleWordImage(
 ): Promise<string | null> {
   const word = target.word.trim().toLowerCase();
   if (!word) return null;
-  if (!shouldRefreshImageUrl(target.imageUrl, word)) {
+  if (!shouldRefreshImageUrl(target.imageUrl, word, target.wordType)) {
     return target.imageUrl?.trim() ?? null;
   }
 
@@ -171,7 +171,7 @@ export async function refreshSingleWordImage(
     const res = await fetch(`/api/word-image?${params}`, { cache: "no-store" });
     const data = (await res.json()) as { image_url?: string | null };
     const url = data.image_url?.trim() ?? null;
-    if (url && !shouldRefreshImageUrl(url, word)) {
+    if (url && !shouldRefreshImageUrl(url, word, target.wordType)) {
       setCachedWordImageUrl(word, url);
       return url;
     }

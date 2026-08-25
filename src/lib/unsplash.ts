@@ -2,7 +2,7 @@ import { buildImageSearchQueries } from "@/lib/image-keyword";
 import { cleanPhrase } from "@/lib/image-keyword-utils";
 import {
   FUNCTION_WORD_IMAGE_MARKER,
-  isHighTrafficFunctionWord,
+  isApprovedFunctionWordStockUrl,
 } from "@/lib/function-word-images";
 import {
   isClosedClassWord,
@@ -305,6 +305,7 @@ export function isOutdatedSemanticImageUrl(
 export function isDisplayableHttpImageUrl(
   url: string | null | undefined,
   word?: string | null,
+  pos?: string | null,
 ): boolean {
   const trimmed = url?.trim();
   if (!trimmed?.startsWith("http")) return false;
@@ -315,6 +316,13 @@ export function isDisplayableHttpImageUrl(
   if (isPlaceholderIllustrationUrl(trimmed)) return false;
   if (isBrokenOpenverseProxyUrl(trimmed)) return false;
   if (isStockImageUrl(trimmed)) {
+    if (
+      word &&
+      isClosedClassWord(word, pos) &&
+      !isApprovedFunctionWordStockUrl(trimmed, word)
+    ) {
+      return false;
+    }
     const { imgpipe } = getStockUrlMarkers(trimmed);
     const trustedPipe =
       !imgpipe ||
@@ -363,22 +371,32 @@ export function isRealCardImageUrl(
 export function isUsableCardImageUrl(
   url: string | null | undefined,
   word?: string | null,
+  pos?: string | null,
 ): boolean {
-  return isDisplayableHttpImageUrl(url, word);
+  if (isPlaceholderIllustrationUrl(url)) return true;
+  return isDisplayableHttpImageUrl(url, word, pos);
 }
 
 export function shouldRefreshImageUrl(
   url: string | null | undefined,
   word?: string | null,
+  pos?: string | null,
 ): boolean {
   const trimmed = url?.trim();
   if (word && requiresSafeImageOnly(word)) {
     return !trimmed || trimmed.startsWith("http") || isUnsafeImageUrl(trimmed);
   }
   if (!trimmed) return true;
+  if (isPlaceholderIllustrationUrl(trimmed)) return false;
   if (isUnsafeImageUrl(trimmed)) return true;
+  if (word && isClosedClassWord(word, pos) && isStockImageUrl(trimmed)) {
+    return !isApprovedFunctionWordStockUrl(trimmed, word);
+  }
   if (trimmed.startsWith("http") && !isStockImageUrl(trimmed)) return true;
-  if (trimmed.startsWith("http") && !isDisplayableHttpImageUrl(trimmed, word)) {
+  if (
+    trimmed.startsWith("http") &&
+    !isDisplayableHttpImageUrl(trimmed, word, pos)
+  ) {
     return true;
   }
   if (isStockImageUrl(trimmed)) {
@@ -388,23 +406,14 @@ export function shouldRefreshImageUrl(
       imgpipe === IMAGE_PIPELINE_ID ||
       imgpipe === RULE_STOCK_PIPELINE_ID
     ) {
-      if (word && isHighTrafficFunctionWord(word)) {
-        try {
-          return new URL(trimmed).searchParams.get("fw") !== FUNCTION_WORD_IMAGE_MARKER;
-        } catch {
-          return true;
-        }
-      }
       return false;
     }
-    // semantic-only hash fallback — show but keep refreshing
     return true;
   }
   return (
     isStalePresetFallbackUrl(trimmed) ||
     isUntrustedRandomImageUrl(trimmed) ||
     isOutdatedSemanticImageUrl(trimmed) ||
-    isPlaceholderIllustrationUrl(trimmed) ||
     isBrokenOpenverseProxyUrl(trimmed)
   );
 }
@@ -550,13 +559,50 @@ export function resolveWordImageUrl(
   if (requiresSafeImageOnly(word)) {
     return getDefaultLearningImageDataUrl(word, pos);
   }
+  if (isClosedClassWord(word, pos)) {
+    const trimmed = imageUrl?.trim();
+    if (trimmed && isApprovedFunctionWordStockUrl(trimmed, word)) {
+      return trimmed;
+    }
+    return getDefaultLearningImageDataUrl(word, pos);
+  }
   const trimmed = imageUrl?.trim();
-  if (isDisplayableHttpImageUrl(trimmed, word)) {
+  if (isDisplayableHttpImageUrl(trimmed, word, pos)) {
     return trimmed!;
   }
   if (isLegacyDisplayableStockUrl(trimmed, word)) {
     return trimmed!;
   }
+  return getDefaultLearningImageDataUrl(word, pos);
+}
+
+/** Pick the URL to show/store — never resurrect stale function-word stock. */
+export function finalizeWordImageDisplayUrl(
+  candidate: string | null | undefined,
+  stored: string | null | undefined,
+  word: string,
+  pos?: string | null,
+): string {
+  const resolved = candidate?.trim() ?? "";
+  const existing = stored?.trim() ?? "";
+
+  if (isClosedClassWord(word, pos)) {
+    if (resolved && isApprovedFunctionWordStockUrl(resolved, word)) {
+      return resolved;
+    }
+    return getDefaultLearningImageDataUrl(word, pos);
+  }
+
+  if (resolved && isRealCardImageUrl(resolved, word)) return resolved;
+  if (resolved && isPlaceholderIllustrationUrl(resolved)) return resolved;
+  if (
+    existing &&
+    isRealCardImageUrl(existing, word) &&
+    !shouldRefreshImageUrl(existing, word, pos)
+  ) {
+    return existing;
+  }
+  if (resolved) return resolved;
   return getDefaultLearningImageDataUrl(word, pos);
 }
 

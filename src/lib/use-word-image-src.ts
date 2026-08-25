@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import {
   getDefaultLearningImageDataUrl,
+  hasAcceptableWordImage,
   isDisplayableHttpImageUrl,
   isRealCardImageUrl,
   isUsableCardImageUrl,
@@ -60,7 +61,8 @@ export function useWordImageSrc(
   };
 
   const needsFreshImage = (url?: string | null) =>
-    shouldRefreshImageUrl(url, word) || !isUsableCardImageUrl(url, word);
+    shouldRefreshImageUrl(url, word, wordType) ||
+    !isUsableCardImageUrl(url, word, wordType);
 
   const initial = resolveDisplay(imageUrl);
   const initialReady = quizSafe ? Boolean(initial) : true;
@@ -111,8 +113,8 @@ export function useWordImageSrc(
         }
         return;
       }
-      if (isUsableCardImageUrl(fetched, word) && fetched !== next) {
-        setSrc(fetched!);
+      if (fetched && hasAcceptableWordImage(fetched, word) && fetched !== next) {
+        setSrc(fetched);
         setReady(true);
       }
     })();
@@ -152,7 +154,11 @@ export function useWordImageSrc(
           meaning,
         );
         setSrc((prev) => {
-          if (isUsableCardImageUrl(fetched, word) && fetched && fetched !== prev) {
+          if (
+            fetched &&
+            hasAcceptableWordImage(fetched, word) &&
+            fetched !== prev
+          ) {
             return fetched;
           }
           return fallback;

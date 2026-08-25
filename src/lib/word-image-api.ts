@@ -4,10 +4,14 @@ import { isExcludedVocabWord } from "@/lib/proper-noun";
 import { getFamilyHeadword } from "@/lib/word-family";
 import {
   fetchWordImageUrlDetailed,
+  finalizeWordImageDisplayUrl,
   isPersistableWordImageUrl,
   isRealCardImageUrl,
+  isUsableCardImageUrl,
   shouldRefreshImageUrl,
 } from "@/lib/unsplash";
+import { isApprovedFunctionWordStockUrl } from "@/lib/function-word-images";
+import { isClosedClassWord } from "@/lib/word-image-strategy";
 import { normalizeVocabInput } from "@/lib/word-validation";
 
 export type WordImageLookupInput = {
@@ -55,7 +59,7 @@ export async function resolveWordImageForApi(
   if (
     stored &&
     isRealCardImageUrl(stored, word) &&
-    !shouldRefreshImageUrl(stored, word)
+    !shouldRefreshImageUrl(stored, word, pos)
   ) {
     return stored;
   }
@@ -68,11 +72,42 @@ export async function resolveWordImageForApi(
     englishDefinition,
     stored,
   );
-  const imageUrl = isRealCardImageUrl(resolved.imageUrl, word)
-    ? resolved.imageUrl
-    : isRealCardImageUrl(stored, word)
-      ? stored!
-      : null;
+  const imageUrl = finalizeWordImageDisplayUrl(
+    resolved.imageUrl,
+    stored,
+    word,
+    pos,
+  );
+
+  if (isClosedClassWord(word, pos)) {
+    if (isApprovedFunctionWordStockUrl(imageUrl, word)) {
+      if (imageUrl !== stored) {
+        const { error } = await supabase
+          .from("word_details")
+          .update({ image_url: imageUrl })
+          .eq("word", word);
+        if (error) {
+          console.warn(
+            `[word-image-api] Failed to persist image_url for "${word}":`,
+            error.message,
+          );
+        }
+      }
+    } else if (stored && isPersistableWordImageUrl(stored, word)) {
+      const { error } = await supabase
+        .from("word_details")
+        .update({ image_url: null })
+        .eq("word", word);
+      if (error) {
+        console.warn(
+          `[word-image-api] Failed to clear stale image_url for "${word}":`,
+          error.message,
+        );
+      }
+    }
+    return imageUrl;
+  }
+
   if (imageUrl && isPersistableWordImageUrl(imageUrl, word) && imageUrl !== stored) {
     const { error } = await supabase
       .from("word_details")
@@ -86,5 +121,5 @@ export async function resolveWordImageForApi(
     }
   }
 
-  return imageUrl;
+  return isUsableCardImageUrl(imageUrl, word, pos) ? imageUrl : null;
 }

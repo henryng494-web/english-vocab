@@ -86,3 +86,23 @@ export const HIGH_TRAFFIC_FUNCTION_WORDS = new Set([
 export function isHighTrafficFunctionWord(word: string): boolean {
   return HIGH_TRAFFIC_FUNCTION_WORDS.has(word.trim().toLowerCase());
 }
+
+/** Stock photo approved for a closed-class word (tagged after curated pipeline). */
+export function isApprovedFunctionWordStockUrl(
+  url: string | null | undefined,
+  word?: string | null,
+): boolean {
+  const trimmed = url?.trim();
+  if (!trimmed?.startsWith("https://")) return false;
+  if (word && !isHighTrafficFunctionWord(word)) return false;
+  try {
+    const parsed = new URL(trimmed);
+    const host = parsed.hostname.toLowerCase();
+    if (host !== "images.pexels.com" && host !== "images.unsplash.com") {
+      return false;
+    }
+    return parsed.searchParams.get("fw") === FUNCTION_WORD_IMAGE_MARKER;
+  } catch {
+    return false;
+  }
+}

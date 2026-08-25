@@ -17,10 +17,11 @@ import { getImportanceTier } from "@/lib/word-rank";
 import { withWordFamily } from "@/lib/word-family-display";
 import { resolveImageSearchKeyword } from "@/lib/image-keyword";
 import {
-  fetchWordImageUrl,
+  fetchWordImageUrlDetailed,
+  finalizeWordImageDisplayUrl,
   isPersistableWordImageUrl,
-  isRealCardImageUrl,
 } from "@/lib/unsplash";
+import { isClosedClassWord } from "@/lib/word-image-strategy";
 import { isExcludedVocabWord } from "@/lib/proper-noun";
 import { sanitizeVietnameseText } from "@/lib/sanitize-vi";
 import { normalizeVocabInput } from "@/lib/word-validation";
@@ -44,13 +45,19 @@ async function resolveImageUrl(
   meaning?: string | null,
   englishDefinition?: string | null,
 ): Promise<string> {
-  return fetchWordImageUrl(
+  const fetched = await fetchWordImageUrlDetailed(
     word,
     searchKeyword ?? word,
     pos,
     meaning,
     englishDefinition,
     existingUrl,
+  );
+  return finalizeWordImageDisplayUrl(
+    fetched.imageUrl,
+    existingUrl,
+    word,
+    pos,
   );
 }
 
@@ -313,12 +320,22 @@ export async function GET(request: Request) {
         repairedDbDetail!.english_definition,
       );
       if (repairedDbDetail!.image_url !== imageUrl) {
-        await persistImageUrlIfChanged(
-          supabase,
-          word,
-          repairedDbDetail!.image_url,
-          imageUrl,
-        );
+        if (isPersistableWordImageUrl(imageUrl, word)) {
+          await persistImageUrlIfChanged(
+            supabase,
+            word,
+            repairedDbDetail!.image_url,
+            imageUrl,
+          );
+        } else if (
+          isClosedClassWord(word, repairedDbDetail!.word_type) &&
+          repairedDbDetail!.image_url
+        ) {
+          await supabase
+            .from("word_details")
+            .update({ image_url: null })
+            .eq("word", word);
+        }
       }
       return NextResponse.json({
         word: persistedDetailToDiscoverWord(
@@ -337,7 +354,7 @@ export async function GET(request: Request) {
     const vietnameseMeaning =
       sanitizeVietnameseText(responseWord.vietnamese_meaning) || word;
     const englishDefinition = responseWord.english_definition?.trim() || null;
-    const imageUrl = await fetchWordImageUrl(
+    const fetched = await fetchWordImageUrlDetailed(
       word,
       searchKeyword,
       responseWord.word_type ?? enrichment.wordType,
@@ -345,11 +362,13 @@ export async function GET(request: Request) {
       englishDefinition,
       dbDetail?.image_url,
     );
-    responseWord.image_url = isRealCardImageUrl(imageUrl, word)
-      ? imageUrl
-      : isRealCardImageUrl(dbDetail?.image_url, word)
-        ? dbDetail!.image_url!
-        : imageUrl;
+    const imageUrl = finalizeWordImageDisplayUrl(
+      fetched.imageUrl,
+      dbDetail?.image_url,
+      word,
+      responseWord.word_type ?? enrichment.wordType,
+    );
+    responseWord.image_url = imageUrl;
     const examples = await repairExamplesIfNeeded(
       word,
       responseWord.examples,
@@ -366,11 +385,7 @@ export async function GET(request: Request) {
       english_definition: responseWord.english_definition ?? "",
       examples,
       collocations: responseWord.collocations ?? null,
-      image_url: isPersistableWordImageUrl(imageUrl, word)
-        ? imageUrl
-        : isPersistableWordImageUrl(dbDetail?.image_url, word)
-          ? dbDetail!.image_url!
-          : null,
+      image_url: isPersistableWordImageUrl(imageUrl, word) ? imageUrl : null,
     });
 
     if (dbDetail) {

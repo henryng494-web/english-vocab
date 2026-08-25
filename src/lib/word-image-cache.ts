@@ -1,6 +1,7 @@
-import { isRealCardImageUrl, shouldRefreshImageUrl } from "@/lib/unsplash";
+import { hasAcceptableWordImage, shouldRefreshImageUrl } from "@/lib/unsplash";
 
-const STORAGE_KEY = "word-image-url-cache-v11";
+/** Bump when function-word fw=1 validation rules change. */
+const STORAGE_KEY = "word-image-url-cache-v12";
 const MAX_ENTRIES = 500;
 
 const cache = new Map<string, string>();
@@ -10,6 +11,7 @@ function hydrateFromStorage(): void {
   if (typeof window === "undefined" || hydrated) return;
   hydrated = true;
   try {
+    sessionStorage.removeItem("word-image-url-cache-v11");
     const raw = sessionStorage.getItem(STORAGE_KEY);
     if (!raw) return;
     const parsed = JSON.parse(raw) as Record<string, string>;
@@ -17,7 +19,7 @@ function hydrateFromStorage(): void {
       const key = word.trim().toLowerCase();
       if (
         url?.trim() &&
-        isRealCardImageUrl(url.trim(), key) &&
+        hasAcceptableWordImage(url.trim(), key) &&
         !shouldRefreshImageUrl(url.trim(), key)
       ) {
         cache.set(key, url.trim());
@@ -32,7 +34,10 @@ function persistToStorage(): void {
   if (typeof window === "undefined") return;
   try {
     const entries = Array.from(cache.entries()).slice(-MAX_ENTRIES);
-    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(Object.fromEntries(entries)));
+    sessionStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify(Object.fromEntries(entries)),
+    );
   } catch {
     /* quota or private mode */
   }
@@ -50,7 +55,9 @@ export function getCachedWordImageUrl(word: string): string | undefined {
 export function setCachedWordImageUrl(word: string, url: string): void {
   hydrateFromStorage();
   const key = word.trim().toLowerCase();
-  if (!isRealCardImageUrl(url, key) || shouldRefreshImageUrl(url, key)) return;
+  if (!hasAcceptableWordImage(url, key) || shouldRefreshImageUrl(url, key)) {
+    return;
+  }
   cache.set(key, url.trim());
   persistToStorage();
 }
@@ -61,11 +68,11 @@ export function peekCachedWordImageUrl(
 ): string | undefined {
   hydrateFromStorage();
   const cached = getCachedWordImageUrl(word);
-  if (cached && isRealCardImageUrl(cached, word)) return cached;
+  if (cached && hasAcceptableWordImage(cached, word)) return cached;
   const trimmed = imageUrl?.trim();
   if (
     trimmed &&
-    isRealCardImageUrl(trimmed, word) &&
+    hasAcceptableWordImage(trimmed, word) &&
     !shouldRefreshImageUrl(trimmed, word)
   ) {
     setCachedWordImageUrl(word, trimmed);
@@ -83,7 +90,7 @@ export function seedWordImageCacheFromEntries(
     const url = entry.image_url?.trim();
     if (
       url &&
-      isRealCardImageUrl(url, word) &&
+      hasAcceptableWordImage(url, word) &&
       !shouldRefreshImageUrl(url, word)
     ) {
       const key = word.trim().toLowerCase();

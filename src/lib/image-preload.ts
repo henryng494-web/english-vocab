@@ -2,7 +2,7 @@ import {
   peekCachedWordImageUrl,
   setCachedWordImageUrl,
 } from "@/lib/word-image-cache";
-import { isRealCardImageUrl } from "@/lib/unsplash";
+import { hasAcceptableWordImage } from "@/lib/unsplash";
 
 const preloadedUrls = new Set<string>();
 const inflightWords = new Map<string, Promise<string | null>>();
@@ -44,12 +44,17 @@ export function preloadWordImagesFromCache(
   }
 }
 
-function cacheResolvedUrl(word: string, url: string | null): string | null {
-  if (url && isRealCardImageUrl(url, word)) {
+function cacheResolvedUrl(
+  word: string,
+  url: string | null,
+  wordType?: string | null,
+): string | null {
+  if (url && hasAcceptableWordImage(url, word)) {
     setCachedWordImageUrl(word, url);
     preloadImageUrlDeduped(url);
     return url;
   }
+  void wordType;
   return null;
 }
 
