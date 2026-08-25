@@ -44,9 +44,9 @@ const GENERIC_QUERY_TOKENS = new Set([
   "closeup",
 ]);
 
-const SEMANTIC_IMAGE_VERSION = "31";
+const SEMANTIC_IMAGE_VERSION = "32";
 /** Only URLs from a successful Gemini→Unsplash run carry this marker. */
-export const IMAGE_PIPELINE_ID = "gemini-unsplash-v2";
+export const IMAGE_PIPELINE_ID = "gemini-unsplash-v3";
 
 /** Only Pexels and Unsplash are trusted learning-card photo sources. */
 const STOCK_IMAGE_HOSTS = new Set(["images.pexels.com", "images.unsplash.com"]);
@@ -835,7 +835,7 @@ export async function fetchWordImageUrlDetailed(
     const gemini = await tryGeminiVocabImage(word, pos, geminiContext);
     if (gemini) {
       return {
-        imageUrl: markGeminiPipelineImageUrl(gemini.imageUrl),
+        imageUrl: gemini.imageUrl,
         searchKeyword: gemini.searchPhrase,
       };
     }

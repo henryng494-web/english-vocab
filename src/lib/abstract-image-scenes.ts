@@ -4,7 +4,6 @@
  */
 
 import { singularizeForLookup } from "@/lib/word-singularize";
-import { diversifiedStockScene } from "@/lib/stock-scene-fallbacks";
 
 const WORD_SCENES: Readonly<Record<string, string>> = {
   unless: "rain storm window person staying indoors",
@@ -475,6 +474,20 @@ const NOUN_HINTS: Readonly<Record<string, string>> = {
   youth: "youth group friends laughing park summer fun",
 };
 
+/** -ful adjectives where the suffix means "full of" something negative — not "happy". */
+const NEGATIVE_FUL_WORDS = new Set([
+  "awful",
+  "dreadful",
+  "fearful",
+  "harmful",
+  "painful",
+  "shameful",
+  "sorrowful",
+  "stressful",
+  "wasteful",
+  "weful",
+]);
+
 function cleanWord(word: string): string {
   return word.trim().toLowerCase();
 }
@@ -504,7 +517,9 @@ export function lookupAbstractImageScene(
 
   if (key.endsWith("when")) return "analog clock showing specific time closeup";
   if (key.endsWith("wise")) return "wise mentor giving advice conversation office";
-  if (key.endsWith("ful")) return "happy satisfied person smiling achievement moment";
+  if (key.endsWith("ful") && !NEGATIVE_FUL_WORDS.has(key)) {
+    return "happy satisfied person smiling achievement moment";
+  }
 
   const normalizedPos = pos?.trim().toLowerCase();
   if (normalizedPos === "conjunction") {
@@ -520,7 +535,7 @@ export function lookupAbstractImageScene(
     return "diverse group people together smiling portrait";
   }
   if (normalizedPos === "adjective") {
-    return diversifiedStockScene(word);
+    return `${key} descriptive visual scene`;
   }
   if (normalizedPos === "verb") {
     return "person action everyday activity candid photo";

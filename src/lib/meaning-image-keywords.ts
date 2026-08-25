@@ -13,6 +13,14 @@ type PatternRule = {
 
 const MEANING_RULES: PatternRule[] = [
   {
+    pattern: /phẫu thuật|surgical|surgeon|operating room|surgery medical/i,
+    query: "surgeon operating room surgery medical team",
+  },
+  {
+    pattern: /tồi tệ|khủng khiếp|dreadful|awful|terrible|horrible|atrocious/i,
+    query: "stormy dark sky disaster damage terrible weather",
+  },
+  {
     pattern: /mục sư|preacher|pastor|sermon|pulpit|minister/i,
     query: "preacher speaking church pulpit congregation",
   },

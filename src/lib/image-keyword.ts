@@ -107,22 +107,31 @@ export function resolveImageSearchKeyword(
   const pos =
     options.pos?.trim().toLowerCase() || inferPosFromWord(normalizedWord);
 
-  const abstractScene =
-    lookupAbstractImageScene(normalizedWord, pos) ??
-    lookupAbstractImageScene(singularizeForLookup(normalizedWord), pos);
-  if (abstractScene) return abstractScene;
-
-  if (COLOR_WORDS.has(normalizedWord)) {
-    return `bright ${normalizedWord} color sample swatch`;
-  }
-
+  // When a gloss exists, prefer meaning-aware queries over suffix/hash scenes.
   if (options.meaning?.trim() || options.englishDefinition?.trim()) {
+    if (COLOR_WORDS.has(normalizedWord)) {
+      return `bright ${normalizedWord} color sample swatch`;
+    }
     if (pos === "verb") {
       return `person ${normalizedWord} action scene`;
+    }
+    if (pos === "adjective" || pos === "adverb") {
+      return `${normalizedWord} mood visual scene`;
     }
     return normalizedWord.includes(" ")
       ? normalizedWord
       : `${normalizedWord} object`;
+  }
+
+  const abstractScene =
+    lookupAbstractImageScene(normalizedWord, pos) ??
+    lookupAbstractImageScene(singularizeForLookup(normalizedWord), pos);
+  if (abstractScene && !isLegacyStockScenePhrase(abstractScene)) {
+    return abstractScene;
+  }
+
+  if (COLOR_WORDS.has(normalizedWord)) {
+    return `bright ${normalizedWord} color sample swatch`;
   }
 
   if (pos === "noun") {

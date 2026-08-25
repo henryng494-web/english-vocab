@@ -7,11 +7,11 @@
  */
 
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { buildImageSearchQueries } from "@/lib/image-keyword";
 import {
   fetchStockImageForQuery,
   getDefaultLearningImageDataUrl,
   markGeminiPipelineImageUrl,
-  markSemanticImageUrl,
 } from "@/lib/unsplash";
 
 /**
@@ -20,8 +20,7 @@ import {
  */
 const GEMINI_IMAGE_MODELS = [
   process.env.GEMINI_IMAGE_MODEL?.trim(),
-  "gemini-2.0-flash-lite",
-  "gemini-1.5-flash",
+  "gemini-3.5-flash-lite",
   "gemini-flash-lite-latest",
   "gemini-3.1-flash-lite",
 ].filter((model): model is string => Boolean(model));
@@ -97,31 +96,18 @@ Rules:
 Reply with ONLY the search phrase. No greeting, no explanation, no punctuation except spaces.`;
 }
 
-/** Ordered stock queries from the English headword when Gemini is unavailable. */
+/** Meaning-aware stock queries when Gemini is unavailable. */
 export function buildDirectWordStockQueries(
   word: string,
   partOfSpeech: string,
+  meaning?: string | null,
+  englishDefinition?: string | null,
 ): string[] {
-  const normalized = word.trim().toLowerCase();
-  if (!normalized) return [];
-
-  const pos = partOfSpeech.trim().toLowerCase() || "noun";
-  const queries: string[] = [];
-
-  if (normalized.includes(" ")) {
-    queries.push(normalized);
-  } else {
-    queries.push(normalized);
-    if (pos === "verb") {
-      queries.push(`person ${normalized} action`);
-    } else if (pos === "adjective" || pos === "adverb") {
-      queries.push(`${normalized} scene`);
-    } else {
-      queries.push(`${normalized} object`);
-    }
-  }
-
-  return [...new Set(queries)];
+  return buildImageSearchQueries(word, {
+    pos: partOfSpeech,
+    meaning,
+    englishDefinition,
+  });
 }
 
 async function fetchStockForQueries(
@@ -259,14 +245,18 @@ export async function fetchVocabIllustrationImage(
       }
     }
 
-    const directQueries = buildDirectWordStockQueries(word, partOfSpeech);
+    const directQueries = buildDirectWordStockQueries(
+      word,
+      partOfSpeech,
+      meaning,
+    );
     const directStock = await fetchStockForQueries(word, directQueries);
     if (directStock) {
       console.warn(
-        `[gemini-unsplash-image] Direct word stock fallback for "${word}" → "${directStock.query}"`,
+        `[gemini-unsplash-image] Meaning-based stock fallback for "${word}" → "${directStock.query}"`,
       );
       return {
-        imageUrl: markSemanticImageUrl(directStock.url),
+        imageUrl: directStock.url,
         searchPhrase: directStock.query,
         source: "direct-stock",
       };
@@ -285,11 +275,11 @@ export async function fetchVocabIllustrationImage(
 
     const directStock = await fetchStockForQueries(
       word,
-      buildDirectWordStockQueries(word, partOfSpeech),
+      buildDirectWordStockQueries(word, partOfSpeech, meaning),
     );
     if (directStock) {
       return {
-        imageUrl: markSemanticImageUrl(directStock.url),
+        imageUrl: directStock.url,
         searchPhrase: directStock.query,
         source: "direct-stock",
       };
@@ -299,12 +289,12 @@ export async function fetchVocabIllustrationImage(
   }
 }
 
-/** Returns a stock photo URL, or null when only the SVG placeholder remains. */
+/** Returns only Gemini-generated phrase matches (not rule-based fallback). */
 export async function fetchVocabIllustrationImageOrNull(
   input: VocabIllustrationInput,
 ): Promise<{ imageUrl: string; searchPhrase: string } | null> {
   const result = await fetchVocabIllustrationImage(input);
-  if (result.source === "placeholder") return null;
+  if (result.source !== "gemini-stock") return null;
   return {
     imageUrl: result.imageUrl,
     searchPhrase: result.searchPhrase!,
