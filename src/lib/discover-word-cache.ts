@@ -2,13 +2,9 @@ import type { DiscoverWordData } from "@/components/discover/DiscoverCard";
 import { hasQualityExamples } from "@/lib/example-quality";
 import { parseExamples } from "@/lib/parse-examples";
 import { containsForeignScript } from "@/lib/sanitize-vi";
-import {
-  isRealCardImageUrl,
-  shouldRefreshImageUrl,
-} from "@/lib/unsplash";
 
 /** Bump when Gemini/Unsplash pipeline or image quality rules change. */
-export const DISCOVER_WORD_CACHE_VERSION = 68;
+export const DISCOVER_WORD_CACHE_VERSION = 69;
 
 const STORAGE_KEY = `discover-word-cache-v${DISCOVER_WORD_CACHE_VERSION}`;
 
@@ -70,6 +66,7 @@ const LEGACY_STORAGE_KEYS = [
   "discover-word-cache-v65",
   "discover-word-cache-v66",
   "discover-word-cache-v67",
+  "discover-word-cache-v68",
 ];
 
 const MAX_ENTRIES = 250;
@@ -84,14 +81,6 @@ export function isWordDetailComplete(
     return false;
   }
   if (expectedWord && data.word.toLowerCase() !== expectedWord.toLowerCase()) {
-    return false;
-  }
-  const imageUrl = data.image_url?.trim();
-  if (
-    imageUrl &&
-    isRealCardImageUrl(imageUrl, data.word) &&
-    shouldRefreshImageUrl(imageUrl, data.word)
-  ) {
     return false;
   }
   return true;

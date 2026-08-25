@@ -22,9 +22,24 @@ const WORD_HEADWORD_RULES: Record<string, string> = {
   holdup: "traffic jam highway delay cars",
   debut: "theater stage performance spotlight debut",
   dunk: "cookies dunk milk glass dipping",
+  alimony: "divorce alimony legal agreement signing documents",
+  counsellor: "counsellor therapy session office two people talking",
+  dyke: "flood barrier embankment water levee landscape",
 };
 
 const MEANING_RULES: PatternRule[] = [
+  {
+    pattern: /cấp dưỡng|trợ cấp ly hôn|alimony|spousal support|divorce payment/i,
+    query: "divorce alimony legal agreement signing documents",
+  },
+  {
+    pattern: /tư vấn|counsellor|counselor|therapist|therapy session|mental health couns/i,
+    query: "counsellor therapy session office two people talking",
+  },
+  {
+    pattern: /đê|đập ngăn nước|levee|embankment|flood barrier|flood wall|dike/i,
+    query: "flood barrier embankment water levee landscape",
+  },
   {
     pattern: /vụ cướp|cướp ngân hàng|bank robbery|robbery holdup/i,
     query: "bank robbery police holdup scene",

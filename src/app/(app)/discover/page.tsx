@@ -52,6 +52,16 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 const PRELOAD_AHEAD = 10;
 const IMAGE_WARM_COUNT = 12;
 
+function formatJourneyBadge(index: number, total: number): string {
+  const position = index + 1;
+  if (total <= 999) return `${position} / ${total}`;
+  const compact =
+    total >= 10000
+      ? `${Math.round(total / 1000)}k`
+      : `${(total / 1000).toFixed(1).replace(/\.0$/, "")}k`;
+  return `${position} / ${compact}`;
+}
+
 function listItemImageTarget(item: DiscoverListItem): WordImagePrefetchTarget {
   return {
     word: item.word,
@@ -109,12 +119,19 @@ export default function DiscoverPage() {
   const fetchWordFromApi = useCallback(
     async (item: DiscoverListItem): Promise<DiscoverWordData> => {
       const loaded = await fetchDiscoverWordDetail(item);
-      if (!isCacheEntryValid(loaded, item.word)) {
-        throw new Error(
-          `Data for "${item.word}" is incomplete — try again later.`,
-        );
+      if (isCacheEntryValid(loaded, item.word)) {
+        return loaded;
       }
-      return loaded;
+      // Text is usable even when the photo still needs a background refresh.
+      if (
+        loaded.vietnamese_meaning?.trim() &&
+        loaded.word.toLowerCase() === item.word.toLowerCase()
+      ) {
+        return loaded;
+      }
+      throw new Error(
+        `Data for "${item.word}" is incomplete — try again later.`,
+      );
     },
     [],
   );
@@ -132,7 +149,10 @@ export default function DiscoverPage() {
 
       const promise = fetchWordFromApi(item)
         .then((loaded) => {
-          if (!isCacheEntryValid(loaded, item.word)) {
+          if (
+            !isCacheEntryValid(loaded, item.word) &&
+            !loaded.vietnamese_meaning?.trim()
+          ) {
             throw new Error(`Data mismatch for "${item.word}"`);
           }
           wordCache.current.set(item.word, loaded);
@@ -203,7 +223,16 @@ export default function DiscoverPage() {
           })
           .catch((err) => {
             if (activeWordRef.current !== item.word) return;
-            setError(err instanceof Error ? err.message : "Failed to load word details");
+            const fallback = listItemToDiscoverData(item);
+            if (fallback.vietnamese_meaning?.trim()) {
+              setCurrentWord(fallback);
+              setLoadingWord(false);
+              setError(null);
+              return;
+            }
+            setError(
+              err instanceof Error ? err.message : "Failed to load word details",
+            );
             setLoadingWord(false);
           });
       }
@@ -523,7 +552,7 @@ export default function DiscoverPage() {
                 data={currentWord ?? stubFromListItem(currentItem)}
                 loading={loadingWord}
                 compact
-                imageBadge={`${currentIndex + 1} / ${queue.length}`}
+                imageBadge={formatJourneyBadge(currentIndex, queue.length)}
               />
             </div>
 
