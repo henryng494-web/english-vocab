@@ -18,16 +18,8 @@ export type JungleCastMember = keyof typeof JUNGLE_CAST_CHARACTER_REFS;
 export function getJungleCastReferencePaths(
   cast: readonly JungleCastMember[],
 ): string[] {
-  const paths = new Set<string>();
-  // Lineup monkey has long ground-touching arms — omit lineup when monkey is in cast
-  // to avoid extra-limb generation errors.
-  if (!cast.includes("monkey")) {
-    paths.add(JUNGLE_CAST_LINEUP_PATH);
-  }
-  for (const member of cast) {
-    paths.add(JUNGLE_CAST_CHARACTER_REFS[member]);
-  }
-  return [...paths];
+  // Never use lineup — it encourages all-four casts and long-arm monkey errors.
+  return cast.map((member) => JUNGLE_CAST_CHARACTER_REFS[member]);
 }
 
 export const JUNGLE_CAST_SHAPE_REMINDER =

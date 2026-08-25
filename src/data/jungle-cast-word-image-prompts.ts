@@ -1,6 +1,7 @@
 /** Jungle Jokers word prompts — rank 1–100. Shape locked via multi-ref PNGs. */
 import {
   JUNGLE_CAST_DESIGN_ONLY,
+  JUNGLE_CAST_ELEPHANT_ARM_RULE,
   JUNGLE_CAST_EXPRESSION_SAMPLES,
   JUNGLE_CAST_MONKEY_POSE_RULE,
 } from "@/data/jungle-cast-samples";
@@ -25,7 +26,7 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
       "monkey",
       "tiger"
     ],
-    "scene": "Sunny park path — purple monkey SITS on wooden bench side profile, waving one hand toward viewer, other arm on bench. Orange tiger stands on path with welcoming paws open.",
+    "scene": "ONLY monkey and tiger — Sunny park path — purple monkey SITS on wooden bench side profile, waving one hand toward viewer, other arm on bench. Orange tiger stands on path with welcoming paws open.",
     "expressions": "Monkey: warm friendly smile, sitting side profile, one hand waving only (exactly two arms). Tiger: cheerful welcoming grin, paws open toward viewer (NOT frozen shocked O-mouth)."
   },
   "the": {
@@ -33,90 +34,72 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
       "monkey",
       "elephant"
     ],
-    "scene": "Modern kitchen — purple monkey SITS on chair side profile, ONE arm pointing at ONE bright red apple on wooden table while other apples are faded gray. Pink elephant stands beside table.",
+    "scene": "ONLY monkey and elephant — Modern kitchen — purple monkey SITS on chair side profile, ONE arm pointing at ONE bright red apple on wooden table while other apples are faded gray. Pink elephant stands beside table.",
     "expressions": "Monkey: focused teaching expression, sitting side profile, one arm pointing only (other arm hidden behind body). Elephant: interested lean-in, stick body unchanged."
   },
   "to": {
     "cast": [
-      "monkey",
-      "elephant",
-      "crocodile",
       "tiger"
     ],
-    "scene": "Purple monkey walks along a teal arrow path toward an open suburban house door — movement to a destination.",
-    "expressions": "Monkey: determined forward-looking eyes, purposeful stride (NOT bored). Tiger: eager excited trot beside cat, happy anticipation (NOT O-mouth shock). Elephant: gentle encouraging smile from behind. Crocodile: waddling happily along."
+    "scene": "ONLY tiger — ",
+    "expressions": "Tiger: eager excited trot beside cat, happy anticipation (NOT O-mouth shock)."
   },
   "it": {
     "cast": [
-      "monkey",
-      "elephant",
-      "crocodile",
       "tiger"
     ],
-    "scene": "Purple monkey sits proudly on a small brown wooden platform in a spotlight — the cat is 'it'.",
-    "expressions": "Monkey: proud spotlight pose, chest out, satisfied smile (NOT lazy unamused). Tiger: impressed admiring eyes, small clap (NOT shocked). Elephant: applauding gently. Crocodile: star-struck happy look."
+    "scene": "ONLY tiger — ",
+    "expressions": "Tiger: impressed admiring eyes, small clap (NOT shocked)."
   },
   "that": {
     "cast": [
-      "monkey",
-      "elephant",
-      "crocodile",
       "tiger"
     ],
-    "scene": "Purple monkey points far away at a red kite in the sky while ignoring a blue ball at its feet — distant 'that'.",
-    "expressions": "Monkey: arm stretched pointing far, eyes squinting at distance (NOT bored). Tiger: looking where cat points, curious interested face (NOT frozen shock). Elephant: shading eyes looking far. Crocodile: leaning forward curious."
+    "scene": "ONLY tiger — ",
+    "expressions": "Tiger: looking where cat points, curious interested face (NOT frozen shock)."
   },
   "and": {
     "cast": [
-      "monkey",
-      "tiger"
+      "tiger",
+      "elephant"
     ],
-    "scene": "Purple monkey and orange tiger share one plate of cookies together at a picnic table — connection 'and'.",
-    "expressions": "Monkey: happy sharing smile, offering cookie (NOT half-lidded bored). Tiger: delighted grateful grin eating together (NOT O-mouth). Cow and pig: cozy together on same bench, content smiles."
+    "scene": "ONLY tiger and elephant — ",
+    "expressions": "Tiger: delighted grateful grin eating together (NOT O-mouth). Cow and pig: cozy together on same bench, content smiles."
   },
   "of": {
     "cast": [
-      "monkey",
-      "elephant",
-      "crocodile",
-      "tiger"
+      "elephant"
     ],
-    "scene": "Lime-green crocodile proudly holds a glass jar full of cookies — a jar of treats.",
-    "expressions": "Crocodile: proud possessive happy grin showing jar contents (NOT tired sweat). Monkey: admiring the jar, interested eyes. Tiger: excited hopeful look at cookies. Elephant: gentle pleased smile, mouth closed."
+    "scene": "ONLY elephant — ",
+    "expressions": "Elephant: gentle pleased smile, mouth closed."
   },
   "what": {
     "cast": [
-      "monkey",
-      "elephant",
-      "crocodile",
       "tiger"
     ],
-    "scene": "Orange tiger staring at a closed mystery gift box with colorful ribbons, question-curve shapes floating nearby (no letters).",
-    "expressions": "Tiger: curious puzzled wonder — head tilt, wide questioning eyes but calm mouth (NOT frozen O-shock). Monkey: equally curious, one eyebrow raised. Elephant: confused cute head tilt. Crocodile: scratching head puzzled."
+    "scene": "ONLY tiger — Orange tiger staring at a closed mystery gift box with colorful ribbons, question-curve shapes floating nearby (no letters).",
+    "expressions": "Tiger: curious puzzled wonder — head tilt, wide questioning eyes but calm mouth (NOT frozen O-shock)."
   },
   "in": {
     "cast": [
-      "monkey",
-      "elephant",
-      "crocodile",
-      "tiger"
+      "crocodile"
     ],
-    "scene": "Purple monkey peeking out from inside a large orange cardboard box, only head and paws visible.",
-    "expressions": "Monkey: playful peek-a-boo eyes, mischievous smile from inside box (NOT bored). Tiger: surprised-delighted discovery face finding cat (happy surprise, NOT horror shock). Elephant: amused chuckle. Crocodile: giggling."
+    "scene": "ONLY crocodile — ",
+    "expressions": "Crocodile: giggling."
   },
   "me": {
     "cast": [
       "monkey"
     ],
-    "scene": "Orange tiger points both paws at its own chest with a shy smile — means 'me'.",
-    "expressions": "Tiger: shy self-pointing, soft blush, gentle smile (NOT O-mouth). Monkey: warm acknowledging nod. Elephant: kind encouraging look. Crocodile: supportive thumbs-up."
+    "scene": "ONLY monkey — ",
+    "expressions": "Monkey: warm acknowledging nod."
   },
   "is": {
     "cast": [
-      "monkey"
+      "tiger"
     ],
-    "scene": "Pink elephant strikes a proud pose on a small stage pedestal like a statue — something IS here.",
-    "expressions": "Elephant: dignified proud statue pose, calm confident eyes, mouth closed (NO silly tongue). Monkey: presenting cow with open paw, proud curator face. Tiger: impressed wide happy eyes. Crocodile: applauding."
+    "scene": "ONLY tiger — ",
+    "expressions": "Tiger: impressed wide happy eyes."
   },
   "we": {
     "cast": [
@@ -125,107 +108,82 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
       "crocodile",
       "tiger"
     ],
-    "scene": "All four mascots stand together as a team on a neighborhood park, arms linked — 'we' together.",
+    "scene": "All four mascots — All four mascots stand together as a team on a neighborhood park, arms linked — 'we' together.",
     "expressions": "All four: united team pride — warm smiles, linked arms, belonging (Cat NOT bored, Dog NOT O-mouth, Cow NO tongue, Pig NOT tired). Each looks happy to be together."
   },
   "this": {
     "cast": [
-      "monkey",
-      "elephant",
-      "crocodile",
-      "tiger"
+      "monkey"
     ],
-    "scene": "Purple monkey taps a green book on the desk right in front of it, ignoring books on a distant shelf.",
-    "expressions": "Monkey: emphatic this-one gesture, focused eyes on nearby book (NOT lazy). Tiger: leaning in looking at same book, interested (NOT shocked). Elephant: nodding at near book. Crocodile: ignoring far shelf like cat."
+    "scene": "ONLY monkey — Purple monkey taps a green book on the desk right in front of it, ignoring books on a distant shelf.",
+    "expressions": "Monkey: emphatic this-one gesture, focused eyes on nearby book (NOT lazy)."
   },
   "he": {
     "cast": [
-      "monkey",
-      "elephant",
-      "crocodile",
       "tiger"
     ],
-    "scene": "Purple monkey watches a male stick-figure silhouette waving from a doorway — 'he'.",
-    "expressions": "Monkey: observant pointing toward silhouette, neutral friendly face (NOT bored). Tiger: waving back cheerfully. Elephant: gentle wave. Crocodile: curious peek."
+    "scene": "ONLY tiger — ",
+    "expressions": "Tiger: waving back cheerfully."
   },
   "on": {
     "cast": [
-      "monkey",
-      "elephant",
-      "crocodile",
       "tiger"
     ],
-    "scene": "Purple monkey sitting on top of a brown wooden table, not beside it — clearly ON the surface.",
-    "expressions": "Monkey: comfortable perched ON table, relaxed satisfied smile (NOT bored default). Tiger: looking up pointing at cat ON table, teaching expression. Elephant: confirming nod. Crocodile: impressed look up."
+    "scene": "ONLY orange tiger — cozy living room. Tiger sits ON TOP of brown wooden round table (clearly on surface, not beside). Simple room, one table, pink rug.",
+    "expressions": "Tiger: comfortable perched ON table, relaxed smile, sphere body unchanged. Exactly two stub arms two stub legs."
   },
   "for": {
     "cast": [
-      "monkey",
-      "elephant",
-      "crocodile",
-      "tiger"
+      "elephant"
     ],
-    "scene": "Orange tiger offers a red heart-shaped cookie to purple monkey — gift for you.",
-    "expressions": "Tiger: generous giving smile, offering cookie warmly (NOT shocked). Monkey: touched grateful happy eyes receiving gift (NOT lazy unamused). Elephant: touched aww expression. Crocodile: clasped paws happy."
+    "scene": "ONLY elephant — ",
+    "expressions": "Elephant: touched aww expression."
   },
   "have": {
     "cast": [
-      "monkey",
       "elephant",
-      "crocodile",
       "tiger"
     ],
-    "scene": "Lime-green crocodile hugging a huge stack of colorful donuts — has many treats.",
-    "expressions": "Crocodile: delighted possessive hug, big happy grin (NOT tired sweat). Monkey: jealous-amused look. Tiger: amazed happy eyes at pile. Elephant: gentle laugh at pig's hoard."
+    "scene": "ONLY elephant and tiger — ",
+    "expressions": "Tiger: amazed happy eyes at pile. Elephant: gentle laugh at pig's hoard."
   },
   "do": {
     "cast": [
-      "monkey",
-      "elephant",
-      "crocodile",
       "tiger"
     ],
-    "scene": "Purple monkey washing dishes at a sink with soap bubbles — doing a chore.",
-    "expressions": "Monkey: focused diligent scrubbing, determined but not angry face (NOT bored lazy — actively working). Tiger: drying dishes helpfully, earnest helpful smile. Elephant: stacking clean plates. Crocodile: wiping counter diligently."
+    "scene": "ONLY tiger — ",
+    "expressions": "Tiger: drying dishes helpfully, earnest helpful smile."
   },
   "no": {
     "cast": [
       "monkey",
       "tiger"
     ],
-    "scene": "ONLY monkey and tiger on school sidewalk. Large candy jar sits ON the pavement between them (grounded, not floating, no disembodied hand). Both step back refusing.",
+    "scene": "ONLY monkey and tiger — ONLY monkey and tiger on school sidewalk. Large candy jar sits ON the pavement between them (grounded, not floating, no disembodied hand). Both step back refusing.",
     "expressions": "Monkey: stern refusal — both hands on hips (two arms only, front view). Tiger: both hands on hips, angry frown.",
     "outfits": "Monkey: school backpack. Tiger: student cap."
   },
   "know": {
     "cast": [
-      "monkey",
-      "elephant",
-      "crocodile",
-      "tiger"
+      "monkey"
     ],
-    "scene": "Purple monkey with a lightbulb glowing above its head, smiling confidently — I know!",
-    "expressions": "Monkey: eureka confident grin, bright eyes, chest puffed (NOT bored half-lidded). Tiger: impressed amazed smile (NOT O-mouth shock). Elephant: nodding wise approval. Crocodile: applauding the idea."
+    "scene": "ONLY monkey — Purple monkey with a lightbulb glowing above its head, smiling confidently — I know!",
+    "expressions": "Monkey: eureka confident grin, bright eyes, chest puffed (NOT bored half-lidded)."
   },
   "not": {
     "cast": [
       "monkey",
-      "elephant",
-      "crocodile",
       "tiger"
     ],
-    "scene": "Purple monkey pushes away a slice of cake with a firm paw — not eating that.",
-    "expressions": "Monkey: firm refusal face, pushing plate away, decisive eyes (NOT lazy). Tiger: supporting head-shake no. Elephant: arms crossed declining. Crocodile: turning away politely from cake."
+    "scene": "ONLY monkey and tiger — Purple monkey pushes away a slice of cake with a firm paw — not eating that.",
+    "expressions": "Monkey: firm refusal face, pushing plate away, decisive eyes (NOT lazy). Tiger: supporting head-shake no."
   },
   "can": {
     "cast": [
-      "monkey",
-      "elephant",
-      "crocodile",
       "tiger"
     ],
-    "scene": "Orange tiger lifting a heavy teal dumbbell easily, flexing — I can!",
-    "expressions": "Tiger: confident strong grin, flexing proudly (NOT shocked O-mouth). Monkey: impressed cheering. Elephant: amazed proud smile. Crocodile: fan cheering with paws up."
+    "scene": "ONLY orange tiger — bright gym room. Tiger easily lifts heavy teal dumbbell, flexing — I can!",
+    "expressions": "Tiger: confident strong grin, flexing proudly. Sphere body, two stub arms two stub legs."
   },
   "all": {
     "cast": [
@@ -234,624 +192,457 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
       "crocodile",
       "tiger"
     ],
-    "scene": "All four mascots gather around a table covered with every kind of fruit — all of them.",
+    "scene": "All four mascots — All four mascots gather around a table covered with every kind of fruit — all of them.",
     "expressions": "All four: excited abundance — happy eyes at full table (Cat alert not bored, Dog joyful not shocked, Cow delighted mouth closed, Pig happy not tired). Gesturing at ALL the fruit."
   },
   "with": {
     "cast": [
-      "monkey",
-      "tiger"
+      "tiger",
+      "crocodile"
     ],
-    "scene": "Purple monkey and orange tiger walking side by side sharing one umbrella in gentle rain — with each other.",
-    "expressions": "Monkey: cozy companion smile under shared umbrella (NOT bored). Tiger: happy walking together, content side-glance (NOT O-mouth). Cow and pig: also paired under second umbrella, warm friendship."
+    "scene": "ONLY tiger and crocodile — ",
+    "expressions": "Tiger: happy walking together, content side-glance (NOT O-mouth). Cow and pig: also paired under second umbrella, warm friendship."
   },
   "just": {
     "cast": [
-      "monkey",
-      "elephant",
-      "crocodile",
       "tiger"
     ],
-    "scene": "Purple monkey holding up a single tiny cookie while a huge empty jar sits behind — just one.",
-    "expressions": "Monkey: emphasizing ONE with raised single paw, slightly smug small smile (NOT bored). Tiger: understanding nod at single cookie. Elephant: surprised-at-small-amount raised eyebrow. Crocodile: disappointed cute pout at empty jar."
+    "scene": "ONLY tiger — ",
+    "expressions": "Tiger: understanding nod at single cookie."
   },
   "get": {
     "cast": [
-      "monkey",
-      "elephant",
-      "crocodile",
-      "tiger"
+      "monkey"
     ],
-    "scene": "Orange tiger catching a falling star-shaped cookie mid-air — get it!",
-    "expressions": "Tiger: athletic focused leap, determined happy eyes catching cookie (NOT frozen shock). Monkey: cheering excited. Elephant: watching tensely then relieved smile. Crocodile: paws over eyes then celebrating."
+    "scene": "ONLY monkey — ",
+    "expressions": "Monkey: cheering excited."
   },
   "here": {
     "cast": [
-      "monkey",
-      "elephant",
-      "crocodile",
       "tiger"
     ],
-    "scene": "Purple monkey planting a small flag on the ground right at its feet — right here.",
-    "expressions": "Monkey: proud HERE gesture stomping paw on spot, confident smile (NOT lazy). Tiger: looking down at exact spot, understanding nod. Elephant: pointing at ground. Crocodile: circling the spot curiously."
+    "scene": "ONLY tiger — ",
+    "expressions": "Tiger: looking down at exact spot, understanding nod."
   },
   "but": {
     "cast": [
-      "monkey",
       "elephant",
-      "crocodile",
       "tiger"
     ],
-    "scene": "Purple monkey wants sunshine yet holds a teal umbrella in rain — contrast, but.",
-    "expressions": "Monkey: conflicted expression — half hopeful sun-side, half resigned rain-side (NOT flat bored). Tiger: sympathetic confused tilt. Elephant: gentle shrug. Crocodile: split reaction amused."
+    "scene": "ONLY pink elephant (rainy left) and orange tiger (sunny right) — split-scene contrast. Elephant holds teal umbrella in rain puddles; tiger enjoys sunshine on park bench.",
+    "expressions": "Elephant: conflicted hopeful-yet-resigned rain face, BOTH thin stick arms visible holding umbrella + trunk, four stick legs. Tiger: happy sunny-side smile on bench."
   },
   "there": {
     "cast": [
-      "monkey",
-      "elephant",
-      "crocodile",
       "tiger"
     ],
-    "scene": "Orange tiger pointing across a city park at a tiny house on the far hill — over there.",
-    "expressions": "Tiger: pointing arm extended, eyes on distant house (NOT O-mouth shock). Monkey: squinting far away. Elephant: shading eyes looking there. Crocodile: tiptoeing to see farther."
+    "scene": "ONLY tiger — Orange tiger pointing across a city park at a tiny house on the far hill — over there.",
+    "expressions": "Tiger: pointing arm extended, eyes on distant house (NOT O-mouth shock)."
   },
   "so": {
     "cast": [
-      "monkey",
-      "elephant",
-      "crocodile",
-      "tiger"
+      "crocodile"
     ],
-    "scene": "Lime-green crocodile eating a very spicy red pepper with steam from ears — so hot!",
-    "expressions": "Crocodile: comedic spicy reaction — watering eyes, open panting mouth, steam puffs (NOT tired default — active spicy reaction). Monkey: wincing sympathetically. Tiger: fanning pig. Elephant: offering milk glass."
+    "scene": "ONLY crocodile — Lime-green crocodile eating a very spicy red pepper with steam from ears — so hot!",
+    "expressions": "Crocodile: comedic spicy reaction — watering eyes, open panting mouth, steam puffs (NOT tired default — active spicy reaction)."
   },
   "they": {
     "cast": [
-      "monkey",
+      "tiger",
       "elephant",
-      "crocodile",
-      "tiger"
+      "crocodile"
     ],
-    "scene": "Three identical teal birds on a branch while all four mascots watch together — they.",
+    "scene": "ONLY tiger and elephant and crocodile — Three identical teal birds on a branch while all four mascots watch together — they.",
     "expressions": "All mascots: collective watching — pointing at the three birds together (Cat interested, Dog curious calm, Cow gentle smile, Pig excited pointing). Group observing THEY."
   },
   "right": {
     "cast": [
-      "monkey",
-      "elephant",
-      "crocodile",
       "tiger"
     ],
-    "scene": "Orange tiger gives a big green checkmark card to purple monkey — correct, right answer.",
-    "expressions": "Tiger: approving proud grin presenting checkmark (NOT shocked). Monkey: pleased relieved correct-answer smile (NOT bored). Elephant: clapping approval. Crocodile: victory dance."
+    "scene": "ONLY tiger — Orange tiger gives a big green checkmark card to",
+    "expressions": "Tiger: approving proud grin presenting checkmark (NOT shocked)."
   },
   "like": {
     "cast": [
-      "monkey",
-      "elephant",
-      "crocodile",
       "tiger"
     ],
-    "scene": "Purple monkey hugging a fish-shaped plush toy lovingly — I like this.",
-    "expressions": "Monkey: affectionate hugging plush, eyes closed happy smile (NOT lazy unamused). Tiger: warm smile watching. Elephant: gentle fond expression. Crocodile: heart-eyes admiring the plush."
+    "scene": "ONLY tiger — ",
+    "expressions": "Tiger: warm smile watching."
   },
   "out": {
     "cast": [
-      "monkey",
-      "elephant",
-      "crocodile",
-      "tiger"
+      "monkey"
     ],
-    "scene": "Purple monkey stepping out through an open front door into bright sunshine — going out.",
-    "expressions": "Monkey: eager exit stride, excited eyes toward sunshine (NOT bored). Tiger: holding door open helpfully, encouraging smile. Elephant: waving goodbye from inside. Crocodile: following cat out happily."
+    "scene": "ONLY monkey — Purple monkey stepping out through an open front door into bright sunshine — going out.",
+    "expressions": "Monkey: eager exit stride, excited eyes toward sunshine (NOT bored)."
   },
   "go": {
     "cast": [
-      "monkey"
+      "tiger"
     ],
-    "scene": "Orange tiger mid-run on a path with motion lines, eager expression — go!",
-    "expressions": "Tiger: energetic running grin, forward momentum (NOT frozen shocked O). Monkey: running alongside determined. Elephant: jogging gently. Crocodile: waddling fast with effort face."
+    "scene": "ONLY tiger — Orange tiger mid-run on a path with motion lines, eager expression — go!",
+    "expressions": "Tiger: energetic running grin, forward momentum (NOT frozen shocked O)."
   },
   "she": {
     "cast": [
-      "monkey",
-      "elephant",
-      "crocodile",
-      "tiger"
+      "elephant"
     ],
-    "scene": "Orange tiger offering flowers to a female stick-figure silhouette in a window — she.",
-    "expressions": "Tiger: gentle respectful offering smile (NOT O-mouth). Monkey: supportive smile from behind. Elephant: kind warm expression. Crocodile: shy happy clasped paws."
+    "scene": "ONLY elephant — ",
+    "expressions": "Elephant: kind warm expression."
   },
   "up": {
     "cast": [
-      "monkey"
+      "tiger"
     ],
-    "scene": "Pink elephant stretching neck even higher toward fluffy clouds — up above.",
-    "expressions": "Elephant: stretching upward curious wonder, eyes on clouds, mouth closed (NO tongue). Monkey: pointing up amazed. Tiger: jumping trying to reach. Crocodile: looking up with wide happy eyes."
+    "scene": "ONLY tiger — ",
+    "expressions": "Tiger: jumping trying to reach."
   },
   "about": {
     "cast": [
-      "monkey",
-      "elephant",
-      "crocodile",
-      "tiger"
+      "elephant"
     ],
-    "scene": "Purple monkey surrounded by floating icons: clock, heart, book, apple — talking about many things.",
-    "expressions": "Monkey: animated explaining gesture, engaged storyteller face (NOT bored half-lidded). Tiger: listening fascinated. Elephant: thoughtful nod at each icon. Crocodile: curious pointing at icons."
+    "scene": "ONLY elephant — ",
+    "expressions": "Elephant: thoughtful nod at each icon."
   },
   "if": {
     "cast": [
       "monkey"
     ],
-    "scene": "Purple monkey at a fork in the road with two paths, thinking hard — if this or that.",
-    "expressions": "Monkey: weighing options, one eyebrow up, paw on chin (thoughtful NOT bored). Tiger: equally torn looking both ways. Elephant: pondering. Crocodile: scratching head uncertain cute."
+    "scene": "ONLY monkey — Purple monkey at a fork in the road with two paths, thinking hard — if this or that.",
+    "expressions": "Monkey: weighing options, one eyebrow up, paw on chin (thoughtful NOT bored)."
   },
   "at": {
     "cast": [
-      "monkey",
-      "elephant",
-      "crocodile",
       "tiger"
     ],
-    "scene": "Orange tiger sitting at a bus stop bench under a clock — at the stop.",
-    "expressions": "Tiger: patient waiting sit, calm content eyes checking clock (NOT shocked O). Monkey: sitting AT bench too, relaxed. Elephant: standing AT stop sign. Crocodile: reading schedule board AT stop."
+    "scene": "ONLY tiger — Orange tiger sitting at a bus stop bench under a clock — at the stop.",
+    "expressions": "Tiger: patient waiting sit, calm content eyes checking clock (NOT shocked O)."
   },
   "now": {
     "cast": [
-      "monkey",
-      "elephant",
-      "crocodile",
-      "tiger"
+      "tiger",
+      "elephant"
     ],
-    "scene": "All mascots looking at a wall clock whose hands point to current moment — now.",
+    "scene": "ONLY tiger and elephant — All mascots looking at a wall clock whose hands point to current moment — now.",
     "expressions": "All four: urgent present-moment focus — eyes on clock, slight hurry or attention (Cat alert, Dog attentive calm, Cow serious gentle, Pig excited ready). NOW urgency."
   },
   "come": {
     "cast": [
-      "monkey",
-      "elephant",
-      "crocodile",
       "tiger"
     ],
-    "scene": "Orange tiger beckoning with paw toward a cozy open door with warm light — come here.",
-    "expressions": "Tiger: inviting beckoning wave, warm welcoming eyes (NOT shocked). Monkey: also beckoning from doorway, friendly smile. Elephant: holding door open kindly. Crocodile: patting seat inviting."
+    "scene": "ONLY tiger — Orange tiger beckoning with paw toward a cozy open door with warm light — come here.",
+    "expressions": "Tiger: inviting beckoning wave, warm welcoming eyes (NOT shocked)."
   },
   "one": {
     "cast": [
-      "monkey",
-      "elephant",
-      "crocodile",
       "tiger"
     ],
-    "scene": "Purple monkey holding up exactly one finger while other paw hides a pile — only one.",
-    "expressions": "Monkey: precise ONE gesture, sly smile showing single item (NOT bored). Tiger: counting on paw confirming one. Elephant: holding up one hoof. Crocodile: trying to grab hidden pile playfully."
+    "scene": "ONLY tiger — ",
+    "expressions": "Tiger: counting on paw confirming one."
   },
   "how": {
     "cast": [
-      "monkey",
-      "elephant",
-      "crocodile",
-      "tiger"
+      "crocodile"
     ],
-    "scene": "Orange tiger with tools and blueprint, scratching head — how to build.",
-    "expressions": "Tiger: puzzled builder face, scratching head with wrench, curious frown (NOT O-mouth shock). Monkey: studying blueprint seriously. Elephant: measuring with tape. Crocodile: confused by instructions."
+    "scene": "ONLY crocodile — ",
+    "expressions": "Crocodile: confused by instructions."
   },
   "well": {
     "cast": [
-      "monkey"
+      "crocodile"
     ],
-    "scene": "Lime-green crocodile drinking water and giving thumbs up, rosy cheeks — feeling well.",
-    "expressions": "Crocodile: healthy refreshed grin, thumbs up, rosy cheeks (NOT tired sweat — vibrant wellness). Monkey: relieved happy for pig. Tiger: cheerful check-up approval. Elephant: gentle approving nod."
+    "scene": "ONLY crocodile — Lime-green crocodile drinking water and giving thumbs up, rosy cheeks — feeling well.",
+    "expressions": "Crocodile: healthy refreshed grin, thumbs up, rosy cheeks (NOT tired sweat — vibrant wellness)."
   },
   "want": {
     "cast": [
-      "monkey",
-      "elephant",
-      "crocodile",
-      "tiger"
+      "monkey"
     ],
-    "scene": "Purple monkey reaching toward a shiny star cookie on a high shelf — want it.",
-    "expressions": "Monkey: longing reaching eyes, eager open mouth wanting (NOT bored lazy). Tiger: also reaching helpfully. Elephant: lifting cat up to shelf. Crocodile: drooling hopeful cute face."
+    "scene": "ONLY monkey — Purple monkey reaching toward a shiny star cookie on a high shelf — want it.",
+    "expressions": "Monkey: longing reaching eyes, eager open mouth wanting (NOT bored lazy)."
   },
   "think": {
     "cast": [
       "monkey"
     ],
-    "scene": "ONLY monkey in bright classroom. Monkey sits on chair behind desk — puzzle flat on desk surface, blocks on desk. One hand touches chin, OTHER arm hangs down long to floor. Curved hook shapes near head. All props on desk, nothing floating.",
+    "scene": "ONLY monkey — puzzle flat on desk surface, blocks on desk. One hand touches chin, OTHER arm hangs down long to floor. Curved hook shapes near head. All props on desk, nothing floating.",
     "expressions": "Monkey: curious thinking, one eyebrow up. Exactly two arms: one on chin, one hanging down.",
     "outfits": "Monkey: reading glasses on forehead."
   },
   "good": {
     "cast": [
-      "monkey",
-      "elephant",
-      "crocodile",
       "tiger"
     ],
-    "scene": "Orange tiger presenting a gold star sticker to purple monkey — good job.",
-    "expressions": "Tiger: proud praising smile giving star (NOT shocked). Monkey: pleased proud receiving, happy eyes (NOT bored). Elephant: applauding. Crocodile: cheering confetti toss."
+    "scene": "ONLY tiger — Orange tiger presenting a gold star sticker to",
+    "expressions": "Tiger: proud praising smile giving star (NOT shocked)."
   },
   "see": {
     "cast": [
-      "monkey",
-      "elephant",
-      "crocodile",
       "tiger"
     ],
-    "scene": "Purple monkey looking through a teal telescope at a sailboat on the sea — see far away.",
-    "expressions": "Monkey: focused peering through telescope, wonder-smile (NOT bored). Tiger: pointing at horizon excited discovery (NOT O-mouth). Elephant: shading eyes looking. Crocodile: amazed at view."
+    "scene": "ONLY orange tiger — grassy cliff overlooking blue ocean. Tiger looks through telescope on tripod at sailboat.",
+    "expressions": "Tiger: excited wink pointing at ocean, sphere body, two stub arms on telescope."
   },
   "let": {
     "cast": [
-      "monkey",
-      "elephant",
-      "crocodile",
-      "tiger"
+      "monkey"
     ],
-    "scene": "Purple monkey holding a gate open for orange tiger to pass — let through.",
-    "expressions": "Monkey: generous permitting gesture, kind smile holding gate (NOT lazy). Tiger: grateful passing through, thankful eyes. Elephant: waiting turn patiently. Crocodile: skipping through happily."
+    "scene": "ONLY monkey — Purple monkey holding a gate open for",
+    "expressions": "Monkey: generous permitting gesture, kind smile holding gate (NOT lazy)."
   },
   "why": {
     "cast": [
       "monkey",
-      "elephant",
-      "crocodile",
       "tiger"
     ],
-    "scene": "Living room with scattered puzzle pieces on floor. Orange tiger shrugging confused. Purple monkey SITS on sofa cushion side profile, hands on hips — puzzled head tilt.",
-    "expressions": "Tiger: baffled shrug, raised eyebrows, palms up (NOT O-mouth shock). Monkey: confused head tilt, sitting side profile, hands on hips (two arms only). Elephant: pondering. Crocodile: question marks above head."
+    "scene": "ONLY monkey and tiger — Living room with scattered puzzle pieces on floor. Orange tiger shrugging confused. Purple monkey SITS on sofa cushion side profile, hands on hips — puzzled head tilt.",
+    "expressions": "Tiger: baffled shrug, raised eyebrows, palms up (NOT O-mouth shock). Monkey: confused head tilt, sitting side profile, hands on hips (two arms only)."
   },
   "who": {
     "cast": [
       "monkey",
-      "elephant",
-      "crocodile",
       "tiger"
     ],
-    "scene": "School stage with purple curtain — mascots guessing mystery. Purple monkey SITS on stage edge side profile, one hand on chin thinking, other arm hidden behind body.",
-    "expressions": "All four: mystery guessing game — curious playful faces. Monkey: sitting side profile, one hand on chin only (exactly two arms total). Tiger: peeking from curtain. Elephant: thoughtful. Crocodile: suspicious look."
+    "scene": "ONLY monkey and tiger — School stage with purple curtain — mascots guessing mystery. Purple monkey SITS on stage edge side profile, one hand on chin thinking, other arm hidden behind body.",
+    "expressions": "All four: mystery guessing game — curious playful faces. Monkey: sitting side profile, one hand on chin only (exactly two arms total). Tiger: peeking from curtain."
   },
   "as": {
     "cast": [
-      "monkey",
-      "elephant",
-      "crocodile",
-      "tiger"
+      "monkey"
     ],
-    "scene": "Purple monkey dressed in a chef hat pretending to cook like a pro — as a chef.",
-    "expressions": "Monkey: proud chef roleplay, confident cooking smile in hat (NOT bored). Tiger: impressed customer eyes. Elephant: sous-chef helping seriously. Crocodile: tasting soup happily."
+    "scene": "ONLY purple monkey — modern kitchen, chef hat and apron. Monkey sits on stool side profile stirring pot on stove.",
+    "expressions": "Monkey: proud chef smile, sitting side profile, one hand stirring (other on lap). Exactly two arms two legs."
   },
   "will": {
     "cast": [
-      "monkey",
-      "elephant",
-      "crocodile",
-      "tiger"
+      "tiger",
+      "elephant"
     ],
-    "scene": "Home living room — orange tiger pointing at wall calendar future date with picnic icon circled. Pink elephant marks calendar with trunk. Green crocodile packs picnic basket on floor. Purple monkey SITS on green rug beside basket, hands clasped together excitedly — side profile view.",
-    "expressions": "Tiger: confident future-planning smile pointing ahead (NOT shocked). Monkey: excited anticipation, sitting side profile, hands clasped — exactly two arms visible, two legs tucked under (NOT standing). Elephant: marking calendar carefully. Crocodile: packing picnic basket early."
-  },
-  "who": {
-    "cast": [
-      "monkey",
-      "elephant",
-      "crocodile",
-      "tiger"
-    ],
-    "scene": "School stage with purple curtain — mascots guessing mystery. Purple monkey SITS on stage edge side profile, one hand on chin thinking, other arm hidden behind body.",
-    "expressions": "All four: mystery guessing game — curious playful faces. Monkey: sitting side profile, one hand on chin only (exactly two arms total). Tiger: peeking from curtain. Elephant: thoughtful. Crocodile: suspicious look."
-  },
-  "why": {
-    "cast": [
-      "monkey",
-      "elephant",
-      "crocodile",
-      "tiger"
-    ],
-    "scene": "Living room with scattered puzzle pieces on floor. Orange tiger shrugging confused. Purple monkey SITS on sofa cushion side profile, hands on hips — puzzled head tilt.",
-    "expressions": "Tiger: baffled shrug, raised eyebrows, palms up (NOT O-mouth shock). Monkey: confused head tilt, sitting side profile, hands on hips (two arms only). Elephant: pondering. Crocodile: question marks above head."
+    "scene": "ONLY orange tiger and pink elephant — home living room. Tiger points at wall calendar future picnic date; elephant marks calendar with trunk. BOTH elephant stick arms visible at sides.",
+    "expressions": "Tiger: confident future-planning smile pointing. Elephant: marking calendar, two thin stick arms visible plus trunk."
   },
   "from": {
     "cast": [
-      "monkey",
-      "elephant",
-      "crocodile",
-      "tiger"
+      "monkey"
     ],
-    "scene": "Purple monkey receiving a letter delivered from a distant blue mailbox — from far away.",
-    "expressions": "Monkey: surprised-happy receiving letter, reading envelope (NOT bored). Tiger: pointing back to far mailbox. Elephant: post carrier wave from distance. Crocodile: curious about sender."
+    "scene": "ONLY monkey — Purple monkey receiving a letter delivered from a distant blue mailbox — from far away.",
+    "expressions": "Monkey: surprised-happy receiving letter, reading envelope (NOT bored)."
   },
   "when": {
     "cast": [
-      "monkey",
-      "elephant",
-      "crocodile",
-      "tiger"
+      "elephant"
     ],
-    "scene": "All mascots watching an hourglass with sand falling — when time comes.",
+    "scene": "ONLY elephant — All mascots watching an hourglass with sand falling — when time comes.",
     "expressions": "All four: patient anticipation watching sand fall (Cat focused, Dog eager waiting, Cow calm, Pig impatient cute foot-tap). Waiting for WHEN."
   },
   "back": {
     "cast": [
-      "monkey",
-      "elephant",
-      "crocodile",
-      "tiger"
+      "monkey"
     ],
-    "scene": "Purple monkey walking back along footprints toward a cozy house — coming back.",
-    "expressions": "Monkey: relieved homeward smile following footprints (NOT bored). Tiger: running back excited to house. Elephant: carrying home groceries happily. Crocodile: waving at house welcoming."
+    "scene": "ONLY monkey — Purple monkey walking back along footprints toward a cozy house — coming back.",
+    "expressions": "Monkey: relieved homeward smile following footprints (NOT bored)."
   },
   "okay": {
     "cast": [
-      "monkey",
-      "elephant",
-      "crocodile",
-      "tiger"
+      "tiger",
+      "crocodile"
     ],
-    "scene": "Orange tiger and purple monkey doing an OK paw circle gesture together — okay!",
-    "expressions": "Tiger: relaxed OK sign, easygoing grin (NOT shocked). Monkey: matching OK gesture, satisfied smile (NOT bored). Cow and pig: thumbs up / OK hooves, all agreed."
+    "scene": "ONLY tiger and crocodile — Orange tiger and",
+    "expressions": "Tiger: relaxed OK sign, easygoing grin (NOT shocked). Cow and pig: thumbs up / OK hooves, all agreed."
   },
   "yes": {
     "cast": [
       "monkey",
       "elephant",
-      "tiger",
-      "crocodile"
+      "crocodile",
+      "tiger"
     ],
-    "scene": "All four at city park birthday picnic — checkmark flag in cake, confetti, playground behind.",
+    "scene": "All four mascots — All four at city park birthday picnic — checkmark flag in cake, confetti, playground behind.",
     "expressions": "All cheering — happy faces only. Elephant MUST keep giant round head + pencil stick body (NOT fat). Tiger MUST stay spherical ball.",
     "outfits": "Monkey: party cone hat. Elephant: blue birthday sash. Crocodile: none. Tiger: none."
   },
   "time": {
     "cast": [
-      "monkey",
-      "elephant",
-      "crocodile",
-      "tiger"
+      "elephant"
     ],
-    "scene": "Purple monkey holding a round analog clock with visible hands, no numbers — time.",
-    "expressions": "Monkey: serious timekeeper face checking clock (NOT bored). Tiger: worried about being late, glancing at clock. Elephant: calm punctual nod. Crocodile: rushing with toast in mouth comedic."
+    "scene": "ONLY elephant — ",
+    "expressions": "Elephant: calm punctual nod."
   },
   "look": {
     "cast": [
-      "monkey",
-      "elephant",
-      "crocodile",
       "tiger"
     ],
-    "scene": "Orange tiger with binoculars staring at a colorful bird in a tree — look!",
-    "expressions": "Tiger: excited discovery pointing with binoculars (NOT O-mouth shock — eager look). Monkey: also looking up alert. Elephant: bending down to child's-eye view. Crocodile: gasping at colorful bird."
+    "scene": "ONLY tiger — Orange tiger with binoculars staring at a colorful bird in a tree — look!",
+    "expressions": "Tiger: excited discovery pointing with binoculars (NOT O-mouth shock — eager look)."
   },
   "take": {
     "cast": [
-      "monkey",
-      "elephant",
-      "crocodile",
-      "tiger"
+      "monkey"
     ],
-    "scene": "Purple monkey taking the last cookie from a plate carefully — take one.",
-    "expressions": "Monkey: careful gentle taking, respectful eyes on last cookie (NOT greedy bored). Tiger: watching politely waiting turn. Elephant: offering plate kindly. Crocodile: hopeful but patient."
+    "scene": "ONLY monkey — Purple monkey taking the last cookie from a plate carefully — take one.",
+    "expressions": "Monkey: careful gentle taking, respectful eyes on last cookie (NOT greedy bored)."
   },
   "an": {
     "cast": [
-      "monkey"
+      "tiger"
     ],
-    "scene": "Orange tiger presenting a single orange to purple monkey — an orange (one of many types).",
-    "expressions": "Tiger: offering one orange warmly (NOT shocked). Monkey: accepting with pleased smile (NOT bored). Elephant: basket of varied fruits behind showing one type. Crocodile: sniffing orange curiously."
+    "scene": "ONLY tiger — Orange tiger presenting a single orange to",
+    "expressions": "Tiger: offering one orange warmly (NOT shocked)."
   },
   "man": {
     "cast": [
-      "monkey",
-      "elephant",
-      "crocodile",
-      "tiger"
+      "elephant"
     ],
-    "scene": "Purple monkey tipping a hat to a friendly adult stick-figure gardener with a rake.",
-    "expressions": "Monkey: polite respectful nod tipping hat (NOT lazy). Tiger: friendly wave to man. Elephant: courteous bow. Crocodile: offering flower to gardener."
+    "scene": "ONLY elephant — ",
+    "expressions": "Elephant: courteous bow."
   },
   "where": {
     "cast": [
-      "monkey",
-      "elephant",
-      "crocodile",
-      "tiger"
+      "elephant"
     ],
-    "scene": "Orange tiger studying a simple map with a red X destination — where?",
-    "expressions": "Tiger: lost searching face studying map (NOT O-mouth — focused searching). Monkey: pointing different directions confused. Elephant: rotating map helpfully. Crocodile: looking under bench comedic search."
+    "scene": "ONLY elephant — ",
+    "expressions": "Elephant: rotating map helpfully."
   },
   "would": {
     "cast": [
-      "monkey",
-      "elephant",
-      "crocodile",
       "tiger"
     ],
-    "scene": "Purple monkey daydreaming in a thought cloud of flying on a dragon — would imagine.",
-    "expressions": "Monkey: dreamy wishful smile eyes half-closed imagining (NOT bored — blissful fantasy). Tiger: imagining same dream happily. Elephant: wistful gentle smile. Crocodile: starry-eyed fantasy face."
+    "scene": "ONLY tiger — ",
+    "expressions": "Tiger: imagining same dream happily."
   },
   "some": {
     "cast": [
-      "monkey",
-      "elephant",
-      "crocodile",
-      "tiger"
+      "elephant"
     ],
-    "scene": "Lime-green crocodile picking some (not all) strawberries from a bush into a small basket.",
-    "expressions": "Crocodile: selective picking satisfied smile, basket partially full (NOT tired). Monkey: showing full bush vs small basket. Tiger: eating one sneaked berry guilty-cute. Elephant: indicating SOME remaining on bush."
+    "scene": "ONLY elephant — ",
+    "expressions": "Elephant: indicating SOME remaining on bush."
   },
   "hey": {
     "cast": [
-      "monkey"
+      "tiger"
     ],
-    "scene": "Orange tiger waving both paws loudly from behind a fence — hey!",
-    "expressions": "Tiger: loud friendly HEY wave, big open smile calling attention (NOT scared shock). Monkey: surprised-turned-happy wave back. Elephant: calling over fence. Crocodile: popping up waving energetically."
+    "scene": "ONLY tiger — Orange tiger waving both paws loudly from behind a fence — hey!",
+    "expressions": "Tiger: loud friendly HEY wave, big open smile calling attention (NOT scared shock)."
   },
   "tell": {
     "cast": [
-      "monkey",
-      "elephant",
-      "crocodile",
-      "tiger"
+      "monkey"
     ],
-    "scene": "Purple monkey whispering a secret into orange tiger's ear — tell you.",
-    "expressions": "Monkey: conspiratorial whisper, hand cupped at mouth, sly smile (NOT bored). Tiger: surprised-interested listening ear (mild surprise OK, NOT frozen O). Elephant: trying to overhear comedic. Crocodile: shushing cow."
+    "scene": "ONLY monkey — Purple monkey whispering a secret into",
+    "expressions": "Monkey: conspiratorial whisper, hand cupped at mouth, sly smile (NOT bored)."
   },
   "or": {
     "cast": [
-      "monkey",
-      "elephant",
-      "crocodile",
       "tiger"
     ],
-    "scene": "Purple monkey choosing between a cupcake OR an ice cream cone on two plates.",
-    "expressions": "Monkey: torn decision face looking left-right between choices (NOT bored). Tiger: pointing at both options helpfully. Elephant: weighing choices with scales. Crocodile: wanting both hands out."
+    "scene": "ONLY tiger — ",
+    "expressions": "Tiger: pointing at both options helpfully."
   },
   "say": {
     "cast": [
-      "monkey",
-      "elephant",
-      "crocodile",
-      "tiger"
+      "monkey"
     ],
-    "scene": "Orange tiger speaking with speech-bubble shapes but NO letters inside — saying something.",
-    "expressions": "Tiger: animated talking mouth open mid-speech, expressive paws (NOT frozen O-shock — natural speaking). Monkey: listening attentively nodding. Elephant: responding with own bubble. Crocodile: excited interrupting."
+    "scene": "ONLY monkey — ",
+    "expressions": "Monkey: listening attentively nodding."
   },
   "something": {
     "cast": [
-      "monkey",
-      "elephant",
-      "crocodile",
       "tiger"
     ],
-    "scene": "Mystery object under a teal cloth on a table — something hidden.",
-    "expressions": "Monkey: curious finger on chin guessing (NOT bored). Tiger: excited reaching for cloth (NOT horror shock). Elephant: guessing shapes with hands. Crocodile: peeking under cloth edge sneaky."
+    "scene": "ONLY tiger — Mystery object under a teal cloth on a table — something hidden.",
+    "expressions": "Tiger: excited reaching for cloth (NOT horror shock)."
   },
   "down": {
     "cast": [
-      "monkey",
-      "elephant",
-      "crocodile",
-      "tiger"
+      "monkey"
     ],
-    "scene": "Purple monkey sliding down a playground slide toward orange sand — down.",
-    "expressions": "Monkey: thrilled sliding face wind-in-fur, eyes wide joy (NOT bored). Tiger: waiting at bottom arms open. Elephant: watching from top gentle smile. Crocodile: queued excited on ladder."
+    "scene": "ONLY monkey — Purple monkey sliding down a playground slide toward orange sand — down.",
+    "expressions": "Monkey: thrilled sliding face wind-in-fur, eyes wide joy (NOT bored)."
   },
   "then": {
     "cast": [
-      "monkey",
-      "elephant",
-      "crocodile",
       "tiger"
     ],
-    "scene": "Purple monkey finishing breakfast, empty plate, then walking toward open door — first eat, then leave.",
-    "expressions": "Monkey: sequence shown — satisfied after-eating smile then eager exit face (NOT bored throughout). Tiger: pointing from plate to door teaching sequence. Elephant: first-this-then-that gesture. Crocodile: following sequence."
+    "scene": "ONLY tiger — ",
+    "expressions": "Tiger: pointing from plate to door teaching sequence."
   },
   "little": {
     "cast": [
-      "monkey",
-      "elephant",
-      "crocodile",
-      "tiger"
+      "crocodile"
     ],
-    "scene": "Pink elephant looking down at a tiny lime-green crocodile on a stool — little vs big.",
-    "expressions": "Elephant: gentle giant kind smile looking down, mouth closed (NO tongue). Crocodile: small cute proud standing on stool, happy little smile (NOT tired). Monkey: size comparison gesture. Tiger: measuring height amused."
+    "scene": "ONLY crocodile — ",
+    "expressions": "Crocodile: small cute proud standing on stool, happy little smile (NOT tired)."
   },
   "way": {
     "cast": [
-      "monkey",
-      "elephant",
-      "crocodile",
       "tiger"
     ],
-    "scene": "Orange tiger at start of a winding path leading to a small white house — the way home.",
-    "expressions": "Tiger: hopeful path-finding expression, pointing down road (NOT shocked). Monkey: reading path confidently. Elephant: pointing direction kindly. Crocodile: marching on path determined."
+    "scene": "ONLY tiger — Orange tiger at start of a winding path leading to a small white house — the way home.",
+    "expressions": "Tiger: hopeful path-finding expression, pointing down road (NOT shocked)."
   },
   "make": {
     "cast": [
-      "monkey",
-      "elephant",
-      "crocodile",
-      "tiger"
+      "tiger",
+      "elephant"
     ],
-    "scene": "Purple monkey mixing batter in a bowl with flour and eggs — make a cake.",
-    "expressions": "Monkey: focused baker concentration, slight flour on cheek (NOT bored lazy). Tiger: cracking eggs helpfully. Elephant: stirring gently. Crocodile: watching oven excited anticipation."
+    "scene": "ONLY tiger and elephant — ",
+    "expressions": "Tiger: cracking eggs helpfully. Elephant: stirring gently."
   },
   "too": {
     "cast": [
-      "monkey",
-      "elephant",
-      "crocodile",
       "tiger"
     ],
-    "scene": "White mug overflowing with hot cocoa down the sides — too full.",
-    "expressions": "Crocodile: panicked too-much face as mug overflows (NOT tired — flustered). Monkey: backing away from spill. Tiger: grabbing napkins alarmed. Elephant: gentle oops expression offering towel."
+    "scene": "ONLY tiger — White mug overflowing with hot cocoa down the sides — too full.",
+    "expressions": "Tiger: grabbing napkins alarmed."
   },
   "never": {
     "cast": [
-      "monkey",
-      "elephant",
-      "crocodile",
       "tiger"
     ],
-    "scene": "Purple monkey crossing arms, turning from a 'closed forever' treasure chest — never.",
-    "expressions": "Monkey: firm NEVER face, arms crossed, looking away (NOT lazy — absolute refusal). Tiger: supporting stern head-shake. Elephant: blocking chest with arm. Crocodile: X gesture with paws."
+    "scene": "ONLY tiger — ",
+    "expressions": "Tiger: supporting stern head-shake."
   },
   "by": {
     "cast": [
-      "monkey",
-      "elephant",
-      "crocodile",
-      "tiger"
+      "crocodile"
     ],
-    "scene": "Purple monkey painting a picture beside orange tiger at easels — by each other / created by.",
-    "expressions": "Monkey: focused painting beside partner, collaborative smile (NOT bored). Tiger: painting at adjacent easel, happy side-by-side (NOT shocked). Elephant: displaying finished art. Crocodile: signing painting proudly."
+    "scene": "ONLY crocodile — ",
+    "expressions": "Crocodile: signing painting proudly."
   },
   "over": {
     "cast": [
-      "monkey",
-      "elephant",
-      "crocodile",
       "tiger"
     ],
-    "scene": "Orange tiger jumping over a low teal hurdle on a track — over.",
-    "expressions": "Tiger: athletic mid-jump determined grin (NOT shocked O — athletic focus). Monkey: cheering from sideline. Elephant: holding hurdle steady. Crocodile: impressed jaw-drop happy."
+    "scene": "ONLY tiger — Orange tiger jumping over a low teal hurdle on a track — over.",
+    "expressions": "Tiger: athletic mid-jump determined grin (NOT shocked O — athletic focus)."
   },
   "more": {
     "cast": [
-      "monkey",
-      "elephant",
-      "crocodile",
       "tiger"
     ],
-    "scene": "Lime-green crocodile pouring more cookies from a jar onto a plate that already has cookies.",
-    "expressions": "Crocodile: eager MORE gesture pouring happily (NOT tired). Monkey: trying to stop overflow amused. Tiger: excited at growing pile. Elephant: gentle caution hand up."
+    "scene": "ONLY tiger — ",
+    "expressions": "Tiger: excited at growing pile."
   },
   "mean": {
     "cast": [
-      "monkey",
-      "elephant",
-      "crocodile",
-      "tiger"
+      "elephant"
     ],
-    "scene": "Purple monkey with stern face pointing at broken vase while dog looks guilty — mean behavior.",
-    "expressions": "Monkey: stern scolding disappointed face (NOT bored — actively upset). Tiger: guilty ashamed drooped ears (NOT shocked O). Elephant: sad disapproving look. Crocodile: hiding behind cow worried."
+    "scene": "ONLY elephant — ",
+    "expressions": "Elephant: sad disapproving look."
   },
   "very": {
     "cast": [
-      "monkey",
-      "elephant",
-      "crocodile",
-      "tiger"
+      "elephant"
     ],
-    "scene": "Orange tiger beside a VERY giant ice cream tower twice its height — very big.",
-    "expressions": "Tiger: awestruck amazed eyes at giant tower (wonder not horror shock). Monkey: tiny comparison gesture. Elephant: measuring tower height. Crocodile: ready to eat giant scoop excited."
+    "scene": "ONLY elephant — ",
+    "expressions": "Elephant: measuring tower height."
   },
   "off": {
     "cast": [
       "monkey"
     ],
-    "scene": "Purple monkey switching off a lamp, room going dark — off.",
-    "expressions": "Monkey: sleepy satisfied click-OFF face, drowsy eyes (NOT bored default — tired bedtime). Tiger: yawning ready for sleep. Elephant: dimming lights gently. Crocodile: already asleep sitting up."
+    "scene": "ONLY monkey — Purple monkey switching off a lamp, room going dark — off.",
+    "expressions": "Monkey: sleepy satisfied click-OFF face, drowsy eyes (NOT bored default — tired bedtime)."
   },
   "sorry": {
     "cast": [
@@ -864,23 +655,17 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
   },
   "give": {
     "cast": [
-      "monkey",
-      "elephant",
-      "crocodile",
-      "tiger"
+      "monkey"
     ],
-    "scene": "Lime-green crocodile handing a wrapped gift box to purple monkey — give a gift.",
-    "expressions": "Crocodile: generous giving smile extending gift (NOT tired). Monkey: surprised-touched receiving, happy eyes (NOT bored). Tiger: applauding the giving. Elephant: warm approving nod."
+    "scene": "ONLY monkey — ",
+    "expressions": "Monkey: surprised-touched receiving, happy eyes (NOT bored)."
   },
   "thank": {
     "cast": [
-      "monkey",
-      "elephant",
-      "crocodile",
-      "tiger"
+      "elephant"
     ],
-    "scene": "Orange tiger bowing with a thank-you bouquet to purple monkey — thank you.",
-    "expressions": "Tiger: grateful bow, sincere thankful eyes (NOT O-mouth). Monkey: modest accepting smile, paws together (NOT bored). Elephant: touched hand on heart. Crocodile: blowing kiss gratitude."
+    "scene": "ONLY elephant — ",
+    "expressions": "Elephant: touched hand on heart."
   },
   "love": {
     "cast": [
@@ -888,113 +673,93 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
       "elephant",
       "tiger"
     ],
-    "scene": "Three only (no crocodile) — group hug on park bench at sunset, floating hearts.",
+    "scene": "ONLY monkey and elephant and tiger — Three only (no crocodile) — group hug on park bench at sunset, floating hearts.",
     "expressions": "Warm closed-eye smiles. Elephant: stick-thin body + giant round head unchanged. Tiger: sphere unchanged.",
     "outfits": "Monkey: red scarf. Elephant: none. Tiger: none."
   },
   "people": {
     "cast": [
-      "monkey"
+      "monkey",
+      "elephant",
+      "crocodile",
+      "tiger"
     ],
-    "scene": "Four diverse stick-figure people silhouettes chatting in a park while mascots picnic nearby.",
+    "scene": "All four mascots — Four diverse stick-figure people silhouettes chatting in a park while mascots picnic nearby.",
     "expressions": "Mascots: friendly observing PEOPLE — warm curious smiles watching humans (Cat interested, Dog happy calm, Cow gentle wave to people, Pig excited pointing). Not interacting as main focus."
   },
   "please": {
     "cast": [
-      "monkey",
-      "elephant",
-      "crocodile",
-      "tiger"
+      "elephant"
     ],
-    "scene": "Purple monkey with pleading eyes offering a small empty cup — please?",
-    "expressions": "Monkey: big pleading puppy-dog eyes, paws together begging (NOT bored lazy — earnest please). Tiger: sympathetic considering. Elephant: kindly reaching to help. Crocodile: passing teapot generously."
+    "scene": "ONLY elephant — ",
+    "expressions": "Elephant: kindly reaching to help."
   },
   "sure": {
     "cast": [
-      "monkey",
-      "elephant",
-      "crocodile",
       "tiger"
     ],
-    "scene": "Orange tiger nodding confidently with a thumbs up — sure!",
-    "expressions": "Tiger: confident sure nod, relaxed thumbs up grin (NOT shocked O). Monkey: agreeing nod smile. Elephant: hoof thumbs up. Crocodile: enthusiastic double thumbs up."
+    "scene": "ONLY tiger — Orange tiger nodding confidently with a thumbs up — sure!",
+    "expressions": "Tiger: confident sure nod, relaxed thumbs up grin (NOT shocked O)."
   },
   "any": {
     "cast": [
-      "monkey",
-      "elephant",
-      "crocodile",
       "tiger"
     ],
-    "scene": "Purple monkey pointing at any of three identical teal doors — any one works.",
-    "expressions": "Monkey: casual any-will-do shrug, relaxed pick-any face (NOT bored — easygoing). Tiger: opening one door experimentally. Elephant: counting doors. Crocodile: eeny-meeny choosing comedic."
+    "scene": "ONLY tiger — ",
+    "expressions": "Tiger: opening one door experimentally."
   },
   "only": {
     "cast": [
-      "monkey",
-      "elephant",
-      "crocodile",
       "tiger"
     ],
-    "scene": "Lime-green crocodile guarding the ONLY cookie left on an otherwise empty plate.",
-    "expressions": "Crocodile: protective possessive guarding face over last cookie (NOT tired — vigilant). Monkey: reaching sneaky. Tiger: negotiating trade. Elephant: gentle sharing suggestion."
+    "scene": "ONLY tiger — ",
+    "expressions": "Tiger: negotiating trade."
   },
   "because": {
     "cast": [
-      "monkey",
-      "elephant",
-      "crocodile",
-      "tiger"
+      "tiger",
+      "elephant"
     ],
-    "scene": "Orange tiger pointing at dark clouds as reason for carrying umbrella — because of rain.",
-    "expressions": "Tiger: explaining BECAUSE gesture at clouds, teaching face (NOT shocked). Monkey: understanding ah-ha nod. Elephant: logical connecting dots gesture. Crocodile: already under umbrella smart face."
+    "scene": "ONLY tiger and elephant — Orange tiger pointing at dark clouds as reason for carrying umbrella — because of rain.",
+    "expressions": "Tiger: explaining BECAUSE gesture at clouds, teaching face (NOT shocked). Elephant: logical connecting dots gesture."
   },
   "two": {
     "cast": [
-      "monkey",
       "elephant",
-      "crocodile",
       "tiger"
     ],
-    "scene": "Purple monkey holding up two fingers next to exactly two cupcakes on a tray.",
-    "expressions": "Monkey: counting TWO proudly, clear V fingers (NOT bored). Tiger: confirming count nodding. Elephant: holding up two hooves. Crocodile: trying to eat one of two guilty."
+    "scene": "ONLY elephant and tiger — ",
+    "expressions": "Tiger: confirming count nodding. Elephant: holding up two hooves."
   },
   "much": {
     "cast": [
-      "monkey",
-      "elephant",
-      "crocodile",
-      "tiger"
+      "elephant"
     ],
-    "scene": "Lime-green crocodile buried under a mountain of pillows — too much stuff.",
-    "expressions": "Crocodile: overwhelmed buried face, muffled help expression (NOT tired default — comedic overload). Monkey: adding one more pillow mischievous. Tiger: digging pig out. Elephant: concerned gentle rescue."
+    "scene": "ONLY elephant — ",
+    "expressions": "Elephant: concerned gentle rescue."
   },
   "sir": {
     "cast": [
-      "monkey"
+      "elephant"
     ],
-    "scene": "Purple monkey politely tipping hat to a kind elderly gentleman silhouette with cane.",
-    "expressions": "Monkey: formal polite bow, respectful eyes (NOT lazy). Tiger: straight posture salute. Elephant: curtsy-like polite nod. Crocodile: offering seat to sir kindly."
+    "scene": "ONLY elephant — ",
+    "expressions": "Elephant: curtsy-like polite nod."
   },
   "maybe": {
     "cast": [
-      "monkey",
-      "elephant",
-      "crocodile",
-      "tiger"
+      "tiger",
+      "elephant"
     ],
-    "scene": "Park fork in path with wooden fence — orange tiger balances on fence post shrugging unsure. Purple monkey SITS on grass side profile, hands clasped uncertainly. Pink elephant with clipboard. Green crocodile behind fence.",
-    "expressions": "Tiger: uncertain maybe shrug, wobbly balance. Monkey: sitting side profile, hands clasped (two arms only). Elephant: listing pros. Crocodile: curious peek over fence."
+    "scene": "ONLY orange tiger and pink elephant — park fork in path. Tiger balances on fence post shrugging unsure; elephant holds clipboard listing pros.",
+    "expressions": "Tiger: uncertain maybe shrug. Elephant: thinking, BOTH thin stick arms visible (one holds clipboard, one on chin), giant circle head unchanged."
   },
   "help": {
     "cast": [
-      "monkey",
-      "elephant",
-      "crocodile",
-      "tiger"
+      "tiger",
+      "crocodile"
     ],
-    "scene": "Orange tiger helping tired lime-green crocodile carry heavy grocery bags up steps — help.",
-    "expressions": "Tiger: supportive helpful strain smile carrying bags (NOT shocked). Crocodile: relieved grateful tired-but-thankful face (NOT default sweat — helped relief). Monkey: holding door open. Elephant: carrying extra bag kindly."
+    "scene": "ONLY orange tiger and lime-green crocodile — suburban steps. Tiger helps tired crocodile carry heavy grocery bags upstairs.",
+    "expressions": "Tiger: supportive helpful smile carrying bags. Crocodile: relieved grateful face, four stub legs."
   }
 } as const;
 
@@ -1008,22 +773,20 @@ export function buildJungleCastWordImagePrompt(word: string): string | null {
     JUNGLE_CAST_EXPRESSION_SAMPLES[
       key as keyof typeof JUNGLE_CAST_EXPRESSION_SAMPLES
     ];
-  if (approved) {
-    const castNote = `Characters (${approved.cast.length}): ${approved.cast.join(", ")}.`;
-    const outfitNote = approved.outfits ? ` OUTFITS: ${approved.outfits}` : "";
-    const monkeyNote = approved.cast.includes("monkey")
-      ? ` ${JUNGLE_CAST_MONKEY_POSE_RULE}`
-      : "";
-    return `${JUNGLE_CAST_DESIGN_ONLY} ${castNote} ${JUNGLE_CAST_SHAPE_REMINDER}${monkeyNote} Word "${key}": ${approved.scene} EXPRESSIONS: ${approved.expressions}.${outfitNote}`;
-  }
-  const entry = JUNGLE_WORD_IMAGE_ENTRIES[key];
+  const entry = approved ?? JUNGLE_WORD_IMAGE_ENTRIES[key];
   if (!entry) return null;
-  const castNote = `Characters (${entry.cast.length}): ${entry.cast.join(", ")}.`;
+
+  const cast = approved?.cast ?? entry.cast;
+  const castNote = `Characters (${cast.length}): ${cast.join(", ")}.`;
   const outfitNote = entry.outfits ? ` OUTFITS: ${entry.outfits}` : "";
-  const monkeyNote = entry.cast.includes("monkey")
+  const monkeyNote = cast.includes("monkey")
     ? ` ${JUNGLE_CAST_MONKEY_POSE_RULE}`
     : "";
-  return `${JUNGLE_CAST_DESIGN_ONLY} ${castNote} ${JUNGLE_CAST_SHAPE_REMINDER}${monkeyNote} Word "${key}": ${entry.scene} EXPRESSIONS: ${entry.expressions}.${outfitNote}`;
+  const elephantNote = cast.includes("elephant")
+    ? ` ${JUNGLE_CAST_ELEPHANT_ARM_RULE}`
+    : "";
+
+  return `${JUNGLE_CAST_DESIGN_ONLY} ${castNote} ${JUNGLE_CAST_SHAPE_REMINDER}${monkeyNote}${elephantNote} Word "${key}": ${entry.scene} EXPRESSIONS: ${entry.expressions}.${outfitNote}`;
 }
 
 export function getJungleCastWordReferences(word: string): string[] | null {

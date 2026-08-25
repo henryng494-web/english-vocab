@@ -17,18 +17,24 @@ export const JUNGLE_CAST_NAME = "Jungle Jokers";
 export const JUNGLE_CAST_SHAPE_LOCK =
   "CRITICAL — copy EXACT silhouettes from attached per-character reference PNGs and lineup. Body proportions are LOCKED; NEVER slim down, fatten up, shorten arms, or resize heads. ONLY change: facial expression and optional clothing/accessories.\n" +
   "(1) MONKEY: purple body #8B5CF6, lavender face/ears/palms #C4B5FD; small round head; tiny body; normal-length arms (hands at waist/hip height — NOT dragging on floor, NOT used as extra legs); exactly TWO arms from shoulders + TWO legs from hips + one curly tail; front view preferred.\n" +
-  "(2) ELEPHANT: pink #F472B6; head ALWAYS one giant perfect circle (40% of character height); huge flat semicircle ears; body and legs ALWAYS pencil-thin stick lines (never chubby body, never thick legs, never round fat torso); trunk thin tube curving up with small heart tip.\n" +
+  "(2) ELEPHANT: pink #F472B6; head ALWAYS one giant perfect circle (40% of character height); huge flat semicircle ears; body and legs ALWAYS pencil-thin stick lines (never chubby body, never thick legs, never round fat torso); trunk thin tube curving up with small heart tip; ALWAYS two thin stick ARMS with small three-finger hands visible at sides or holding objects — NEVER armless, NEVER trunk-only.\n" +
   "(3) CROCODILE: lime green #84CC16; body ALWAYS one horizontal rectangle log (width 3x height); jagged dorsal scales; four stubby short legs (never long legs); one blunt white tooth.\n" +
   "(4) TIGER: orange ball #F97316; body ALWAYS one sphere (head+body merged chibi ball); bold dark zigzag stripes; cream muzzle patch; legs ALWAYS tiny stubs (never long legs); small striped tail.";
+
+export const JUNGLE_CAST_ELEPHANT_ARM_RULE =
+  "ELEPHANT ANATOMY (critical): Pink elephant ALWAYS has TWO thin stick arms with small three-finger hands visible — at sides, on hips, or holding props. Trunk is separate from arms. NEVER draw elephant without arms.";
+
+export const JUNGLE_CAST_CAST_SIZE_RULE =
+  "CAST SIZE (critical): Use ONLY the characters listed — do NOT add extra mascots. Default 1–2 characters per scene. Use 3–4 ONLY for group words (we/all/yes/people). Prefer tiger, elephant, or crocodile as solo actors; use monkey sparingly.";
 
 export const JUNGLE_CAST_MONKEY_POSE_RULE =
   "MONKEY ANATOMY (critical): Purple monkey has EXACTLY two arms and two legs — never three or four arms. Draw monkey SITTING or in SIDE PROFILE (not front-standing). Use simple poses only: hands clasped together, hands on hips, or ONE hand gesturing with other arm hidden behind body. NEVER both arms raised high. NEVER front view with arms and legs all vertical. Do NOT use lineup monkey long-arm pose.";
 
 export const JUNGLE_CAST_ANATOMY_RULES =
-  "ANATOMY & PROPS: Monkey has EXACTLY two arms and two legs (four limbs total) — never three arms, never extra limbs. Elephant: four stick legs + trunk (trunk is NOT a third arm). Tiger: two stub arms two stub legs. Crocodile: four stub legs. ALL objects must be physically grounded or held — candy jars, puzzles, props resting on table/floor OR held by a visible hand/arm. NO floating objects in mid-air.";
+  "ANATOMY & PROPS: Monkey has EXACTLY two arms and two legs (four limbs total) — never three arms, never extra limbs. Elephant: TWO thin stick arms with hands + four stick legs + trunk (trunk is NOT an arm). Tiger: two stub arms two stub legs. Crocodile: four stub legs. ALL objects must be physically grounded or held — candy jars, puzzles, props resting on table/floor OR held by a visible hand/arm. NO floating objects in mid-air.";
 
 export const JUNGLE_CAST_DESIGN_ONLY =
-  `Flat 2D humorous cartoon illustration, wide 16:9 landscape. NOT realistic. ${JUNGLE_CAST_SHAPE_LOCK} ${JUNGLE_CAST_ANATOMY_RULES} CAST SIZE: use 1–4 characters as scene needs — not all four every time. SETTING: everyday modern life (home, school, park, office, cafe, street) — NOT jungle. NO text, NO letters, NO watermark.`;
+  `Flat 2D humorous cartoon illustration, wide 16:9 landscape. NOT realistic. ${JUNGLE_CAST_SHAPE_LOCK} ${JUNGLE_CAST_ANATOMY_RULES} ${JUNGLE_CAST_CAST_SIZE_RULE} SETTING: everyday modern life (home, school, park, office, cafe, street) — NOT jungle. NO text, NO letters, NO watermark.`;
 
 export type JungleCastSampleEntry = {
   label: string;
