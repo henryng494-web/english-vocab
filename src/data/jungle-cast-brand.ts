@@ -53,3 +53,49 @@ export type MascotBrandMember = keyof typeof MASCOT_PUBLIC_PATHS extends infer K
 export function getMascotPublicPath(member: MascotBrandMember): string {
   return MASCOT_PUBLIC_PATHS[member];
 }
+
+/** Welcome/onboarding hero banners — all four mascots, varied moods. */
+export const WELCOME_HERO_IMAGES = [
+  {
+    id: "park",
+    path: "/mascot/welcome/welcome-01-park.jpg",
+    style: "Sunny city park picnic",
+    mood: "friendly",
+  },
+  {
+    id: "classroom",
+    path: "/mascot/welcome/welcome-02-classroom.jpg",
+    style: "Bright school classroom",
+    mood: "learn",
+  },
+  {
+    id: "cozy-home",
+    path: "/mascot/welcome/welcome-03-cozy-home.jpg",
+    style: "Cozy evening living room",
+    mood: "warm",
+  },
+  {
+    id: "sunset-rooftop",
+    path: "/mascot/welcome/welcome-04-sunset-rooftop.jpg",
+    style: "Golden sunset rooftop",
+    mood: "dreamy",
+  },
+  {
+    id: "party",
+    path: "/mascot/welcome/welcome-05-party.jpg",
+    style: "Festive birthday party",
+    mood: "celebrate",
+  },
+] as const;
+
+export type WelcomeHeroId = (typeof WELCOME_HERO_IMAGES)[number]["id"];
+
+export function getWelcomeHeroPath(id: WelcomeHeroId): string {
+  return WELCOME_HERO_IMAGES.find((h) => h.id === id)?.path ?? WELCOME_HERO_IMAGES[0].path;
+}
+
+/** Pick a welcome hero by index or random (e.g. day-of-week rotation). */
+export function getWelcomeHeroByIndex(index: number): (typeof WELCOME_HERO_IMAGES)[number] {
+  const i = ((index % WELCOME_HERO_IMAGES.length) + WELCOME_HERO_IMAGES.length) % WELCOME_HERO_IMAGES.length;
+  return WELCOME_HERO_IMAGES[i]!;
+}

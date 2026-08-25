@@ -18,7 +18,10 @@ export {
   MASCOT_BRAND_COLORS,
   MASCOT_PUBLIC_PATHS,
   MASCOT_SHAPE_SPEC,
+  WELCOME_HERO_IMAGES,
   getMascotPublicPath,
+  getWelcomeHeroByIndex,
+  getWelcomeHeroPath,
 } from "@/data/jungle-cast-brand";
 
 /** Bump when replacing bundled cast JPEGs in public/word-images. */
