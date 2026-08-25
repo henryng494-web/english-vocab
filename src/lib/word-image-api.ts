@@ -5,6 +5,7 @@ import { getFamilyHeadword } from "@/lib/word-family";
 import {
   fetchWordImageUrlDetailed,
   isCurrentPipelineImageUrl,
+  isPersistableWordImageUrl,
   isRealCardImageUrl,
 } from "@/lib/unsplash";
 import { normalizeVocabInput } from "@/lib/word-validation";
@@ -61,11 +62,14 @@ export async function resolveWordImageForApi(
     pos,
     meaning,
     englishDefinition,
+    stored,
   );
   const imageUrl = isRealCardImageUrl(resolved.imageUrl, word)
     ? resolved.imageUrl
-    : null;
-  if (imageUrl && imageUrl !== stored) {
+    : isRealCardImageUrl(stored, word)
+      ? stored!
+      : null;
+  if (imageUrl && isPersistableWordImageUrl(imageUrl, word) && imageUrl !== stored) {
     const { error } = await supabase
       .from("word_details")
       .update({ image_url: imageUrl })

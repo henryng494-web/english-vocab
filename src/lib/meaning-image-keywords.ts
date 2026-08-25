@@ -19,9 +19,28 @@ const WORD_HEADWORD_RULES: Record<string, string> = {
   descent: "walking down mountain trail hikers",
   preacher: "preacher speaking church pulpit congregation",
   technician: "technician repairing computer",
+  holdup: "traffic jam highway delay cars",
+  debut: "theater stage performance spotlight debut",
+  dunk: "cookies dunk milk glass dipping",
 };
 
 const MEANING_RULES: PatternRule[] = [
+  {
+    pattern: /vụ cướp|cướp ngân hàng|bank robbery|robbery holdup/i,
+    query: "bank robbery police holdup scene",
+  },
+  {
+    pattern: /trì hoãn|ùn tắc|holdup|traffic delay|delay/i,
+    query: "traffic jam highway delay cars",
+  },
+  {
+    pattern: /ra mắt|trình diễn lần đầu|debut|premiere|first performance/i,
+    query: "theater stage performance spotlight debut",
+  },
+  {
+    pattern: /nhúng|chấm|dunk.*milk|dip.*cookie|dipping food/i,
+    query: "cookies dunk milk glass dipping",
+  },
   {
     pattern: /kỹ thuật viên|technician|repair technician|service technician/i,
     query: "technician repairing computer",

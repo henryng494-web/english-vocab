@@ -2,7 +2,7 @@ import { getPresetRank } from "@/data/preset-word-details";
 import { createClient } from "@/lib/supabase/server";
 import { enrichWord } from "@/lib/enrich-word";
 import { serializeExamples } from "@/lib/parse-examples";
-import { fetchWordImageUrl, shouldRefreshImageUrl } from "@/lib/unsplash";
+import { fetchWordImageUrl, isPersistableWordImageUrl, shouldRefreshImageUrl } from "@/lib/unsplash";
 import { isExcludedVocabWord } from "@/lib/proper-noun";
 import { getFamilyHeadword } from "@/lib/word-family";
 import { normalizeVocabInput } from "@/lib/word-validation";
@@ -63,13 +63,19 @@ export async function POST(request: Request) {
           standard.wordType,
           standard.vietnameseMeaning,
           standard.englishDefinition,
+          existingDetails.image_url,
         );
       }
+      const persistableImage = isPersistableWordImageUrl(imageUrl, trimmedWord)
+        ? imageUrl
+        : isPersistableWordImageUrl(existingDetails.image_url, trimmedWord)
+          ? existingDetails.image_url
+          : null;
 
       const { error: detailUpdateError } = await supabase
         .from("word_details")
         .update({
-          image_url: imageUrl,
+          image_url: persistableImage,
           phonetic: standard.phonetic,
           word_type: standard.wordType,
           english_definition: standard.englishDefinition,
@@ -93,7 +99,7 @@ export async function POST(request: Request) {
           english_definition: standard.englishDefinition,
           vietnamese_meaning: standard.vietnameseMeaning,
           examples: serializeExamples(standard.examples),
-          image_url: imageUrl,
+          image_url: persistableImage,
           rank: frequencyRank,
         },
       });
@@ -101,13 +107,16 @@ export async function POST(request: Request) {
 
     const enrichment = await enrichWord(trimmedWord);
 
-    const imageUrl = await fetchWordImageUrl(
+    const fetchedImageUrl = await fetchWordImageUrl(
       trimmedWord,
       enrichment.searchKeyword,
       enrichment.wordType,
       enrichment.vietnameseMeaning,
       enrichment.englishDefinition,
     );
+    const imageUrl = isPersistableWordImageUrl(fetchedImageUrl, trimmedWord)
+      ? fetchedImageUrl
+      : null;
 
     const { data: existingBank } = await supabase
       .from("word_bank")

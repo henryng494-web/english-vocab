@@ -15,7 +15,8 @@ import { resolve } from "node:path";
 import { createClient } from "@supabase/supabase-js";
 import {
   fetchWordImageUrlDetailed,
-  isRealCardImageUrl,
+  isPersistableWordImageUrl,
+  isPlaceholderIllustrationUrl,
   shouldRefreshImageUrl,
 } from "../src/lib/unsplash";
 
@@ -107,7 +108,11 @@ async function main() {
   const rows = (data ?? []) as WordDetailRow[];
   const targets = force
     ? rows
-    : rows.filter((row) => shouldRefreshImageUrl(row.image_url, row.word));
+    : rows.filter(
+        (row) =>
+          shouldRefreshImageUrl(row.image_url, row.word) ||
+          isPlaceholderIllustrationUrl(row.image_url),
+      );
   const batch = limit > 0 ? targets.slice(0, limit) : targets;
 
   console.log(
@@ -130,13 +135,14 @@ async function main() {
         row.word_type,
         row.vietnamese_meaning,
         row.english_definition,
+        row.image_url,
       );
       const imageUrl = resolved.imageUrl;
-      const isStock = isRealCardImageUrl(imageUrl, row.word);
+      const isStock = isPersistableWordImageUrl(imageUrl, row.word);
       if (isStock) stock += 1;
       else svg += 1;
 
-      if (!dryRun && imageUrl !== row.image_url) {
+      if (!dryRun && isStock && imageUrl !== row.image_url) {
         const { error: updateError } = await supabase
           .from("word_details")
           .update({ image_url: imageUrl })

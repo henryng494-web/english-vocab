@@ -1,4 +1,5 @@
 import { buildImageSearchQueries } from "@/lib/image-keyword";
+import { cleanPhrase } from "@/lib/image-keyword-utils";
 import { isUnsafeImageMetadata, isUnsafeImageUrl } from "@/lib/safe-image-metadata";
 import { requiresSafeImageOnly } from "@/lib/safe-image-search";
 
@@ -417,7 +418,43 @@ export function getDefaultLearningImageDataUrl(
   return `data:image/svg+xml;base64,${base64}`;
 }
 
-/** Always returns a displayable image URL for a vocabulary word. */
+/** Never write SVG placeholders to the database. */
+export function isPersistableWordImageUrl(
+  url: string | null | undefined,
+  word?: string | null,
+): boolean {
+  return isRealCardImageUrl(url, word);
+}
+
+/** Prefer a fresh stock photo, then any existing stock, then SVG. */
+export function coalesceWordImageUrl(
+  candidate: string | null | undefined,
+  existing: string | null | undefined,
+  word: string,
+  pos?: string | null,
+): string {
+  if (candidate && isRealCardImageUrl(candidate, word)) return candidate;
+  if (existing && isRealCardImageUrl(existing, word)) return existing;
+  if (existing && isLegacyDisplayableStockUrl(existing, word)) return existing;
+  return getDefaultLearningImageDataUrl(word, pos);
+}
+
+/** Safe legacy stock URLs — show while a pipeline refresh is in flight. */
+function isLegacyDisplayableStockUrl(
+  url: string | null | undefined,
+  word?: string | null,
+): boolean {
+  const trimmed = url?.trim();
+  if (!trimmed?.startsWith("https://")) return false;
+  if (isUnsafeImageUrl(trimmed)) return false;
+  if (word && requiresSafeImageOnly(word)) return false;
+  if (isStalePresetFallbackUrl(trimmed)) return false;
+  if (isUntrustedRandomImageUrl(trimmed)) return false;
+  if (isBrokenOpenverseProxyUrl(trimmed)) return false;
+  if (isPlaceholderIllustrationUrl(trimmed)) return false;
+  return isStockImageUrl(trimmed);
+}
+
 export function resolveWordImageUrl(
   word: string,
   imageUrl?: string | null,
@@ -430,6 +467,9 @@ export function resolveWordImageUrl(
   }
   const trimmed = imageUrl?.trim();
   if (isDisplayableHttpImageUrl(trimmed, word)) {
+    return trimmed!;
+  }
+  if (isLegacyDisplayableStockUrl(trimmed, word)) {
     return trimmed!;
   }
   return getDefaultLearningImageDataUrl(word, pos);
@@ -476,6 +516,42 @@ async function searchPexelsPhotos(
   }
 }
 
+function isWeakStockQuery(query: string): boolean {
+  const cleaned = cleanPhrase(query);
+  if (!cleaned) return true;
+  return (
+    cleaned.endsWith(" everyday scene") ||
+    cleaned.endsWith(" object") ||
+    cleaned.includes(" action everyday") ||
+    cleaned.endsWith(" mood visual scene") ||
+    cleaned.split(/\s+/).filter(Boolean).length < 2
+  );
+}
+
+function isConcreteMeaningQuery(query: string): boolean {
+  return semanticTokens(query).size >= 2;
+}
+
+/** Last resort for concrete meaning queries when metadata scoring finds no match. */
+function pickHashedSafeStockPhoto(
+  word: string,
+  photos: Array<{ url: string; alt: string; extra?: string }>,
+  query: string,
+): string | null {
+  if (isWeakStockQuery(query) || !isConcreteMeaningQuery(query)) return null;
+
+  const safe: string[] = [];
+  for (const photo of photos) {
+    if (isUnsafeImageMetadata(photo.alt, photo.extra, query)) continue;
+    if (!photo.url || isUnsafeImageUrl(photo.url)) continue;
+    const versioned = markSemanticImageUrl(photo.url);
+    if (!isSelectableStockPhotoUrl(versioned, word)) continue;
+    safe.push(versioned);
+  }
+  if (safe.length === 0) return null;
+  return safe[hashWord(word) % safe.length]!;
+}
+
 async function pickScoredStockPhoto(
   word: string,
   query: string,
@@ -498,7 +574,7 @@ async function pickScoredStockPhoto(
     const idx = hashWord(word) % topTier.length;
     return topTier[idx]!.url;
   }
-  return null;
+  return pickHashedSafeStockPhoto(word, photos, query);
 }
 
 async function pickUnsplashFromQueries(
@@ -798,6 +874,7 @@ export async function fetchWordImageUrlDetailed(
   pos?: string | null,
   meaning?: string | null,
   englishDefinition?: string | null,
+  existingImageUrl?: string | null,
 ): Promise<WordImageFetchResult> {
   if (requiresSafeImageOnly(word)) {
     return {
@@ -823,7 +900,7 @@ export async function fetchWordImageUrlDetailed(
   const queries = buildImageSearchQueries(word, options);
   if (queries.length === 0) {
     return {
-      imageUrl: getDefaultLearningImageDataUrl(word, pos),
+      imageUrl: coalesceWordImageUrl(null, existingImageUrl, word, pos),
       searchKeyword: searchKeyword?.trim() || null,
     };
   }
@@ -845,7 +922,7 @@ export async function fetchWordImageUrlDetailed(
   }
 
   return {
-    imageUrl: getDefaultLearningImageDataUrl(word, pos),
+    imageUrl: coalesceWordImageUrl(null, existingImageUrl, word, pos),
     searchKeyword: searchKeyword?.trim() || null,
   };
 }
@@ -857,6 +934,7 @@ export async function fetchWordImageUrl(
   pos?: string | null,
   meaning?: string | null,
   englishDefinition?: string | null,
+  existingImageUrl?: string | null,
 ): Promise<string> {
   const result = await fetchWordImageUrlDetailed(
     word,
@@ -864,6 +942,7 @@ export async function fetchWordImageUrl(
     pos,
     meaning,
     englishDefinition,
+    existingImageUrl,
   );
   return result.imageUrl;
 }

@@ -18,6 +18,7 @@ import { withWordFamily } from "@/lib/word-family-display";
 import { resolveImageSearchKeyword } from "@/lib/image-keyword";
 import {
   fetchWordImageUrl,
+  isPersistableWordImageUrl,
   isRealCardImageUrl,
 } from "@/lib/unsplash";
 import { isExcludedVocabWord } from "@/lib/proper-noun";
@@ -37,19 +38,19 @@ function errorMessage(error: unknown): string {
 
 async function resolveImageUrl(
   word: string,
-  _existingUrl?: string | null,
+  existingUrl?: string | null,
   searchKeyword?: string | null,
   pos?: string | null,
   meaning?: string | null,
   englishDefinition?: string | null,
 ): Promise<string> {
-  void _existingUrl;
   return fetchWordImageUrl(
     word,
     searchKeyword ?? word,
     pos,
     meaning,
     englishDefinition,
+    existingUrl,
   );
 }
 
@@ -123,7 +124,7 @@ async function persistImageUrlIfChanged(
   previousUrl: string | null | undefined,
   resolvedUrl: string,
 ): Promise<void> {
-  if (!isRealCardImageUrl(resolvedUrl, word)) return;
+  if (!isPersistableWordImageUrl(resolvedUrl, word)) return;
   if (previousUrl?.trim() === resolvedUrl) return;
   const { error } = await supabase
     .from("word_details")
@@ -342,6 +343,7 @@ export async function GET(request: Request) {
       responseWord.word_type ?? enrichment.wordType,
       vietnameseMeaning,
       englishDefinition,
+      dbDetail?.image_url,
     );
     responseWord.image_url = isRealCardImageUrl(imageUrl, word)
       ? imageUrl
@@ -364,9 +366,9 @@ export async function GET(request: Request) {
       english_definition: responseWord.english_definition ?? "",
       examples,
       collocations: responseWord.collocations ?? null,
-      image_url: isRealCardImageUrl(imageUrl, word)
+      image_url: isPersistableWordImageUrl(imageUrl, word)
         ? imageUrl
-        : isRealCardImageUrl(dbDetail?.image_url, word)
+        : isPersistableWordImageUrl(dbDetail?.image_url, word)
           ? dbDetail!.image_url!
           : null,
     });
