@@ -108,7 +108,7 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
       "crocodile",
       "tiger"
     ],
-    "scene": "All four mascots — All four mascots stand together as a team on a neighborhood park, arms linked — 'we' together.",
+    "scene": "All four mascots — All four mascots — All four mascots — All four mascots stand together as a team on a neighborhood park, arms linked — 'we' together.",
     "expressions": "All four: united team pride — warm smiles, linked arms, belonging (Cat NOT bored, Dog NOT O-mouth, Cow NO tongue, Pig NOT tired). Each looks happy to be together."
   },
   "this": {
@@ -165,9 +165,12 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
   },
   "know": {
     "cast": [
-      "monkey"
+      "monkey",
+      "elephant",
+      "crocodile",
+      "tiger"
     ],
-    "scene": "ONLY monkey — Purple monkey with a lightbulb glowing above its head, smiling confidently — I know!",
+    "scene": "All four mascots — Purple monkey with a lightbulb glowing above its head, smiling confidently — I know!",
     "expressions": "Monkey: eureka confident grin, bright eyes, chest puffed (NOT bored half-lidded)."
   },
   "not": {
@@ -192,15 +195,17 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
       "crocodile",
       "tiger"
     ],
-    "scene": "All four mascots — All four mascots gather around a table covered with every kind of fruit — all of them.",
+    "scene": "All four mascots — All four mascots — All four mascots — All four mascots gather around a table covered with every kind of fruit — all of them.",
     "expressions": "All four: excited abundance — happy eyes at full table (Cat alert not bored, Dog joyful not shocked, Cow delighted mouth closed, Pig happy not tired). Gesturing at ALL the fruit."
   },
   "with": {
     "cast": [
-      "tiger",
-      "crocodile"
+      "monkey",
+      "elephant",
+      "crocodile",
+      "tiger"
     ],
-    "scene": "ONLY tiger and crocodile — ",
+    "scene": "All four mascots — ",
     "expressions": "Tiger: happy walking together, content side-glance (NOT O-mouth). Cow and pig: also paired under second umbrella, warm friendship."
   },
   "just": {
@@ -212,10 +217,10 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
   },
   "get": {
     "cast": [
-      "monkey"
+      "tiger"
     ],
-    "scene": "ONLY monkey — ",
-    "expressions": "Monkey: cheering excited."
+    "scene": "ONLY tiger — ",
+    "expressions": ""
   },
   "here": {
     "cast": [
@@ -248,11 +253,12 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
   },
   "they": {
     "cast": [
-      "tiger",
+      "monkey",
       "elephant",
-      "crocodile"
+      "crocodile",
+      "tiger"
     ],
-    "scene": "ONLY tiger and elephant and crocodile — Three identical teal birds on a branch while all four mascots watch together — they.",
+    "scene": "All four mascots — Three identical teal birds on a branch while all four mascots watch together — they.",
     "expressions": "All mascots: collective watching — pointing at the three birds together (Cat interested, Dog curious calm, Cow gentle smile, Pig excited pointing). Group observing THEY."
   },
   "right": {
@@ -271,10 +277,10 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
   },
   "out": {
     "cast": [
-      "monkey"
+      "tiger"
     ],
-    "scene": "ONLY monkey — Purple monkey stepping out through an open front door into bright sunshine — going out.",
-    "expressions": "Monkey: eager exit stride, excited eyes toward sunshine (NOT bored)."
+    "scene": "ONLY tiger — ",
+    "expressions": ""
   },
   "go": {
     "cast": [
@@ -328,9 +334,12 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
   },
   "come": {
     "cast": [
+      "monkey",
+      "elephant",
+      "crocodile",
       "tiger"
     ],
-    "scene": "ONLY tiger — Orange tiger beckoning with paw toward a cozy open door with warm light — come here.",
+    "scene": "All four mascots — Orange tiger beckoning with paw toward a cozy open door with warm light — come here.",
     "expressions": "Tiger: inviting beckoning wave, warm welcoming eyes (NOT shocked)."
   },
   "one": {
@@ -349,35 +358,50 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
   },
   "well": {
     "cast": [
-      "crocodile"
+      "monkey",
+      "elephant",
+      "crocodile",
+      "tiger"
     ],
-    "scene": "ONLY crocodile — Lime-green crocodile drinking water and giving thumbs up, rosy cheeks — feeling well.",
+    "scene": "All four mascots — Lime-green crocodile drinking water and giving thumbs up, rosy cheeks — feeling well.",
     "expressions": "Crocodile: healthy refreshed grin, thumbs up, rosy cheeks (NOT tired sweat — vibrant wellness)."
   },
   "want": {
     "cast": [
-      "monkey"
+      "monkey",
+      "elephant",
+      "crocodile",
+      "tiger"
     ],
-    "scene": "ONLY monkey — Purple monkey reaching toward a shiny star cookie on a high shelf — want it.",
+    "scene": "All four mascots — Purple monkey reaching toward a shiny star cookie on a high shelf — want it.",
     "expressions": "Monkey: longing reaching eyes, eager open mouth wanting (NOT bored lazy)."
   },
   "think": {
     "cast": [
-      "monkey"
+      "monkey",
+      "elephant",
+      "crocodile",
+      "tiger"
     ],
-    "scene": "ONLY monkey — puzzle flat on desk surface, blocks on desk. One hand touches chin, OTHER arm hangs down long to floor. Curved hook shapes near head. All props on desk, nothing floating.",
+    "scene": "All four mascots — puzzle flat on desk surface, blocks on desk. One hand touches chin, OTHER arm hangs down long to floor. Curved hook shapes near head. All props on desk, nothing floating.",
     "expressions": "Monkey: curious thinking, one eyebrow up. Exactly two arms: one on chin, one hanging down.",
     "outfits": "Monkey: reading glasses on forehead."
   },
   "good": {
     "cast": [
+      "monkey",
+      "elephant",
+      "crocodile",
       "tiger"
     ],
-    "scene": "ONLY tiger — Orange tiger presenting a gold star sticker to",
+    "scene": "All four mascots — Orange tiger presenting a gold star sticker to",
     "expressions": "Tiger: proud praising smile giving star (NOT shocked)."
   },
   "see": {
     "cast": [
+      "monkey",
+      "elephant",
+      "crocodile",
       "tiger"
     ],
     "scene": "ONLY orange tiger — grassy cliff overlooking blue ocean. Tiger looks through telescope on tripod at sailboat.",
@@ -423,10 +447,10 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
   },
   "from": {
     "cast": [
-      "monkey"
+      "tiger"
     ],
-    "scene": "ONLY monkey — Purple monkey receiving a letter delivered from a distant blue mailbox — from far away.",
-    "expressions": "Monkey: surprised-happy receiving letter, reading envelope (NOT bored)."
+    "scene": "ONLY tiger — ",
+    "expressions": ""
   },
   "when": {
     "cast": [
@@ -437,17 +461,19 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
   },
   "back": {
     "cast": [
-      "monkey"
+      "tiger"
     ],
-    "scene": "ONLY monkey — Purple monkey walking back along footprints toward a cozy house — coming back.",
-    "expressions": "Monkey: relieved homeward smile following footprints (NOT bored)."
+    "scene": "ONLY tiger — ",
+    "expressions": ""
   },
   "okay": {
     "cast": [
-      "tiger",
-      "crocodile"
+      "monkey",
+      "elephant",
+      "crocodile",
+      "tiger"
     ],
-    "scene": "ONLY tiger and crocodile — Orange tiger and",
+    "scene": "All four mascots — Orange tiger and",
     "expressions": "Tiger: relaxed OK sign, easygoing grin (NOT shocked). Cow and pig: thumbs up / OK hooves, all agreed."
   },
   "yes": {
@@ -457,7 +483,7 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
       "crocodile",
       "tiger"
     ],
-    "scene": "All four mascots — All four at city park birthday picnic — checkmark flag in cake, confetti, playground behind.",
+    "scene": "All four mascots — All four mascots — All four mascots — All four at city park birthday picnic — checkmark flag in cake, confetti, playground behind.",
     "expressions": "All cheering — happy faces only. Elephant MUST keep giant round head + pencil stick body (NOT fat). Tiger MUST stay spherical ball.",
     "outfits": "Monkey: party cone hat. Elephant: blue birthday sash. Crocodile: none. Tiger: none."
   },
@@ -512,9 +538,12 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
   },
   "some": {
     "cast": [
-      "elephant"
+      "monkey",
+      "elephant",
+      "crocodile",
+      "tiger"
     ],
-    "scene": "ONLY elephant — ",
+    "scene": "All four mascots — ",
     "expressions": "Elephant: indicating SOME remaining on bush."
   },
   "hey": {
@@ -554,10 +583,10 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
   },
   "down": {
     "cast": [
-      "monkey"
+      "tiger"
     ],
-    "scene": "ONLY monkey — Purple monkey sliding down a playground slide toward orange sand — down.",
-    "expressions": "Monkey: thrilled sliding face wind-in-fur, eyes wide joy (NOT bored)."
+    "scene": "ONLY tiger — ",
+    "expressions": ""
   },
   "then": {
     "cast": [
@@ -597,9 +626,12 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
   },
   "never": {
     "cast": [
+      "monkey",
+      "elephant",
+      "crocodile",
       "tiger"
     ],
-    "scene": "ONLY tiger — ",
+    "scene": "All four mascots — ",
     "expressions": "Tiger: supporting stern head-shake."
   },
   "by": {
@@ -618,9 +650,12 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
   },
   "more": {
     "cast": [
+      "monkey",
+      "elephant",
+      "crocodile",
       "tiger"
     ],
-    "scene": "ONLY tiger — ",
+    "scene": "All four mascots — ",
     "expressions": "Tiger: excited at growing pile."
   },
   "mean": {
@@ -639,10 +674,10 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
   },
   "off": {
     "cast": [
-      "monkey"
+      "tiger"
     ],
-    "scene": "ONLY monkey — Purple monkey switching off a lamp, room going dark — off.",
-    "expressions": "Monkey: sleepy satisfied click-OFF face, drowsy eyes (NOT bored default — tired bedtime)."
+    "scene": "ONLY tiger — ",
+    "expressions": ""
   },
   "sorry": {
     "cast": [
@@ -655,25 +690,32 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
   },
   "give": {
     "cast": [
-      "monkey"
+      "monkey",
+      "elephant",
+      "crocodile",
+      "tiger"
     ],
-    "scene": "ONLY monkey — ",
+    "scene": "All four mascots — ",
     "expressions": "Monkey: surprised-touched receiving, happy eyes (NOT bored)."
   },
   "thank": {
     "cast": [
-      "elephant"
+      "monkey",
+      "elephant",
+      "crocodile",
+      "tiger"
     ],
-    "scene": "ONLY elephant — ",
+    "scene": "All four mascots — ",
     "expressions": "Elephant: touched hand on heart."
   },
   "love": {
     "cast": [
       "monkey",
       "elephant",
+      "crocodile",
       "tiger"
     ],
-    "scene": "ONLY monkey and elephant and tiger — Three only (no crocodile) — group hug on park bench at sunset, floating hearts.",
+    "scene": "All four mascots — Three only (no crocodile) — group hug on park bench at sunset, floating hearts.",
     "expressions": "Warm closed-eye smiles. Elephant: stick-thin body + giant round head unchanged. Tiger: sphere unchanged.",
     "outfits": "Monkey: red scarf. Elephant: none. Tiger: none."
   },
@@ -684,21 +726,27 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
       "crocodile",
       "tiger"
     ],
-    "scene": "All four mascots — Four diverse stick-figure people silhouettes chatting in a park while mascots picnic nearby.",
+    "scene": "All four mascots — All four mascots — All four mascots — Four diverse stick-figure people silhouettes chatting in a park while mascots picnic nearby.",
     "expressions": "Mascots: friendly observing PEOPLE — warm curious smiles watching humans (Cat interested, Dog happy calm, Cow gentle wave to people, Pig excited pointing). Not interacting as main focus."
   },
   "please": {
     "cast": [
-      "elephant"
+      "monkey",
+      "elephant",
+      "crocodile",
+      "tiger"
     ],
-    "scene": "ONLY elephant — ",
+    "scene": "All four mascots — ",
     "expressions": "Elephant: kindly reaching to help."
   },
   "sure": {
     "cast": [
+      "monkey",
+      "elephant",
+      "crocodile",
       "tiger"
     ],
-    "scene": "ONLY tiger — Orange tiger nodding confidently with a thumbs up — sure!",
+    "scene": "All four mascots — Orange tiger nodding confidently with a thumbs up — sure!",
     "expressions": "Tiger: confident sure nod, relaxed thumbs up grin (NOT shocked O)."
   },
   "any": {
@@ -717,18 +765,22 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
   },
   "because": {
     "cast": [
-      "tiger",
-      "elephant"
+      "monkey",
+      "elephant",
+      "crocodile",
+      "tiger"
     ],
-    "scene": "ONLY tiger and elephant — Orange tiger pointing at dark clouds as reason for carrying umbrella — because of rain.",
+    "scene": "All four mascots — Orange tiger pointing at dark clouds as reason for carrying umbrella — because of rain.",
     "expressions": "Tiger: explaining BECAUSE gesture at clouds, teaching face (NOT shocked). Elephant: logical connecting dots gesture."
   },
   "two": {
     "cast": [
+      "monkey",
       "elephant",
+      "crocodile",
       "tiger"
     ],
-    "scene": "ONLY elephant and tiger — ",
+    "scene": "All four mascots — ",
     "expressions": "Tiger: confirming count nodding. Elephant: holding up two hooves."
   },
   "much": {
@@ -755,8 +807,10 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
   },
   "help": {
     "cast": [
-      "tiger",
-      "crocodile"
+      "monkey",
+      "elephant",
+      "crocodile",
+      "tiger"
     ],
     "scene": "ONLY orange tiger and lime-green crocodile — suburban steps. Tiger helps tired crocodile carry heavy grocery bags upstairs.",
     "expressions": "Tiger: supportive helpful smile carrying bags. Crocodile: relieved grateful face, four stub legs."

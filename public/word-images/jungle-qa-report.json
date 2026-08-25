@@ -1,0 +1,110 @@
+{
+  "scannedAt": "2026-08-25T21:35:45.641Z",
+  "model": "gemini-3-flash-preview",
+  "total": 5,
+  "passed": 4,
+  "failed": 1,
+  "failures": [
+    {
+      "word": "but",
+      "expectedCast": [
+        "elephant",
+        "tiger"
+      ],
+      "expectedCount": 2,
+      "ok": false,
+      "issues": [
+        "scan error: The operation was aborted due to timeout"
+      ],
+      "visibleCharacters": [],
+      "visibleCount": 0,
+      "confidence": "low"
+    }
+  ],
+  "results": [
+    {
+      "word": "can",
+      "expectedCast": [
+        "tiger"
+      ],
+      "expectedCount": 1,
+      "ok": true,
+      "issues": [],
+      "visibleCharacters": [
+        "tiger"
+      ],
+      "visibleCount": 1,
+      "confidence": "high"
+    },
+    {
+      "word": "but",
+      "expectedCast": [
+        "elephant",
+        "tiger"
+      ],
+      "expectedCount": 2,
+      "ok": false,
+      "issues": [
+        "scan error: The operation was aborted due to timeout"
+      ],
+      "visibleCharacters": [],
+      "visibleCount": 0,
+      "confidence": "low"
+    },
+    {
+      "word": "on",
+      "expectedCast": [
+        "tiger"
+      ],
+      "expectedCount": 1,
+      "ok": true,
+      "issues": [],
+      "visibleCharacters": [
+        "tiger"
+      ],
+      "visibleCount": 1,
+      "confidence": "high"
+    },
+    {
+      "word": "you",
+      "expectedCast": [
+        "monkey",
+        "tiger"
+      ],
+      "expectedCount": 2,
+      "ok": true,
+      "issues": [],
+      "visibleCharacters": [
+        "monkey",
+        "tiger"
+      ],
+      "visibleCount": 2,
+      "monkeyArms": 2,
+      "monkeyLegs": 2,
+      "confidence": "high"
+    },
+    {
+      "word": "all",
+      "expectedCast": [
+        "monkey",
+        "elephant",
+        "crocodile",
+        "tiger"
+      ],
+      "expectedCount": 4,
+      "ok": true,
+      "issues": [],
+      "visibleCharacters": [
+        "monkey",
+        "elephant",
+        "crocodile",
+        "tiger"
+      ],
+      "visibleCount": 4,
+      "monkeyArms": 2,
+      "monkeyLegs": 2,
+      "elephantHasArms": true,
+      "confidence": "high"
+    }
+  ]
+}

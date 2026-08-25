@@ -15,7 +15,7 @@ export {
 } from "@/data/jungle-cast-word-image-prompts";
 
 /** Bump when replacing bundled cast JPEGs in public/word-images. */
-export const CAST_WORD_IMAGE_BUNDLE = "jungle3";
+export const CAST_WORD_IMAGE_BUNDLE = "jungle4";
 export const CAST_WORD_IMAGE_TOP_RANK = 100;
 
 const CAST_WORDS = new Set(
