@@ -4,7 +4,7 @@ import { parseExamples } from "@/lib/parse-examples";
 import { containsForeignScript } from "@/lib/sanitize-vi";
 
 /** Bump when Gemini/Unsplash pipeline or image quality rules change. */
-export const DISCOVER_WORD_CACHE_VERSION = 73;
+export const DISCOVER_WORD_CACHE_VERSION = 74;
 
 const STORAGE_KEY = `discover-word-cache-v${DISCOVER_WORD_CACHE_VERSION}`;
 
@@ -68,6 +68,7 @@ const LEGACY_STORAGE_KEYS = [
   "discover-word-cache-v67",
   "discover-word-cache-v68",
   "discover-word-cache-v72",
+  "discover-word-cache-v73",
 ];
 
 const MAX_ENTRIES = 250;

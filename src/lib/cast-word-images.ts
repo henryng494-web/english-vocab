@@ -1,16 +1,21 @@
 /**
  * Cast mascot word images — fox-trial delivery:
  * full-scene bundled JPEGs in /public/word-images/{word}.jpg
- * Generated via: npm run generate:cast-word-images
+ * Jungle Jokers cast (jungle1 bundle).
  */
 
 import { getWordsInRange } from "@/data/preset-vocabulary";
 import { requiresSafeImageOnly } from "@/lib/safe-image-search";
 
-export { buildCastWordImagePrompt } from "@/data/cast-word-image-prompts";
+export {
+  buildJungleCastWordImagePrompt as buildCastWordImagePrompt,
+  getJungleCastWordReferences,
+  JUNGLE_WORD_IMAGE_ENTRIES as CAST_WORD_IMAGE_ENTRIES,
+  JUNGLE_WORD_IMAGE_SCENES as CAST_WORD_IMAGE_SCENES,
+} from "@/data/jungle-cast-word-image-prompts";
 
 /** Bump when replacing bundled cast JPEGs in public/word-images. */
-export const CAST_WORD_IMAGE_BUNDLE = "cast3";
+export const CAST_WORD_IMAGE_BUNDLE = "jungle1";
 export const CAST_WORD_IMAGE_TOP_RANK = 100;
 
 const CAST_WORDS = new Set(
@@ -18,7 +23,7 @@ const CAST_WORDS = new Set(
 );
 
 const STATIC_PATH_RE =
-  /^\/word-images\/[a-z]+\.jpg(?:\?v=cast[\w-]+)?$/;
+  /^\/word-images\/[a-z]+\.jpg(?:\?v=(?:cast[\w-]+|jungle[\w-]+))?$/;
 
 export function isCastWordImageWord(word: string): boolean {
   const normalized = word.trim().toLowerCase();
@@ -46,6 +51,7 @@ export function isLegacyMascotPipelineUrl(
   if (!trimmed) return false;
   return (
     trimmed.includes("/api/mascot-image") ||
-    trimmed.includes("mascot-cast-v")
+    trimmed.includes("mascot-cast-v") ||
+    /[?&]v=cast\d/.test(trimmed)
   );
 }

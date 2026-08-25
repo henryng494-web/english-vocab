@@ -11,14 +11,14 @@ import { mkdirSync, writeFileSync, existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { getWordsInRange } from "@/data/preset-vocabulary";
 import {
-  buildCastWordImagePrompt,
-  CAST_WORD_IMAGE_SCENES,
-} from "@/data/cast-word-image-prompts";
+  buildJungleCastWordImagePrompt,
+  JUNGLE_WORD_IMAGE_SCENES,
+} from "@/data/jungle-cast-word-image-prompts";
 
 const OUT_DIR = resolve(process.cwd(), "public/word-images");
 const DELAY_MS = Number(process.env.CAST_IMAGE_DELAY_MS ?? 14_000);
 const PROVIDER = (process.env.CAST_IMAGE_PROVIDER ?? "pollinations").toLowerCase();
-const REFERENCE_PATH = resolve(process.cwd(), "public/mascot/cast-lineup.png");
+const REFERENCE_PATH = resolve(process.cwd(), "public/mascot/jungle-jokers-lineup.png");
 
 function sleep(ms: number): Promise<void> {
   return new Promise((r) => setTimeout(r, ms));
@@ -174,7 +174,7 @@ async function main(): Promise<void> {
       ? cliWords
       : getWordsInRange(1, 100).map((entry) => entry.word);
 
-  const missing = words.filter((w) => !CAST_WORD_IMAGE_SCENES[w]);
+  const missing = words.filter((w) => !JUNGLE_WORD_IMAGE_SCENES[w]);
   if (missing.length) {
     console.warn("Missing prompts:", missing.join(", "));
   }
@@ -187,7 +187,7 @@ async function main(): Promise<void> {
 
   for (let i = 0; i < words.length; i++) {
     const word = words[i]!;
-    const prompt = buildCastWordImagePrompt(word);
+    const prompt = buildJungleCastWordImagePrompt(word);
     if (!prompt) {
       console.warn(`Skip "${word}": no prompt`);
       fail++;
@@ -221,7 +221,7 @@ async function main(): Promise<void> {
 
   writeFileSync(
     resolve(OUT_DIR, "cast-generation-report.json"),
-    JSON.stringify({ ok, fail, words, bundle: "cast3", provider: PROVIDER }, null, 2),
+    JSON.stringify({ ok, fail, words, bundle: "jungle1", provider: PROVIDER }, null, 2),
   );
   console.log(`Done: ${ok} ok, ${fail} failed`);
   if (fail > 0) process.exit(1);
