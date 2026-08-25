@@ -1,8 +1,10 @@
 {
   "ok": 100,
   "fail": 0,
-  "bundle": "cast3",
+  "bundle": "jungle1",
+  "cast": "Jungle Jokers",
   "provider": "GenerateImage",
+  "multiRef": true,
   "expressionFlexible": true,
-  "notes": "Design fixed, per-word expressions in cast-word-image-prompts.ts"
+  "everydaySettings": true
 }
