@@ -1,8 +1,8 @@
 {
-  "scannedAt": "2026-08-25T22:17:13.887Z",
+  "scannedAt": "2026-08-25T22:56:42.170Z",
   "total": 100,
   "passed": 9,
-  "failed": 19,
+  "failed": 50,
   "failures": [
     {
       "word": "the",
@@ -241,6 +241,378 @@
       "ok": false,
       "issues": [
         "scan error: but: Gemini quota/rate limit after retries: {\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-a"
+      ],
+      "visibleCharacters": [],
+      "visibleCount": 0,
+      "confidence": "low"
+    },
+    {
+      "word": "there",
+      "expectedCast": [],
+      "expectedCount": 0,
+      "ok": false,
+      "issues": [
+        "scan error: there: Gemini quota/rate limit after retries: {\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-a"
+      ],
+      "visibleCharacters": [],
+      "visibleCount": 0,
+      "confidence": "low"
+    },
+    {
+      "word": "so",
+      "expectedCast": [],
+      "expectedCount": 0,
+      "ok": false,
+      "issues": [
+        "scan error: so: Gemini quota/rate limit after retries: {\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-a"
+      ],
+      "visibleCharacters": [],
+      "visibleCount": 0,
+      "confidence": "low"
+    },
+    {
+      "word": "they",
+      "expectedCast": [],
+      "expectedCount": 0,
+      "ok": false,
+      "issues": [
+        "scan error: they: Gemini quota/rate limit after retries: {\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-a"
+      ],
+      "visibleCharacters": [],
+      "visibleCount": 0,
+      "confidence": "low"
+    },
+    {
+      "word": "right",
+      "expectedCast": [],
+      "expectedCount": 0,
+      "ok": false,
+      "issues": [
+        "scan error: right: Gemini quota/rate limit after retries: {\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-a"
+      ],
+      "visibleCharacters": [],
+      "visibleCount": 0,
+      "confidence": "low"
+    },
+    {
+      "word": "like",
+      "expectedCast": [],
+      "expectedCount": 0,
+      "ok": false,
+      "issues": [
+        "scan error: like: Gemini quota/rate limit after retries: {\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-a"
+      ],
+      "visibleCharacters": [],
+      "visibleCount": 0,
+      "confidence": "low"
+    },
+    {
+      "word": "out",
+      "expectedCast": [],
+      "expectedCount": 0,
+      "ok": false,
+      "issues": [
+        "scan error: out: Gemini quota/rate limit after retries: {\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-a"
+      ],
+      "visibleCharacters": [],
+      "visibleCount": 0,
+      "confidence": "low"
+    },
+    {
+      "word": "go",
+      "expectedCast": [],
+      "expectedCount": 0,
+      "ok": false,
+      "issues": [
+        "scan error: go: Gemini quota/rate limit after retries: {\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-a"
+      ],
+      "visibleCharacters": [],
+      "visibleCount": 0,
+      "confidence": "low"
+    },
+    {
+      "word": "she",
+      "expectedCast": [],
+      "expectedCount": 0,
+      "ok": false,
+      "issues": [
+        "scan error: she: Gemini quota/rate limit after retries: {\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-a"
+      ],
+      "visibleCharacters": [],
+      "visibleCount": 0,
+      "confidence": "low"
+    },
+    {
+      "word": "up",
+      "expectedCast": [],
+      "expectedCount": 0,
+      "ok": false,
+      "issues": [
+        "scan error: up: Gemini quota/rate limit after retries: {\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-a"
+      ],
+      "visibleCharacters": [],
+      "visibleCount": 0,
+      "confidence": "low"
+    },
+    {
+      "word": "about",
+      "expectedCast": [],
+      "expectedCount": 0,
+      "ok": false,
+      "issues": [
+        "scan error: about: Gemini quota/rate limit after retries: {\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-a"
+      ],
+      "visibleCharacters": [],
+      "visibleCount": 0,
+      "confidence": "low"
+    },
+    {
+      "word": "if",
+      "expectedCast": [],
+      "expectedCount": 0,
+      "ok": false,
+      "issues": [
+        "scan error: if: Gemini quota/rate limit after retries: {\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-a"
+      ],
+      "visibleCharacters": [],
+      "visibleCount": 0,
+      "confidence": "low"
+    },
+    {
+      "word": "at",
+      "expectedCast": [],
+      "expectedCount": 0,
+      "ok": false,
+      "issues": [
+        "scan error: at: Gemini quota/rate limit after retries: {\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-a"
+      ],
+      "visibleCharacters": [],
+      "visibleCount": 0,
+      "confidence": "low"
+    },
+    {
+      "word": "now",
+      "expectedCast": [],
+      "expectedCount": 0,
+      "ok": false,
+      "issues": [
+        "scan error: now: Gemini quota/rate limit after retries: {\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-a"
+      ],
+      "visibleCharacters": [],
+      "visibleCount": 0,
+      "confidence": "low"
+    },
+    {
+      "word": "come",
+      "expectedCast": [],
+      "expectedCount": 0,
+      "ok": false,
+      "issues": [
+        "scan error: come: Gemini quota/rate limit after retries: {\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-a"
+      ],
+      "visibleCharacters": [],
+      "visibleCount": 0,
+      "confidence": "low"
+    },
+    {
+      "word": "one",
+      "expectedCast": [],
+      "expectedCount": 0,
+      "ok": false,
+      "issues": [
+        "scan error: one: Gemini quota/rate limit after retries: {\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-a"
+      ],
+      "visibleCharacters": [],
+      "visibleCount": 0,
+      "confidence": "low"
+    },
+    {
+      "word": "how",
+      "expectedCast": [],
+      "expectedCount": 0,
+      "ok": false,
+      "issues": [
+        "scan error: how: Gemini quota/rate limit after retries: {\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-a"
+      ],
+      "visibleCharacters": [],
+      "visibleCount": 0,
+      "confidence": "low"
+    },
+    {
+      "word": "well",
+      "expectedCast": [],
+      "expectedCount": 0,
+      "ok": false,
+      "issues": [
+        "scan error: well: Gemini quota/rate limit after retries: {\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-a"
+      ],
+      "visibleCharacters": [],
+      "visibleCount": 0,
+      "confidence": "low"
+    },
+    {
+      "word": "want",
+      "expectedCast": [],
+      "expectedCount": 0,
+      "ok": false,
+      "issues": [
+        "scan error: want: Gemini quota/rate limit after retries: {\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-a"
+      ],
+      "visibleCharacters": [],
+      "visibleCount": 0,
+      "confidence": "low"
+    },
+    {
+      "word": "think",
+      "expectedCast": [],
+      "expectedCount": 0,
+      "ok": false,
+      "issues": [
+        "scan error: think: Gemini quota/rate limit after retries: {\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-a"
+      ],
+      "visibleCharacters": [],
+      "visibleCount": 0,
+      "confidence": "low"
+    },
+    {
+      "word": "good",
+      "expectedCast": [],
+      "expectedCount": 0,
+      "ok": false,
+      "issues": [
+        "scan error: good: Gemini quota/rate limit after retries: {\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-a"
+      ],
+      "visibleCharacters": [],
+      "visibleCount": 0,
+      "confidence": "low"
+    },
+    {
+      "word": "see",
+      "expectedCast": [],
+      "expectedCount": 0,
+      "ok": false,
+      "issues": [
+        "scan error: see: Gemini quota/rate limit after retries: {\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-a"
+      ],
+      "visibleCharacters": [],
+      "visibleCount": 0,
+      "confidence": "low"
+    },
+    {
+      "word": "let",
+      "expectedCast": [],
+      "expectedCount": 0,
+      "ok": false,
+      "issues": [
+        "scan error: let: Gemini quota/rate limit after retries: {\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-a"
+      ],
+      "visibleCharacters": [],
+      "visibleCount": 0,
+      "confidence": "low"
+    },
+    {
+      "word": "why",
+      "expectedCast": [],
+      "expectedCount": 0,
+      "ok": false,
+      "issues": [
+        "scan error: why: Gemini quota/rate limit after retries: {\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-a"
+      ],
+      "visibleCharacters": [],
+      "visibleCount": 0,
+      "confidence": "low"
+    },
+    {
+      "word": "who",
+      "expectedCast": [],
+      "expectedCount": 0,
+      "ok": false,
+      "issues": [
+        "scan error: who: Gemini quota/rate limit after retries: {\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-a"
+      ],
+      "visibleCharacters": [],
+      "visibleCount": 0,
+      "confidence": "low"
+    },
+    {
+      "word": "as",
+      "expectedCast": [],
+      "expectedCount": 0,
+      "ok": false,
+      "issues": [
+        "scan error: as: Gemini quota/rate limit after retries: {\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-a"
+      ],
+      "visibleCharacters": [],
+      "visibleCount": 0,
+      "confidence": "low"
+    },
+    {
+      "word": "will",
+      "expectedCast": [],
+      "expectedCount": 0,
+      "ok": false,
+      "issues": [
+        "scan error: will: Gemini quota/rate limit after retries: {\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-a"
+      ],
+      "visibleCharacters": [],
+      "visibleCount": 0,
+      "confidence": "low"
+    },
+    {
+      "word": "from",
+      "expectedCast": [],
+      "expectedCount": 0,
+      "ok": false,
+      "issues": [
+        "scan error: from: Gemini quota/rate limit after retries: {\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-a"
+      ],
+      "visibleCharacters": [],
+      "visibleCount": 0,
+      "confidence": "low"
+    },
+    {
+      "word": "when",
+      "expectedCast": [],
+      "expectedCount": 0,
+      "ok": false,
+      "issues": [
+        "scan error: when: Gemini quota/rate limit after retries: {\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-a"
+      ],
+      "visibleCharacters": [],
+      "visibleCount": 0,
+      "confidence": "low"
+    },
+    {
+      "word": "back",
+      "expectedCast": [],
+      "expectedCount": 0,
+      "ok": false,
+      "issues": [
+        "scan error: back: Gemini quota/rate limit after retries: {\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-a"
+      ],
+      "visibleCharacters": [],
+      "visibleCount": 0,
+      "confidence": "low"
+    },
+    {
+      "word": "okay",
+      "expectedCast": [],
+      "expectedCount": 0,
+      "ok": false,
+      "issues": [
+        "scan error: okay: Gemini quota/rate limit after retries: {\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-a"
+      ],
+      "visibleCharacters": [],
+      "visibleCount": 0,
+      "confidence": "low"
+    },
+    {
+      "word": "yes",
+      "expectedCast": [],
+      "expectedCount": 0,
+      "ok": false,
+      "issues": [
+        "scan error: yes: Gemini quota/rate limit after retries: {\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-a"
       ],
       "visibleCharacters": [],
       "visibleCount": 0,
@@ -628,6 +1000,378 @@
       "ok": false,
       "issues": [
         "scan error: but: Gemini quota/rate limit after retries: {\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-a"
+      ],
+      "visibleCharacters": [],
+      "visibleCount": 0,
+      "confidence": "low"
+    },
+    {
+      "word": "there",
+      "expectedCast": [],
+      "expectedCount": 0,
+      "ok": false,
+      "issues": [
+        "scan error: there: Gemini quota/rate limit after retries: {\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-a"
+      ],
+      "visibleCharacters": [],
+      "visibleCount": 0,
+      "confidence": "low"
+    },
+    {
+      "word": "so",
+      "expectedCast": [],
+      "expectedCount": 0,
+      "ok": false,
+      "issues": [
+        "scan error: so: Gemini quota/rate limit after retries: {\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-a"
+      ],
+      "visibleCharacters": [],
+      "visibleCount": 0,
+      "confidence": "low"
+    },
+    {
+      "word": "they",
+      "expectedCast": [],
+      "expectedCount": 0,
+      "ok": false,
+      "issues": [
+        "scan error: they: Gemini quota/rate limit after retries: {\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-a"
+      ],
+      "visibleCharacters": [],
+      "visibleCount": 0,
+      "confidence": "low"
+    },
+    {
+      "word": "right",
+      "expectedCast": [],
+      "expectedCount": 0,
+      "ok": false,
+      "issues": [
+        "scan error: right: Gemini quota/rate limit after retries: {\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-a"
+      ],
+      "visibleCharacters": [],
+      "visibleCount": 0,
+      "confidence": "low"
+    },
+    {
+      "word": "like",
+      "expectedCast": [],
+      "expectedCount": 0,
+      "ok": false,
+      "issues": [
+        "scan error: like: Gemini quota/rate limit after retries: {\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-a"
+      ],
+      "visibleCharacters": [],
+      "visibleCount": 0,
+      "confidence": "low"
+    },
+    {
+      "word": "out",
+      "expectedCast": [],
+      "expectedCount": 0,
+      "ok": false,
+      "issues": [
+        "scan error: out: Gemini quota/rate limit after retries: {\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-a"
+      ],
+      "visibleCharacters": [],
+      "visibleCount": 0,
+      "confidence": "low"
+    },
+    {
+      "word": "go",
+      "expectedCast": [],
+      "expectedCount": 0,
+      "ok": false,
+      "issues": [
+        "scan error: go: Gemini quota/rate limit after retries: {\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-a"
+      ],
+      "visibleCharacters": [],
+      "visibleCount": 0,
+      "confidence": "low"
+    },
+    {
+      "word": "she",
+      "expectedCast": [],
+      "expectedCount": 0,
+      "ok": false,
+      "issues": [
+        "scan error: she: Gemini quota/rate limit after retries: {\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-a"
+      ],
+      "visibleCharacters": [],
+      "visibleCount": 0,
+      "confidence": "low"
+    },
+    {
+      "word": "up",
+      "expectedCast": [],
+      "expectedCount": 0,
+      "ok": false,
+      "issues": [
+        "scan error: up: Gemini quota/rate limit after retries: {\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-a"
+      ],
+      "visibleCharacters": [],
+      "visibleCount": 0,
+      "confidence": "low"
+    },
+    {
+      "word": "about",
+      "expectedCast": [],
+      "expectedCount": 0,
+      "ok": false,
+      "issues": [
+        "scan error: about: Gemini quota/rate limit after retries: {\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-a"
+      ],
+      "visibleCharacters": [],
+      "visibleCount": 0,
+      "confidence": "low"
+    },
+    {
+      "word": "if",
+      "expectedCast": [],
+      "expectedCount": 0,
+      "ok": false,
+      "issues": [
+        "scan error: if: Gemini quota/rate limit after retries: {\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-a"
+      ],
+      "visibleCharacters": [],
+      "visibleCount": 0,
+      "confidence": "low"
+    },
+    {
+      "word": "at",
+      "expectedCast": [],
+      "expectedCount": 0,
+      "ok": false,
+      "issues": [
+        "scan error: at: Gemini quota/rate limit after retries: {\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-a"
+      ],
+      "visibleCharacters": [],
+      "visibleCount": 0,
+      "confidence": "low"
+    },
+    {
+      "word": "now",
+      "expectedCast": [],
+      "expectedCount": 0,
+      "ok": false,
+      "issues": [
+        "scan error: now: Gemini quota/rate limit after retries: {\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-a"
+      ],
+      "visibleCharacters": [],
+      "visibleCount": 0,
+      "confidence": "low"
+    },
+    {
+      "word": "come",
+      "expectedCast": [],
+      "expectedCount": 0,
+      "ok": false,
+      "issues": [
+        "scan error: come: Gemini quota/rate limit after retries: {\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-a"
+      ],
+      "visibleCharacters": [],
+      "visibleCount": 0,
+      "confidence": "low"
+    },
+    {
+      "word": "one",
+      "expectedCast": [],
+      "expectedCount": 0,
+      "ok": false,
+      "issues": [
+        "scan error: one: Gemini quota/rate limit after retries: {\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-a"
+      ],
+      "visibleCharacters": [],
+      "visibleCount": 0,
+      "confidence": "low"
+    },
+    {
+      "word": "how",
+      "expectedCast": [],
+      "expectedCount": 0,
+      "ok": false,
+      "issues": [
+        "scan error: how: Gemini quota/rate limit after retries: {\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-a"
+      ],
+      "visibleCharacters": [],
+      "visibleCount": 0,
+      "confidence": "low"
+    },
+    {
+      "word": "well",
+      "expectedCast": [],
+      "expectedCount": 0,
+      "ok": false,
+      "issues": [
+        "scan error: well: Gemini quota/rate limit after retries: {\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-a"
+      ],
+      "visibleCharacters": [],
+      "visibleCount": 0,
+      "confidence": "low"
+    },
+    {
+      "word": "want",
+      "expectedCast": [],
+      "expectedCount": 0,
+      "ok": false,
+      "issues": [
+        "scan error: want: Gemini quota/rate limit after retries: {\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-a"
+      ],
+      "visibleCharacters": [],
+      "visibleCount": 0,
+      "confidence": "low"
+    },
+    {
+      "word": "think",
+      "expectedCast": [],
+      "expectedCount": 0,
+      "ok": false,
+      "issues": [
+        "scan error: think: Gemini quota/rate limit after retries: {\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-a"
+      ],
+      "visibleCharacters": [],
+      "visibleCount": 0,
+      "confidence": "low"
+    },
+    {
+      "word": "good",
+      "expectedCast": [],
+      "expectedCount": 0,
+      "ok": false,
+      "issues": [
+        "scan error: good: Gemini quota/rate limit after retries: {\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-a"
+      ],
+      "visibleCharacters": [],
+      "visibleCount": 0,
+      "confidence": "low"
+    },
+    {
+      "word": "see",
+      "expectedCast": [],
+      "expectedCount": 0,
+      "ok": false,
+      "issues": [
+        "scan error: see: Gemini quota/rate limit after retries: {\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-a"
+      ],
+      "visibleCharacters": [],
+      "visibleCount": 0,
+      "confidence": "low"
+    },
+    {
+      "word": "let",
+      "expectedCast": [],
+      "expectedCount": 0,
+      "ok": false,
+      "issues": [
+        "scan error: let: Gemini quota/rate limit after retries: {\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-a"
+      ],
+      "visibleCharacters": [],
+      "visibleCount": 0,
+      "confidence": "low"
+    },
+    {
+      "word": "why",
+      "expectedCast": [],
+      "expectedCount": 0,
+      "ok": false,
+      "issues": [
+        "scan error: why: Gemini quota/rate limit after retries: {\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-a"
+      ],
+      "visibleCharacters": [],
+      "visibleCount": 0,
+      "confidence": "low"
+    },
+    {
+      "word": "who",
+      "expectedCast": [],
+      "expectedCount": 0,
+      "ok": false,
+      "issues": [
+        "scan error: who: Gemini quota/rate limit after retries: {\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-a"
+      ],
+      "visibleCharacters": [],
+      "visibleCount": 0,
+      "confidence": "low"
+    },
+    {
+      "word": "as",
+      "expectedCast": [],
+      "expectedCount": 0,
+      "ok": false,
+      "issues": [
+        "scan error: as: Gemini quota/rate limit after retries: {\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-a"
+      ],
+      "visibleCharacters": [],
+      "visibleCount": 0,
+      "confidence": "low"
+    },
+    {
+      "word": "will",
+      "expectedCast": [],
+      "expectedCount": 0,
+      "ok": false,
+      "issues": [
+        "scan error: will: Gemini quota/rate limit after retries: {\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-a"
+      ],
+      "visibleCharacters": [],
+      "visibleCount": 0,
+      "confidence": "low"
+    },
+    {
+      "word": "from",
+      "expectedCast": [],
+      "expectedCount": 0,
+      "ok": false,
+      "issues": [
+        "scan error: from: Gemini quota/rate limit after retries: {\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-a"
+      ],
+      "visibleCharacters": [],
+      "visibleCount": 0,
+      "confidence": "low"
+    },
+    {
+      "word": "when",
+      "expectedCast": [],
+      "expectedCount": 0,
+      "ok": false,
+      "issues": [
+        "scan error: when: Gemini quota/rate limit after retries: {\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-a"
+      ],
+      "visibleCharacters": [],
+      "visibleCount": 0,
+      "confidence": "low"
+    },
+    {
+      "word": "back",
+      "expectedCast": [],
+      "expectedCount": 0,
+      "ok": false,
+      "issues": [
+        "scan error: back: Gemini quota/rate limit after retries: {\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-a"
+      ],
+      "visibleCharacters": [],
+      "visibleCount": 0,
+      "confidence": "low"
+    },
+    {
+      "word": "okay",
+      "expectedCast": [],
+      "expectedCount": 0,
+      "ok": false,
+      "issues": [
+        "scan error: okay: Gemini quota/rate limit after retries: {\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-a"
+      ],
+      "visibleCharacters": [],
+      "visibleCount": 0,
+      "confidence": "low"
+    },
+    {
+      "word": "yes",
+      "expectedCast": [],
+      "expectedCount": 0,
+      "ok": false,
+      "issues": [
+        "scan error: yes: Gemini quota/rate limit after retries: {\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-a"
       ],
       "visibleCharacters": [],
       "visibleCount": 0,
