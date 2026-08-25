@@ -10,7 +10,7 @@ import { requiresSafeImageOnly } from "@/lib/safe-image-search";
 export { buildCastWordImagePrompt } from "@/data/cast-word-image-prompts";
 
 /** Bump when replacing bundled cast JPEGs in public/word-images. */
-export const CAST_WORD_IMAGE_BUNDLE = "cast2";
+export const CAST_WORD_IMAGE_BUNDLE = "cast3";
 export const CAST_WORD_IMAGE_TOP_RANK = 100;
 
 const CAST_WORDS = new Set(

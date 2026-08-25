@@ -221,7 +221,7 @@ async function main(): Promise<void> {
 
   writeFileSync(
     resolve(OUT_DIR, "cast-generation-report.json"),
-    JSON.stringify({ ok, fail, words, bundle: "cast2", provider: PROVIDER }, null, 2),
+    JSON.stringify({ ok, fail, words, bundle: "cast3", provider: PROVIDER }, null, 2),
   );
   console.log(`Done: ${ok} ok, ${fail} failed`);
   if (fail > 0) process.exit(1);

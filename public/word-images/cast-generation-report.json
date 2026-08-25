@@ -1,0 +1,8 @@
+{
+  "ok": 100,
+  "fail": 0,
+  "bundle": "cast3",
+  "provider": "GenerateImage",
+  "expressionFlexible": true,
+  "notes": "Design fixed, per-word expressions in cast-word-image-prompts.ts"
+}
