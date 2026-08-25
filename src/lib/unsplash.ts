@@ -1,5 +1,10 @@
 import { buildImageSearchQueries } from "@/lib/image-keyword";
 import { cleanPhrase } from "@/lib/image-keyword-utils";
+import {
+  FUNCTION_WORD_IMAGE_MARKER,
+  isHighTrafficFunctionWord,
+  prefersCuratedFunctionWordImage,
+} from "@/lib/function-word-images";
 import { isUnsafeImageMetadata, isUnsafeImageUrl } from "@/lib/safe-image-metadata";
 import { requiresSafeImageOnly } from "@/lib/safe-image-search";
 
@@ -50,6 +55,29 @@ const SEMANTIC_IMAGE_VERSION = "33";
 export const IMAGE_PIPELINE_ID = "gemini-unsplash-v4";
 /** Rule-based keyword queries with metadata score > 0. */
 export const RULE_STOCK_PIPELINE_ID = "rule-stock-v1";
+
+function markFunctionWordStockUrl(url: string): string | null {
+  const tagged = markRuleStockImageUrl(url);
+  if (!tagged) return null;
+  try {
+    const parsed = new URL(tagged);
+    parsed.searchParams.set("fw", FUNCTION_WORD_IMAGE_MARKER);
+    return parsed.toString();
+  } catch {
+    return tagged;
+  }
+}
+
+function tagStockPhotoUrl(
+  url: string,
+  word: string,
+  pos?: string | null,
+): string | null {
+  if (prefersCuratedFunctionWordImage(word, pos)) {
+    return markFunctionWordStockUrl(url);
+  }
+  return markRuleStockImageUrl(url);
+}
 
 /** Only Pexels and Unsplash are trusted learning-card photo sources. */
 const STOCK_IMAGE_HOSTS = new Set(["images.pexels.com", "images.unsplash.com"]);
@@ -357,6 +385,13 @@ export function shouldRefreshImageUrl(
       imgpipe === IMAGE_PIPELINE_ID ||
       imgpipe === RULE_STOCK_PIPELINE_ID
     ) {
+      if (word && isHighTrafficFunctionWord(word)) {
+        try {
+          return new URL(trimmed).searchParams.get("fw") !== FUNCTION_WORD_IMAGE_MARKER;
+        } catch {
+          return true;
+        }
+      }
       return false;
     }
     // semantic-only hash fallback — show but keep refreshing
@@ -411,6 +446,21 @@ export function getDefaultLearningImageDataUrl(
     if (normalizedWord === "too") {
       return `<rect x="175" y="205" width="250" height="14" rx="7" opacity=".6"/><rect x="205" y="165" width="42" height="40" rx="8"/><rect x="279" y="125" width="42" height="80" rx="8"/><rect x="353" y="70" width="42" height="135" rx="8"/><path d="M374 58l18 18m-18-18-18 18" fill="none" stroke="#fff" stroke-width="8" stroke-linecap="round"/>`;
     }
+    if (["that", "those"].includes(normalizedWord)) {
+      return `<circle cx="220" cy="160" r="28"/><path d="M248 152h120m-18-16 18 16-18 16" fill="none" stroke="#fff" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/><rect x="390" y="130" width="56" height="56" rx="10" opacity=".75"/>`;
+    }
+    if (["this", "these"].includes(normalizedWord)) {
+      return `<circle cx="220" cy="160" r="28"/><path d="M248 160h52" fill="none" stroke="#fff" stroke-width="10" stroke-linecap="round"/><rect x="310" y="130" width="56" height="56" rx="10"/>`;
+    }
+    if (normalizedWord === "what") {
+      return `<circle cx="220" cy="145" r="30"/><path d="M220 178v16m-10 12h20" fill="none" stroke="#fff" stroke-width="10" stroke-linecap="round"/><path d="M205 132c4-12 30-18 15 0-12 14 10 10 10 24" fill="none" stroke="#fff" stroke-width="8" stroke-linecap="round"/>`;
+    }
+    if (normalizedWord === "and") {
+      return `<circle cx="245" cy="160" r="34"/><circle cx="355" cy="160" r="34"/><path d="M279 160h42" fill="none" stroke="#fff" stroke-width="12" stroke-linecap="round"/>`;
+    }
+    if (normalizedWord === "of") {
+      return `<rect x="250" y="120" width="100" height="80" rx="14"/><circle cx="280" cy="155" r="12"/><circle cx="320" cy="165" r="10"/><path d="M255 205h90" fill="none" stroke="#fff" stroke-width="8" stroke-linecap="round"/>`;
+    }
     if (pos?.toLowerCase() === "pronoun") {
       return `<circle cx="220" cy="125" r="30" opacity=".55"/><circle cx="300" cy="110" r="38"/><circle cx="380" cy="125" r="30" opacity=".55"/><path d="M170 220c8-50 34-72 50-72s42 22 50 72m-30 0c8-64 38-90 60-90s52 26 60 90m-30 0c8-50 34-72 50-72s42 22 50 72" fill="none" stroke="#fff" stroke-width="14" stroke-linecap="round" opacity=".9"/>`;
     }
@@ -461,7 +511,11 @@ export function coalesceWordImageUrl(
   word: string,
   pos?: string | null,
 ): string {
+  const functionWord = prefersCuratedFunctionWordImage(word, pos);
   if (candidate && isRealCardImageUrl(candidate, word)) return candidate;
+  if (functionWord) {
+    return getDefaultLearningImageDataUrl(word, pos);
+  }
   if (existing && isRealCardImageUrl(existing, word)) return existing;
   if (existing && isLegacyDisplayableStockUrl(existing, word)) return existing;
   return getDefaultLearningImageDataUrl(word, pos);
@@ -584,14 +638,17 @@ async function pickScoredStockPhoto(
   word: string,
   query: string,
   photos: Array<{ url: string; alt: string; extra?: string }>,
+  pos?: string | null,
 ): Promise<string | null> {
+  const functionWord = prefersCuratedFunctionWordImage(word, pos);
+  const minScore = functionWord ? 4 : 0;
   const candidates: Array<{ url: string; score: number }> = [];
   for (const photo of photos) {
     if (isUnsafeImageMetadata(photo.alt, photo.extra, query)) continue;
     if (!photo.url || isUnsafeImageUrl(photo.url)) continue;
     const score = scoreImageMetadata(word, query, photo.alt);
-    if (score <= 0) continue;
-    const versioned = markRuleStockImageUrl(photo.url);
+    if (score <= minScore) continue;
+    const versioned = tagStockPhotoUrl(photo.url, word, pos);
     if (!versioned || !isSelectableStockPhotoUrl(versioned, word)) continue;
     candidates.push({ url: versioned, score });
   }
@@ -602,12 +659,14 @@ async function pickScoredStockPhoto(
     const idx = hashWord(word) % topTier.length;
     return topTier[idx]!.url;
   }
+  if (functionWord) return null;
   return pickHashedSafeStockPhoto(word, photos, query);
 }
 
 async function pickUnsplashFromQueries(
   word: string,
   queries: string[],
+  pos?: string | null,
 ): Promise<string | null> {
   if (!process.env.UNSPLASH_ACCESS_KEY?.trim()) return null;
 
@@ -619,7 +678,7 @@ async function pickUnsplashFromQueries(
         alt: photo.alt,
         extra: photo.photographer,
       }));
-      const url = await pickScoredStockPhoto(word, query, mapped);
+      const url = await pickScoredStockPhoto(word, query, mapped, pos);
       if (url) return url;
     } catch (error) {
       console.warn(`Unsplash search skipped for "${query}":`, error);
@@ -631,12 +690,13 @@ async function pickUnsplashFromQueries(
 async function pickPexelsFromQueries(
   word: string,
   queries: string[],
+  pos?: string | null,
 ): Promise<string | null> {
   if (!process.env.PEXELS_API_KEY?.trim()) return null;
 
   for (const query of queries) {
     const photos = await searchPexelsPhotos(query);
-    const url = await pickScoredStockPhoto(word, query, photos);
+    const url = await pickScoredStockPhoto(word, query, photos, pos);
     if (url) return url;
   }
   return null;
@@ -964,7 +1024,7 @@ export async function fetchWordImageUrlDetailed(
     };
   }
 
-  const unsplashUrl = await pickUnsplashFromQueries(word, queries);
+  const unsplashUrl = await pickUnsplashFromQueries(word, queries, pos);
   if (unsplashUrl) {
     return {
       imageUrl: unsplashUrl,
@@ -972,7 +1032,7 @@ export async function fetchWordImageUrlDetailed(
     };
   }
 
-  const pexelsUrl = await pickPexelsFromQueries(word, queries);
+  const pexelsUrl = await pickPexelsFromQueries(word, queries, pos);
   if (pexelsUrl) {
     return {
       imageUrl: pexelsUrl,

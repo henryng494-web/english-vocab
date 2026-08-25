@@ -4,6 +4,8 @@
  */
 
 import { lookupAbstractImageScene } from "@/lib/abstract-image-scenes";
+import { lookupCuratedImageKeyword } from "@/data/curated-image-keywords-loader";
+import { prefersCuratedFunctionWordImage } from "@/lib/function-word-images";
 import {
   isHomonymWord,
   resolveHomonymImageKeyword,
@@ -101,6 +103,9 @@ export function resolveImageSearchKeyword(
   );
   if (meaningKeyword) return meaningKeyword;
 
+  const curated = lookupCuratedImageKeyword(normalizedWord);
+  if (curated) return curated;
+
   const candidate = cleanPhrase(options.searchKeyword ?? "");
   if (
     candidate &&
@@ -113,11 +118,11 @@ export function resolveImageSearchKeyword(
 
   const pos =
     options.pos?.trim().toLowerCase() || inferPosFromWord(normalizedWord);
+  const functionWord = prefersCuratedFunctionWordImage(normalizedWord, pos);
 
   // When a gloss exists, prefer meaning-aware queries over suffix/hash scenes.
   if (options.meaning?.trim() || options.englishDefinition?.trim()) {
-    const rawDefinition =
-      options.englishDefinition?.trim() || options.meaning?.trim() || "";
+    const rawDefinition = options.englishDefinition?.trim() || "";
     const definitionSnippet = isUsableEnglishImageQuery(rawDefinition)
       ? cleanPhrase(rawDefinition.split(/[,;.]|\//)[0] ?? "")
       : "";
@@ -130,8 +135,20 @@ export function resolveImageSearchKeyword(
       return definitionSnippet;
     }
 
+    if (functionWord) {
+      const abstractScene =
+        lookupAbstractImageScene(normalizedWord, pos) ??
+        lookupAbstractImageScene(singularizeForLookup(normalizedWord), pos);
+      if (abstractScene && !isLegacyStockScenePhrase(abstractScene)) {
+        return abstractScene;
+      }
+    }
+
     if (COLOR_WORDS.has(normalizedWord)) {
       return `bright ${normalizedWord} color sample swatch`;
+    }
+    if (functionWord) {
+      return getDefaultFunctionWordFallbackQuery(normalizedWord, pos);
     }
     if (pos === "verb") {
       return `person doing ${normalizedWord} action everyday`;
@@ -164,7 +181,20 @@ export function resolveImageSearchKeyword(
     return `person doing ${normalizedWord} action everyday`;
   }
 
+  if (functionWord) {
+    return curated ?? getDefaultFunctionWordFallbackQuery(normalizedWord, pos);
+  }
+
   return diversifiedStockScene(normalizedWord);
+}
+
+function getDefaultFunctionWordFallbackQuery(
+  word: string,
+  pos?: string | null,
+): string {
+  const scene = lookupAbstractImageScene(word, pos);
+  if (scene && !isLegacyStockScenePhrase(scene)) return scene;
+  return `${word} concept illustration educational`;
 }
 
 /**

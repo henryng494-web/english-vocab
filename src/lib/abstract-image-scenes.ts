@@ -6,6 +6,18 @@
 import { singularizeForLookup } from "@/lib/word-singularize";
 
 const WORD_SCENES: Readonly<Record<string, string>> = {
+  that: "hand pointing into distance",
+  this: "hand pointing at nearby object",
+  these: "hands holding several apples",
+  those: "people pointing at distant hills",
+  and: "two people holding hands",
+  or: "choice between tea and coffee",
+  but: "stop sign at street corner",
+  of: "bowl of fresh fruit",
+  what: "person looking confused question gesture",
+  which: "person choosing between two shirts",
+  who: "person asking question classroom",
+  it: "person pointing at object on table",
   unless: "rain storm window person staying indoors",
   although: "person climbing mountain despite challenge",
   though: "person climbing mountain despite challenge",

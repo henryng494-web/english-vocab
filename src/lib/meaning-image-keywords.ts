@@ -25,6 +25,15 @@ const WORD_HEADWORD_RULES: Record<string, string> = {
   alimony: "divorce alimony legal agreement signing documents",
   counsellor: "counsellor therapy session office two people talking",
   dyke: "flood barrier embankment water levee landscape",
+  that: "hand pointing into distance",
+  and: "two people holding hands",
+  of: "bowl of fresh fruit",
+  what: "person looking confused question gesture",
+  it: "person pointing at object on table",
+  or: "choice between tea and coffee",
+  but: "stop sign at street corner",
+  the: "the sun in blue sky",
+  this: "hand pointing at nearby object",
 };
 
 const MEANING_RULES: PatternRule[] = [
