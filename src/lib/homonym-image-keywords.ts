@@ -102,7 +102,7 @@ export function resolveHomonymImageKeyword(
     ) {
       return "mole animal digging in garden soil";
     }
-    return "skin mole beauty mark on cheek closeup";
+    return null;
   }
 
   if (key === "bat") {

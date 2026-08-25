@@ -4,9 +4,9 @@ import { isExcludedVocabWord } from "@/lib/proper-noun";
 import { getFamilyHeadword } from "@/lib/word-family";
 import {
   fetchWordImageUrlDetailed,
-  isCurrentPipelineImageUrl,
   isPersistableWordImageUrl,
   isRealCardImageUrl,
+  shouldRefreshImageUrl,
 } from "@/lib/unsplash";
 import { normalizeVocabInput } from "@/lib/word-validation";
 
@@ -52,7 +52,11 @@ export async function resolveWordImageForApi(
   const pos = posParam?.trim() || detail?.word_type || null;
 
   const stored = detail?.image_url?.trim();
-  if (stored && isCurrentPipelineImageUrl(stored) && isRealCardImageUrl(stored, word)) {
+  if (
+    stored &&
+    isRealCardImageUrl(stored, word) &&
+    !shouldRefreshImageUrl(stored, word)
+  ) {
     return stored;
   }
 

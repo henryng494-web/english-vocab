@@ -12,6 +12,7 @@ import {
   fetchStockImageForQuery,
   getDefaultLearningImageDataUrl,
   markGeminiPipelineImageUrl,
+  markRuleStockImageUrl,
 } from "@/lib/unsplash";
 
 /**
@@ -237,11 +238,14 @@ export async function fetchVocabIllustrationImage(
     if (geminiPhrase) {
       const geminiStock = await fetchStockForQueries(word, [geminiPhrase]);
       if (geminiStock) {
-        return {
-          imageUrl: markGeminiPipelineImageUrl(geminiStock.url),
-          searchPhrase: geminiStock.query,
-          source: "gemini-stock",
-        };
+        const tagged = markGeminiPipelineImageUrl(geminiStock.url);
+        if (tagged) {
+          return {
+            imageUrl: tagged,
+            searchPhrase: geminiStock.query,
+            source: "gemini-stock",
+          };
+        }
       }
     }
 
@@ -252,14 +256,17 @@ export async function fetchVocabIllustrationImage(
     );
     const directStock = await fetchStockForQueries(word, directQueries);
     if (directStock) {
-      console.warn(
-        `[gemini-unsplash-image] Meaning-based stock fallback for "${word}" → "${directStock.query}"`,
-      );
-      return {
-        imageUrl: markGeminiPipelineImageUrl(directStock.url),
-        searchPhrase: directStock.query,
-        source: "direct-stock",
-      };
+      const tagged = markRuleStockImageUrl(directStock.url);
+      if (tagged) {
+        console.warn(
+          `[gemini-unsplash-image] Meaning-based stock fallback for "${word}" → "${directStock.query}"`,
+        );
+        return {
+          imageUrl: tagged,
+          searchPhrase: directStock.query,
+          source: "direct-stock",
+        };
+      }
     }
 
     return {
@@ -278,11 +285,14 @@ export async function fetchVocabIllustrationImage(
       buildDirectWordStockQueries(word, partOfSpeech, meaning),
     );
     if (directStock) {
-      return {
-        imageUrl: markGeminiPipelineImageUrl(directStock.url),
-        searchPhrase: directStock.query,
-        source: "direct-stock",
-      };
+      const tagged = markRuleStockImageUrl(directStock.url);
+      if (tagged) {
+        return {
+          imageUrl: tagged,
+          searchPhrase: directStock.query,
+          source: "direct-stock",
+        };
+      }
     }
 
     return { imageUrl: placeholder, searchPhrase: null, source: "placeholder" };

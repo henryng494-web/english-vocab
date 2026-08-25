@@ -79,7 +79,34 @@ export async function refreshStaleWordImages(
           }
         }
       } catch {
-        /* best-effort */
+        await Promise.all(
+          batch.map(async (item) => {
+            const word = item.word.trim().toLowerCase();
+            const params = new URLSearchParams({ word: item.word });
+            if (item.searchKeyword?.trim()) {
+              params.set("keyword", item.searchKeyword.trim());
+            }
+            if (item.wordType?.trim()) {
+              params.set("pos", item.wordType.trim());
+            }
+            if (item.meaning?.trim()) {
+              params.set("meaning", item.meaning.trim());
+            }
+            try {
+              const res = await fetch(`/api/word-image?${params}`, {
+                cache: "no-store",
+              });
+              const data = (await res.json()) as { image_url?: string | null };
+              const url = data.image_url?.trim();
+              if (url && !shouldRefreshImageUrl(url, word)) {
+                updates[word] = url;
+                setCachedWordImageUrl(word, url);
+              }
+            } catch {
+              /* best-effort */
+            }
+          }),
+        );
       }
     }
   }

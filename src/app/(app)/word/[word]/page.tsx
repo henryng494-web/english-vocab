@@ -13,7 +13,7 @@ import {
   persistWordCache,
 } from "@/lib/discover-word-cache";
 import { refreshSingleWordImage } from "@/lib/refresh-stale-word-images";
-import { isCurrentPipelineImageUrl } from "@/lib/unsplash";
+import { shouldRefreshImageUrl } from "@/lib/unsplash";
 import { capitalizeFirst } from "@/lib/format-text";
 import { getLocalWordStatus } from "@/lib/learning-storage";
 import { getPresetRank } from "@/data/preset-vocabulary";
@@ -71,7 +71,7 @@ function WordDetailPageContent() {
     const hadValidCache = Boolean(cached && isCacheEntryValid(cached, word));
     if (hadValidCache) {
       setData(cached!);
-      setLoading(!isCurrentPipelineImageUrl(cached!.image_url));
+      setLoading(shouldRefreshImageUrl(cached!.image_url, word));
     } else {
       setLoading(true);
     }

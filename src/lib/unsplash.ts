@@ -48,6 +48,8 @@ const GENERIC_QUERY_TOKENS = new Set([
 const SEMANTIC_IMAGE_VERSION = "33";
 /** Only URLs from a successful Gemini→Unsplash run carry this marker. */
 export const IMAGE_PIPELINE_ID = "gemini-unsplash-v4";
+/** Rule-based keyword queries with metadata score > 0. */
+export const RULE_STOCK_PIPELINE_ID = "rule-stock-v1";
 
 /** Only Pexels and Unsplash are trusted learning-card photo sources. */
 const STOCK_IMAGE_HOSTS = new Set(["images.pexels.com", "images.unsplash.com"]);
@@ -218,6 +220,27 @@ export function isCurrentPipelineImageUrl(
   }
 }
 
+export function isRuleStockImageUrl(url: string | null | undefined): boolean {
+  const trimmed = url?.trim();
+  if (!trimmed?.startsWith("http") || !isStockImageUrl(trimmed)) return false;
+  try {
+    const parsed = new URL(trimmed);
+    return (
+      parsed.searchParams.get("semantic") === SEMANTIC_IMAGE_VERSION &&
+      parsed.searchParams.get("imgpipe") === RULE_STOCK_PIPELINE_ID
+    );
+  } catch {
+    return false;
+  }
+}
+
+/** Gemini or scored rule-based stock — safe to skip re-fetch. */
+export function isFreshTaggedStockImageUrl(
+  url: string | null | undefined,
+): boolean {
+  return isCurrentPipelineImageUrl(url) || isRuleStockImageUrl(url);
+}
+
 export function isPexelsImageUrl(url: string | null | undefined): boolean {
   const trimmed = url?.trim();
   if (!trimmed?.startsWith("http")) return false;
@@ -262,8 +285,11 @@ export function isDisplayableHttpImageUrl(
   if (isBrokenOpenverseProxyUrl(trimmed)) return false;
   if (isStockImageUrl(trimmed)) {
     const { imgpipe } = getStockUrlMarkers(trimmed);
-    // Reject URLs tagged by the old poisoned pipeline (wrong photos marked "fresh").
-    if (imgpipe && imgpipe !== IMAGE_PIPELINE_ID) {
+    const trustedPipe =
+      !imgpipe ||
+      imgpipe === IMAGE_PIPELINE_ID ||
+      imgpipe === RULE_STOCK_PIPELINE_ID;
+    if (!trustedPipe) {
       return false;
     }
     return true;
@@ -326,12 +352,14 @@ export function shouldRefreshImageUrl(
   }
   if (isStockImageUrl(trimmed)) {
     const { semantic, imgpipe } = getStockUrlMarkers(trimmed);
+    if (semantic !== SEMANTIC_IMAGE_VERSION) return true;
     if (
-      imgpipe === IMAGE_PIPELINE_ID &&
-      semantic === SEMANTIC_IMAGE_VERSION
+      imgpipe === IMAGE_PIPELINE_ID ||
+      imgpipe === RULE_STOCK_PIPELINE_ID
     ) {
       return false;
     }
+    // semantic-only hash fallback — show but keep refreshing
     return true;
   }
   return (
@@ -545,7 +573,7 @@ function pickHashedSafeStockPhoto(
     if (isUnsafeImageMetadata(photo.alt, photo.extra, query)) continue;
     if (!photo.url || isUnsafeImageUrl(photo.url)) continue;
     const versioned = markSemanticImageUrl(photo.url);
-    if (!isSelectableStockPhotoUrl(versioned, word)) continue;
+    if (!versioned || !isSelectableStockPhotoUrl(versioned, word)) continue;
     safe.push(versioned);
   }
   if (safe.length === 0) return null;
@@ -563,8 +591,8 @@ async function pickScoredStockPhoto(
     if (!photo.url || isUnsafeImageUrl(photo.url)) continue;
     const score = scoreImageMetadata(word, query, photo.alt);
     if (score <= 0) continue;
-    const versioned = markSemanticImageUrl(photo.url);
-    if (!isSelectableStockPhotoUrl(versioned, word)) continue;
+    const versioned = markRuleStockImageUrl(photo.url);
+    if (!versioned || !isSelectableStockPhotoUrl(versioned, word)) continue;
     candidates.push({ url: versioned, score });
   }
   if (candidates.length > 0) {
@@ -709,6 +737,29 @@ export async function searchPhotos(
   }));
 }
 
+function stemSemanticToken(token: string): string {
+  if (token.endsWith("ing") && token.length > 5) {
+    let stem = token.slice(0, -3);
+    if (stem.at(-1) === stem.at(-2)) stem = stem.slice(0, -1);
+    if (stem === "mak" || stem === "tak") stem += "e";
+    return stem;
+  }
+  if (token.endsWith("ies") && token.length > 4) {
+    return `${token.slice(0, -3)}y`;
+  }
+  if (
+    token.endsWith("es") &&
+    token.length > 4 &&
+    /(?:ch|sh|ss|x|z|o)es$/.test(token)
+  ) {
+    return token.slice(0, -2);
+  }
+  if (token.endsWith("s") && token.length > 3 && !token.endsWith("ss")) {
+    return token.slice(0, -1);
+  }
+  return token;
+}
+
 function semanticTokens(value: string): Set<string> {
   return new Set(
     value
@@ -716,15 +767,7 @@ function semanticTokens(value: string): Set<string> {
       .replace(/[^a-z0-9\s-]/g, " ")
       .split(/\s+/)
       .filter((token) => !GENERIC_QUERY_TOKENS.has(token))
-      .map((token) => {
-        if (token.endsWith("ing") && token.length > 5) {
-          let stem = token.slice(0, -3);
-          if (stem.at(-1) === stem.at(-2)) stem = stem.slice(0, -1);
-          if (stem === "mak" || stem === "tak") stem += "e";
-          return stem;
-        }
-        return token.replace(/(?:ies|es|s)$/, "");
-      })
+      .map(stemSemanticToken)
       .filter((token) => token.length > 2 && !GENERIC_QUERY_TOKENS.has(token)),
   );
 }
@@ -810,19 +853,39 @@ function isUngroundedSingleTokenQuery(
   return queryTokens.size === 1 && overlapCount(wordTokens, queryTokens) === 0;
 }
 
-export function markSemanticImageUrl(url: string): string {
-  const versionedUrl = new URL(url);
-  versionedUrl.searchParams.set("semantic", SEMANTIC_IMAGE_VERSION);
-  versionedUrl.searchParams.delete("imgpipe");
-  return versionedUrl.toString();
+export function markSemanticImageUrl(url: string): string | null {
+  try {
+    const versionedUrl = new URL(url);
+    versionedUrl.searchParams.set("semantic", SEMANTIC_IMAGE_VERSION);
+    versionedUrl.searchParams.delete("imgpipe");
+    return versionedUrl.toString();
+  } catch {
+    return null;
+  }
+}
+
+/** Tag URLs from scored rule-based keyword queries (not Gemini). */
+export function markRuleStockImageUrl(url: string): string | null {
+  try {
+    const versionedUrl = new URL(url);
+    versionedUrl.searchParams.set("semantic", SEMANTIC_IMAGE_VERSION);
+    versionedUrl.searchParams.set("imgpipe", RULE_STOCK_PIPELINE_ID);
+    return versionedUrl.toString();
+  } catch {
+    return null;
+  }
 }
 
 /** Tag URLs produced only by the Gemini→Unsplash vocabulary pipeline. */
-export function markGeminiPipelineImageUrl(url: string): string {
-  const versionedUrl = new URL(url);
-  versionedUrl.searchParams.set("semantic", SEMANTIC_IMAGE_VERSION);
-  versionedUrl.searchParams.set("imgpipe", IMAGE_PIPELINE_ID);
-  return versionedUrl.toString();
+export function markGeminiPipelineImageUrl(url: string): string | null {
+  try {
+    const versionedUrl = new URL(url);
+    versionedUrl.searchParams.set("semantic", SEMANTIC_IMAGE_VERSION);
+    versionedUrl.searchParams.set("imgpipe", IMAGE_PIPELINE_ID);
+    return versionedUrl.toString();
+  } catch {
+    return null;
+  }
 }
 
 export type WordImageFetchResult = {
@@ -846,7 +909,7 @@ async function tryGeminiVocabImage(
       partOfSpeech: pos?.trim() || "noun",
       meaning,
     });
-    if (result.source === "placeholder") return null;
+    if (result.source !== "gemini-stock") return null;
     return {
       imageUrl: result.imageUrl,
       searchPhrase: result.searchPhrase ?? word,
@@ -858,10 +921,6 @@ async function tryGeminiVocabImage(
     );
     return null;
   }
-}
-
-function finalizeResolvedImageUrl(url: string): string {
-  return markGeminiPipelineImageUrl(url);
 }
 
 /**
@@ -891,7 +950,7 @@ export async function fetchWordImageUrlDetailed(
     const pipeline = await tryGeminiVocabImage(word, pos, geminiContext);
     if (pipeline) {
       return {
-        imageUrl: finalizeResolvedImageUrl(pipeline.imageUrl),
+        imageUrl: pipeline.imageUrl,
         searchKeyword: pipeline.searchPhrase,
       };
     }
@@ -908,7 +967,7 @@ export async function fetchWordImageUrlDetailed(
   const unsplashUrl = await pickUnsplashFromQueries(word, queries);
   if (unsplashUrl) {
     return {
-      imageUrl: finalizeResolvedImageUrl(unsplashUrl),
+      imageUrl: unsplashUrl,
       searchKeyword: searchKeyword?.trim() || queries[0] || null,
     };
   }
@@ -916,7 +975,7 @@ export async function fetchWordImageUrlDetailed(
   const pexelsUrl = await pickPexelsFromQueries(word, queries);
   if (pexelsUrl) {
     return {
-      imageUrl: finalizeResolvedImageUrl(pexelsUrl),
+      imageUrl: pexelsUrl,
       searchKeyword: searchKeyword?.trim() || queries[0] || null,
     };
   }

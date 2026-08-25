@@ -3,10 +3,11 @@
 import { useEffect, useState } from "react";
 import {
   getDefaultLearningImageDataUrl,
-  isCurrentPipelineImageUrl,
+  isDisplayableHttpImageUrl,
   isRealCardImageUrl,
   isUsableCardImageUrl,
   resolveWordImageUrl,
+  shouldRefreshImageUrl,
 } from "@/lib/unsplash";
 import { peekCachedWordImageUrl } from "@/lib/word-image-cache";
 import { resolveWordImageForCard } from "@/lib/image-preload";
@@ -26,6 +27,7 @@ function pickQuizSrc(
   if (cached) return cached;
   const trimmed = imageUrl?.trim();
   if (trimmed && isRealCardImageUrl(trimmed, word)) return trimmed;
+  if (trimmed && isDisplayableHttpImageUrl(trimmed, word)) return trimmed;
   const resolved = resolveWordImageUrl(word, imageUrl, searchKeyword, wordType);
   if (isRealCardImageUrl(resolved, word)) return resolved;
   return "";
@@ -58,7 +60,7 @@ export function useWordImageSrc(
   };
 
   const needsFreshImage = (url?: string | null) =>
-    !isCurrentPipelineImageUrl(url) || !isUsableCardImageUrl(url, word);
+    shouldRefreshImageUrl(url, word) || !isUsableCardImageUrl(url, word);
 
   const initial = resolveDisplay(imageUrl);
   const initialReady = quizSafe ? Boolean(initial) : true;
@@ -97,9 +99,16 @@ export function useWordImageSrc(
       );
       if (cancelled) return;
       if (quizSafe) {
-        if (!fetched) return;
-        setSrc(fetched);
-        setReady(true);
+        if (fetched) {
+          setSrc(fetched);
+          setReady(true);
+          return;
+        }
+        const legacy = pickQuizSrc(word, imageUrl, searchKeyword, wordType);
+        if (legacy) {
+          setSrc(legacy);
+          setReady(true);
+        }
         return;
       }
       if (isUsableCardImageUrl(fetched, word) && fetched !== next) {

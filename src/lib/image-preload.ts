@@ -7,6 +7,14 @@ import { isRealCardImageUrl } from "@/lib/unsplash";
 const preloadedUrls = new Set<string>();
 const inflightWords = new Map<string, Promise<string | null>>();
 
+function inflightKey(target: WordImagePrefetchTarget): string {
+  const word = target.word.trim().toLowerCase();
+  const keyword = target.searchKeyword?.trim().toLowerCase() ?? "";
+  const meaning = target.meaning?.trim().toLowerCase() ?? "";
+  const pos = target.wordType?.trim().toLowerCase() ?? "";
+  return `${word}|${keyword}|${meaning}|${pos}`;
+}
+
 export type WordImagePrefetchTarget = {
   word: string;
   imageUrl?: string | null;
@@ -135,7 +143,8 @@ async function fetchWordImageFast(
     return cached;
   }
 
-  const pending = inflightWords.get(word);
+  const key = inflightKey(target);
+  const pending = inflightWords.get(key);
   if (pending) return pending;
 
   const promise = (async () => {
@@ -159,10 +168,10 @@ async function fetchWordImageFast(
     }
     return null;
   })().finally(() => {
-    inflightWords.delete(word);
+    inflightWords.delete(key);
   });
 
-  inflightWords.set(word, promise);
+  inflightWords.set(key, promise);
   return promise;
 }
 
