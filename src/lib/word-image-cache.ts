@@ -1,7 +1,7 @@
 import { hasAcceptableWordImage, shouldRefreshImageUrl } from "@/lib/unsplash";
 
 /** Bump when function-word fw=1 validation rules change. */
-const STORAGE_KEY = "word-image-url-cache-v20";
+const STORAGE_KEY = "word-image-url-cache-v21";
 const MAX_ENTRIES = 500;
 
 const cache = new Map<string, string>();
@@ -20,6 +20,7 @@ function hydrateFromStorage(): void {
     sessionStorage.removeItem("word-image-url-cache-v17");
     sessionStorage.removeItem("word-image-url-cache-v18");
     sessionStorage.removeItem("word-image-url-cache-v19");
+    sessionStorage.removeItem("word-image-url-cache-v20");
     const raw = sessionStorage.getItem(STORAGE_KEY);
     if (!raw) return;
     const parsed = JSON.parse(raw) as Record<string, string>;

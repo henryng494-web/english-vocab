@@ -16,10 +16,13 @@ export const JUNGLE_CAST_NAME = "Jungle Jokers";
 /** Immutable silhouette spec — must match jungle-jokers-lineup.png exactly. */
 export const JUNGLE_CAST_SHAPE_LOCK =
   "CRITICAL — copy EXACT silhouettes from attached per-character reference PNGs and lineup. Body proportions are LOCKED; NEVER slim down, fatten up, shorten arms, or resize heads. ONLY change: facial expression and optional clothing/accessories.\n" +
-  "(1) MONKEY: purple body #8B5CF6, lavender face/ears/palms #C4B5FD; tiny rectangular torso; arms ALWAYS extremely long thin tubes reaching the ground (never short arms); small curly tail.\n" +
+  "(1) MONKEY: purple body #8B5CF6, lavender face/ears/palms #C4B5FD; small round head; tiny body; normal-length arms (hands at waist/hip height — NOT dragging on floor, NOT used as extra legs); exactly TWO arms from shoulders + TWO legs from hips + one curly tail; front view preferred.\n" +
   "(2) ELEPHANT: pink #F472B6; head ALWAYS one giant perfect circle (40% of character height); huge flat semicircle ears; body and legs ALWAYS pencil-thin stick lines (never chubby body, never thick legs, never round fat torso); trunk thin tube curving up with small heart tip.\n" +
   "(3) CROCODILE: lime green #84CC16; body ALWAYS one horizontal rectangle log (width 3x height); jagged dorsal scales; four stubby short legs (never long legs); one blunt white tooth.\n" +
   "(4) TIGER: orange ball #F97316; body ALWAYS one sphere (head+body merged chibi ball); bold dark zigzag stripes; cream muzzle patch; legs ALWAYS tiny stubs (never long legs); small striped tail.";
+
+export const JUNGLE_CAST_MONKEY_POSE_RULE =
+  "MONKEY ANATOMY (critical): Purple monkey has EXACTLY two arms and two legs — never three arms, never four legs, never extra hands. Front or 3/4 view. Only ONE hand action at a time; other arm rests at side or on hip. Safe poses: hands-on-hips, one arm pointing (other at side), sitting with arms on lap/desk. Do NOT draw long arms touching floor as extra supports.";
 
 export const JUNGLE_CAST_ANATOMY_RULES =
   "ANATOMY & PROPS: Monkey has EXACTLY two arms and two legs (four limbs total) — never three arms, never extra limbs. Elephant: four stick legs + trunk (trunk is NOT a third arm). Tiger: two stub arms two stub legs. Crocodile: four stub legs. ALL objects must be physically grounded or held — candy jars, puzzles, props resting on table/floor OR held by a visible hand/arm. NO floating objects in mid-air.";
@@ -70,9 +73,9 @@ export const JUNGLE_CAST_EXPRESSION_SAMPLES: Readonly<
     label: "Suy nghĩ — tò mò",
     cast: ["monkey"],
     scene:
-      "ONLY monkey in bright classroom. Monkey sits on chair behind desk — puzzle flat on desk surface, blocks on desk. One hand touches chin, OTHER arm hangs down long to floor. Curved hook shapes near head. All props on desk, nothing floating.",
+      "ONLY monkey in bright classroom. Monkey sits on chair at desk — puzzle flat on desk, blocks on desk. One hand touches chin thinking, other hand resting flat on desk. Curved hook shapes near head. All props on desk.",
     expressions:
-      "Monkey: curious thinking, one eyebrow up. Exactly two arms: one on chin, one hanging down.",
+      "Monkey: curious thinking, one eyebrow up. Exactly two arms visible: one on chin, one on desk.",
     outfits: "Monkey: reading glasses on forehead.",
   },
   love: {

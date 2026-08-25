@@ -2,6 +2,7 @@
 import {
   JUNGLE_CAST_DESIGN_ONLY,
   JUNGLE_CAST_EXPRESSION_SAMPLES,
+  JUNGLE_CAST_MONKEY_POSE_RULE,
 } from "@/data/jungle-cast-samples";
 import {
   getJungleCastReferencePaths,
@@ -992,13 +993,19 @@ export function buildJungleCastWordImagePrompt(word: string): string | null {
   if (approved) {
     const castNote = `Characters (${approved.cast.length}): ${approved.cast.join(", ")}.`;
     const outfitNote = approved.outfits ? ` OUTFITS: ${approved.outfits}` : "";
-    return `${JUNGLE_CAST_DESIGN_ONLY} ${castNote} ${JUNGLE_CAST_SHAPE_REMINDER} Word "${key}": ${approved.scene} EXPRESSIONS: ${approved.expressions}.${outfitNote}`;
+    const monkeyNote = approved.cast.includes("monkey")
+      ? ` ${JUNGLE_CAST_MONKEY_POSE_RULE}`
+      : "";
+    return `${JUNGLE_CAST_DESIGN_ONLY} ${castNote} ${JUNGLE_CAST_SHAPE_REMINDER}${monkeyNote} Word "${key}": ${approved.scene} EXPRESSIONS: ${approved.expressions}.${outfitNote}`;
   }
   const entry = JUNGLE_WORD_IMAGE_ENTRIES[key];
   if (!entry) return null;
   const castNote = `Characters (${entry.cast.length}): ${entry.cast.join(", ")}.`;
   const outfitNote = entry.outfits ? ` OUTFITS: ${entry.outfits}` : "";
-  return `${JUNGLE_CAST_DESIGN_ONLY} ${castNote} ${JUNGLE_CAST_SHAPE_REMINDER} Word "${key}": ${entry.scene} EXPRESSIONS: ${entry.expressions}.${outfitNote}`;
+  const monkeyNote = entry.cast.includes("monkey")
+    ? ` ${JUNGLE_CAST_MONKEY_POSE_RULE}`
+    : "";
+  return `${JUNGLE_CAST_DESIGN_ONLY} ${castNote} ${JUNGLE_CAST_SHAPE_REMINDER}${monkeyNote} Word "${key}": ${entry.scene} EXPRESSIONS: ${entry.expressions}.${outfitNote}`;
 }
 
 export function getJungleCastWordReferences(word: string): string[] | null {
