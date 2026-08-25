@@ -88,7 +88,7 @@ export default function DiscoverPage() {
   const [wordsKnown, setWordsKnown] = useState(0);
   const [wordsReviewing, setWordsReviewing] = useState(0);
   const [todayLearned, setTodayLearned] = useState(0);
-  const [savingStatus, setSavingStatus] = useState(false);
+  const inflightSaves = useRef(new Set<string>());
 
   const todayGoal = getDailyGoalTarget();
   const rangeMeta = useMemo(
@@ -357,9 +357,11 @@ export default function DiscoverPage() {
   }
 
   function updateStatus(status: "mastered" | "new") {
-    if (!currentItem || savingStatus) return;
+    if (!currentItem) return;
 
-    const word = currentItem.word;
+    const word = currentItem.word.trim().toLowerCase();
+    if (!word || inflightSaves.current.has(word)) return;
+
     const snapshot = {
       queue,
       currentIndex,
@@ -369,9 +371,9 @@ export default function DiscoverPage() {
       wordsReviewing: countLearningWords(),
     };
 
-    setSavingStatus(true);
+    inflightSaves.current.add(word);
     setError(null);
-    writeLocalLearning(word, status === "mastered" ? "mastered" : "new");
+    writeLocalLearning(currentItem.word, status === "mastered" ? "mastered" : "new");
     setStats((current) => ({
       total: current.total,
       hidden: Math.min(current.total, current.hidden + 1),
@@ -382,15 +384,16 @@ export default function DiscoverPage() {
     setWordsKnown(countMasteredWords());
     setWordsReviewing(countLearningWords());
     advanceAfterAction(currentItem);
-    patchRangeAfterSave(rangeId, word, currentItem.family_members);
+    patchRangeAfterSave(rangeId, currentItem.word, currentItem.family_members);
 
     void (async () => {
+      const saveWord = currentItem.word;
       try {
         if (status === "new") {
           const addRes = await fetch("/api/words/add", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ word }),
+            body: JSON.stringify({ word: saveWord }),
           });
           if (!addRes.ok) {
             const addData = await addRes.json();
@@ -404,7 +407,7 @@ export default function DiscoverPage() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            word,
+            word: saveWord,
             status: status === "mastered" ? "mastered" : "new",
           }),
         });
@@ -432,7 +435,7 @@ export default function DiscoverPage() {
         setWordsReviewing(snapshot.wordsReviewing);
         setError(err instanceof Error ? err.message : "Update failed");
       } finally {
-        setSavingStatus(false);
+        inflightSaves.current.delete(word);
       }
     })();
   }
@@ -560,7 +563,6 @@ export default function DiscoverPage() {
               <button
                 type="button"
                 onClick={() => updateStatus("new")}
-                disabled={savingStatus}
                 className="btn-pill-primary w-full"
               >
                 Learn this
@@ -568,7 +570,6 @@ export default function DiscoverPage() {
               <button
                 type="button"
                 onClick={() => updateStatus("mastered")}
-                disabled={savingStatus}
                 className="btn-pill-outline w-full"
               >
                 Already know
