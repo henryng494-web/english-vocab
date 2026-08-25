@@ -1,15 +1,13 @@
-import { getCastLineupDataUrl } from "@/lib/mascot-cast-lineup-data";
+import { getMascotSpriteDataUrls } from "@/lib/mascot-cast-sprites-data";
 import { isExcludedVocabWord } from "@/lib/proper-noun";
 import { planMascotScene } from "@/lib/mascot-scene-planner";
 import { renderMascotSceneSvg } from "@/lib/mascot-svg-render";
-import {
-  shouldUseMascotIllustration,
-} from "@/lib/mascot-word-images";
+import { shouldUseMascotIllustration } from "@/lib/mascot-word-images";
 import { getFamilyHeadword } from "@/lib/word-family";
 import { normalizeVocabInput } from "@/lib/word-validation";
 import { NextResponse } from "next/server";
 
-/** Serve mascot scene SVG using approved cast PNG sprites. */
+/** Serve mascot scene SVG using transparent per-character PNG sprites. */
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const word = normalizeVocabInput(searchParams.get("word") ?? "");
@@ -25,7 +23,10 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Word not available" }, { status: 404 });
   }
   if (!shouldUseMascotIllustration(word)) {
-    return NextResponse.json({ error: "Word not in mascot range" }, { status: 404 });
+    return NextResponse.json(
+      { error: "Word not in mascot range" },
+      { status: 404 },
+    );
   }
 
   const plan = planMascotScene(word, pos);
@@ -33,7 +34,7 @@ export async function GET(request: Request) {
     plan.scene,
     word,
     pos,
-    getCastLineupDataUrl(),
+    getMascotSpriteDataUrls(),
   );
 
   return new NextResponse(svg, {

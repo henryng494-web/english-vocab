@@ -4,11 +4,7 @@ import {
   type MascotCharacter,
   type MascotSceneType,
 } from "@/lib/mascot-cast";
-import {
-  MASCOT_CAST_LINEUP_HEIGHT,
-  MASCOT_CAST_LINEUP_WIDTH,
-  MASCOT_SPRITES,
-} from "@/lib/mascot-sprites";
+import { MASCOT_SPRITE_SIZES } from "@/lib/mascot-sprites";
 
 const W = 600;
 const H = 350;
@@ -22,38 +18,20 @@ function esc(text: string): string {
     .replace(/"/g, "&quot;");
 }
 
-let spriteClipCounter = 0;
-
 function drawSprite(
   character: MascotCharacter,
   cx: number,
   ground: number,
   scale: number,
-  lineupHref: string,
+  spriteHrefs: Readonly<Record<MascotCharacter, string>>,
 ): string {
-  const sp = MASCOT_SPRITES[character];
-  const displayH = sp.imgH * scale;
-  const displayW = sp.imgW * scale;
+  const size = MASCOT_SPRITE_SIZES[character];
+  const displayW = size.w * scale;
+  const displayH = size.h * scale;
   const x = cx - displayW / 2;
-  const y = ground - sp.footY * scale;
-  const clipId = `mascot-${character}-${spriteClipCounter++}`;
+  const y = ground - displayH;
 
-  return `
-    <defs>
-      <clipPath id="${clipId}">
-        <rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${displayW.toFixed(1)}" height="${displayH.toFixed(1)}"/>
-      </clipPath>
-    </defs>
-    <image
-      href="${lineupHref}"
-      x="${(x - sp.imgX * scale).toFixed(1)}"
-      y="${(y - sp.imgY * scale).toFixed(1)}"
-      width="${(MASCOT_CAST_LINEUP_WIDTH * scale).toFixed(1)}"
-      height="${(MASCOT_CAST_LINEUP_HEIGHT * scale).toFixed(1)}"
-      clip-path="url(#${clipId})"
-      preserveAspectRatio="xMidYMid meet"
-    />
-  `;
+  return `<image href="${spriteHrefs[character]}" x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${displayW.toFixed(1)}" height="${displayH.toFixed(1)}" preserveAspectRatio="xMidYMax meet"/>`;
 }
 
 function background(): string {
@@ -138,91 +116,86 @@ function propsForScene(scene: MascotSceneType): string {
 function sceneContent(
   scene: MascotSceneType,
   word: string,
-  lineupHref: string,
+  spriteHrefs: Readonly<Record<MascotCharacter, string>>,
 ): string {
-  spriteClipCounter = 0;
   const resolved = wordSceneOverride(word, scene);
   const props = propsForScene(resolved);
   const s = (character: MascotCharacter, cx: number, ground: number, scale: number) =>
-    drawSprite(character, cx, ground, scale, lineupHref);
+    drawSprite(character, cx, ground, scale, spriteHrefs);
 
   switch (resolved) {
     case "lazy_cat":
-      return `${props}${s("cat", 300, GROUND, 0.34)}<rect x="210" y="228" width="180" height="28" rx="10" fill="#14B8A6" opacity="0.45"/>`;
+      return `${props}${s("cat", 300, GROUND, 0.38)}<rect x="210" y="228" width="180" height="28" rx="10" fill="#14B8A6" opacity="0.45"/>`;
     case "surprised_dog":
-      return `${props}${s("dog", 300, GROUND, 0.34)}`;
+      return `${props}${s("dog", 300, GROUND, 0.42)}`;
     case "tired_pig":
     case "sad_pig":
       return `${props}${s("pig", 300, GROUND, 0.36)}`;
     case "silly_cow":
-      return `${props}${s("cow", 300, GROUND, 0.28)}`;
+      return `${props}${s("cow", 300, GROUND, 0.3)}`;
     case "tall_contrast":
     case "big_small":
-      return `${props}${s("cow", 175, GROUND, 0.26)}${s("pig", 435, GROUND, 0.28)}<line x1="530" y1="55" x2="530" y2="265" stroke="#fff" stroke-width="3" stroke-dasharray="8 6"/>`;
+      return `${props}${s("cow", 175, GROUND, 0.28)}${s("pig", 435, GROUND, 0.28)}<line x1="530" y1="55" x2="530" y2="265" stroke="#fff" stroke-width="3" stroke-dasharray="8 6"/>`;
     case "between":
-      return `${props}${s("cow", 135, GROUND, 0.22)}${s("cat", 300, GROUND, 0.3)}${s("dog", 465, GROUND, 0.3)}`;
+      return `${props}${s("cow", 135, GROUND, 0.24)}${s("cat", 300, GROUND, 0.34)}${s("dog", 465, GROUND, 0.34)}`;
     case "under":
-      return `${props}${s("cat", 290, GROUND + 15, 0.28)}${s("pig", 430, GROUND, 0.26)}`;
+      return `${props}${s("cat", 290, GROUND + 15, 0.32)}${s("pig", 430, GROUND, 0.3)}`;
     case "above":
-      return `${props}${s("cow", 300, 208, 0.22)}${s("pig", 440, GROUND, 0.24)}`;
+      return `${props}${s("cow", 300, 208, 0.24)}${s("pig", 440, GROUND, 0.28)}`;
     case "in_box":
-      return `${props}${s("cat", 300, GROUND, 0.3)}`;
+      return `${props}${s("cat", 300, GROUND, 0.34)}`;
     case "on_top":
-      return `${props}${s("cat", 300, 208, 0.28)}`;
+      return `${props}${s("cat", 300, 208, 0.34)}`;
     case "rain":
-      return `${props}${s("cow", 155, GROUND, 0.22)}${s("cat", 300, GROUND, 0.28)}${s("dog", 445, GROUND, 0.28)}`;
+      return `${props}${s("cow", 155, GROUND, 0.24)}${s("cat", 300, GROUND, 0.32)}${s("dog", 445, GROUND, 0.32)}`;
     case "cold":
-      return `${s("cat", 195, GROUND, 0.28)}${s("cow", 330, GROUND, 0.22)}${s("pig", 475, GROUND, 0.24)}`;
+      return `${s("cat", 195, GROUND, 0.32)}${s("cow", 330, GROUND, 0.24)}${s("pig", 475, GROUND, 0.28)}`;
     case "hot":
-      return `${s("pig", 300, GROUND, 0.34)}<circle cx="300" cy="85" r="30" fill="#FBBF24"/>`;
+      return `${s("pig", 300, GROUND, 0.36)}<circle cx="300" cy="85" r="30" fill="#FBBF24"/>`;
     case "eat":
-      return `${props}${s("cat", 175, GROUND, 0.28)}${s("pig", 425, GROUND, 0.3)}`;
+      return `${props}${s("cat", 175, GROUND, 0.32)}${s("pig", 425, GROUND, 0.3)}`;
     case "run":
-      return `${props}${s("dog", 285, GROUND, 0.32)}${s("cat", 430, GROUND, 0.28)}`;
+      return `${props}${s("dog", 285, GROUND, 0.38)}${s("cat", 430, GROUND, 0.32)}`;
     case "sleep":
-      return `${s("cat", 300, GROUND, 0.34)}<text x="420" y="95" font-size="32" fill="#fff" font-weight="700">Zzz</text>`;
+      return `${s("cat", 300, GROUND, 0.38)}<text x="420" y="95" font-size="32" fill="#fff" font-weight="700">Zzz</text>`;
     case "give":
-      return `${props}${s("cat", 225, GROUND, 0.28)}${s("dog", 405, GROUND, 0.3)}`;
+      return `${props}${s("cat", 225, GROUND, 0.32)}${s("dog", 405, GROUND, 0.34)}`;
     case "help":
-      return `${s("dog", 265, GROUND, 0.28)}${s("pig", 405, GROUND, 0.28)}`;
+      return `${s("dog", 265, GROUND, 0.34)}${s("pig", 405, GROUND, 0.3)}`;
     case "happy_group":
-      return `${props}${s("cat", 150, GROUND, 0.26)}${s("cow", 265, GROUND, 0.22)}${s("dog", 385, GROUND, 0.26)}${s("pig", 495, GROUND, 0.24)}`;
+      return `${props}${s("cat", 150, GROUND, 0.3)}${s("cow", 265, GROUND, 0.24)}${s("dog", 385, GROUND, 0.3)}${s("pig", 495, GROUND, 0.26)}`;
     case "broken_thing":
-      return `${props}${s("cat", 200, GROUND, 0.28)}${s("dog", 400, GROUND, 0.3)}`;
+      return `${props}${s("cat", 200, GROUND, 0.32)}${s("dog", 400, GROUND, 0.34)}`;
     case "important_badge":
-      return `${props}${s("cat", 210, GROUND, 0.28)}${s("dog", 390, GROUND, 0.3)}`;
+      return `${props}${s("cat", 210, GROUND, 0.32)}${s("dog", 390, GROUND, 0.34)}`;
     case "angry_cat":
-      return `${s("cat", 300, GROUND, 0.34)}<path d="M245 115 Q300 85 355 115" fill="none" stroke="#EF4444" stroke-width="5"/>`;
+      return `${s("cat", 300, GROUND, 0.38)}<path d="M245 115 Q300 85 355 115" fill="none" stroke="#EF4444" stroke-width="5"/>`;
     case "work":
     case "learn":
     case "home":
     case "time":
     case "money":
-      return `${props}${s("cat", 165, GROUND, 0.28)}${s("dog", 435, GROUND, 0.28)}`;
+      return `${props}${s("cat", 165, GROUND, 0.32)}${s("dog", 435, GROUND, 0.32)}`;
     default:
-      return `${props}${s("cat", 225, GROUND, 0.3)}${s("dog", 375, GROUND, 0.3)}`;
+      return `${props}${s("cat", 225, GROUND, 0.34)}${s("dog", 375, GROUND, 0.34)}`;
   }
 }
 
 export function renderMascotSceneSvg(
   scene: MascotSceneType,
   word: string,
-  pos?: string | null,
-  lineupHref?: string,
+  pos: string | null | undefined,
+  spriteHrefs: Readonly<Record<MascotCharacter, string>>,
 ): string {
   const safeWord = esc(word.trim().toLowerCase() || "word");
   const safePos = esc((pos?.trim().toUpperCase() || "VOCABULARY").slice(0, 16));
   const resolvedScene = wordSceneOverride(word, scene);
-  const href = lineupHref?.trim() || "";
-  if (!href) {
-    throw new Error("renderMascotSceneSvg requires an embedded cast lineup href");
-  }
   return `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
   <!-- ${MASCOT_CAST_VERSION} word=${safeWord} scene=${resolvedScene} -->
   ${background()}
   <rect x="18" y="16" width="118" height="28" rx="14" fill="#1D4ED8"/>
   <text x="77" y="35" text-anchor="middle" font-family="Arial,sans-serif" font-size="12" font-weight="700" fill="#fff">${safePos}</text>
-  ${sceneContent(scene, word, href)}
+  ${sceneContent(scene, word, spriteHrefs)}
 </svg>`;
 }
 

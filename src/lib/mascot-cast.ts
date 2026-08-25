@@ -1,6 +1,6 @@
-/** Mascot cast v4 — pilot on preset rank 1–100 only. */
+/** Mascot cast v5 — transparent per-character PNG sprites. */
 
-export const MASCOT_CAST_VERSION = "mascot-cast-v4";
+export const MASCOT_CAST_VERSION = "mascot-cast-v5";
 export const MASCOT_TOP_RANK_LIMIT = 100;
 
 export type MascotCharacter = "cat" | "cow" | "dog" | "pig";
