@@ -3,11 +3,19 @@
  * RULE: body shape/colors NEVER change — only expression + optional outfit/accessories.
  */
 
+import {
+  getJungleCastReferencePaths,
+  JUNGLE_CAST_SHAPE_REMINDER,
+  type JungleCastMember,
+} from "@/data/jungle-cast-refs";
+
+export { getJungleCastReferencePaths, JUNGLE_CAST_CHARACTER_REFS } from "@/data/jungle-cast-refs";
+
 export const JUNGLE_CAST_NAME = "Jungle Jokers";
 
 /** Immutable silhouette spec — must match jungle-jokers-lineup.png exactly. */
 export const JUNGLE_CAST_SHAPE_LOCK =
-  "CRITICAL — match reference lineup EXACTLY every time. Body proportions are LOCKED; NEVER slim down, fatten up, or resize any character. ONLY change: facial expression (eyes, mouth, eyebrows) and optional clothing/accessories (hat, scarf, backpack, apron). NEVER change species colors or silhouette.\n" +
+  "CRITICAL — copy EXACT silhouettes from attached per-character reference PNGs and lineup. Body proportions are LOCKED; NEVER slim down, fatten up, shorten arms, or resize heads. ONLY change: facial expression and optional clothing/accessories.\n" +
   "(1) MONKEY: purple body #8B5CF6, lavender face/ears/palms #C4B5FD; tiny rectangular torso; arms ALWAYS extremely long thin tubes reaching the ground (never short arms); small curly tail.\n" +
   "(2) ELEPHANT: pink #F472B6; head ALWAYS one giant perfect circle (40% of character height); huge flat semicircle ears; body and legs ALWAYS pencil-thin stick lines (never chubby body, never thick legs, never round fat torso); trunk thin tube curving up with small heart tip.\n" +
   "(3) CROCODILE: lime green #84CC16; body ALWAYS one horizontal rectangle log (width 3x height); jagged dorsal scales; four stubby short legs (never long legs); one blunt white tooth.\n" +
@@ -21,7 +29,7 @@ export const JUNGLE_CAST_DESIGN_ONLY =
 
 export type JungleCastSampleEntry = {
   label: string;
-  cast: readonly string[];
+  cast: readonly JungleCastMember[];
   scene: string;
   expressions: string;
   /** Optional outfit tweaks — never body shape. */
@@ -83,5 +91,13 @@ export function buildJungleCastSamplePrompt(word: string): string | null {
   if (!sample) return null;
   const castNote = `Characters (${sample.cast.length}): ${sample.cast.join(", ")}.`;
   const outfitNote = sample.outfits ? ` OUTFITS: ${sample.outfits}` : "";
-  return `${JUNGLE_CAST_DESIGN_ONLY} ${castNote} Word "${word}": ${sample.scene} EXPRESSIONS: ${sample.expressions}.${outfitNote} Match reference lineup body shapes exactly.`;
+  return `${JUNGLE_CAST_DESIGN_ONLY} ${castNote} ${JUNGLE_CAST_SHAPE_REMINDER} Word "${word}": ${sample.scene} EXPRESSIONS: ${sample.expressions}.${outfitNote}`;
+}
+
+export function getJungleCastSampleReferences(
+  word: string,
+): string[] | null {
+  const sample = JUNGLE_CAST_EXPRESSION_SAMPLES[word.trim().toLowerCase()];
+  if (!sample) return null;
+  return getJungleCastReferencePaths(sample.cast);
 }
