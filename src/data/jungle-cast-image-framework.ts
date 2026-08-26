@@ -4,8 +4,8 @@
  *
  * DO NOT change without bumping FRAMEWORK_VERSION and CAST_WORD_IMAGE_BUNDLE.
  */
-export const CAST_WORD_IMAGE_BUNDLE = "jungle10";
-export const CAST_WORD_IMAGE_TOP_RANK = 150;
+export const CAST_WORD_IMAGE_BUNDLE = "jungle11";
+export const CAST_WORD_IMAGE_TOP_RANK = 160;
 
 import {
   JUNGLE_CAST_CHARACTER_REFS,
@@ -22,7 +22,7 @@ import {
 } from "@/data/jungle-cast-samples";
 
 /** Bump when framework rules or pipeline change (independent of image bundle). */
-export const JUNGLE_CAST_FRAMEWORK_VERSION = "jungle10-v1";
+export const JUNGLE_CAST_FRAMEWORK_VERSION = "jungle11-v1";
 
 export const JUNGLE_CAST_IMAGE_FRAMEWORK = {
   version: JUNGLE_CAST_FRAMEWORK_VERSION,
