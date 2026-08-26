@@ -55,6 +55,14 @@ export const MASCOT_PUBLIC_PATHS = {
   tiger: "/mascot/jungle-jokers/tiger.png",
 } as const;
 
+/** Trimmed PNGs — tight bounds for splash wordmark (mascots on letters). */
+export const MASCOT_SPLASH_PATHS = {
+  monkey: "/mascot/jungle-jokers/splash/monkey.png?v=1",
+  elephant: "/mascot/jungle-jokers/splash/elephant.png?v=1",
+  crocodile: "/mascot/jungle-jokers/splash/crocodile.png?v=1",
+  tiger: "/mascot/jungle-jokers/splash/tiger.png?v=1",
+} as const;
+
 export const MASCOT_GENERATION_REFS = JUNGLE_CAST_CHARACTER_REFS;
 
 export type MascotBrandMember = keyof typeof MASCOT_PUBLIC_PATHS extends infer K

@@ -2,7 +2,10 @@
 
 import Image from "next/image";
 import { displayFontClass } from "@/lib/fonts";
-import { APP_MASCOT_BRAND, MASCOT_PUBLIC_PATHS } from "@/data/jungle-cast-brand";
+import {
+  APP_MASCOT_BRAND,
+  MASCOT_SPLASH_PATHS,
+} from "@/data/jungle-cast-brand";
 import type { BootstrapProgress } from "@/lib/app-bootstrap";
 
 type WelcomeSplashProps = {
@@ -22,47 +25,65 @@ export function WelcomeSplash({ progress }: WelcomeSplashProps) {
 
       <div className="welcome-splash__hero">
         <div className={`welcome-splash__wordmark ${displayFontClass}`}>
-          <Image
-            src={MASCOT_PUBLIC_PATHS.monkey}
-            alt=""
-            width={64}
-            height={64}
-            priority
-            className="welcome-splash__mascot welcome-splash__mascot--monkey"
-          />
-          <Image
-            src={MASCOT_PUBLIC_PATHS.elephant}
-            alt=""
-            width={48}
-            height={120}
-            priority
-            className="welcome-splash__mascot welcome-splash__mascot--elephant"
-          />
-          <Image
-            src={MASCOT_PUBLIC_PATHS.crocodile}
-            alt=""
-            width={96}
-            height={32}
-            priority
-            className="welcome-splash__mascot welcome-splash__mascot--crocodile"
-          />
-          <Image
-            src={MASCOT_PUBLIC_PATHS.tiger}
-            alt=""
-            width={56}
-            height={56}
-            priority
-            className="welcome-splash__mascot welcome-splash__mascot--tiger"
-          />
-
           <h1 className="welcome-splash__title">
-            <span className="welcome-splash__title-line welcome-splash__title-line--1">
-              <span className="welcome-splash__letter welcome-splash__letter--j">J</span>
-              ungle
+            <span className="welcome-splash__title-line">
+              <span className="welcome-splash__word">
+                <span className="welcome-splash__letter welcome-splash__letter--j">
+                  J
+                  <Image
+                    src={MASCOT_SPLASH_PATHS.monkey}
+                    alt=""
+                    width={54}
+                    height={74}
+                    priority
+                    unoptimized
+                    className="welcome-splash__mascot welcome-splash__mascot--monkey"
+                  />
+                </span>
+                ng
+                <span className="welcome-splash__letter welcome-splash__letter--u">
+                  u
+                  <Image
+                    src={MASCOT_SPLASH_PATHS.elephant}
+                    alt=""
+                    width={40}
+                    height={88}
+                    priority
+                    unoptimized
+                    className="welcome-splash__mascot welcome-splash__mascot--elephant"
+                  />
+                </span>
+                <span className="welcome-splash__letter welcome-splash__letter--g">
+                  g
+                  <Image
+                    src={MASCOT_SPLASH_PATHS.crocodile}
+                    alt=""
+                    width={80}
+                    height={44}
+                    priority
+                    unoptimized
+                    className="welcome-splash__mascot welcome-splash__mascot--crocodile"
+                  />
+                </span>
+                le
+              </span>
             </span>
-            <span className="welcome-splash__title-line welcome-splash__title-line--2">
-              Joker
-              <span className="welcome-splash__letter welcome-splash__letter--s">s</span>
+            <span className="welcome-splash__title-line">
+              <span className="welcome-splash__word">
+                Joker
+                <span className="welcome-splash__letter welcome-splash__letter--s">
+                  s
+                  <Image
+                    src={MASCOT_SPLASH_PATHS.tiger}
+                    alt=""
+                    width={66}
+                    height={64}
+                    priority
+                    unoptimized
+                    className="welcome-splash__mascot welcome-splash__mascot--tiger"
+                  />
+                </span>
+              </span>
             </span>
           </h1>
         </div>

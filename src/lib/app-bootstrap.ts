@@ -112,10 +112,10 @@ export async function runAppBootstrap(
   const wordCache = loadPersistedWordCache();
   seedWordImageCacheFromEntries(wordCache.entries());
 
-  preloadAsset("/mascot/jungle-jokers/monkey.png");
-  preloadAsset("/mascot/jungle-jokers/elephant.png");
-  preloadAsset("/mascot/jungle-jokers/crocodile.png");
-  preloadAsset("/mascot/jungle-jokers/tiger.png");
+  preloadAsset("/mascot/jungle-jokers/splash/monkey.png?v=1");
+  preloadAsset("/mascot/jungle-jokers/splash/elephant.png?v=1");
+  preloadAsset("/mascot/jungle-jokers/splash/crocodile.png?v=1");
+  preloadAsset("/mascot/jungle-jokers/splash/tiger.png?v=1");
 
   const reviewPromise = loadReviewSession().catch(() => null);
 

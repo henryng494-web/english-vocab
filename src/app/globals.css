@@ -214,8 +214,8 @@ body {
 
 .welcome-splash__wordmark {
   position: relative;
-  width: min(100%, 19rem);
-  padding: 2.25rem 2.5rem 1.75rem 2rem;
+  width: min(100%, 22rem);
+  padding: 2.75rem 0.5rem 1.25rem;
 }
 
 .welcome-splash__title {
@@ -225,13 +225,22 @@ body {
   text-align: center;
   color: #1e293b;
   font-weight: 800;
-  font-size: clamp(3rem, 15vw, 3.75rem);
-  line-height: 0.92;
+  font-size: clamp(3.25rem, 16.5vw, 4.25rem);
+  line-height: 1.05;
   letter-spacing: -0.04em;
 }
 
 .welcome-splash__title-line {
   display: block;
+}
+
+.welcome-splash__word {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.welcome-splash__title-line + .welcome-splash__title-line {
+  margin-top: 0.02em;
 }
 
 .welcome-splash__letter {
@@ -240,54 +249,58 @@ body {
 }
 
 .welcome-splash__letter--j {
-  margin-right: -0.04em;
+  margin-right: -0.02em;
 }
 
+.welcome-splash__letter--u,
+.welcome-splash__letter--g,
 .welcome-splash__letter--s {
-  margin-left: -0.02em;
+  margin-left: -0.01em;
 }
 
-/* Mascots SMALLER than title letters — sit on / climb letters */
+/* Mascots must stay SMALLER than letter height — climb / sit on glyphs */
 .welcome-splash__mascot {
   position: absolute;
-  z-index: 4;
+  z-index: 3;
+  width: auto;
+  height: auto;
   object-fit: contain;
   pointer-events: none;
 }
 
 .welcome-splash__mascot--monkey {
-  top: 0.35rem;
-  left: 1.35rem;
-  width: 1.65rem;
-  height: auto;
-  transform: rotate(-12deg);
+  left: -0.12em;
+  bottom: 0.06em;
+  width: 0.34em;
+  transform: rotate(-8deg);
 }
 
 .welcome-splash__mascot--elephant {
-  top: 0.15rem;
-  right: 0.2rem;
-  width: 1.15rem;
-  height: auto;
-  max-height: 4.25rem;
-  object-fit: contain;
+  top: -0.52em;
+  left: 50%;
+  width: 0.3em;
+  max-height: 0.65em;
   object-position: top center;
-  transform: rotate(4deg);
+  transform: translateX(-50%);
 }
 
 .welcome-splash__mascot--crocodile {
-  top: 3.05rem;
+  top: -0.14em;
   left: 50%;
-  width: 2.35rem;
-  height: auto;
-  transform: translateX(-72%);
+  width: 0.55em;
+  transform: translateX(-50%);
 }
 
 .welcome-splash__mascot--tiger {
-  bottom: 0.55rem;
-  right: 1.55rem;
-  width: 1.45rem;
-  height: auto;
-  transform: rotate(6deg);
+  top: -0.24em;
+  left: 50%;
+  width: 0.3em;
+  transform: translateX(-35%) rotate(6deg);
+}
+
+.welcome-splash__accent--swing {
+  top: 18%;
+  right: 22%;
 }
 
 .welcome-splash__title--sr {
