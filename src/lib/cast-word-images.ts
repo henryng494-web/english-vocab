@@ -14,6 +14,10 @@ export {
   JUNGLE_WORD_IMAGE_SCENES as CAST_WORD_IMAGE_SCENES,
 } from "@/data/jungle-cast-word-image-prompts";
 export {
+  JUNGLE_CAST_FRAMEWORK_VERSION,
+  JUNGLE_CAST_IMAGE_FRAMEWORK,
+} from "@/data/jungle-cast-image-framework";
+export {
   APP_MASCOT_BRAND,
   MASCOT_BRAND_COLORS,
   MASCOT_PUBLIC_PATHS,

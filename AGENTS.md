@@ -84,7 +84,29 @@ You may fix bugs inside these files but preserve the layout contract.
 - Only `images.pexels.com` and `images.unsplash.com` URLs are displayed on cards; stale/non-stock DB URLs auto-refresh via `/api/word-image`.
 - Bump `SEMANTIC_IMAGE_VERSION` in `unsplash.ts` and `DISCOVER_WORD_CACHE_VERSION` when image scoring or cache rules change.
 
-## Cursor Cloud specific instructions
+## Jungle Jokers cast word images (rank 1–100) — LOCKED FRAMEWORK
+
+Bundled mascot scenes for preset rank 1–100. **Do not regress** to Pollinations, lineup refs, or generic prompts.
+
+| Item | Location |
+|------|----------|
+| Framework spec (single source of truth) | `src/data/jungle-cast-image-framework.ts` |
+| Locked manifest snapshot | `public/word-images/jungle-cast-framework.json` |
+| Word prompts + cast assignments | `src/data/jungle-cast-word-image-prompts.ts` |
+| Shape/style rules | `src/data/jungle-cast-samples.ts` |
+| Character ref PNGs | `public/mascot/jungle-jokers/*.png` |
+| Bundle cache key | `CAST_WORD_IMAGE_BUNDLE` in `src/lib/cast-word-images.ts` (currently `jungle9`) |
+
+**Regenerate workflow**
+
+1. Edit prompts via `scripts/rebuild-jungle-semantic-prompts.ts` (semantic scenes from `cast-word-image-prompts.ts`) or edit entries directly.
+2. `npm run jungle:gen-args -- 0 100` → GenerateImage jobs with ref PNGs.
+3. `./scripts/jungle-copy-artifact.sh {word}` → JPEG + reject Pollinations.
+4. `npm run detect:pollinations-cast-images` → must be `bad: 0`.
+5. Bump `CAST_WORD_IMAGE_BUNDLE`, `npm run export:jungle-cast-framework`, commit images + manifest.
+
+**Never:** Pollinations without refs, lineup PNG in generation, PNG-as-JPG without ffmpeg, scenes without teaching props.
+
 
 ### Boot and verify
 
