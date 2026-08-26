@@ -9,4 +9,10 @@ if [ ! -f "$src" ]; then
   exit 1
 fi
 cp "$src" "$dst"
-echo "OK → $dst ($(stat -c%s "$dst") bytes)"
+# GenerateImage artifacts are often PNG — convert to real JPEG for browsers.
+if ! file -b "$dst" | grep -q '^JPEG '; then
+  tmp="/tmp/word-image-${word}.jpg"
+  ffmpeg -y -loglevel error -i "$dst" -q:v 3 "$tmp"
+  mv "$tmp" "$dst"
+fi
+echo "OK → $dst ($(stat -c%s "$dst") bytes, $(file -b "$dst"))"
