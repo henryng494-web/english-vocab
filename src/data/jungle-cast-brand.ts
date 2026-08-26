@@ -64,7 +64,7 @@ export const HEADER_BRANCH_SCENES = {
 } as const;
 
 /** Locked branch template (no mascot) — source for header scenes. */
-export const HEADER_BRANCH_TEMPLATE = "/mascot/branches/header-branch-main.webp?v=1";
+export const HEADER_BRANCH_TEMPLATE = "/mascot/branches/header-branch-main.webp?v=2";
 
 /** Header PNGs — trimmed for compact app header strip. */
 export const MASCOT_HEADER_SIZES = {

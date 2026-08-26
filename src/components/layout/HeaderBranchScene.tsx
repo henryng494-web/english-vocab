@@ -1,9 +1,13 @@
 /**
- * Header branch scene — one mascot interacting with the locked branch template.
- * Each app tab uses a single iconic character (monkey / elephant / crocodile / tiger).
+ * Header branch scene — locked branch template + one mascot overlay per tab.
+ * Branch image is NEVER modified; mascot is composited in CSS.
  */
 import Image from "next/image";
-import { HEADER_BRANCH_SCENES } from "@/data/jungle-cast-brand";
+import {
+  HEADER_BRANCH_TEMPLATE,
+  MASCOT_HEADER_SIZES,
+  MASCOT_PUBLIC_PATHS,
+} from "@/data/jungle-cast-brand";
 import type { JungleMascotName } from "@/components/mascot/JungleMascot";
 
 export type HeaderBranchCharacter = Exclude<JungleMascotName, "lineup">;
@@ -13,16 +17,25 @@ type HeaderBranchSceneProps = {
 };
 
 export function HeaderBranchScene({ character }: HeaderBranchSceneProps) {
-  const src = HEADER_BRANCH_SCENES[character];
+  const size = MASCOT_HEADER_SIZES[character];
 
   return (
     <div className="app-header__branch-scene" aria-hidden>
       <Image
-        src={src}
+        src={HEADER_BRANCH_TEMPLATE}
         alt=""
-        width={640}
-        height={360}
+        width={960}
+        height={540}
         className="app-header__branch-art"
+        priority
+        unoptimized
+      />
+      <Image
+        src={MASCOT_PUBLIC_PATHS[character]}
+        alt=""
+        width={size.width}
+        height={size.height}
+        className={`app-header__mascot-on-branch app-header__mascot-on-branch--${character}`}
         priority
         unoptimized
       />
