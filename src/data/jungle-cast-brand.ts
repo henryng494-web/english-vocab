@@ -67,18 +67,32 @@ export const MASCOT_HEADER_SIZES = {
   tiger: { width: 48, height: 46 },
 } as const;
 
-/** Fraction (0–1) down each mascot's image where it should visually contact the branch. */
+/** Distance from header bottom to the branch top surface (matches HeaderBranch SVG). */
+export const HEADER_BRANCH_RIM_REM = 1.17;
+
+/** Fraction (0–1) down each mascot image where the branch should visually cross. */
 export const MASCOT_HEADER_CONTACT = {
-  /* Branch crosses near the hands/shoulders — body & tail hang well below (swinging) */
-  monkey: 0.32,
-  elephant: 0.65,
-  crocodile: 0.72,
-  tiger: 0.88,
+  /* Waist sits on branch; legs & tail dangle below */
+  monkey: 0.5,
+  /* Seat on branch; stick legs hang below */
+  elephant: 0.6,
+  /* Belly rests along the branch */
+  crocodile: 0.52,
+  /* Round body perched on top */
+  tiger: 0.85,
 } as const;
 
-/** Slight tilt (deg) for a natural swinging/perching feel. */
+/** Horizontal anchor (rem) — aligns each mascot with the branch landing zone. */
+export const MASCOT_HEADER_LEFT_REM = {
+  monkey: 2.5,
+  elephant: 2.35,
+  crocodile: 2.15,
+  tiger: 2.35,
+} as const;
+
+/** Slight tilt (deg) for a natural perching feel. */
 export const MASCOT_HEADER_TILT = {
-  monkey: -7,
+  monkey: 4,
   elephant: 0,
   crocodile: 0,
   tiger: 0,

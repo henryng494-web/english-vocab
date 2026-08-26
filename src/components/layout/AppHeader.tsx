@@ -4,7 +4,9 @@ import {
   type JungleMascotName,
 } from "@/components/mascot/JungleMascot";
 import {
+  HEADER_BRANCH_RIM_REM,
   MASCOT_HEADER_CONTACT,
+  MASCOT_HEADER_LEFT_REM,
   MASCOT_HEADER_SIZES,
   MASCOT_HEADER_TILT,
 } from "@/data/jungle-cast-brand";
@@ -40,8 +42,14 @@ export function AppHeader({
   const tilt =
     mascotCharacter !== "lineup" ? MASCOT_HEADER_TILT[mascotCharacter] : 0;
   const scale = isSm ? 0.82 : 1;
-  /* Shift the image down so its contact point (e.g. hands, hips) lands on the branch line. */
-  const contactShiftPct = Math.round((1 - contact) * 100);
+  const imgHeightPx = Math.round(mascotSize.height * scale);
+  const imgHeightRem = imgHeightPx / 16;
+  /* Place image so the contact point (waist/seat/belly) sits on the branch rim. */
+  const mascotBottomRem =
+    HEADER_BRANCH_RIM_REM - imgHeightRem * (1 - contact);
+  const mascotLeftRem =
+    mascotCharacter !== "lineup" ? MASCOT_HEADER_LEFT_REM[mascotCharacter] : 2.5;
+  const pivotPct = Math.round(contact * 100);
 
   return (
     <header className={`app-header${hasMascot ? " app-header--mascot" : ""}`}>
@@ -64,12 +72,14 @@ export function AppHeader({
       {hasMascot ? (
         <div
           className={`app-header__mascot-anchor app-header__mascot-anchor--${mascotCharacter}`}
+          style={{ left: `${mascotLeftRem}rem`, bottom: `${mascotBottomRem}rem` }}
           aria-hidden
         >
           <div
             className="app-header__mascot-figure"
             style={{
-              transform: `translateY(${contactShiftPct}%)${tilt ? ` rotate(${tilt}deg)` : ""}`,
+              transform: tilt ? `rotate(${tilt}deg)` : undefined,
+              transformOrigin: `50% ${pivotPct}%`,
             }}
           >
             <JungleMascot

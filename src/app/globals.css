@@ -62,6 +62,8 @@
   --header-branch-light: #d98f4e;
   --header-leaf: #84cc16;
   --header-leaf-dark: #4d7c0f;
+  /* Branch top surface — synced with HeaderBranch SVG (viewBox y≈7 at mascot x). */
+  --header-branch-rim: 1.17rem;
 
   --meaning: #0f766e;
   --example-bg: #f8fafc;
@@ -1051,27 +1053,17 @@ body {
   white-space: nowrap;
 }
 
-/*
- * Mascot perch — anchored so its "contact point" (hips/belly, set in JS via
- * inline translateY on .app-header__mascot-figure) lines up with the branch's
- * flat landing zone (left plateau of the curve, ~1rem above the header's
- * bottom edge).
- */
+/* Mascot perch — bottom/left set inline from branch-rim + contact math in AppHeader. */
 .app-header__mascot-anchor {
   position: absolute;
-  left: 2.9rem;
-  bottom: 1rem;
   z-index: 25;
   pointer-events: none;
   overflow: visible;
-  display: flex;
-  justify-content: center;
 }
 
 .app-header__mascot-figure {
   display: block;
   line-height: 0;
-  transform-origin: 50% 12%;
 }
 
 .app-header__mascot-anchor img {
