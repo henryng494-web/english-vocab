@@ -6,6 +6,7 @@ import {
   JUNGLE_CAST_EXPRESSION_SAMPLES,
   JUNGLE_CAST_MONKEY_POSE_RULE,
   JUNGLE_CAST_TIGER_SHAPE_RULE,
+  getJungleCastAccentDetail,
 } from "@/data/jungle-cast-samples";
 import {
   getJungleCastReferencePaths,
@@ -846,7 +847,9 @@ export function buildJungleCastWordImagePrompt(word: string): string | null {
     ? ` ${JUNGLE_CAST_CROCODILE_SHAPE_RULE}`
     : "";
 
-  return `${JUNGLE_CAST_DESIGN_ONLY} ${castNote} ${JUNGLE_CAST_SHAPE_REMINDER}${monkeyNote}${elephantNote}${tigerNote}${crocodileNote} Word "${key}": ${entry.scene} EXPRESSIONS: ${entry.expressions}.${outfitNote}`;
+  const accentNote = ` Accent: ${getJungleCastAccentDetail(key)}. Ignore room/location names — white canvas only.`;
+
+  return `${JUNGLE_CAST_DESIGN_ONLY} ${castNote} ${JUNGLE_CAST_SHAPE_REMINDER}${monkeyNote}${elephantNote}${tigerNote}${crocodileNote} Word "${key}": ${entry.scene} EXPRESSIONS: ${entry.expressions}.${outfitNote}${accentNote}`;
 }
 
 export function getJungleCastWordReferences(word: string): string[] | null {
