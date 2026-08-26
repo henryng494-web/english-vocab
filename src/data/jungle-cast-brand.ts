@@ -57,9 +57,9 @@ export const MASCOT_PUBLIC_PATHS = {
 
 /** Shared header cast banner — all 4 mascots on one branch (idea 2). */
 export const HEADER_CAST_BANNER = {
-  path: "/mascot/header-scenes/cast-banner.png?v=1",
+  path: "/mascot/header-scenes/cast-banner.png?v=2",
   width: 800,
-  height: 176,
+  height: 140,
 } as const;
 
 export type HeaderCastMascot = "monkey" | "elephant" | "crocodile" | "tiger";

@@ -1,2 +1,2 @@
 /** Bump when mobile shell / viewport layout changes (visible on Account page). */
-export const LAYOUT_VERSION = "2026-08-26-v51-header-cast-banner";
+export const LAYOUT_VERSION = "2026-08-26-v52-header-cast-layout-fix";

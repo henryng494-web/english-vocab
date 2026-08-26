@@ -969,72 +969,92 @@ body {
   overflow: visible;
 }
 
-/* Shared cast banner — all 4 mascots on one branch; active tab gets a color ring */
+/* Shared cast banner — toolbar row on top, cast strip below (normal flow) */
 .app-header--cast {
-  padding-bottom: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .app-header__cast {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  position: relative;
+  flex-shrink: 0;
   z-index: 1;
   pointer-events: none;
+  margin-top: -0.15rem;
 }
 
 .app-header__cast-art {
   display: block;
   width: 100%;
   height: auto;
-  aspect-ratio: 800 / 176;
+  max-height: 4.75rem;
+  aspect-ratio: 800 / 140;
+  object-fit: cover;
+  object-position: center bottom;
 }
 
 .app-header__cast-highlight {
   position: absolute;
   border-radius: 9999px;
-  border: 3px solid currentColor;
-  box-shadow:
-    0 0 0 3px color-mix(in srgb, currentColor 22%, transparent),
-    0 2px 8px color-mix(in srgb, currentColor 35%, transparent);
-  transform: translate(-50%, 50%);
+  border: 2.5px solid currentColor;
+  box-shadow: 0 0 0 2px color-mix(in srgb, currentColor 18%, transparent);
+  pointer-events: none;
 }
 
 .app-header__cast-highlight--monkey {
   left: 11%;
-  bottom: 42%;
-  width: 3rem;
-  height: 3rem;
+  bottom: 58%;
+  width: 2.65rem;
+  height: 2.65rem;
+  transform: translate(-50%, 50%);
   color: var(--primary);
 }
 
 .app-header__cast-highlight--elephant {
   left: 31%;
-  bottom: 46%;
-  width: 3rem;
-  height: 3rem;
+  bottom: 62%;
+  width: 2.65rem;
+  height: 2.65rem;
+  transform: translate(-50%, 50%);
   color: var(--pink);
 }
 
 .app-header__cast-highlight--crocodile {
   left: 51%;
-  bottom: 52%;
-  width: 4.25rem;
-  height: 2.35rem;
-  border-radius: 1.25rem;
+  bottom: 66%;
+  width: 3.75rem;
+  height: 2rem;
+  border-radius: 1rem;
+  transform: translate(-50%, 50%);
   color: var(--accent);
 }
 
 .app-header__cast-highlight--tiger {
   left: 71%;
-  bottom: 44%;
-  width: 3rem;
-  height: 3rem;
+  bottom: 60%;
+  width: 2.65rem;
+  height: 2.65rem;
+  transform: translate(-50%, 50%);
   color: var(--secondary);
 }
 
 .app-header--cast .app-header__inner {
-  padding-bottom: 5.75rem;
+  padding-bottom: 0.4rem;
+}
+
+.app-header--cast .app-header__title-container {
+  position: relative;
+  left: auto;
+  top: auto;
+  bottom: auto;
+  transform: none;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  max-width: none;
+  pointer-events: auto;
 }
 
 .app-header__inner {
