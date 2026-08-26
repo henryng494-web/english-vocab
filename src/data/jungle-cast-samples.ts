@@ -43,9 +43,12 @@ export const JUNGLE_CAST_MONKEY_POSE_RULE =
 export const JUNGLE_CAST_ANATOMY_RULES =
   "ANATOMY & PROPS: Monkey has EXACTLY two arms and two legs (four limbs total) — never three arms, never extra limbs. Elephant: TWO thin stick arms with hands + four stick legs + trunk (trunk is NOT an arm). Tiger: two stub arms two stub legs. Crocodile: four stub legs. ALL objects must be physically grounded or held — candy jars, puzzles, props resting on table/floor OR held by a visible hand/arm. NO floating objects in mid-air.";
 
-/** Minimal white canvas — mascots + word props only; tiny accent doodles optional. */
+/** White canvas with clear teaching props — word meaning must read instantly. */
 export const JUNGLE_CAST_BACKGROUND_RULE =
-  "BACKGROUND (critical): Clean plain white #FFFFFF canvas. Mascots and word-meaning props are the ONLY focus. Add at most 1–2 tiny flat accent doodles for flavor (e.g. small grass tuft, simple swing silhouette, single flower, tiny cloud, small star) — keep accents small and sparse. NO full rooms, NO walls, NO floors with texture, NO detailed landscapes, NO busy environments, NOT jungle, NO gradients.";
+  "BACKGROUND (critical): Clean plain white #FFFFFF canvas. Word meaning must be obvious from mascot action PLUS 2-4 simple grounded props (apple, arrow, clock, umbrella, gift box, path signs, etc.). Add 1 tiny accent doodle (grass tuft, swing silhouette, flower, cloud). Props teach the word — not generic posing. NO full rooms, NO walls with texture, NOT jungle, NO gradients, NO text/letters.";
+
+export const JUNGLE_CAST_SEMANTIC_RULE =
+  "SEMANTIC (critical): Illustration must instantly teach the English word meaning through visual metaphor — viewer guesses the word without reading it. Use concrete props and clear gestures. Avoid abstract 'acting out' with no objects.";
 
 /** Rotate sparse accent hints so images are not identical. */
 export const JUNGLE_CAST_ACCENT_DETAILS = [
@@ -67,7 +70,7 @@ export function getJungleCastAccentDetail(word: string): string {
 }
 
 export const JUNGLE_CAST_DESIGN_ONLY =
-  `Flat 2D humorous cartoon illustration, wide 16:9 landscape. NOT realistic. ${JUNGLE_CAST_SHAPE_LOCK} ${JUNGLE_CAST_ANATOMY_RULES} ${JUNGLE_CAST_CAST_SIZE_RULE} ${JUNGLE_CAST_FRAMING_RULE} ${JUNGLE_CAST_BACKGROUND_RULE} NO text, NO letters, NO watermark.`;
+  `Flat 2D humorous cartoon illustration, wide 16:9 landscape. NOT realistic. ${JUNGLE_CAST_SHAPE_LOCK} ${JUNGLE_CAST_ANATOMY_RULES} ${JUNGLE_CAST_CAST_SIZE_RULE} ${JUNGLE_CAST_FRAMING_RULE} ${JUNGLE_CAST_SEMANTIC_RULE} ${JUNGLE_CAST_BACKGROUND_RULE} NO text, NO letters, NO watermark.`;
 
 export type JungleCastSampleEntry = {
   label: string;
