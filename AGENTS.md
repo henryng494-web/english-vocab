@@ -84,9 +84,9 @@ You may fix bugs inside these files but preserve the layout contract.
 - Only `images.pexels.com` and `images.unsplash.com` URLs are displayed on cards; stale/non-stock DB URLs auto-refresh via `/api/word-image`.
 - Bump `SEMANTIC_IMAGE_VERSION` in `unsplash.ts` and `DISCOVER_WORD_CACHE_VERSION` when image scoring or cache rules change.
 
-## Jungle Jokers cast word images (rank 1–150) — LOCKED FRAMEWORK
+## Jungle Jokers cast word images (rank 1–300) — LOCKED FRAMEWORK
 
-Bundled mascot scenes for preset rank 1–150. **Do not regress** to Pollinations, lineup refs, or generic prompts.
+Bundled mascot scenes for preset rank 1–300. **Do not regress** to Pollinations, lineup refs, or generic prompts.
 
 | Item | Location |
 |------|----------|
@@ -95,9 +95,11 @@ Bundled mascot scenes for preset rank 1–150. **Do not regress** to Pollination
 | Word prompts + cast assignments | `src/data/jungle-cast-word-image-prompts.ts` |
 | Shape/style rules | `src/data/jungle-cast-samples.ts` |
 | Character ref PNGs | `public/mascot/jungle-jokers/*.png` |
-| Bundle cache key | `CAST_WORD_IMAGE_BUNDLE` in `src/lib/cast-word-images.ts` (currently `jungle10`) |
+| Bundle cache key | `CAST_WORD_IMAGE_BUNDLE` in `src/data/jungle-cast-image-framework.ts` (currently `jungle12`) |
 
 **Add rank 101–150 prompts:** `npm run build:jungle-casts-101-150`
+**Add rank 151–160 prompts:** `npm run build:jungle-casts-151-160`
+**Add rank 161–300 prompts:** `npm run build:jungle-casts-161-300`
 
 **Regenerate workflow (ALWAYS use GenerateImage — not Gemini API batch)**
 
@@ -145,6 +147,6 @@ Login uses Supabase auth (`src/app/auth/login`). For flows requiring a session, 
 ### PR expectations
 
 - Work on a feature branch; cloud agents push and open PRs automatically.
-- After tests pass and the task is complete, **merge the PR into `main` automatically** — do not leave PRs open waiting for manual merge unless the user says otherwise.
+- **Auto-merge policy:** Van has granted permission to automatically merge PRs into `main` and push to `origin/main` immediately after completing any assigned task and running checks.
 - Keep diffs focused; do not refactor unrelated code.
 - Do not commit `.env.local` or API keys.
