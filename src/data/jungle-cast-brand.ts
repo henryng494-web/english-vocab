@@ -55,16 +55,33 @@ export const MASCOT_PUBLIC_PATHS = {
   tiger: "/mascot/jungle-jokers/header/tiger.png?v=1",
 } as const;
 
-/** Header branch interaction dimensions (width × height in px). */
+/** Header branch interaction sizes — matches each PNG's natural aspect ratio. */
 export const MASCOT_HEADER_SIZES = {
-  /* Monkey: arms grip branch, body & tail hang below */
-  monkey: { width: 40, height: 64 },
-  /* Elephant: sits on branch, two legs dangle down */
-  elephant: { width: 46, height: 68 },
-  /* Crocodile: body rests along the branch */
-  crocodile: { width: 68, height: 34 },
-  /* Tiger: round body perched on branch */
+  /* Monkey: waist rests on branch, legs & tail dangle below */
+  monkey: { width: 47, height: 64 },
+  /* Elephant: seated on branch, both legs dangle below */
+  elephant: { width: 49, height: 68 },
+  /* Crocodile: body lies along the branch */
+  crocodile: { width: 62, height: 34 },
+  /* Tiger: round body perched on top of the branch */
   tiger: { width: 48, height: 46 },
+} as const;
+
+/** Fraction (0–1) down each mascot's image where it should visually contact the branch. */
+export const MASCOT_HEADER_CONTACT = {
+  /* Branch crosses near the hands/shoulders — body & tail hang well below (swinging) */
+  monkey: 0.32,
+  elephant: 0.65,
+  crocodile: 0.72,
+  tiger: 0.88,
+} as const;
+
+/** Slight tilt (deg) for a natural swinging/perching feel. */
+export const MASCOT_HEADER_TILT = {
+  monkey: -7,
+  elephant: 0,
+  crocodile: 0,
+  tiger: 0,
 } as const;
 
 /** Trimmed PNGs — tight bounds for splash wordmark (mascots on letters). */
