@@ -55,6 +55,17 @@ export const MASCOT_PUBLIC_PATHS = {
   tiger: "/mascot/jungle-jokers/header/tiger.png?v=1",
 } as const;
 
+/** Header branch scene — mascot + locked branch template (one character per tab). */
+export const HEADER_BRANCH_SCENES = {
+  monkey: "/mascot/branches/header-scenes/monkey.webp?v=1",
+  elephant: "/mascot/branches/header-scenes/elephant.webp?v=1",
+  crocodile: "/mascot/branches/header-scenes/crocodile.webp?v=1",
+  tiger: "/mascot/branches/header-scenes/tiger.webp?v=1",
+} as const;
+
+/** Locked branch template (no mascot) — source for header scenes. */
+export const HEADER_BRANCH_TEMPLATE = "/mascot/branches/header-branch-main.webp?v=1";
+
 /** Header PNGs — trimmed for compact app header strip. */
 export const MASCOT_HEADER_SIZES = {
   monkey: { width: 47, height: 64 },
