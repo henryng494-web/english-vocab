@@ -586,8 +586,8 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
     "cast": [
       "tiger"
     ],
-    "scene": "ONLY tiger —",
-    "expressions": ""
+    "scene": "ONLY orange tiger on white — tiger points one stub paw toward a large downward arrow on the ground. NO other mascots.",
+    "expressions": "Tiger: teaching gesture looking down along arrow, orange sphere body unchanged."
   },
   "then": {
     "cast": [
