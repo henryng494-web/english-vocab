@@ -133,74 +133,6 @@ body {
   display: none;
 }
 
-.welcome-splash__accents {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  overflow: hidden;
-}
-
-.welcome-splash__accent {
-  position: absolute;
-  display: block;
-}
-
-.welcome-splash__accent--grass {
-  bottom: 16%;
-  left: 10%;
-  width: 2rem;
-  height: 1rem;
-  border-radius: 50% 50% 0 0;
-  background: linear-gradient(180deg, #84cc16 0%, #65a30d 100%);
-  box-shadow:
-    -0.5rem 0.15rem 0 -0.12rem #84cc16,
-    0.5rem 0.12rem 0 -0.15rem #a3e635;
-}
-
-.welcome-splash__accent--swing {
-  top: 12%;
-  right: 12%;
-  width: 2.5rem;
-  height: 3rem;
-}
-
-.welcome-splash__accent--swing::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 50%;
-  width: 2px;
-  height: 1.65rem;
-  background: #94a3b8;
-  transform: translateX(-50%);
-}
-
-.welcome-splash__accent--swing::after {
-  content: "";
-  position: absolute;
-  top: 1.55rem;
-  left: 50%;
-  width: 1.5rem;
-  height: 0.3rem;
-  border-radius: 0.15rem;
-  background: #cbd5e1;
-  transform: translateX(-50%);
-}
-
-.welcome-splash__accent--flower {
-  bottom: 20%;
-  right: 14%;
-  width: 0.85rem;
-  height: 0.85rem;
-  border-radius: 50%;
-  background: #fbbf24;
-  box-shadow:
-    0 -0.45rem 0 -0.15rem #fde68a,
-    0 0.45rem 0 -0.15rem #fde68a,
-    -0.45rem 0 0 -0.15rem #fde68a,
-    0.45rem 0 0 -0.15rem #fde68a;
-}
-
 .welcome-splash__hero {
   position: relative;
   z-index: 1;
@@ -209,98 +141,27 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 1.25rem 1rem 0.5rem;
+  padding: 1.5rem 1rem 0.5rem;
 }
 
-.welcome-splash__wordmark {
+.welcome-splash__art-wrapper {
   position: relative;
-  width: min(100%, 22rem);
-  padding: 2.75rem 0.5rem 1.25rem;
+  width: 100%;
+  max-width: 20rem;
+  max-height: 65vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.welcome-splash__title {
-  position: relative;
-  z-index: 2;
-  margin: 0;
-  text-align: center;
-  color: #1e293b;
-  font-weight: 800;
-  font-size: clamp(3.25rem, 16.5vw, 4.25rem);
-  line-height: 1.05;
-  letter-spacing: -0.04em;
-}
-
-.welcome-splash__title-line {
-  display: block;
-}
-
-.welcome-splash__word {
-  display: inline-block;
-  white-space: nowrap;
-}
-
-.welcome-splash__title-line + .welcome-splash__title-line {
-  margin-top: 0.02em;
-}
-
-.welcome-splash__letter {
-  position: relative;
-  display: inline-block;
-}
-
-.welcome-splash__letter--j {
-  margin-right: -0.02em;
-}
-
-.welcome-splash__letter--u,
-.welcome-splash__letter--g,
-.welcome-splash__letter--s {
-  margin-left: -0.01em;
-}
-
-/* Mascots must stay SMALLER than letter height — climb / sit on glyphs */
-.welcome-splash__mascot {
-  position: absolute;
-  z-index: 3;
+.welcome-splash__art-image {
   width: auto;
   height: auto;
+  max-width: 100%;
+  max-height: 60vh;
   object-fit: contain;
-  pointer-events: none;
-}
-
-.welcome-splash__mascot--monkey {
-  left: -0.12em;
-  bottom: 0.06em;
-  width: 0.34em;
-  transform: rotate(-8deg);
-}
-
-.welcome-splash__mascot--elephant {
-  top: -0.52em;
-  left: 50%;
-  width: 0.3em;
-  max-height: 0.65em;
-  object-position: top center;
-  transform: translateX(-50%);
-}
-
-.welcome-splash__mascot--crocodile {
-  top: -0.14em;
-  left: 50%;
-  width: 0.55em;
-  transform: translateX(-50%);
-}
-
-.welcome-splash__mascot--tiger {
-  top: -0.24em;
-  left: 50%;
-  width: 0.3em;
-  transform: translateX(-35%) rotate(6deg);
-}
-
-.welcome-splash__accent--swing {
-  top: 18%;
-  right: 22%;
+  user-select: none;
+  -webkit-user-drag: none;
 }
 
 .welcome-splash__title--sr {
@@ -320,7 +181,7 @@ body {
   width: 100%;
   max-width: 22rem;
   margin: 0 auto;
-  padding: 0 1.5rem 2rem;
+  padding: 0 1.5rem 2.5rem;
 }
 
 .welcome-splash__glow,
@@ -328,7 +189,8 @@ body {
 .welcome-splash__fox,
 .welcome-splash__subtitle,
 .welcome-splash__progress-wrap,
-.welcome-splash__status {
+.welcome-splash__status,
+.welcome-splash__accents {
   display: none;
 }
 

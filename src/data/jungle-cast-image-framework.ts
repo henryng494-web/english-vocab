@@ -4,7 +4,9 @@
  *
  * DO NOT change without bumping FRAMEWORK_VERSION and CAST_WORD_IMAGE_BUNDLE.
  */
-import { CAST_WORD_IMAGE_BUNDLE, CAST_WORD_IMAGE_TOP_RANK } from "@/lib/cast-word-images";
+export const CAST_WORD_IMAGE_BUNDLE = "jungle9";
+export const CAST_WORD_IMAGE_TOP_RANK = 100;
+
 import {
   JUNGLE_CAST_CHARACTER_REFS,
   JUNGLE_CAST_LINEUP_PATH,

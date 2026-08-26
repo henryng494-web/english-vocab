@@ -6,6 +6,10 @@
 
 import { getWordsInRange } from "@/data/preset-vocabulary";
 import { requiresSafeImageOnly } from "@/lib/safe-image-search";
+import {
+  CAST_WORD_IMAGE_BUNDLE,
+  CAST_WORD_IMAGE_TOP_RANK,
+} from "@/data/jungle-cast-image-framework";
 
 export {
   buildJungleCastWordImagePrompt as buildCastWordImagePrompt,
@@ -14,6 +18,8 @@ export {
   JUNGLE_WORD_IMAGE_SCENES as CAST_WORD_IMAGE_SCENES,
 } from "@/data/jungle-cast-word-image-prompts";
 export {
+  CAST_WORD_IMAGE_BUNDLE,
+  CAST_WORD_IMAGE_TOP_RANK,
   JUNGLE_CAST_FRAMEWORK_VERSION,
   JUNGLE_CAST_IMAGE_FRAMEWORK,
 } from "@/data/jungle-cast-image-framework";
@@ -29,10 +35,6 @@ export {
   getWelcomeHeroByIndex,
   getWelcomeHeroPath,
 } from "@/data/jungle-cast-brand";
-
-/** Bump when replacing bundled cast JPEGs in public/word-images. */
-export const CAST_WORD_IMAGE_BUNDLE = "jungle9";
-export const CAST_WORD_IMAGE_TOP_RANK = 100;
 
 const CAST_WORDS = new Set(
   getWordsInRange(1, CAST_WORD_IMAGE_TOP_RANK).map((entry) => entry.word),

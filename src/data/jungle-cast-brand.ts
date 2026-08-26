@@ -11,17 +11,17 @@ export const APP_MASCOT_BRAND = {
   tagline: "Học từ vựng cùng bộ Jokers vui nhộn",
 } as const;
 
-/** Splash: HTML navy wordmark + small ref PNGs on letters (see WelcomeSplash). */
+/** Splash: official Jungle Jokers welcome splash illustration. */
 export const WELCOME_SPLASH_ART = {
-  path: "/mascot/welcome/welcome-splash-art.jpg",
-  mode: "wordmark" as const,
+  path: "/mascot/welcome/welcome-splash.png?v=jungle9",
+  mode: "illustration" as const,
 } as const;
 
-/** @deprecated use WELCOME_SPLASH_ART + HTML title overlay */
+/** @deprecated use WELCOME_SPLASH_ART */
 export const WELCOME_SPLASH_IMAGE = {
-  path: "/mascot/welcome/welcome-splash-art.jpg",
+  path: "/mascot/welcome/welcome-splash.png?v=jungle9",
   alt: "Jungle Jokers mascots welcome illustration",
-  mode: "overlay" as const,
+  mode: "illustration" as const,
 } as const;
 
 /** Hex colors — use in UI theming. */
