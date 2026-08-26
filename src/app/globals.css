@@ -57,13 +57,6 @@
   --header-bg: transparent;
   --header-fg: #1e293b;
   --header-muted: #64748b;
-  --header-branch: #b3672b;
-  --header-branch-dark: #7a431a;
-  --header-branch-light: #d98f4e;
-  --header-leaf: #84cc16;
-  --header-leaf-dark: #4d7c0f;
-  /* Branch top surface — synced with HeaderBranch SVG (viewBox y≈7 at mascot x). */
-  --header-branch-rim: 1.17rem;
 
   --meaning: #0f766e;
   --example-bg: #f8fafc;
@@ -976,30 +969,77 @@ body {
   overflow: visible;
 }
 
-/* Pre-composited header scene (branch + mascot) — aspect 800×160 */
-.app-header--scene {
+/* Shared cast banner — all 4 mascots on one branch; active tab gets a color ring */
+.app-header--cast {
   padding-bottom: 0;
 }
 
-.app-header__scene {
+.app-header__cast {
   position: absolute;
   left: 0;
   right: 0;
   bottom: 0;
   z-index: 1;
-  display: block;
-  width: 100%;
-  height: auto;
-  aspect-ratio: 800 / 160;
   pointer-events: none;
 }
 
-.app-header--scene .app-header__inner {
-  padding-bottom: 5.25rem;
+.app-header__cast-art {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 800 / 176;
+}
+
+.app-header__cast-highlight {
+  position: absolute;
+  border-radius: 9999px;
+  border: 3px solid currentColor;
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, currentColor 22%, transparent),
+    0 2px 8px color-mix(in srgb, currentColor 35%, transparent);
+  transform: translate(-50%, 50%);
+}
+
+.app-header__cast-highlight--monkey {
+  left: 11%;
+  bottom: 42%;
+  width: 3rem;
+  height: 3rem;
+  color: var(--primary);
+}
+
+.app-header__cast-highlight--elephant {
+  left: 31%;
+  bottom: 46%;
+  width: 3rem;
+  height: 3rem;
+  color: var(--pink);
+}
+
+.app-header__cast-highlight--crocodile {
+  left: 51%;
+  bottom: 52%;
+  width: 4.25rem;
+  height: 2.35rem;
+  border-radius: 1.25rem;
+  color: var(--accent);
+}
+
+.app-header__cast-highlight--tiger {
+  left: 71%;
+  bottom: 44%;
+  width: 3rem;
+  height: 3rem;
+  color: var(--secondary);
+}
+
+.app-header--cast .app-header__inner {
+  padding-bottom: 5.75rem;
 }
 
 .app-header__inner {
   position: relative;
+  z-index: 2;
   display: flex;
   align-items: stretch;
   justify-content: space-between;

@@ -55,31 +55,14 @@ export const MASCOT_PUBLIC_PATHS = {
   tiger: "/mascot/jungle-jokers/header/tiger.png?v=1",
 } as const;
 
-/** Pre-composited header strips — branch + mascot interaction baked in (idea 1). */
-export const HEADER_SCENE_ART = {
-  monkey: {
-    path: "/mascot/header-scenes/monkey.png?v=1",
-    width: 800,
-    height: 160,
-  },
-  elephant: {
-    path: "/mascot/header-scenes/elephant.png?v=1",
-    width: 800,
-    height: 160,
-  },
-  crocodile: {
-    path: "/mascot/header-scenes/crocodile.png?v=1",
-    width: 800,
-    height: 160,
-  },
-  tiger: {
-    path: "/mascot/header-scenes/tiger.png?v=1",
-    width: 800,
-    height: 160,
-  },
+/** Shared header cast banner — all 4 mascots on one branch (idea 2). */
+export const HEADER_CAST_BANNER = {
+  path: "/mascot/header-scenes/cast-banner.png?v=1",
+  width: 800,
+  height: 176,
 } as const;
 
-export type HeaderSceneMascot = keyof typeof HEADER_SCENE_ART;
+export type HeaderCastMascot = "monkey" | "elephant" | "crocodile" | "tiger";
 
 /** @deprecated Header uses HEADER_SCENE_ART — kept for avatars / cast pill. */
 export const MASCOT_HEADER_SIZES = {

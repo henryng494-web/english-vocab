@@ -1,8 +1,5 @@
 import Image from "next/image";
-import {
-  HEADER_SCENE_ART,
-  type HeaderSceneMascot,
-} from "@/data/jungle-cast-brand";
+import { HEADER_CAST_BANNER, type HeaderCastMascot } from "@/data/jungle-cast-brand";
 import { displayFontClass } from "@/lib/fonts";
 import type { JungleMascotName } from "@/components/mascot/JungleMascot";
 
@@ -10,16 +7,15 @@ type AppHeaderProps = {
   title: string;
   leading?: React.ReactNode;
   trailing?: React.ReactNode;
-  /** Pre-baked branch + mascot scene for this page's brand character. */
+  /** Highlights this cast member on the shared header banner. */
   peekMascot?: JungleMascotName | boolean | "sm";
 };
 
-function resolveSceneMascot(
+function resolveActiveCast(
   peekMascot: JungleMascotName | boolean | "sm",
-): HeaderSceneMascot | null {
-  if (!peekMascot || peekMascot === "sm") return null;
+): HeaderCastMascot | null {
+  if (!peekMascot || peekMascot === "sm" || peekMascot === "lineup") return null;
   if (peekMascot === true) return "monkey";
-  if (peekMascot === "lineup") return null;
   return peekMascot;
 }
 
@@ -29,11 +25,11 @@ export function AppHeader({
   trailing,
   peekMascot = false,
 }: AppHeaderProps) {
-  const sceneMascot = resolveSceneMascot(peekMascot);
-  const scene = sceneMascot ? HEADER_SCENE_ART[sceneMascot] : null;
+  const activeCast = resolveActiveCast(peekMascot);
+  const showCast = Boolean(peekMascot);
 
   return (
-    <header className={`app-header${scene ? " app-header--scene" : ""}`}>
+    <header className={`app-header${showCast ? " app-header--cast" : ""}`}>
       <div className="app-header__inner">
         <div className="app-header__side app-header__side--left">
           {leading ?? <span className="app-header__spacer" aria-hidden />}
@@ -48,17 +44,23 @@ export function AppHeader({
         </div>
       </div>
 
-      {scene ? (
-        <Image
-          src={scene.path}
-          alt=""
-          width={scene.width}
-          height={scene.height}
-          className="app-header__scene"
-          priority
-          unoptimized
-          aria-hidden
-        />
+      {showCast ? (
+        <div className="app-header__cast" aria-hidden>
+          <Image
+            src={HEADER_CAST_BANNER.path}
+            alt=""
+            width={HEADER_CAST_BANNER.width}
+            height={HEADER_CAST_BANNER.height}
+            className="app-header__cast-art"
+            priority
+            unoptimized
+          />
+          {activeCast ? (
+            <span
+              className={`app-header__cast-highlight app-header__cast-highlight--${activeCast}`}
+            />
+          ) : null}
+        </div>
       ) : null}
     </header>
   );
