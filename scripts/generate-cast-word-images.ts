@@ -1,6 +1,7 @@
 /**
  * Generate full-scene cast mascot JPEGs (fox-trial style).
- * Providers: pollinations (default), gemini (if quota available)
+ * Providers: gemini (default, required for shape lock via ref PNGs).
+ * Pollinations is DISABLED for cast images — it ignores refs and produces wrong humans.
  *
  * Run: npm run generate:cast-word-images
  * Force: CAST_IMAGE_FORCE=true npm run generate:cast-word-images
@@ -18,7 +19,7 @@ import {
 
 const OUT_DIR = resolve(process.cwd(), "public/word-images");
 const DELAY_MS = Number(process.env.CAST_IMAGE_DELAY_MS ?? 14_000);
-const PROVIDER = (process.env.CAST_IMAGE_PROVIDER ?? "pollinations").toLowerCase();
+const PROVIDER = (process.env.CAST_IMAGE_PROVIDER ?? "gemini").toLowerCase();
 
 function loadReferenceParts(word: string): Array<Record<string, unknown>> {
   const refs = getJungleCastWordReferences(word) ?? [];
@@ -166,17 +167,18 @@ async function generateImage(
   prompt: string,
   seed: number,
 ): Promise<Buffer | null> {
-  if (PROVIDER === "gemini") {
-    const apiKey = process.env.GEMINI_API_KEY?.trim();
-    if (!apiKey) return null;
-    return generateViaGemini(word, prompt, apiKey);
+  const apiKey = process.env.GEMINI_API_KEY?.trim();
+  if (!apiKey) {
+    console.error(`[${word}] GEMINI_API_KEY required — Pollinations disabled for cast images`);
+    return null;
   }
-  const geminiKey = process.env.GEMINI_API_KEY?.trim();
-  if (PROVIDER === "auto" && geminiKey) {
-    const gemini = await generateViaGemini(word, prompt, geminiKey);
-    if (gemini) return gemini;
+  if (PROVIDER === "pollinations") {
+    console.error(
+      `[${word}] CAST_IMAGE_PROVIDER=pollinations rejected — use gemini with reference PNGs`,
+    );
+    return null;
   }
-  return generateViaPollinations(word, prompt, seed);
+  return generateViaGemini(word, prompt, apiKey);
 }
 
 async function main(): Promise<void> {

@@ -15,4 +15,10 @@ if ! file -b "$dst" | grep -q '^JPEG '; then
   ffmpeg -y -loglevel error -i "$dst" -q:v 3 "$tmp"
   mv "$tmp" "$dst"
 fi
+# Reject Pollinations fallback (no ref PNGs → random humans, wrong size).
+dims=$(file -b "$dst")
+if echo "$dims" | grep -qE '1024x576|manufacturer=sana'; then
+  echo "REJECT Pollinations image for ${word}: $dims" >&2
+  exit 1
+fi
 echo "OK → $dst ($(stat -c%s "$dst") bytes, $(file -b "$dst"))"
