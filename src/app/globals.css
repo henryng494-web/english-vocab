@@ -960,11 +960,13 @@ body {
 
 /* —— App header (Jungle Jokers navigation) —— */
 .app-header {
+  position: relative;
+  z-index: 20;
   flex-shrink: 0;
   padding-top: env(safe-area-inset-top, 0px);
   background: var(--header-bg);
   color: var(--header-fg);
-  overflow: hidden;
+  overflow: visible;
   box-shadow: 0 1px 0 color-mix(in srgb, var(--foreground) 8%, transparent);
 }
 
@@ -976,11 +978,13 @@ body {
   gap: 0.5rem;
   min-height: 3.25rem;
   padding: 0.5rem 1rem 0;
+  overflow: visible;
 }
 
 .app-header__inner--mascot .app-header__side--left {
   align-self: stretch;
-  align-items: flex-end;
+  align-items: center;
+  overflow: visible;
 }
 
 .app-header__inner--mascot .app-header__icon-btn,
@@ -990,7 +994,8 @@ body {
 
 .app-header__inner--mascot-sm .app-header__side--left {
   align-self: stretch;
-  align-items: flex-end;
+  align-items: center;
+  overflow: visible;
 }
 
 .app-header__title {
@@ -1024,33 +1029,53 @@ body {
 }
 
 .app-header__mascot {
-  width: 56px;
-  height: 44px;
-  overflow: hidden;
-  align-self: end;
+  position: relative;
+  width: 54px;
+  height: 48px;
+  overflow: visible;
   pointer-events: none;
-  margin-bottom: 0;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
 }
 
 .app-header__mascot img {
   display: block;
-  width: 56px;
-  height: 56px;
+  width: 54px;
+  height: 54px;
   object-fit: contain;
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.22));
 }
 
 .app-header__mascot--sm {
   width: 40px;
-  height: 32px;
-  flex-shrink: 0;
+  height: 38px;
 }
 
 .app-header__mascot--sm img {
   width: 40px;
   height: 40px;
+}
+
+/* Character-specific hanging & sitting posture over header bottom bar */
+.app-header__mascot--monkey img {
+  /* Monkey hanging/sitting with arms/tail, feet dangling below the header */
+  transform: translateY(14px) scale(1.15);
+}
+
+.app-header__mascot--elephant img {
+  /* Elephant peeking body over the header with trunk and stick feet */
+  transform: translateY(12px) scale(1.12);
+}
+
+.app-header__mascot--crocodile img {
+  /* Crocodile horizontal log resting on the header bar */
+  transform: translateY(12px) scale(1.18);
+}
+
+.app-header__mascot--tiger img {
+  /* Tiger round ball resting on top of the bar */
+  transform: translateY(11px) scale(1.12);
 }
 
 .app-header__side {

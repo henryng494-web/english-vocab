@@ -36,12 +36,12 @@ export function AppHeader({
           {leading ?? <span className="app-header__spacer" aria-hidden />}
           {hasMascot ? (
             <div
-              className={`app-header__mascot${isSm ? " app-header__mascot--sm" : ""}`}
+              className={`app-header__mascot app-header__mascot--${mascotCharacter}${isSm ? " app-header__mascot--sm" : ""}`}
               aria-hidden
             >
               <JungleMascot
                 character={mascotCharacter}
-                size={isSm ? 44 : 64}
+                size={isSm ? 44 : 56}
                 className="transition-transform duration-200"
               />
             </div>
