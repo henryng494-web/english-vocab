@@ -100,7 +100,7 @@
     "qaReport": "public/word-images/jungle-qa-report.json",
     "generationReport": "public/word-images/cast-generation-report.json"
   },
-  "exportedAt": "2026-08-26T20:49:47.469Z",
+  "exportedAt": "2026-08-26T20:52:48.154Z",
   "frameworkVersion": "jungle12-v1",
   "generationReport": {
     "bundle": "jungle9",
