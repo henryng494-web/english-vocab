@@ -11,6 +11,7 @@
 import { mkdirSync, writeFileSync, existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { getWordsInRange } from "@/data/preset-vocabulary";
+import { CAST_WORD_IMAGE_BUNDLE, CAST_WORD_IMAGE_TOP_RANK } from "@/data/jungle-cast-image-framework";
 import {
   buildJungleCastWordImagePrompt,
   getJungleCastWordReferences,
@@ -188,7 +189,7 @@ async function main(): Promise<void> {
   const words =
     cliWords.length > 0
       ? cliWords
-      : getWordsInRange(1, 100).map((entry) => entry.word);
+      : getWordsInRange(1, CAST_WORD_IMAGE_TOP_RANK).map((entry) => entry.word);
 
   const missing = words.filter((w) => !JUNGLE_WORD_IMAGE_SCENES[w]);
   if (missing.length) {
@@ -237,7 +238,7 @@ async function main(): Promise<void> {
 
   writeFileSync(
     resolve(OUT_DIR, "cast-generation-report.json"),
-    JSON.stringify({ ok, fail, words, bundle: "jungle2", provider: PROVIDER }, null, 2),
+    JSON.stringify({ ok, fail, words, bundle: CAST_WORD_IMAGE_BUNDLE, provider: PROVIDER }, null, 2),
   );
   console.log(`Done: ${ok} ok, ${fail} failed`);
   if (fail > 0) process.exit(1);

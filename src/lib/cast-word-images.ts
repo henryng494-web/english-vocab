@@ -1,7 +1,7 @@
 /**
  * Cast mascot word images — Jungle Jokers cast delivery:
  * full-scene bundled JPEGs in /public/word-images/{word}.jpg
- * Jungle Jokers cast (jungle9 bundle — semantic scenes + teaching props).
+ * Jungle Jokers cast (jungle10 bundle — rank 1–150 semantic scenes + teaching props).
  */
 
 import { getWordsInRange } from "@/data/preset-vocabulary";

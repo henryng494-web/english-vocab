@@ -1,11 +1,11 @@
 /**
- * Jungle Jokers — locked image-generation framework (rank 1–100).
+ * Jungle Jokers — locked image-generation framework (rank 1–150).
  * Single source of truth for cast word-image pipeline v9.
  *
  * DO NOT change without bumping FRAMEWORK_VERSION and CAST_WORD_IMAGE_BUNDLE.
  */
-export const CAST_WORD_IMAGE_BUNDLE = "jungle9";
-export const CAST_WORD_IMAGE_TOP_RANK = 100;
+export const CAST_WORD_IMAGE_BUNDLE = "jungle10";
+export const CAST_WORD_IMAGE_TOP_RANK = 150;
 
 import {
   JUNGLE_CAST_CHARACTER_REFS,
@@ -22,7 +22,7 @@ import {
 } from "@/data/jungle-cast-samples";
 
 /** Bump when framework rules or pipeline change (independent of image bundle). */
-export const JUNGLE_CAST_FRAMEWORK_VERSION = "jungle9-v1";
+export const JUNGLE_CAST_FRAMEWORK_VERSION = "jungle10-v1";
 
 export const JUNGLE_CAST_IMAGE_FRAMEWORK = {
   version: JUNGLE_CAST_FRAMEWORK_VERSION,
