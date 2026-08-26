@@ -71,16 +71,16 @@ export const JUNGLE_CAST_IMAGE_FRAMEWORK = {
     castRebalance: "scripts/rebalance-jungle-casts.ts",
   },
 
-  /** Generation pipeline — order matters. */
+  /** Generation pipeline — order matters. ALWAYS use Cursor GenerateImage (not Gemini API batch). */
   pipeline: [
     "buildJungleCastWordImagePrompt(word) from jungle-cast-word-image-prompts.ts",
     "getJungleCastWordReferences(word) — per-character PNGs only, NEVER lineup",
-    "GenerateImage (Cursor) or Gemini image API with reference_image_paths, 16:9",
+    "npm run jungle:gen-args — emit job specs",
+    "GenerateImage (Cursor) with reference_image_paths, 16:9 — REQUIRED; do not use Gemini batch unless user asks",
     "Save artifact as {bundle}-word-{word}",
     "scripts/jungle-copy-artifact.sh {word} — copy + ffmpeg PNG→JPEG + reject Pollinations",
     "npx tsx scripts/detect-pollinations-cast-images.ts — must report bad: 0",
-    "Bump CAST_WORD_IMAGE_BUNDLE in src/lib/cast-word-images.ts",
-    "Update public/word-images/cast-generation-report.json",
+    "Bump CAST_WORD_IMAGE_BUNDLE, npm run export:jungle-cast-framework",
   ],
 
   npmScripts: {

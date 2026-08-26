@@ -99,15 +99,16 @@ Bundled mascot scenes for preset rank 1–150. **Do not regress** to Pollination
 
 **Add rank 101–150 prompts:** `npm run build:jungle-casts-101-150`
 
-**Regenerate workflow**
+**Regenerate workflow (ALWAYS use GenerateImage — not Gemini API batch)**
 
 1. Edit prompts via `scripts/rebuild-jungle-semantic-prompts.ts` or `scripts/build-jungle-casts-rank-101-150.ts`, or edit entries directly.
-2. `npm run jungle:gen-args -- 101 150 0 50 --pending` → GenerateImage jobs with ref PNGs.
-3. `./scripts/jungle-copy-artifact.sh {word}` → JPEG + reject Pollinations.
-4. `npm run detect:pollinations-cast-images` → must be `bad: 0`.
-5. Bump `CAST_WORD_IMAGE_BUNDLE`, `npm run export:jungle-cast-framework`, commit images + manifest.
+2. `npm run jungle:gen-args -- [rankFrom] [rankTo] 0 50 --pending` → job specs with ref PNGs.
+3. **GenerateImage** (Cursor) for each job — 16:9, `reference_image_paths` from step 2.
+4. `./scripts/jungle-copy-artifact.sh {word}` → JPEG + reject Pollinations.
+5. `npm run detect:pollinations-cast-images` → must be `bad: 0`.
+6. Bump `CAST_WORD_IMAGE_BUNDLE`, `npm run export:jungle-cast-framework`, commit images + manifest.
 
-**Gemini batch (rank 101–150):** `npm run generate:cast-word-images:101-150`
+**Never use Gemini batch** (`generate:cast-word-images`) unless the user explicitly asks — prefer GenerateImage only.
 
 **Never:** Pollinations without refs, lineup PNG in generation, PNG-as-JPG without ffmpeg, scenes without teaching props.
 
