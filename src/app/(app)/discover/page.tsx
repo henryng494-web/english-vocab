@@ -445,14 +445,13 @@ export default function DiscoverPage() {
       <div className="app-screen app-screen--home">
         <AppHeader
           title="Home"
+          hideTitle
           peekMascot="monkey"
-          leading={
-            <Link href="/account" className="app-header__icon-btn" aria-label="Menu">
-              ☰
-            </Link>
-          }
           trailing={
             <div className="app-header__actions">
+              <Link href="/account" className="app-header__icon-btn" aria-label="Menu">
+                ☰
+              </Link>
               <Link href="/search" className="app-header__icon-btn" aria-label="Search words">
                 🔍
               </Link>
