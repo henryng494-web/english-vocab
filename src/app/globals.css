@@ -970,13 +970,42 @@ body {
   box-shadow: 0 1px 0 color-mix(in srgb, var(--foreground) 8%, transparent);
 }
 
+/* Wooden beam at the bottom edge of the header bar */
+.app-header__beam {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 0.4rem;
+  z-index: 12;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    #b45309 0%,
+    #92400e 45%,
+    #78350f 100%
+  );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    0 2px 4px rgba(0, 0, 0, 0.28);
+}
+
+/* Reserve space below the navy bar so hanging mascots are not clipped */
+.app-header--mascot {
+  padding-bottom: 1.35rem;
+}
+
+.app-header--mascot .app-header__beam {
+  bottom: 1.35rem;
+}
+
 .app-header__inner {
   position: relative;
   display: flex;
-  align-items: center;
+  align-items: stretch;
   justify-content: space-between;
   min-height: 3.25rem;
-  padding: 0.5rem 1rem 0;
+  padding: 0.5rem 1rem 0.45rem;
   overflow: visible;
 }
 
@@ -1010,11 +1039,13 @@ body {
   pointer-events: none;
   z-index: 5;
   overflow: visible;
+  max-width: calc(100% - 8.5rem);
 }
 
 .app-header__title {
   margin: 0;
-  overflow: visible;
+  overflow: hidden;
+  text-overflow: ellipsis;
   text-align: center;
   font-family: var(--font-fredoka, "Nunito"), sans-serif;
   font-size: 1.5rem;
@@ -1025,45 +1056,43 @@ body {
   white-space: nowrap;
 }
 
-/* Mascot perched / hanging onto the header like a wooden beam */
+/* Mascot perched / hanging onto the wooden beam (anchored to full header bar) */
 .app-header__mascot-anchor {
   position: absolute;
-  top: 100%;
-  left: 3.25rem;
-  transform: translateY(-50%);
+  left: 3.35rem;
+  bottom: 1.35rem;
   z-index: 25;
   pointer-events: none;
   overflow: visible;
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: center;
+  line-height: 0;
+  transform: translateY(50%);
 }
 
 .app-header__mascot-anchor img {
   display: block;
   object-fit: contain;
-  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.35));
+  object-position: bottom center;
+  filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.35));
 }
 
-/* Character-specific positioning & scaling for natural interaction with the header bar */
+/* Character-specific beam interaction — upper body on bar, lower body hanging */
 .app-header__mascot-anchor--monkey img {
-  /* Monkey hands gripping header beam, body & tail hanging down */
-  transform: translateY(4px) scale(1.08);
+  transform: translateY(8%);
 }
 
 .app-header__mascot-anchor--elephant img {
-  /* Elephant peeking trunk & ears over the beam, feet hanging */
-  transform: translateY(2px) scale(1.02);
+  transform: translateY(6%);
 }
 
 .app-header__mascot-anchor--crocodile img {
-  /* Crocodile resting body along the bottom beam edge */
-  transform: translateY(3px) scale(1.1);
+  transform: translateY(2%);
 }
 
 .app-header__mascot-anchor--tiger img {
-  /* Tiger ball sitting on top of the beam edge */
-  transform: translateY(1px) scale(1.04);
+  transform: translateY(4%);
 }
 
 .app-header__control {

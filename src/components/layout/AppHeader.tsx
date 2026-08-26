@@ -1,4 +1,8 @@
-import { JungleMascot, type JungleMascotName } from "@/components/mascot/JungleMascot";
+import {
+  JungleMascot,
+  type JungleMascotName,
+} from "@/components/mascot/JungleMascot";
+import { MASCOT_HEADER_SIZES } from "@/data/jungle-cast-brand";
 import { displayFontClass } from "@/lib/fonts";
 
 type AppHeaderProps = {
@@ -22,9 +26,15 @@ export function AppHeader({
 
   const isSm = peekMascot === "sm";
   const hasMascot = Boolean(peekMascot);
+  const mascotSize =
+    mascotCharacter !== "lineup"
+      ? MASCOT_HEADER_SIZES[mascotCharacter]
+      : { width: 44, height: 44 };
+  const scale = isSm ? 0.82 : 1;
 
   return (
-    <header className="app-header">
+    <header className={`app-header${hasMascot ? " app-header--mascot" : ""}`}>
+      <div className="app-header__beam" aria-hidden />
       <div className="app-header__inner">
         <div className="app-header__side app-header__side--left">
           {leading ?? <span className="app-header__spacer" aria-hidden />}
@@ -41,12 +51,13 @@ export function AppHeader({
 
       {hasMascot ? (
         <div
-          className={`app-header__mascot-anchor app-header__mascot-anchor--${mascotCharacter}`}
+          className={`app-header__mascot-anchor app-header__mascot-anchor--${mascotCharacter}${isSm ? " app-header__mascot-anchor--sm" : ""}`}
           aria-hidden
         >
           <JungleMascot
             character={mascotCharacter}
-            size={isSm ? 44 : 52}
+            width={Math.round(mascotSize.width * scale)}
+            height={Math.round(mascotSize.height * scale)}
           />
         </div>
       ) : null}

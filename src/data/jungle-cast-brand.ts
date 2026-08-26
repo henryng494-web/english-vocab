@@ -49,10 +49,18 @@ export const MASCOT_SHAPE_SPEC = {
 /** Public URL paths for in-app mascot display (transparent PNGs). */
 export const MASCOT_PUBLIC_PATHS = {
   lineup: "/mascot/jungle-jokers-lineup.png",
-  monkey: "/mascot/jungle-jokers/splash/monkey.png?v=2",
-  elephant: "/mascot/jungle-jokers/splash/elephant.png?v=2",
-  crocodile: "/mascot/jungle-jokers/splash/crocodile.png?v=2",
-  tiger: "/mascot/jungle-jokers/splash/tiger.png?v=2",
+  monkey: "/mascot/jungle-jokers/header/monkey.png?v=1",
+  elephant: "/mascot/jungle-jokers/header/elephant.png?v=1",
+  crocodile: "/mascot/jungle-jokers/header/crocodile.png?v=1",
+  tiger: "/mascot/jungle-jokers/header/tiger.png?v=1",
+} as const;
+
+/** Header beam perch dimensions (width × height in px). */
+export const MASCOT_HEADER_SIZES = {
+  monkey: { width: 42, height: 58 },
+  elephant: { width: 44, height: 60 },
+  crocodile: { width: 64, height: 36 },
+  tiger: { width: 46, height: 44 },
 } as const;
 
 /** Trimmed PNGs — tight bounds for splash wordmark (mascots on letters). */
