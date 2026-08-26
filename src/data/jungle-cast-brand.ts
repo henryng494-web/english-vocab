@@ -11,10 +11,11 @@ export const APP_MASCOT_BRAND = {
   tagline: "Học từ vựng cùng bộ Jokers vui nhộn",
 } as const;
 
-/** Primary welcome splash — title + four mascots on white (portrait). */
+/** Welcome splash uses live mascot PNGs + navy title (see WelcomeSplash.tsx). */
 export const WELCOME_SPLASH_IMAGE = {
   path: "/mascot/welcome/welcome-splash-jungle-jokers.jpg",
   alt: "Jungle Jokers — four mascots posing with the app title",
+  mode: "composed" as const,
 } as const;
 
 /** Hex colors — use in UI theming. */
