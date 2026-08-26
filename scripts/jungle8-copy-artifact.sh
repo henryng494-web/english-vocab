@@ -2,7 +2,10 @@
 # Copy jungle8-word-* artifact to public/word-images/{word}.jpg
 set -euo pipefail
 word="$1"
-src="/opt/cursor/artifacts/assets/jungle8-word-${word}"
+src="/opt/cursor/artifacts/assets/jungle9-word-${word}"
+if [ ! -f "$src" ]; then
+  src="/opt/cursor/artifacts/assets/jungle8-word-${word}"
+fi
 dst="/workspace/public/word-images/${word}.jpg"
 if [ ! -f "$src" ]; then
   echo "MISSING: $src" >&2
