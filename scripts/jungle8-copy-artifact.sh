@@ -10,9 +10,9 @@ if [ ! -f "$src" ]; then
 fi
 cp "$src" "$dst"
 # GenerateImage artifacts are often PNG — convert to real JPEG for browsers.
-if ! file -b "$dst" | grep -q '^JPEG '; then
+if ! file -b "$src" | grep -q '^JPEG '; then
   tmp="/tmp/word-image-${word}.jpg"
-  ffmpeg -y -loglevel error -i "$dst" -q:v 3 "$tmp"
+  ffmpeg -y -loglevel error -i "$src" -q:v 3 "$tmp"
   mv "$tmp" "$dst"
 fi
 # Reject Pollinations fallback (no ref PNGs → random humans, wrong size).
