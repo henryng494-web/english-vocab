@@ -126,159 +126,54 @@ body {
   background: #ffffff;
 }
 
-.welcome-splash__hero-wrap {
+.welcome-splash__hero-wrap,
+.welcome-splash__stage,
+.welcome-splash__logo,
+.welcome-splash__mascot,
+.welcome-splash__accents {
   display: none;
 }
 
-.welcome-splash__stage {
+.welcome-splash__hero {
   position: relative;
   flex: 1;
   min-height: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 1rem 1.25rem 0.5rem;
+  padding: 1.5rem 1rem 0.75rem;
 }
 
-.welcome-splash__accents {
+.welcome-splash__art {
+  width: auto;
+  max-width: min(100%, 22rem);
+  height: auto;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.welcome-splash__title-wrap {
   position: absolute;
   inset: 0;
-  pointer-events: none;
-  overflow: hidden;
-}
-
-.welcome-splash__accent {
-  position: absolute;
-  display: block;
-}
-
-.welcome-splash__accent--grass {
-  bottom: 18%;
-  left: 8%;
-  width: 2.5rem;
-  height: 1.25rem;
-  border-radius: 50% 50% 0 0;
-  background: linear-gradient(180deg, #84cc16 0%, #65a30d 100%);
-  box-shadow:
-    -0.6rem 0.2rem 0 -0.15rem #84cc16,
-    0.6rem 0.15rem 0 -0.2rem #a3e635;
-}
-
-.welcome-splash__accent--swing {
-  top: 14%;
-  right: 10%;
-  width: 3rem;
-  height: 3.5rem;
-}
-
-.welcome-splash__accent--swing::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 50%;
-  width: 2px;
-  height: 2rem;
-  background: #94a3b8;
-  transform: translateX(-50%);
-}
-
-.welcome-splash__accent--swing::after {
-  content: "";
-  position: absolute;
-  top: 1.85rem;
-  left: 50%;
-  width: 1.75rem;
-  height: 0.35rem;
-  border-radius: 0.2rem;
-  background: #cbd5e1;
-  transform: translateX(-50%);
-}
-
-.welcome-splash__accent--flower {
-  bottom: 22%;
-  right: 12%;
-  width: 1rem;
-  height: 1rem;
-  border-radius: 50%;
-  background: #fbbf24;
-  box-shadow:
-    0 -0.55rem 0 -0.2rem #fde68a,
-    0 0.55rem 0 -0.2rem #fde68a,
-    -0.55rem 0 0 -0.2rem #fde68a,
-    0.55rem 0 0 -0.2rem #fde68a;
-}
-
-.welcome-splash__logo {
-  position: relative;
-  width: min(100%, 20rem);
-  min-height: 14rem;
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 0 1.5rem;
+  pointer-events: none;
 }
 
 .welcome-splash__title {
-  position: relative;
-  z-index: 2;
   margin: 0;
   text-align: center;
   color: #1e293b;
   font-weight: 800;
-  font-size: clamp(2.65rem, 13vw, 3.35rem);
-  line-height: 0.98;
+  font-size: clamp(2.5rem, 12.5vw, 3.25rem);
+  line-height: 0.95;
   letter-spacing: -0.03em;
-  text-shadow: 0 1px 0 #ffffff;
 }
 
 .welcome-splash__title-line {
   display: block;
-}
-
-.welcome-splash__mascot {
-  position: absolute;
-  z-index: 3;
-  object-fit: contain;
-  pointer-events: none;
-  filter: drop-shadow(0 2px 6px rgb(15 23 42 / 8%));
-}
-
-/* Monkey climbs letter J */
-.welcome-splash__mascot--monkey {
-  top: -0.15rem;
-  left: 0.85rem;
-  width: 3.35rem;
-  height: auto;
-  transform: rotate(-8deg);
-}
-
-/* Elephant: thin stick silhouette — tall & skinny beside title */
-.welcome-splash__mascot--elephant {
-  top: 0.25rem;
-  right: -0.5rem;
-  width: 2.35rem;
-  height: auto;
-  max-height: 10.5rem;
-  object-fit: contain;
-  object-position: top center;
-  transform: rotate(5deg);
-}
-
-/* Crocodile log crawls under "Jungle" */
-.welcome-splash__mascot--crocodile {
-  top: 2.65rem;
-  left: 50%;
-  width: 5.5rem;
-  height: auto;
-  transform: translateX(-58%) rotate(-2deg);
-}
-
-/* Tiger sphere sits on "s" */
-.welcome-splash__mascot--tiger {
-  bottom: -0.35rem;
-  right: 0.65rem;
-  width: 2.85rem;
-  height: auto;
-  transform: rotate(4deg);
 }
 
 .welcome-splash__title--sr {
@@ -301,45 +196,13 @@ body {
   padding: 0 1.5rem 2rem;
 }
 
-.welcome-splash__glow {
+.welcome-splash__glow,
+.welcome-splash__content,
+.welcome-splash__fox,
+.welcome-splash__subtitle,
+.welcome-splash__progress-wrap,
+.welcome-splash__status {
   display: none;
-}
-
-.welcome-splash__content {
-  display: none;
-}
-
-.welcome-splash__fox {
-  animation: welcome-fox-bob 2.4s ease-in-out infinite;
-}
-
-@keyframes welcome-fox-bob {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-6px);
-  }
-}
-
-.welcome-splash__title {
-  margin: 0.85rem 0 0;
-  font-size: 1.75rem;
-  line-height: 1.2;
-  color: var(--foreground);
-}
-
-.welcome-splash__subtitle {
-  margin: 0.55rem 0 0;
-  max-width: 16rem;
-  font-size: 0.9375rem;
-  line-height: 1.45;
-  color: var(--header-muted);
-}
-
-.welcome-splash__progress-wrap {
-  width: 100%;
 }
 
 .welcome-splash__progress {
@@ -356,10 +219,6 @@ body {
     var(--primary) 0%,
     color-mix(in srgb, var(--primary) 70%, #84cc16) 100%
   );
-}
-
-.welcome-splash__status {
-  display: none;
 }
 
 .app-screen {
