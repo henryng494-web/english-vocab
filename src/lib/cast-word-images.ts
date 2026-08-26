@@ -23,6 +23,7 @@ export {
   MASCOT_PUBLIC_PATHS,
   MASCOT_SHAPE_SPEC,
   WELCOME_HERO_IMAGES,
+  WELCOME_SPLASH_IMAGE,
   getMascotPublicPath,
   getWelcomeHeroByIndex,
   getWelcomeHeroPath,

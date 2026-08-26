@@ -36,7 +36,7 @@ export function InstallAppHint() {
           <li>Open this page in <strong>Safari</strong></li>
           <li>Tap the <strong>Share</strong> button (square with arrow)</li>
           <li>Choose <strong>Add to Home Screen</strong></li>
-          <li>Open <strong>English Vocab</strong> from your home screen</li>
+          <li>Open <strong>Jungle Jokers</strong> from your home screen</li>
         </ol>
       ) : (
         <ol className="mt-3 list-decimal space-y-1.5 pl-5 text-sm text-foreground/80">

@@ -106,14 +106,13 @@ function collectPreloadTargets(
 export async function runAppBootstrap(
   onProgress: (progress: BootstrapProgress) => void,
 ): Promise<AppBootstrapSnapshot> {
-  report(onProgress, 6, "Welcome! Getting things ready…");
+  report(onProgress, 6, "");
 
   purgeLegacyDiscoverWordCaches();
   const wordCache = loadPersistedWordCache();
   seedWordImageCacheFromEntries(wordCache.entries());
 
-  preloadAsset("/mascot/fox-happy.png");
-  preloadAsset("/mascot/fox-wave.png");
+  preloadAsset("/mascot/welcome/welcome-splash-jungle-jokers.jpg");
 
   const reviewPromise = loadReviewSession().catch(() => null);
 
@@ -132,13 +131,13 @@ export async function runAppBootstrap(
         report(
           onProgress,
           10 + Math.round((rangesDone / WORD_RANGES.length) * 48),
-          `Loading rank ${range.compactLabel}…`,
+          "",
         );
       }
     }),
   );
 
-  report(onProgress, 62, "Preparing flashcards…");
+  report(onProgress, 62, "");
 
   const preloadTargets = collectPreloadTargets(ranges);
   const imageWarmTargets: WordImagePrefetchTarget[] = preloadTargets.map(
@@ -176,7 +175,7 @@ export async function runAppBootstrap(
       report(
         onProgress,
         62 + Math.round((wordsDone / Math.max(preloadTargets.length, 1)) * 34),
-        "Preparing flashcards…",
+        "",
       );
     },
   );
@@ -185,7 +184,7 @@ export async function runAppBootstrap(
   seedWordImageCacheFromEntries(wordCache.entries());
   await imageWarmPromise.catch(() => {});
 
-  report(onProgress, 96, "Loading review queue…");
+  report(onProgress, 96, "");
   const review = await reviewPromise;
   if (review?.allWords?.length) {
     void refreshAllStaleWordImages(
@@ -201,7 +200,7 @@ export async function runAppBootstrap(
     );
   }
 
-  report(onProgress, 100, "Ready to learn!");
+  report(onProgress, 100, "");
 
   return {
     defaultRangeId: DEFAULT_BOOTSTRAP_RANGE,

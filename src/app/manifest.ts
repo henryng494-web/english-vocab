@@ -2,14 +2,14 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "English Vocab",
-    short_name: "Vocab",
-    description: "English vocabulary flashcards and review",
+    name: "Jungle Jokers",
+    short_name: "Jokers",
+    description: "Learn English vocabulary with Jungle Jokers mascots",
     start_url: "/discover",
     scope: "/",
     display: "standalone",
     orientation: "portrait",
-    background_color: "#e8f7f4",
+    background_color: "#ffffff",
     theme_color: "#18c8b8",
     icons: [
       {

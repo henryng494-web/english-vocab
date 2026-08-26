@@ -8,7 +8,13 @@ import { JUNGLE_CAST_CHARACTER_REFS } from "@/data/jungle-cast-refs";
 export const APP_MASCOT_BRAND = {
   id: "jungle-jokers",
   name: "Jungle Jokers",
-  tagline: "Học từ vựng cùng bộ đôi vui nhộn",
+  tagline: "Học từ vựng cùng bộ Jokers vui nhộn",
+} as const;
+
+/** Primary welcome splash — title + four mascots on white (portrait). */
+export const WELCOME_SPLASH_IMAGE = {
+  path: "/mascot/welcome/welcome-splash-jungle-jokers.jpg",
+  alt: "Jungle Jokers — four mascots posing with the app title",
 } as const;
 
 /** Hex colors — use in UI theming. */

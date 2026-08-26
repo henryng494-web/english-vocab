@@ -6,12 +6,12 @@ import { viewportBootstrapScript } from "@/lib/viewport-bootstrap-script";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "English Vocab",
-  description: "English vocabulary learning app",
+  title: "Jungle Jokers",
+  description: "Learn English vocabulary with the Jungle Jokers mascots",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "English Vocab",
+    title: "Jungle Jokers",
   },
   formatDetection: {
     telephone: false,
