@@ -31,7 +31,11 @@ export const JUNGLE_CAST_ELEPHANT_ARM_RULE =
   "ELEPHANT ANATOMY (critical): Pink elephant ALWAYS has TWO thin stick arms with small three-finger hands visible — at sides, on hips, or holding props. Trunk is separate from arms. NEVER draw elephant without arms.";
 
 export const JUNGLE_CAST_CAST_SIZE_RULE =
-  "CAST SIZE (critical): Use ONLY the characters listed — do NOT add extra mascots. Default 1–2 characters per scene. Use 3–4 ONLY for group words (we/all/yes/people). Prefer tiger, elephant, or crocodile as solo actors; use monkey sparingly.";
+  "CAST SIZE (critical): Use ONLY the characters listed — do NOT add extra mascots. Default 1–2 characters per scene. Use 3–4 ONLY for group words (we/all/yes/people). Solo scenes must rotate evenly across monkey, elephant, crocodile, and tiger — do NOT default to tiger.";
+
+/** Keep mascots inside frame — prevents clipping at edges. */
+export const JUNGLE_CAST_FRAMING_RULE =
+  "FRAMING (critical): Characters occupy at most 55% of frame height and 45% of frame width. Center the cast with generous white margin on all sides (at least 12% padding top/bottom/left/right). ENTIRE body of every mascot must be fully visible — no cropping, no cut-off limbs, heads, tails, or ears at frame edges. Props stay small beside characters, never push mascots to overflow the canvas.";
 
 export const JUNGLE_CAST_MONKEY_POSE_RULE =
   "MONKEY ANATOMY (critical): Purple monkey has EXACTLY two arms and two legs — never three or four arms. Draw monkey SITTING or in SIDE PROFILE (not front-standing). Use simple poses only: hands clasped together, hands on hips, or ONE hand gesturing with other arm hidden behind body. NEVER both arms raised high. NEVER front view with arms and legs all vertical. Do NOT use lineup monkey long-arm pose.";
@@ -63,7 +67,7 @@ export function getJungleCastAccentDetail(word: string): string {
 }
 
 export const JUNGLE_CAST_DESIGN_ONLY =
-  `Flat 2D humorous cartoon illustration, wide 16:9 landscape. NOT realistic. ${JUNGLE_CAST_SHAPE_LOCK} ${JUNGLE_CAST_ANATOMY_RULES} ${JUNGLE_CAST_CAST_SIZE_RULE} ${JUNGLE_CAST_BACKGROUND_RULE} NO text, NO letters, NO watermark.`;
+  `Flat 2D humorous cartoon illustration, wide 16:9 landscape. NOT realistic. ${JUNGLE_CAST_SHAPE_LOCK} ${JUNGLE_CAST_ANATOMY_RULES} ${JUNGLE_CAST_CAST_SIZE_RULE} ${JUNGLE_CAST_FRAMING_RULE} ${JUNGLE_CAST_BACKGROUND_RULE} NO text, NO letters, NO watermark.`;
 
 export type JungleCastSampleEntry = {
   label: string;

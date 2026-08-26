@@ -29,80 +29,80 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
       "monkey",
       "tiger"
     ],
-    "scene": "ONLY monkey and tiger — Sunny park path — purple monkey SITS on wooden bench side profile, waving one hand toward viewer, other arm on bench. Orange tiger stands on path with welcoming paws open.",
-    "expressions": "Monkey: warm friendly smile, sitting side profile, one hand waving only (exactly two arms). Tiger: cheerful welcoming grin, paws open toward viewer (NOT frozen shocked O-mouth)."
+    "scene": "ONLY purple monkey and orange tiger on white — two small centered mascots (each max 50% frame height) acting out \"you\". Both entire bodies fully inside frame with wide margins, no clipping.",
+    "expressions": "Monkey: expressive face matching word meaning, sitting side profile, exactly two arms two legs, fully visible. Tiger: expressive face, orange sphere body unchanged, two stub arms two stub legs, fully inside frame."
   },
   "the": {
     "cast": [
       "monkey",
       "elephant"
     ],
-    "scene": "ONLY monkey and elephant — Modern kitchen — purple monkey SITS on chair side profile, ONE arm pointing at ONE bright red apple on wooden table while other apples are faded gray. Pink elephant stands beside table.",
-    "expressions": "Monkey: focused teaching expression, sitting side profile, one arm pointing only (other arm hidden behind body). Elephant: interested lean-in, stick body unchanged."
+    "scene": "ONLY purple monkey and pink elephant on white — two small centered mascots (each max 50% frame height) acting out \"the\". Both entire bodies fully inside frame with wide margins, no clipping.",
+    "expressions": "Monkey: expressive face matching word meaning, sitting side profile, exactly two arms two legs, fully visible. Elephant: expressive face, giant circle head + stick body unchanged, BOTH thin stick arms visible, fully inside frame."
   },
   "to": {
     "cast": [
-      "tiger"
+      "monkey"
     ],
-    "scene": "ONLY tiger —",
-    "expressions": "Tiger: eager excited trot beside cat, happy anticipation (NOT O-mouth shock)."
+    "scene": "ONLY purple monkey on white — small centered mascot (max 55% frame height, max 45% width) acting out meaning of \"to\". Entire body fully inside frame with at least 12% margin on every side.",
+    "expressions": "Monkey: expressive face matching word meaning, sitting side profile, exactly two arms two legs, fully visible."
   },
   "it": {
     "cast": [
-      "tiger"
+      "elephant"
     ],
-    "scene": "ONLY tiger —",
-    "expressions": "Tiger: impressed admiring eyes, small clap (NOT shocked)."
+    "scene": "ONLY pink elephant on white — small centered mascot (max 55% frame height, max 45% width) acting out meaning of \"it\". Entire body fully inside frame with at least 12% margin on every side.",
+    "expressions": "Elephant: expressive face, giant circle head + stick body unchanged, BOTH thin stick arms visible, fully inside frame."
   },
   "that": {
     "cast": [
-      "tiger"
+      "crocodile"
     ],
-    "scene": "ONLY tiger —",
-    "expressions": "Tiger: looking where cat points, curious interested face (NOT frozen shock)."
+    "scene": "ONLY lime-green crocodile on white — small centered mascot (max 55% frame height, max 45% width) acting out meaning of \"that\". Entire body fully inside frame with at least 12% margin on every side.",
+    "expressions": "Crocodile: expressive face on horizontal log body low to ground, four stub legs, fully visible inside frame."
   },
   "and": {
     "cast": [
-      "tiger",
-      "elephant"
+      "elephant",
+      "crocodile"
     ],
-    "scene": "ONLY tiger and elephant —",
-    "expressions": "Tiger: delighted grateful grin eating together (NOT O-mouth). Cow and pig: cozy together on same bench, content smiles."
+    "scene": "ONLY pink elephant and lime-green crocodile on white — two small centered mascots (each max 50% frame height) acting out \"and\". Both entire bodies fully inside frame with wide margins, no clipping.",
+    "expressions": "Elephant: expressive face, giant circle head + stick body unchanged, BOTH thin stick arms visible, fully inside frame. Crocodile: expressive face on horizontal log body low to ground, four stub legs, fully visible inside frame."
   },
   "of": {
     "cast": [
-      "elephant"
+      "tiger"
     ],
-    "scene": "ONLY elephant —",
-    "expressions": "Elephant: gentle pleased smile, mouth closed."
+    "scene": "ONLY orange tiger on white — small centered mascot (max 55% frame height, max 45% width) acting out meaning of \"of\". Entire body fully inside frame with at least 12% margin on every side.",
+    "expressions": "Tiger: expressive face, orange sphere body unchanged, two stub arms two stub legs, fully inside frame."
   },
   "what": {
     "cast": [
-      "tiger"
+      "monkey"
     ],
-    "scene": "ONLY tiger — Orange tiger staring at a closed mystery gift box with colorful ribbons, question-curve shapes floating nearby (no letters).",
-    "expressions": "Tiger: curious puzzled wonder — head tilt, wide questioning eyes but calm mouth (NOT frozen O-shock)."
+    "scene": "ONLY purple monkey on white — small centered mascot (max 55% frame height, max 45% width) acting out meaning of \"what\". Entire body fully inside frame with at least 12% margin on every side.",
+    "expressions": "Monkey: expressive face matching word meaning, sitting side profile, exactly two arms two legs, fully visible."
   },
   "in": {
     "cast": [
-      "crocodile"
+      "elephant"
     ],
-    "scene": "ONLY crocodile —",
-    "expressions": "Crocodile: giggling."
+    "scene": "ONLY pink elephant on white — small centered mascot (max 55% frame height, max 45% width) acting out meaning of \"in\". Entire body fully inside frame with at least 12% margin on every side.",
+    "expressions": "Elephant: expressive face, giant circle head + stick body unchanged, BOTH thin stick arms visible, fully inside frame."
   },
   "me": {
     "cast": [
-      "monkey"
+      "crocodile"
     ],
-    "scene": "ONLY monkey —",
-    "expressions": "Monkey: warm acknowledging nod."
+    "scene": "ONLY lime-green crocodile on white — small centered mascot (max 55% frame height, max 45% width) acting out meaning of \"me\". Entire body fully inside frame with at least 12% margin on every side.",
+    "expressions": "Crocodile: expressive face on horizontal log body low to ground, four stub legs, fully visible inside frame."
   },
   "is": {
     "cast": [
       "tiger"
     ],
-    "scene": "ONLY tiger —",
-    "expressions": "Tiger: impressed wide happy eyes."
+    "scene": "ONLY orange tiger on white — small centered mascot (max 55% frame height, max 45% width) acting out meaning of \"is\". Entire body fully inside frame with at least 12% margin on every side.",
+    "expressions": "Tiger: expressive face, orange sphere body unchanged, two stub arms two stub legs, fully inside frame."
   },
   "we": {
     "cast": [
@@ -111,60 +111,59 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
       "crocodile",
       "tiger"
     ],
-    "scene": "All four mascots — sunny park lawn holding paws/hands in a line. Crocodile horizontal log low between others. Tiger orange sphere. Elephant circle head + stick arms visible.",
-    "expressions": "All four: united team smiles linked together. Tiger: sphere only. Crocodile: log body only, not standing upright."
+    "scene": "All four mascots on white — small centered line holding paws, wide margins, every body fully inside frame. Crocodile horizontal log low.",
+    "expressions": "All four: united team smiles. Tiger: sphere only. Crocodile: log body only."
   },
   "this": {
     "cast": [
       "monkey"
     ],
-    "scene": "ONLY monkey — Purple monkey taps a green book on the desk right in front of it, ignoring books on a distant shelf.",
-    "expressions": "Monkey: emphatic this-one gesture, focused eyes on nearby book (NOT lazy)."
+    "scene": "ONLY purple monkey on white — small centered mascot (max 55% frame height, max 45% width) acting out meaning of \"this\". Entire body fully inside frame with at least 12% margin on every side.",
+    "expressions": "Monkey: expressive face matching word meaning, sitting side profile, exactly two arms two legs, fully visible."
   },
   "he": {
     "cast": [
-      "tiger"
+      "elephant"
     ],
-    "scene": "ONLY tiger —",
-    "expressions": "Tiger: waving back cheerfully."
+    "scene": "ONLY pink elephant on white — small centered mascot (max 55% frame height, max 45% width) acting out meaning of \"he\". Entire body fully inside frame with at least 12% margin on every side.",
+    "expressions": "Elephant: expressive face, giant circle head + stick body unchanged, BOTH thin stick arms visible, fully inside frame."
   },
   "on": {
     "cast": [
-      "tiger"
+      "crocodile"
     ],
-    "scene": "ONLY orange tiger — cozy living room. Tiger sits ON TOP of brown wooden round table (clearly on surface, not beside). Simple room, one table, pink rug.",
+    "scene": "ONLY orange tiger on white — small centered tiger (max 55% frame height) sits ON TOP of simple brown table, fully inside frame with wide margins.",
     "expressions": "Tiger: comfortable perched ON table, relaxed smile, sphere body unchanged. Exactly two stub arms two stub legs."
   },
   "for": {
     "cast": [
-      "elephant"
+      "tiger"
     ],
-    "scene": "ONLY elephant —",
-    "expressions": "Elephant: touched aww expression."
+    "scene": "ONLY orange tiger on white — small centered mascot (max 55% frame height, max 45% width) acting out meaning of \"for\". Entire body fully inside frame with at least 12% margin on every side.",
+    "expressions": "Tiger: expressive face, orange sphere body unchanged, two stub arms two stub legs, fully inside frame."
   },
   "have": {
     "cast": [
-      "elephant",
-      "tiger"
+      "monkey",
+      "elephant"
     ],
-    "scene": "ONLY elephant and tiger —",
-    "expressions": "Tiger: amazed happy eyes at pile. Elephant: gentle laugh at pig's hoard."
+    "scene": "ONLY purple monkey and pink elephant on white — two small centered mascots (each max 50% frame height) acting out \"have\". Both entire bodies fully inside frame with wide margins, no clipping.",
+    "expressions": "Monkey: expressive face matching word meaning, sitting side profile, exactly two arms two legs, fully visible. Elephant: expressive face, giant circle head + stick body unchanged, BOTH thin stick arms visible, fully inside frame."
   },
   "do": {
     "cast": [
-      "tiger"
+      "monkey"
     ],
-    "scene": "ONLY tiger —",
-    "expressions": "Tiger: drying dishes helpfully, earnest helpful smile."
+    "scene": "ONLY purple monkey on white — small centered mascot (max 55% frame height, max 45% width) acting out meaning of \"do\". Entire body fully inside frame with at least 12% margin on every side.",
+    "expressions": "Monkey: expressive face matching word meaning, sitting side profile, exactly two arms two legs, fully visible."
   },
   "no": {
     "cast": [
       "monkey",
-      "tiger"
+      "crocodile"
     ],
-    "scene": "ONLY monkey and tiger — ONLY monkey and tiger on school sidewalk. Large candy jar sits ON the pavement between them (grounded, not floating, no disembodied hand). Both step back refusing.",
-    "expressions": "Monkey: stern refusal — both hands on hips (two arms only, front view). Tiger: both hands on hips, angry frown.",
-    "outfits": "Monkey: school backpack. Tiger: student cap."
+    "scene": "ONLY purple monkey and lime-green crocodile on white — small centered pair stepping back from candy jar on ground, wide margins.",
+    "expressions": "Monkey: stern refusal, hands on hips, two arms only. Crocodile: firm no nod on log body."
   },
   "know": {
     "cast": [
@@ -173,22 +172,22 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
       "crocodile",
       "tiger"
     ],
-    "scene": "All four mascots — Purple monkey with a lightbulb glowing above its head, smiling confidently — I know!",
-    "expressions": "Monkey: eureka confident grin, bright eyes, chest puffed (NOT bored half-lidded)."
+    "scene": "All four mascots on white — small centered group (each max 40% frame height) acting out \"know\". All four entire bodies fully inside frame with generous margins, no clipping at edges.",
+    "expressions": "All four: expressive faces matching word meaning. Tiger: sphere only. Crocodile: log low. Elephant: stick arms visible. Monkey: two arms two legs only."
   },
   "not": {
     "cast": [
       "monkey",
-      "tiger"
+      "elephant"
     ],
-    "scene": "ONLY monkey and tiger — Purple monkey pushes away a slice of cake with a firm paw — not eating that.",
-    "expressions": "Monkey: firm refusal face, pushing plate away, decisive eyes (NOT lazy). Tiger: supporting head-shake no."
+    "scene": "ONLY purple monkey and pink elephant on white — two small centered mascots (each max 50% frame height) acting out \"not\". Both entire bodies fully inside frame with wide margins, no clipping.",
+    "expressions": "Monkey: expressive face matching word meaning, sitting side profile, exactly two arms two legs, fully visible. Elephant: expressive face, giant circle head + stick body unchanged, BOTH thin stick arms visible, fully inside frame."
   },
   "can": {
     "cast": [
-      "tiger"
+      "elephant"
     ],
-    "scene": "ONLY orange tiger — bright gym room. Tiger easily lifts heavy teal dumbbell, flexing — I can!",
+    "scene": "ONLY orange tiger on white — small centered tiger easily lifts teal dumbbell, entire body inside frame with generous margins.",
     "expressions": "Tiger: confident strong grin, flexing proudly. Sphere body, two stub arms two stub legs."
   },
   "all": {
@@ -198,59 +197,61 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
       "crocodile",
       "tiger"
     ],
-    "scene": "All four mascots — round table full of colorful fruit. Tiger sphere leaning toward fruit. Crocodile log body at table height on four legs. Elephant stick arms visible.",
-    "expressions": "All four: excited at abundance. Tiger: merged sphere ball. Crocodile: horizontal log shape."
+    "scene": "All four mascots on white — small centered around simple fruit bowl on table, wide margins, no clipping.",
+    "expressions": "All four: excited at abundance. Tiger: merged sphere. Crocodile: horizontal log."
   },
   "with": {
     "cast": [
-      "tiger",
-      "crocodile"
+      "monkey",
+      "elephant",
+      "crocodile",
+      "tiger"
     ],
-    "scene": "ONLY orange tiger and lime-green crocodile — rainy sidewalk. Tiger holds blue umbrella over both. Crocodile walks low as horizontal log beside tiger.",
-    "expressions": "Tiger: orange SPHERE body unchanged, happy walking together. Crocodile: horizontal LOG body low to ground, four stub legs, NEVER upright."
+    "scene": "ONLY pink elephant and lime-green crocodile on white — small centered pair walking together, wide margins, both fully visible.",
+    "expressions": "Elephant: happy walking, stick arms visible. Crocodile: horizontal LOG body low to ground, four stub legs."
   },
   "just": {
     "cast": [
-      "tiger"
+      "crocodile"
     ],
-    "scene": "ONLY tiger —",
-    "expressions": "Tiger: understanding nod at single cookie."
+    "scene": "ONLY lime-green crocodile on white — small centered mascot (max 55% frame height, max 45% width) acting out meaning of \"just\". Entire body fully inside frame with at least 12% margin on every side.",
+    "expressions": "Crocodile: expressive face on horizontal log body low to ground, four stub legs, fully visible inside frame."
   },
   "get": {
     "cast": [
       "tiger"
     ],
-    "scene": "ONLY tiger —",
-    "expressions": ""
+    "scene": "ONLY orange tiger on white — small centered mascot (max 55% frame height, max 45% width) acting out meaning of \"get\". Entire body fully inside frame with at least 12% margin on every side.",
+    "expressions": "Tiger: expressive face, orange sphere body unchanged, two stub arms two stub legs, fully inside frame."
   },
   "here": {
     "cast": [
-      "tiger"
+      "monkey"
     ],
-    "scene": "ONLY tiger —",
-    "expressions": "Tiger: looking down at exact spot, understanding nod."
+    "scene": "ONLY purple monkey on white — small centered mascot (max 55% frame height, max 45% width) acting out meaning of \"here\". Entire body fully inside frame with at least 12% margin on every side.",
+    "expressions": "Monkey: expressive face matching word meaning, sitting side profile, exactly two arms two legs, fully visible."
   },
   "but": {
     "cast": [
       "elephant",
-      "tiger"
+      "crocodile"
     ],
-    "scene": "ONLY pink elephant (rainy left) and orange tiger (sunny right) — split-scene contrast. Elephant holds teal umbrella in rain puddles; tiger enjoys sunshine on park bench.",
-    "expressions": "Elephant: conflicted hopeful-yet-resigned rain face, BOTH thin stick arms visible holding umbrella + trunk, four stick legs. Tiger: happy sunny-side smile on bench."
+    "scene": "ONLY pink elephant and lime-green crocodile on white — split contrast, both small and centered with wide margins. Elephant holds teal umbrella left; crocodile horizontal log right.",
+    "expressions": "Elephant: conflicted hopeful face, BOTH thin stick arms visible. Crocodile: log body low, four stub legs, fully visible."
   },
   "there": {
     "cast": [
-      "tiger"
+      "elephant"
     ],
-    "scene": "ONLY tiger — Orange tiger pointing across a city park at a tiny house on the far hill — over there.",
-    "expressions": "Tiger: pointing arm extended, eyes on distant house (NOT O-mouth shock)."
+    "scene": "ONLY pink elephant on white — small centered mascot (max 55% frame height, max 45% width) acting out meaning of \"there\". Entire body fully inside frame with at least 12% margin on every side.",
+    "expressions": "Elephant: expressive face, giant circle head + stick body unchanged, BOTH thin stick arms visible, fully inside frame."
   },
   "so": {
     "cast": [
       "crocodile"
     ],
-    "scene": "ONLY crocodile — Lime-green crocodile eating a very spicy red pepper with steam from ears — so hot!",
-    "expressions": "Crocodile: comedic spicy reaction — watering eyes, open panting mouth, steam puffs (NOT tired default — active spicy reaction)."
+    "scene": "ONLY lime-green crocodile on white — small centered mascot (max 55% frame height, max 45% width) acting out meaning of \"so\". Entire body fully inside frame with at least 12% margin on every side.",
+    "expressions": "Crocodile: expressive face on horizontal log body low to ground, four stub legs, fully visible inside frame."
   },
   "they": {
     "cast": [
@@ -259,79 +260,79 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
       "crocodile",
       "tiger"
     ],
-    "scene": "All four mascots — Three identical teal birds on a branch while all four mascots watch together — they.",
-    "expressions": "All mascots: collective watching — pointing at the three birds together (Cat interested, Dog curious calm, Cow gentle smile, Pig excited pointing). Group observing THEY."
+    "scene": "All four mascots on white — small centered group (each max 40% frame height) acting out \"they\". All four entire bodies fully inside frame with generous margins, no clipping at edges.",
+    "expressions": "All four: expressive faces matching word meaning. Tiger: sphere only. Crocodile: log low. Elephant: stick arms visible. Monkey: two arms two legs only."
   },
   "right": {
     "cast": [
       "tiger"
     ],
-    "scene": "ONLY tiger — Orange tiger gives a big green checkmark card to",
-    "expressions": "Tiger: approving proud grin presenting checkmark (NOT shocked)."
+    "scene": "ONLY orange tiger on white — small centered mascot (max 55% frame height, max 45% width) acting out meaning of \"right\". Entire body fully inside frame with at least 12% margin on every side.",
+    "expressions": "Tiger: expressive face, orange sphere body unchanged, two stub arms two stub legs, fully inside frame."
   },
   "like": {
     "cast": [
-      "tiger"
+      "monkey"
     ],
-    "scene": "ONLY tiger —",
-    "expressions": "Tiger: warm smile watching."
+    "scene": "ONLY purple monkey on white — small centered mascot (max 55% frame height, max 45% width) acting out meaning of \"like\". Entire body fully inside frame with at least 12% margin on every side.",
+    "expressions": "Monkey: expressive face matching word meaning, sitting side profile, exactly two arms two legs, fully visible."
   },
   "out": {
     "cast": [
-      "tiger"
+      "elephant"
     ],
-    "scene": "ONLY tiger —",
-    "expressions": ""
+    "scene": "ONLY pink elephant on white — small centered mascot (max 55% frame height, max 45% width) acting out meaning of \"out\". Entire body fully inside frame with at least 12% margin on every side.",
+    "expressions": "Elephant: expressive face, giant circle head + stick body unchanged, BOTH thin stick arms visible, fully inside frame."
   },
   "go": {
     "cast": [
-      "tiger"
+      "crocodile"
     ],
-    "scene": "ONLY tiger — Orange tiger mid-run on a path with motion lines, eager expression — go!",
-    "expressions": "Tiger: energetic running grin, forward momentum (NOT frozen shocked O)."
+    "scene": "ONLY lime-green crocodile on white — small centered mascot (max 55% frame height, max 45% width) acting out meaning of \"go\". Entire body fully inside frame with at least 12% margin on every side.",
+    "expressions": "Crocodile: expressive face on horizontal log body low to ground, four stub legs, fully visible inside frame."
   },
   "she": {
     "cast": [
-      "elephant"
+      "tiger"
     ],
-    "scene": "ONLY elephant —",
-    "expressions": "Elephant: kind warm expression."
+    "scene": "ONLY orange tiger on white — small centered mascot (max 55% frame height, max 45% width) acting out meaning of \"she\". Entire body fully inside frame with at least 12% margin on every side.",
+    "expressions": "Tiger: expressive face, orange sphere body unchanged, two stub arms two stub legs, fully inside frame."
   },
   "up": {
     "cast": [
-      "tiger"
+      "monkey"
     ],
-    "scene": "ONLY tiger —",
-    "expressions": "Tiger: jumping trying to reach."
+    "scene": "ONLY purple monkey on white — small centered mascot (max 55% frame height, max 45% width) acting out meaning of \"up\". Entire body fully inside frame with at least 12% margin on every side.",
+    "expressions": "Monkey: expressive face matching word meaning, sitting side profile, exactly two arms two legs, fully visible."
   },
   "about": {
     "cast": [
       "elephant"
     ],
-    "scene": "ONLY elephant —",
-    "expressions": "Elephant: thoughtful nod at each icon."
+    "scene": "ONLY pink elephant on white — small centered mascot (max 55% frame height, max 45% width) acting out meaning of \"about\". Entire body fully inside frame with at least 12% margin on every side.",
+    "expressions": "Elephant: expressive face, giant circle head + stick body unchanged, BOTH thin stick arms visible, fully inside frame."
   },
   "if": {
     "cast": [
-      "monkey"
+      "crocodile"
     ],
-    "scene": "ONLY monkey — Purple monkey at a fork in the road with two paths, thinking hard — if this or that.",
-    "expressions": "Monkey: weighing options, one eyebrow up, paw on chin (thoughtful NOT bored)."
+    "scene": "ONLY lime-green crocodile on white — small centered mascot (max 55% frame height, max 45% width) acting out meaning of \"if\". Entire body fully inside frame with at least 12% margin on every side.",
+    "expressions": "Crocodile: expressive face on horizontal log body low to ground, four stub legs, fully visible inside frame."
   },
   "at": {
     "cast": [
       "tiger"
     ],
-    "scene": "ONLY tiger — Orange tiger sitting at a bus stop bench under a clock — at the stop.",
-    "expressions": "Tiger: patient waiting sit, calm content eyes checking clock (NOT shocked O)."
+    "scene": "ONLY orange tiger on white — small centered mascot (max 55% frame height, max 45% width) acting out meaning of \"at\". Entire body fully inside frame with at least 12% margin on every side.",
+    "expressions": "Tiger: expressive face, orange sphere body unchanged, two stub arms two stub legs, fully inside frame."
   },
   "now": {
     "cast": [
-      "tiger",
-      "elephant"
+      "crocodile",
+      "tiger"
     ],
-    "scene": "ONLY tiger and elephant — All mascots looking at a wall clock whose hands point to current moment — now.",
-    "expressions": "All four: urgent present-moment focus — eyes on clock, slight hurry or attention (Cat alert, Dog attentive calm, Cow serious gentle, Pig excited ready). NOW urgency."
+    "scene": "ONLY lime-green crocodile and orange tiger on white — two small centered mascots (each max 50% frame height) acting out \"now\". Both entire bodies fully inside frame with wide margins, no clipping.",
+    "expressions": "Crocodile: expressive face on horizontal log body low to ground, four stub legs, fully visible inside frame. Tiger: expressive face, orange sphere body unchanged, two stub arms two stub legs, fully inside frame."
   },
   "come": {
     "cast": [
@@ -340,22 +341,22 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
       "crocodile",
       "tiger"
     ],
-    "scene": "All four mascots — Orange tiger beckoning with paw toward a cozy open door with warm light — come here.",
-    "expressions": "Tiger: inviting beckoning wave, warm welcoming eyes (NOT shocked)."
+    "scene": "All four mascots on white — small centered group (each max 40% frame height) acting out \"come\". All four entire bodies fully inside frame with generous margins, no clipping at edges.",
+    "expressions": "All four: expressive faces matching word meaning. Tiger: sphere only. Crocodile: log low. Elephant: stick arms visible. Monkey: two arms two legs only."
   },
   "one": {
     "cast": [
-      "tiger"
+      "monkey"
     ],
-    "scene": "ONLY tiger —",
-    "expressions": "Tiger: counting on paw confirming one."
+    "scene": "ONLY purple monkey on white — small centered mascot (max 55% frame height, max 45% width) acting out meaning of \"one\". Entire body fully inside frame with at least 12% margin on every side.",
+    "expressions": "Monkey: expressive face matching word meaning, sitting side profile, exactly two arms two legs, fully visible."
   },
   "how": {
     "cast": [
-      "crocodile"
+      "elephant"
     ],
-    "scene": "ONLY crocodile —",
-    "expressions": "Crocodile: confused by instructions."
+    "scene": "ONLY pink elephant on white — small centered mascot (max 55% frame height, max 45% width) acting out meaning of \"how\". Entire body fully inside frame with at least 12% margin on every side.",
+    "expressions": "Elephant: expressive face, giant circle head + stick body unchanged, BOTH thin stick arms visible, fully inside frame."
   },
   "well": {
     "cast": [
@@ -364,8 +365,8 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
       "crocodile",
       "tiger"
     ],
-    "scene": "All four mascots — Lime-green crocodile drinking water and giving thumbs up, rosy cheeks — feeling well.",
-    "expressions": "Crocodile: healthy refreshed grin, thumbs up, rosy cheeks (NOT tired sweat — vibrant wellness)."
+    "scene": "All four mascots on white — small centered group (each max 40% frame height) acting out \"well\". All four entire bodies fully inside frame with generous margins, no clipping at edges.",
+    "expressions": "All four: expressive faces matching word meaning. Tiger: sphere only. Crocodile: log low. Elephant: stick arms visible. Monkey: two arms two legs only."
   },
   "want": {
     "cast": [
@@ -374,8 +375,8 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
       "crocodile",
       "tiger"
     ],
-    "scene": "All four mascots — Purple monkey reaching toward a shiny star cookie on a high shelf — want it.",
-    "expressions": "Monkey: longing reaching eyes, eager open mouth wanting (NOT bored lazy)."
+    "scene": "All four mascots on white — small centered group (each max 40% frame height) acting out \"want\". All four entire bodies fully inside frame with generous margins, no clipping at edges.",
+    "expressions": "All four: expressive faces matching word meaning. Tiger: sphere only. Crocodile: log low. Elephant: stick arms visible. Monkey: two arms two legs only."
   },
   "think": {
     "cast": [
@@ -384,9 +385,8 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
       "crocodile",
       "tiger"
     ],
-    "scene": "All four mascots — puzzle flat on desk surface, blocks on desk. One hand touches chin, OTHER arm hangs down long to floor. Curved hook shapes near head. All props on desk, nothing floating.",
-    "expressions": "Monkey: curious thinking, one eyebrow up. Exactly two arms: one on chin, one hanging down.",
-    "outfits": "Monkey: reading glasses on forehead."
+    "scene": "All four mascots on white — small centered group (each max 40% frame height) acting out \"think\". All four entire bodies fully inside frame with generous margins, no clipping at edges.",
+    "expressions": "All four: expressive faces matching word meaning. Tiger: sphere only. Crocodile: log low. Elephant: stick arms visible. Monkey: two arms two legs only."
   },
   "good": {
     "cast": [
@@ -395,8 +395,8 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
       "crocodile",
       "tiger"
     ],
-    "scene": "All four mascots — Orange tiger presenting a gold star sticker to",
-    "expressions": "Tiger: proud praising smile giving star (NOT shocked)."
+    "scene": "All four mascots on white — small centered group (each max 40% frame height) acting out \"good\". All four entire bodies fully inside frame with generous margins, no clipping at edges.",
+    "expressions": "All four: expressive faces matching word meaning. Tiger: sphere only. Crocodile: log low. Elephant: stick arms visible. Monkey: two arms two legs only."
   },
   "see": {
     "cast": [
@@ -405,67 +405,67 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
       "crocodile",
       "tiger"
     ],
-    "scene": "ONLY orange tiger — grassy cliff overlooking blue ocean. Tiger looks through telescope on tripod at sailboat.",
-    "expressions": "Tiger: excited wink pointing at ocean, sphere body, two stub arms on telescope."
+    "scene": "All four mascots on white — small centered group looking through simple telescope on tripod, all bodies fully inside frame with wide margins.",
+    "expressions": "All four: excited looking together. Tiger: sphere only. Crocodile: log low. Elephant: stick arms visible."
   },
   "let": {
     "cast": [
-      "monkey"
+      "crocodile"
     ],
-    "scene": "ONLY monkey — Purple monkey holding a gate open for",
-    "expressions": "Monkey: generous permitting gesture, kind smile holding gate (NOT lazy)."
+    "scene": "ONLY lime-green crocodile on white — small centered mascot (max 55% frame height, max 45% width) acting out meaning of \"let\". Entire body fully inside frame with at least 12% margin on every side.",
+    "expressions": "Crocodile: expressive face on horizontal log body low to ground, four stub legs, fully visible inside frame."
   },
   "why": {
     "cast": [
       "monkey",
-      "tiger"
+      "crocodile"
     ],
-    "scene": "ONLY monkey and tiger — Living room with scattered puzzle pieces on floor. Orange tiger shrugging confused. Purple monkey SITS on sofa cushion side profile, hands on hips — puzzled head tilt.",
-    "expressions": "Tiger: baffled shrug, raised eyebrows, palms up (NOT O-mouth shock). Monkey: confused head tilt, sitting side profile, hands on hips (two arms only)."
+    "scene": "ONLY purple monkey and lime-green crocodile on white — two small centered mascots (each max 50% frame height) acting out \"why\". Both entire bodies fully inside frame with wide margins, no clipping.",
+    "expressions": "Monkey: expressive face matching word meaning, sitting side profile, exactly two arms two legs, fully visible. Crocodile: expressive face on horizontal log body low to ground, four stub legs, fully visible inside frame."
   },
   "who": {
     "cast": [
-      "monkey",
-      "tiger"
+      "elephant",
+      "crocodile"
     ],
-    "scene": "ONLY monkey and tiger — School stage with purple curtain — mascots guessing mystery. Purple monkey SITS on stage edge side profile, one hand on chin thinking, other arm hidden behind body.",
-    "expressions": "All four: mystery guessing game — curious playful faces. Monkey: sitting side profile, one hand on chin only (exactly two arms total). Tiger: peeking from curtain."
+    "scene": "ONLY pink elephant and lime-green crocodile on white — two small centered mascots (each max 50% frame height) acting out \"who\". Both entire bodies fully inside frame with wide margins, no clipping.",
+    "expressions": "Elephant: expressive face, giant circle head + stick body unchanged, BOTH thin stick arms visible, fully inside frame. Crocodile: expressive face on horizontal log body low to ground, four stub legs, fully visible inside frame."
   },
   "as": {
     "cast": [
-      "monkey"
+      "tiger"
     ],
-    "scene": "ONLY purple monkey — modern kitchen, chef hat. Monkey sits on stool side profile stirring pot.",
+    "scene": "ONLY purple monkey on white — small centered monkey in chef hat stirring pot on stool, side profile, entire body inside frame.",
     "expressions": "Monkey: proud chef smile, sitting side profile, one hand stirring. Exactly two arms two legs."
   },
   "will": {
     "cast": [
-      "tiger",
+      "monkey",
       "elephant"
     ],
-    "scene": "ONLY orange tiger and pink elephant — home living room. Tiger points at wall calendar future picnic date; elephant marks calendar with trunk. BOTH elephant stick arms visible at sides.",
-    "expressions": "Tiger: confident future-planning smile pointing. Elephant: marking calendar, two thin stick arms visible plus trunk."
+    "scene": "ONLY purple monkey and pink elephant on white — small centered pair marking calendar, wide margins, no clipping.",
+    "expressions": "Monkey: confident planning smile, sitting side profile, two arms only. Elephant: marking calendar, two thin stick arms visible plus trunk."
   },
   "from": {
     "cast": [
-      "tiger"
+      "monkey"
     ],
-    "scene": "ONLY tiger —",
-    "expressions": ""
+    "scene": "ONLY purple monkey on white — small centered mascot (max 55% frame height, max 45% width) acting out meaning of \"from\". Entire body fully inside frame with at least 12% margin on every side.",
+    "expressions": "Monkey: expressive face matching word meaning, sitting side profile, exactly two arms two legs, fully visible."
   },
   "when": {
     "cast": [
       "elephant"
     ],
-    "scene": "ONLY elephant — All mascots watching an hourglass with sand falling — when time comes.",
-    "expressions": "All four: patient anticipation watching sand fall (Cat focused, Dog eager waiting, Cow calm, Pig impatient cute foot-tap). Waiting for WHEN."
+    "scene": "ONLY pink elephant on white — small centered mascot (max 55% frame height, max 45% width) acting out meaning of \"when\". Entire body fully inside frame with at least 12% margin on every side.",
+    "expressions": "Elephant: expressive face, giant circle head + stick body unchanged, BOTH thin stick arms visible, fully inside frame."
   },
   "back": {
     "cast": [
-      "tiger"
+      "crocodile"
     ],
-    "scene": "ONLY tiger —",
-    "expressions": ""
+    "scene": "ONLY lime-green crocodile on white — small centered mascot (max 55% frame height, max 45% width) acting out meaning of \"back\". Entire body fully inside frame with at least 12% margin on every side.",
+    "expressions": "Crocodile: expressive face on horizontal log body low to ground, four stub legs, fully visible inside frame."
   },
   "okay": {
     "cast": [
@@ -474,8 +474,8 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
       "crocodile",
       "tiger"
     ],
-    "scene": "All four mascots — Orange tiger and",
-    "expressions": "Tiger: relaxed OK sign, easygoing grin (NOT shocked). Cow and pig: thumbs up / OK hooves, all agreed."
+    "scene": "All four mascots on white — small centered group (each max 40% frame height) acting out \"okay\". All four entire bodies fully inside frame with generous margins, no clipping at edges.",
+    "expressions": "All four: expressive faces matching word meaning. Tiger: sphere only. Crocodile: log low. Elephant: stick arms visible. Monkey: two arms two legs only."
   },
   "yes": {
     "cast": [
@@ -484,58 +484,57 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
       "crocodile",
       "tiger"
     ],
-    "scene": "All four mascots — All four at city park birthday picnic — checkmark flag in cake, confetti, playground behind.",
-    "expressions": "All cheering — happy faces only. Elephant MUST keep giant round head + pencil stick body (NOT fat). Tiger MUST stay spherical ball.",
-    "outfits": "Monkey: party cone hat. Elephant: blue birthday sash. Crocodile: none. Tiger: none."
+    "scene": "All four mascots on white — small centered group (each max 40% frame height) acting out \"yes\". All four entire bodies fully inside frame with generous margins, no clipping at edges.",
+    "expressions": "All four: expressive faces matching word meaning. Tiger: sphere only. Crocodile: log low. Elephant: stick arms visible. Monkey: two arms two legs only."
   },
   "time": {
     "cast": [
-      "elephant"
+      "tiger"
     ],
-    "scene": "ONLY elephant —",
-    "expressions": "Elephant: calm punctual nod."
+    "scene": "ONLY orange tiger on white — small centered mascot (max 55% frame height, max 45% width) acting out meaning of \"time\". Entire body fully inside frame with at least 12% margin on every side.",
+    "expressions": "Tiger: expressive face, orange sphere body unchanged, two stub arms two stub legs, fully inside frame."
   },
   "look": {
     "cast": [
-      "tiger"
+      "monkey"
     ],
-    "scene": "ONLY tiger — Orange tiger with binoculars staring at a colorful bird in a tree — look!",
-    "expressions": "Tiger: excited discovery pointing with binoculars (NOT O-mouth shock — eager look)."
+    "scene": "ONLY purple monkey on white — small centered mascot (max 55% frame height, max 45% width) acting out meaning of \"look\". Entire body fully inside frame with at least 12% margin on every side.",
+    "expressions": "Monkey: expressive face matching word meaning, sitting side profile, exactly two arms two legs, fully visible."
   },
   "take": {
     "cast": [
-      "monkey"
+      "elephant"
     ],
-    "scene": "ONLY monkey — Purple monkey taking the last cookie from a plate carefully — take one.",
-    "expressions": "Monkey: careful gentle taking, respectful eyes on last cookie (NOT greedy bored)."
+    "scene": "ONLY pink elephant on white — small centered mascot (max 55% frame height, max 45% width) acting out meaning of \"take\". Entire body fully inside frame with at least 12% margin on every side.",
+    "expressions": "Elephant: expressive face, giant circle head + stick body unchanged, BOTH thin stick arms visible, fully inside frame."
   },
   "an": {
     "cast": [
-      "tiger"
+      "crocodile"
     ],
-    "scene": "ONLY tiger — Orange tiger presenting a single orange to",
-    "expressions": "Tiger: offering one orange warmly (NOT shocked)."
+    "scene": "ONLY lime-green crocodile on white — small centered mascot (max 55% frame height, max 45% width) acting out meaning of \"an\". Entire body fully inside frame with at least 12% margin on every side.",
+    "expressions": "Crocodile: expressive face on horizontal log body low to ground, four stub legs, fully visible inside frame."
   },
   "man": {
     "cast": [
-      "elephant"
+      "tiger"
     ],
-    "scene": "ONLY elephant —",
-    "expressions": "Elephant: courteous bow."
+    "scene": "ONLY orange tiger on white — small centered mascot (max 55% frame height, max 45% width) acting out meaning of \"man\". Entire body fully inside frame with at least 12% margin on every side.",
+    "expressions": "Tiger: expressive face, orange sphere body unchanged, two stub arms two stub legs, fully inside frame."
   },
   "where": {
     "cast": [
-      "elephant"
+      "monkey"
     ],
-    "scene": "ONLY elephant —",
-    "expressions": "Elephant: rotating map helpfully."
+    "scene": "ONLY purple monkey on white — small centered mascot (max 55% frame height, max 45% width) acting out meaning of \"where\". Entire body fully inside frame with at least 12% margin on every side.",
+    "expressions": "Monkey: expressive face matching word meaning, sitting side profile, exactly two arms two legs, fully visible."
   },
   "would": {
     "cast": [
-      "tiger"
+      "elephant"
     ],
-    "scene": "ONLY tiger —",
-    "expressions": "Tiger: imagining same dream happily."
+    "scene": "ONLY pink elephant on white — small centered mascot (max 55% frame height, max 45% width) acting out meaning of \"would\". Entire body fully inside frame with at least 12% margin on every side.",
+    "expressions": "Elephant: expressive face, giant circle head + stick body unchanged, BOTH thin stick arms visible, fully inside frame."
   },
   "some": {
     "cast": [
@@ -544,86 +543,86 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
       "crocodile",
       "tiger"
     ],
-    "scene": "All four mascots —",
-    "expressions": "Elephant: indicating SOME remaining on bush."
+    "scene": "All four mascots on white — small centered group (each max 40% frame height) acting out \"some\". All four entire bodies fully inside frame with generous margins, no clipping at edges.",
+    "expressions": "All four: expressive faces matching word meaning. Tiger: sphere only. Crocodile: log low. Elephant: stick arms visible. Monkey: two arms two legs only."
   },
   "hey": {
     "cast": [
-      "tiger"
+      "crocodile"
     ],
-    "scene": "ONLY tiger — Orange tiger waving both paws loudly from behind a fence — hey!",
-    "expressions": "Tiger: loud friendly HEY wave, big open smile calling attention (NOT scared shock)."
+    "scene": "ONLY lime-green crocodile on white — small centered mascot (max 55% frame height, max 45% width) acting out meaning of \"hey\". Entire body fully inside frame with at least 12% margin on every side.",
+    "expressions": "Crocodile: expressive face on horizontal log body low to ground, four stub legs, fully visible inside frame."
   },
   "tell": {
     "cast": [
-      "monkey"
+      "tiger"
     ],
-    "scene": "ONLY monkey — Purple monkey whispering a secret into",
-    "expressions": "Monkey: conspiratorial whisper, hand cupped at mouth, sly smile (NOT bored)."
+    "scene": "ONLY orange tiger on white — small centered mascot (max 55% frame height, max 45% width) acting out meaning of \"tell\". Entire body fully inside frame with at least 12% margin on every side.",
+    "expressions": "Tiger: expressive face, orange sphere body unchanged, two stub arms two stub legs, fully inside frame."
   },
   "or": {
     "cast": [
-      "tiger"
+      "monkey"
     ],
-    "scene": "ONLY tiger —",
-    "expressions": "Tiger: pointing at both options helpfully."
+    "scene": "ONLY purple monkey on white — small centered mascot (max 55% frame height, max 45% width) acting out meaning of \"or\". Entire body fully inside frame with at least 12% margin on every side.",
+    "expressions": "Monkey: expressive face matching word meaning, sitting side profile, exactly two arms two legs, fully visible."
   },
   "say": {
     "cast": [
-      "monkey"
+      "elephant"
     ],
-    "scene": "ONLY monkey —",
-    "expressions": "Monkey: listening attentively nodding."
+    "scene": "ONLY pink elephant on white — small centered mascot (max 55% frame height, max 45% width) acting out meaning of \"say\". Entire body fully inside frame with at least 12% margin on every side.",
+    "expressions": "Elephant: expressive face, giant circle head + stick body unchanged, BOTH thin stick arms visible, fully inside frame."
   },
   "something": {
     "cast": [
-      "tiger"
+      "crocodile"
     ],
-    "scene": "ONLY tiger — Mystery object under a teal cloth on a table — something hidden.",
-    "expressions": "Tiger: excited reaching for cloth (NOT horror shock)."
+    "scene": "ONLY lime-green crocodile on white — small centered mascot (max 55% frame height, max 45% width) acting out meaning of \"something\". Entire body fully inside frame with at least 12% margin on every side.",
+    "expressions": "Crocodile: expressive face on horizontal log body low to ground, four stub legs, fully visible inside frame."
   },
   "down": {
     "cast": [
       "tiger"
     ],
-    "scene": "ONLY orange tiger on white — tiger points one stub paw toward a large downward arrow on the ground. NO other mascots.",
+    "scene": "ONLY orange tiger on white — small centered tiger points stub paw at downward arrow on ground, entire body inside frame with wide margins.",
     "expressions": "Tiger: teaching gesture looking down along arrow, orange sphere body unchanged."
   },
   "then": {
     "cast": [
-      "tiger"
+      "monkey"
     ],
-    "scene": "ONLY tiger —",
-    "expressions": "Tiger: pointing from plate to door teaching sequence."
+    "scene": "ONLY purple monkey on white — small centered mascot (max 55% frame height, max 45% width) acting out meaning of \"then\". Entire body fully inside frame with at least 12% margin on every side.",
+    "expressions": "Monkey: expressive face matching word meaning, sitting side profile, exactly two arms two legs, fully visible."
   },
   "little": {
     "cast": [
-      "crocodile"
+      "elephant"
     ],
-    "scene": "ONLY crocodile —",
-    "expressions": "Crocodile: small cute proud standing on stool, happy little smile (NOT tired)."
+    "scene": "ONLY pink elephant on white — small centered mascot (max 55% frame height, max 45% width) acting out meaning of \"little\". Entire body fully inside frame with at least 12% margin on every side.",
+    "expressions": "Elephant: expressive face, giant circle head + stick body unchanged, BOTH thin stick arms visible, fully inside frame."
   },
   "way": {
     "cast": [
-      "tiger"
+      "crocodile"
     ],
-    "scene": "ONLY tiger — Orange tiger at start of a winding path leading to a small white house — the way home.",
-    "expressions": "Tiger: hopeful path-finding expression, pointing down road (NOT shocked)."
+    "scene": "ONLY lime-green crocodile on white — small centered mascot (max 55% frame height, max 45% width) acting out meaning of \"way\". Entire body fully inside frame with at least 12% margin on every side.",
+    "expressions": "Crocodile: expressive face on horizontal log body low to ground, four stub legs, fully visible inside frame."
   },
   "make": {
     "cast": [
-      "tiger",
+      "crocodile",
       "elephant"
     ],
-    "scene": "ONLY tiger and elephant —",
-    "expressions": "Tiger: cracking eggs helpfully. Elephant: stirring gently."
+    "scene": "ONLY lime-green crocodile and pink elephant on white — two small centered mascots (each max 50% frame height) acting out \"make\". Both entire bodies fully inside frame with wide margins, no clipping.",
+    "expressions": "Crocodile: expressive face on horizontal log body low to ground, four stub legs, fully visible inside frame. Elephant: expressive face, giant circle head + stick body unchanged, BOTH thin stick arms visible, fully inside frame."
   },
   "too": {
     "cast": [
       "tiger"
     ],
-    "scene": "ONLY tiger — White mug overflowing with hot cocoa down the sides — too full.",
-    "expressions": "Tiger: grabbing napkins alarmed."
+    "scene": "ONLY orange tiger on white — small centered mascot (max 55% frame height, max 45% width) acting out meaning of \"too\". Entire body fully inside frame with at least 12% margin on every side.",
+    "expressions": "Tiger: expressive face, orange sphere body unchanged, two stub arms two stub legs, fully inside frame."
   },
   "never": {
     "cast": [
@@ -632,22 +631,22 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
       "crocodile",
       "tiger"
     ],
-    "scene": "All four mascots —",
-    "expressions": "Tiger: supporting stern head-shake."
+    "scene": "All four mascots on white — small centered group (each max 40% frame height) acting out \"never\". All four entire bodies fully inside frame with generous margins, no clipping at edges.",
+    "expressions": "All four: expressive faces matching word meaning. Tiger: sphere only. Crocodile: log low. Elephant: stick arms visible. Monkey: two arms two legs only."
   },
   "by": {
     "cast": [
-      "crocodile"
+      "monkey"
     ],
-    "scene": "ONLY crocodile —",
-    "expressions": "Crocodile: signing painting proudly."
+    "scene": "ONLY purple monkey on white — small centered mascot (max 55% frame height, max 45% width) acting out meaning of \"by\". Entire body fully inside frame with at least 12% margin on every side.",
+    "expressions": "Monkey: expressive face matching word meaning, sitting side profile, exactly two arms two legs, fully visible."
   },
   "over": {
     "cast": [
-      "tiger"
+      "elephant"
     ],
-    "scene": "ONLY tiger — Orange tiger jumping over a low teal hurdle on a track — over.",
-    "expressions": "Tiger: athletic mid-jump determined grin (NOT shocked O — athletic focus)."
+    "scene": "ONLY pink elephant on white — small centered mascot (max 55% frame height, max 45% width) acting out meaning of \"over\". Entire body fully inside frame with at least 12% margin on every side.",
+    "expressions": "Elephant: expressive face, giant circle head + stick body unchanged, BOTH thin stick arms visible, fully inside frame."
   },
   "more": {
     "cast": [
@@ -656,38 +655,37 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
       "crocodile",
       "tiger"
     ],
-    "scene": "All four mascots —",
-    "expressions": "Tiger: excited at growing pile."
+    "scene": "All four mascots on white — small centered group (each max 40% frame height) acting out \"more\". All four entire bodies fully inside frame with generous margins, no clipping at edges.",
+    "expressions": "All four: expressive faces matching word meaning. Tiger: sphere only. Crocodile: log low. Elephant: stick arms visible. Monkey: two arms two legs only."
   },
   "mean": {
     "cast": [
-      "elephant"
+      "crocodile"
     ],
-    "scene": "ONLY elephant —",
-    "expressions": "Elephant: sad disapproving look."
+    "scene": "ONLY lime-green crocodile on white — small centered mascot (max 55% frame height, max 45% width) acting out meaning of \"mean\". Entire body fully inside frame with at least 12% margin on every side.",
+    "expressions": "Crocodile: expressive face on horizontal log body low to ground, four stub legs, fully visible inside frame."
   },
   "very": {
     "cast": [
-      "elephant"
+      "tiger"
     ],
-    "scene": "ONLY elephant —",
-    "expressions": "Elephant: measuring tower height."
+    "scene": "ONLY orange tiger on white — small centered mascot (max 55% frame height, max 45% width) acting out meaning of \"very\". Entire body fully inside frame with at least 12% margin on every side.",
+    "expressions": "Tiger: expressive face, orange sphere body unchanged, two stub arms two stub legs, fully inside frame."
   },
   "off": {
     "cast": [
-      "tiger"
+      "monkey"
     ],
-    "scene": "ONLY tiger —",
-    "expressions": ""
+    "scene": "ONLY purple monkey on white — small centered mascot (max 55% frame height, max 45% width) acting out meaning of \"off\". Entire body fully inside frame with at least 12% margin on every side.",
+    "expressions": "Monkey: expressive face matching word meaning, sitting side profile, exactly two arms two legs, fully visible."
   },
   "sorry": {
     "cast": [
       "monkey",
       "elephant"
     ],
-    "scene": "ONLY monkey and elephant — cozy home living room. Monkey offers flower bouquet to elephant on sofa after broken blue vase on carpet.",
-    "expressions": "Monkey: guilty teary eyes, ears back (NOT wink). Elephant: sad forgiving, trunk drooped — SAME giant circle head and stick-thin body as lineup.",
-    "outfits": "Monkey: none. Elephant: none."
+    "scene": "ONLY purple monkey and pink elephant on white — two small centered mascots (each max 50% frame height) acting out \"sorry\". Both entire bodies fully inside frame with wide margins, no clipping.",
+    "expressions": "Monkey: expressive face matching word meaning, sitting side profile, exactly two arms two legs, fully visible. Elephant: expressive face, giant circle head + stick body unchanged, BOTH thin stick arms visible, fully inside frame."
   },
   "give": {
     "cast": [
@@ -696,8 +694,8 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
       "crocodile",
       "tiger"
     ],
-    "scene": "All four mascots —",
-    "expressions": "Monkey: surprised-touched receiving, happy eyes (NOT bored)."
+    "scene": "All four mascots on white — small centered group (each max 40% frame height) acting out \"give\". All four entire bodies fully inside frame with generous margins, no clipping at edges.",
+    "expressions": "All four: expressive faces matching word meaning. Tiger: sphere only. Crocodile: log low. Elephant: stick arms visible. Monkey: two arms two legs only."
   },
   "thank": {
     "cast": [
@@ -706,8 +704,8 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
       "crocodile",
       "tiger"
     ],
-    "scene": "All four mascots —",
-    "expressions": "Elephant: touched hand on heart."
+    "scene": "All four mascots on white — small centered group (each max 40% frame height) acting out \"thank\". All four entire bodies fully inside frame with generous margins, no clipping at edges.",
+    "expressions": "All four: expressive faces matching word meaning. Tiger: sphere only. Crocodile: log low. Elephant: stick arms visible. Monkey: two arms two legs only."
   },
   "love": {
     "cast": [
@@ -716,9 +714,8 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
       "crocodile",
       "tiger"
     ],
-    "scene": "All four mascots — Three only (no crocodile) — group hug on park bench at sunset, floating hearts.",
-    "expressions": "Warm closed-eye smiles. Elephant: stick-thin body + giant round head unchanged. Tiger: sphere unchanged.",
-    "outfits": "Monkey: red scarf. Elephant: none. Tiger: none."
+    "scene": "All four mascots on white — small centered group (each max 40% frame height) acting out \"love\". All four entire bodies fully inside frame with generous margins, no clipping at edges.",
+    "expressions": "All four: expressive faces matching word meaning. Tiger: sphere only. Crocodile: log low. Elephant: stick arms visible. Monkey: two arms two legs only."
   },
   "people": {
     "cast": [
@@ -727,8 +724,8 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
       "crocodile",
       "tiger"
     ],
-    "scene": "All four mascots — Four diverse stick-figure people silhouettes chatting in a park while mascots picnic nearby.",
-    "expressions": "Mascots: friendly observing PEOPLE — warm curious smiles watching humans (Cat interested, Dog happy calm, Cow gentle wave to people, Pig excited pointing). Not interacting as main focus."
+    "scene": "All four mascots on white — small centered group (each max 40% frame height) acting out \"people\". All four entire bodies fully inside frame with generous margins, no clipping at edges.",
+    "expressions": "All four: expressive faces matching word meaning. Tiger: sphere only. Crocodile: log low. Elephant: stick arms visible. Monkey: two arms two legs only."
   },
   "please": {
     "cast": [
@@ -737,8 +734,8 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
       "crocodile",
       "tiger"
     ],
-    "scene": "All four mascots —",
-    "expressions": "Elephant: kindly reaching to help."
+    "scene": "All four mascots on white — small centered group (each max 40% frame height) acting out \"please\". All four entire bodies fully inside frame with generous margins, no clipping at edges.",
+    "expressions": "All four: expressive faces matching word meaning. Tiger: sphere only. Crocodile: log low. Elephant: stick arms visible. Monkey: two arms two legs only."
   },
   "sure": {
     "cast": [
@@ -747,22 +744,22 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
       "crocodile",
       "tiger"
     ],
-    "scene": "All four mascots — Orange tiger nodding confidently with a thumbs up — sure!",
-    "expressions": "Tiger: confident sure nod, relaxed thumbs up grin (NOT shocked O)."
+    "scene": "All four mascots on white — small centered group (each max 40% frame height) acting out \"sure\". All four entire bodies fully inside frame with generous margins, no clipping at edges.",
+    "expressions": "All four: expressive faces matching word meaning. Tiger: sphere only. Crocodile: log low. Elephant: stick arms visible. Monkey: two arms two legs only."
   },
   "any": {
     "cast": [
-      "tiger"
+      "elephant"
     ],
-    "scene": "ONLY tiger —",
-    "expressions": "Tiger: opening one door experimentally."
+    "scene": "ONLY pink elephant on white — small centered mascot (max 55% frame height, max 45% width) acting out meaning of \"any\". Entire body fully inside frame with at least 12% margin on every side.",
+    "expressions": "Elephant: expressive face, giant circle head + stick body unchanged, BOTH thin stick arms visible, fully inside frame."
   },
   "only": {
     "cast": [
-      "tiger"
+      "crocodile"
     ],
-    "scene": "ONLY tiger —",
-    "expressions": "Tiger: negotiating trade."
+    "scene": "ONLY lime-green crocodile on white — small centered mascot (max 55% frame height, max 45% width) acting out meaning of \"only\". Entire body fully inside frame with at least 12% margin on every side.",
+    "expressions": "Crocodile: expressive face on horizontal log body low to ground, four stub legs, fully visible inside frame."
   },
   "because": {
     "cast": [
@@ -771,8 +768,8 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
       "crocodile",
       "tiger"
     ],
-    "scene": "All four mascots — Orange tiger pointing at dark clouds as reason for carrying umbrella — because of rain.",
-    "expressions": "Tiger: explaining BECAUSE gesture at clouds, teaching face (NOT shocked). Elephant: logical connecting dots gesture."
+    "scene": "All four mascots on white — small centered group (each max 40% frame height) acting out \"because\". All four entire bodies fully inside frame with generous margins, no clipping at edges.",
+    "expressions": "All four: expressive faces matching word meaning. Tiger: sphere only. Crocodile: log low. Elephant: stick arms visible. Monkey: two arms two legs only."
   },
   "two": {
     "cast": [
@@ -781,30 +778,30 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
       "crocodile",
       "tiger"
     ],
-    "scene": "All four mascots —",
-    "expressions": "Tiger: confirming count nodding. Elephant: holding up two hooves."
+    "scene": "All four mascots on white — small centered group (each max 40% frame height) acting out \"two\". All four entire bodies fully inside frame with generous margins, no clipping at edges.",
+    "expressions": "All four: expressive faces matching word meaning. Tiger: sphere only. Crocodile: log low. Elephant: stick arms visible. Monkey: two arms two legs only."
   },
   "much": {
     "cast": [
-      "elephant"
+      "tiger"
     ],
-    "scene": "ONLY elephant —",
-    "expressions": "Elephant: concerned gentle rescue."
+    "scene": "ONLY orange tiger on white — small centered mascot (max 55% frame height, max 45% width) acting out meaning of \"much\". Entire body fully inside frame with at least 12% margin on every side.",
+    "expressions": "Tiger: expressive face, orange sphere body unchanged, two stub arms two stub legs, fully inside frame."
   },
   "sir": {
     "cast": [
-      "elephant"
+      "monkey"
     ],
-    "scene": "ONLY elephant —",
-    "expressions": "Elephant: curtsy-like polite nod."
+    "scene": "ONLY purple monkey on white — small centered mascot (max 55% frame height, max 45% width) acting out meaning of \"sir\". Entire body fully inside frame with at least 12% margin on every side.",
+    "expressions": "Monkey: expressive face matching word meaning, sitting side profile, exactly two arms two legs, fully visible."
   },
   "maybe": {
     "cast": [
-      "tiger",
+      "crocodile",
       "elephant"
     ],
-    "scene": "ONLY orange tiger and pink elephant — park fork in path. Tiger balances on fence post shrugging unsure; elephant holds clipboard listing pros.",
-    "expressions": "Tiger: uncertain maybe shrug. Elephant: thinking, BOTH thin stick arms visible (one holds clipboard, one on chin), giant circle head unchanged."
+    "scene": "ONLY lime-green crocodile and pink elephant on white — small centered pair at path fork, wide margins, entire bodies visible.",
+    "expressions": "Crocodile: uncertain shrug on log body. Elephant: thinking, BOTH thin stick arms visible, giant circle head unchanged."
   },
   "help": {
     "cast": [
@@ -813,8 +810,8 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
       "crocodile",
       "tiger"
     ],
-    "scene": "ONLY orange tiger and lime-green crocodile — suburban steps. Tiger helps tired crocodile carry heavy grocery bags upstairs.",
-    "expressions": "Tiger: supportive helpful smile carrying bags. Crocodile: relieved grateful face, four stub legs."
+    "scene": "ONLY orange tiger and lime-green crocodile on white — small centered pair, tiger helps crocodile carry grocery bags, wide margins.",
+    "expressions": "Tiger: supportive helpful smile. Crocodile: relieved grateful face, horizontal log body, four stub legs fully visible."
   }
 } as const;
 
