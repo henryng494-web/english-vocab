@@ -57,6 +57,11 @@
   --header-bg: transparent;
   --header-fg: #1e293b;
   --header-muted: #64748b;
+  --header-branch-light: #d98f4e;
+  --header-branch: #b3672b;
+  --header-branch-dark: #7a431a;
+  --header-leaf: #84cc16;
+  --header-leaf-dark: #4d7c0f;
 
   --meaning: #0f766e;
   --example-bg: #f8fafc;
@@ -969,80 +974,27 @@ body {
   overflow: visible;
 }
 
-/* Shared cast banner — toolbar row on top, cast strip below (normal flow) */
-.app-header--cast {
+/* SVG header scene — toolbar row, then branch + mascot strip (idea 4) */
+.app-header--scene {
   display: flex;
   flex-direction: column;
 }
 
-.app-header__cast {
-  position: relative;
-  flex-shrink: 0;
-  z-index: 1;
-  pointer-events: none;
-  margin-top: -0.15rem;
-}
-
-.app-header__cast-art {
+.app-header__scene {
   display: block;
+  flex-shrink: 0;
   width: 100%;
   height: auto;
-  max-height: 4.75rem;
-  aspect-ratio: 800 / 140;
-  object-fit: cover;
-  object-position: center bottom;
-}
-
-.app-header__cast-highlight {
-  position: absolute;
-  border-radius: 9999px;
-  border: 2.5px solid currentColor;
-  box-shadow: 0 0 0 2px color-mix(in srgb, currentColor 18%, transparent);
+  aspect-ratio: 400 / 72;
+  max-height: 4.5rem;
   pointer-events: none;
 }
 
-.app-header__cast-highlight--monkey {
-  left: 11%;
-  bottom: 58%;
-  width: 2.65rem;
-  height: 2.65rem;
-  transform: translate(-50%, 50%);
-  color: var(--primary);
+.app-header--scene .app-header__inner {
+  padding-bottom: 0.35rem;
 }
 
-.app-header__cast-highlight--elephant {
-  left: 31%;
-  bottom: 62%;
-  width: 2.65rem;
-  height: 2.65rem;
-  transform: translate(-50%, 50%);
-  color: var(--pink);
-}
-
-.app-header__cast-highlight--crocodile {
-  left: 51%;
-  bottom: 66%;
-  width: 3.75rem;
-  height: 2rem;
-  border-radius: 1rem;
-  transform: translate(-50%, 50%);
-  color: var(--accent);
-}
-
-.app-header__cast-highlight--tiger {
-  left: 71%;
-  bottom: 60%;
-  width: 2.65rem;
-  height: 2.65rem;
-  transform: translate(-50%, 50%);
-  color: var(--secondary);
-}
-
-.app-header--cast .app-header__inner {
-  padding-bottom: 0.4rem;
-}
-
-.app-header--cast .app-header__title-container {
+.app-header--scene .app-header__title-container {
   position: relative;
   left: auto;
   top: auto;

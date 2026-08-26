@@ -55,16 +55,7 @@ export const MASCOT_PUBLIC_PATHS = {
   tiger: "/mascot/jungle-jokers/header/tiger.png?v=1",
 } as const;
 
-/** Shared header cast banner — all 4 mascots on one branch (idea 2). */
-export const HEADER_CAST_BANNER = {
-  path: "/mascot/header-scenes/cast-banner.png?v=2",
-  width: 800,
-  height: 140,
-} as const;
-
-export type HeaderCastMascot = "monkey" | "elephant" | "crocodile" | "tiger";
-
-/** @deprecated Header uses HEADER_SCENE_ART — kept for avatars / cast pill. */
+/** @deprecated Header uses inline SVG scenes — kept for avatars / cast pill. */
 export const MASCOT_HEADER_SIZES = {
   monkey: { width: 47, height: 64 },
   elephant: { width: 49, height: 68 },
