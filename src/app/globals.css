@@ -972,41 +972,50 @@ body {
 
 .app-header__inner {
   position: relative;
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  display: flex;
   align-items: center;
-  gap: 0.5rem;
+  justify-content: space-between;
   min-height: 3.25rem;
   padding: 0.5rem 1rem 0;
   overflow: visible;
 }
 
-.app-header__inner--mascot .app-header__side--left {
-  align-self: stretch;
+.app-header__side {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  min-width: 2.25rem;
   align-items: center;
-  overflow: visible;
 }
 
-.app-header__inner--mascot .app-header__icon-btn,
-.app-header__inner--mascot-sm .app-header__icon-btn {
-  align-self: center;
+.app-header__side--left {
+  justify-content: flex-start;
+  gap: 0.25rem;
 }
 
-.app-header__inner--mascot-sm .app-header__side--left {
-  align-self: stretch;
+.app-header__side--right {
+  justify-content: flex-end;
+  gap: 0.25rem;
+}
+
+.app-header__title-container {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  transform: translateX(-50%);
+  display: flex;
   align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 5;
   overflow: visible;
 }
 
 .app-header__title {
-  z-index: 1;
   margin: 0;
-  min-width: 0;
-  max-width: 100%;
-  justify-self: center;
-  overflow: hidden;
+  overflow: visible;
   text-align: center;
-  text-overflow: ellipsis;
   font-family: var(--font-fredoka, "Nunito"), sans-serif;
   font-size: 1.5rem;
   font-weight: 700;
@@ -1016,82 +1025,45 @@ body {
   white-space: nowrap;
 }
 
-.app-header__inner--mascot .app-header__title {
+/* Mascot perched / hanging onto the header like a wooden beam */
+.app-header__mascot-anchor {
   position: absolute;
-  left: 50%;
-  top: 0.5rem;
-  bottom: 0;
-  display: flex;
-  align-items: center;
-  justify-self: auto;
-  transform: translateX(-50%);
+  top: 100%;
+  left: 3.25rem;
+  transform: translateY(-50%);
+  z-index: 25;
   pointer-events: none;
-}
-
-.app-header__mascot {
-  position: relative;
-  width: 54px;
-  height: 48px;
   overflow: visible;
-  pointer-events: none;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.app-header__mascot img {
+.app-header__mascot-anchor img {
   display: block;
-  width: 54px;
-  height: 54px;
   object-fit: contain;
-  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.22));
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.35));
 }
 
-.app-header__mascot--sm {
-  width: 40px;
-  height: 38px;
+/* Character-specific positioning & scaling for natural interaction with the header bar */
+.app-header__mascot-anchor--monkey img {
+  /* Monkey hands gripping header beam, body & tail hanging down */
+  transform: translateY(4px) scale(1.08);
 }
 
-.app-header__mascot--sm img {
-  width: 40px;
-  height: 40px;
+.app-header__mascot-anchor--elephant img {
+  /* Elephant peeking trunk & ears over the beam, feet hanging */
+  transform: translateY(2px) scale(1.02);
 }
 
-/* Character-specific hanging & sitting posture over header bottom bar */
-.app-header__mascot--monkey img {
-  /* Monkey hanging/sitting with arms/tail, feet dangling below the header */
-  transform: translateY(14px) scale(1.15);
+.app-header__mascot-anchor--crocodile img {
+  /* Crocodile resting body along the bottom beam edge */
+  transform: translateY(3px) scale(1.1);
 }
 
-.app-header__mascot--elephant img {
-  /* Elephant peeking body over the header with trunk and stick feet */
-  transform: translateY(12px) scale(1.12);
-}
-
-.app-header__mascot--crocodile img {
-  /* Crocodile horizontal log resting on the header bar */
-  transform: translateY(12px) scale(1.18);
-}
-
-.app-header__mascot--tiger img {
-  /* Tiger round ball resting on top of the bar */
-  transform: translateY(11px) scale(1.12);
-}
-
-.app-header__side {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  min-width: 0;
-  align-items: center;
-}
-
-.app-header__side--left {
-  justify-content: flex-start;
-}
-
-.app-header__side--right {
-  justify-content: flex-end;
+.app-header__mascot-anchor--tiger img {
+  /* Tiger ball sitting on top of the beam edge */
+  transform: translateY(1px) scale(1.04);
 }
 
 .app-header__control {

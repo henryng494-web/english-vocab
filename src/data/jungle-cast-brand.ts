@@ -46,21 +46,21 @@ export const MASCOT_SHAPE_SPEC = {
     "Orange single SPHERE ball (head+body merged); tiny stub limbs; zigzag stripes; cream muzzle on sphere face; NEVER separate head+torso.",
 } as const;
 
-/** Public URL paths for in-app mascot display. */
+/** Public URL paths for in-app mascot display (transparent PNGs). */
 export const MASCOT_PUBLIC_PATHS = {
   lineup: "/mascot/jungle-jokers-lineup.png",
-  monkey: "/mascot/jungle-jokers/monkey.png",
-  elephant: "/mascot/jungle-jokers/elephant.png",
-  crocodile: "/mascot/jungle-jokers/crocodile.png",
-  tiger: "/mascot/jungle-jokers/tiger.png",
+  monkey: "/mascot/jungle-jokers/splash/monkey.png?v=2",
+  elephant: "/mascot/jungle-jokers/splash/elephant.png?v=2",
+  crocodile: "/mascot/jungle-jokers/splash/crocodile.png?v=2",
+  tiger: "/mascot/jungle-jokers/splash/tiger.png?v=2",
 } as const;
 
 /** Trimmed PNGs — tight bounds for splash wordmark (mascots on letters). */
 export const MASCOT_SPLASH_PATHS = {
-  monkey: "/mascot/jungle-jokers/splash/monkey.png?v=1",
-  elephant: "/mascot/jungle-jokers/splash/elephant.png?v=1",
-  crocodile: "/mascot/jungle-jokers/splash/crocodile.png?v=1",
-  tiger: "/mascot/jungle-jokers/splash/tiger.png?v=1",
+  monkey: "/mascot/jungle-jokers/splash/monkey.png?v=2",
+  elephant: "/mascot/jungle-jokers/splash/elephant.png?v=2",
+  crocodile: "/mascot/jungle-jokers/splash/crocodile.png?v=2",
+  tiger: "/mascot/jungle-jokers/splash/tiger.png?v=2",
 } as const;
 
 export const MASCOT_GENERATION_REFS = JUNGLE_CAST_CHARACTER_REFS;
