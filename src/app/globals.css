@@ -967,36 +967,28 @@ body {
   background: var(--header-bg);
   color: var(--header-fg);
   overflow: visible;
-  box-shadow: 0 1px 0 color-mix(in srgb, var(--foreground) 8%, transparent);
 }
 
-/* Wooden beam at the bottom edge of the header bar */
-.app-header__beam {
+/* Curved tree branch — organic bottom border of the header */
+.app-header__branch {
   position: absolute;
   left: 0;
   right: 0;
   bottom: 0;
-  height: 0.4rem;
-  z-index: 12;
+  z-index: 14;
+  display: block;
+  width: 100%;
+  height: 1.35rem;
   pointer-events: none;
-  background: linear-gradient(
-    180deg,
-    #b45309 0%,
-    #92400e 45%,
-    #78350f 100%
-  );
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.18),
-    0 2px 4px rgba(0, 0, 0, 0.28);
 }
 
-/* Reserve space below the navy bar so hanging mascots are not clipped */
+/* Room below branch for dangling legs / hanging body */
 .app-header--mascot {
-  padding-bottom: 1.35rem;
+  padding-bottom: 1.5rem;
 }
 
-.app-header--mascot .app-header__beam {
-  bottom: 1.35rem;
+.app-header--mascot .app-header__branch {
+  bottom: 1.5rem;
 }
 
 .app-header__inner {
@@ -1005,7 +997,7 @@ body {
   align-items: stretch;
   justify-content: space-between;
   min-height: 3.25rem;
-  padding: 0.5rem 1rem 0.45rem;
+  padding: 0.5rem 1rem 0.55rem;
   overflow: visible;
 }
 
@@ -1056,11 +1048,11 @@ body {
   white-space: nowrap;
 }
 
-/* Mascot perched / hanging onto the wooden beam (anchored to full header bar) */
+/* Mascot interacting with the curved branch border */
 .app-header__mascot-anchor {
   position: absolute;
-  left: 3.35rem;
-  bottom: 1.35rem;
+  left: 3.1rem;
+  bottom: 1.5rem;
   z-index: 25;
   pointer-events: none;
   overflow: visible;
@@ -1068,31 +1060,62 @@ body {
   align-items: flex-end;
   justify-content: center;
   line-height: 0;
-  transform: translateY(50%);
 }
 
 .app-header__mascot-anchor img {
   display: block;
   object-fit: contain;
-  object-position: bottom center;
-  filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.35));
+  filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.32));
 }
 
-/* Character-specific beam interaction — upper body on bar, lower body hanging */
+/* Monkey — đu nhánh: tay bám nhánh, thân & chân thòng xuống */
+.app-header__mascot-anchor--monkey {
+  bottom: 1.55rem;
+}
+
 .app-header__mascot-anchor--monkey img {
-  transform: translateY(8%);
+  object-position: top center;
+  transform: translateY(28%);
+  transform-origin: 50% 4%;
+}
+
+/* Elephant — ngồi trên nhánh, 2 chân thòng xuống */
+.app-header__mascot-anchor--elephant {
+  bottom: 1.48rem;
+  left: 3rem;
 }
 
 .app-header__mascot-anchor--elephant img {
-  transform: translateY(6%);
+  object-position: top center;
+  transform: translateY(18%);
+  transform-origin: 50% 22%;
+}
+
+/* Crocodile — nằm bám dọc nhánh */
+.app-header__mascot-anchor--crocodile {
+  bottom: 1.52rem;
+  left: 2.85rem;
 }
 
 .app-header__mascot-anchor--crocodile img {
-  transform: translateY(2%);
+  object-position: center bottom;
+  transform: translateY(8%);
+  transform-origin: 50% 70%;
+}
+
+/* Tiger — ngồi tròn trên nhánh */
+.app-header__mascot-anchor--tiger {
+  bottom: 1.5rem;
 }
 
 .app-header__mascot-anchor--tiger img {
-  transform: translateY(4%);
+  object-position: bottom center;
+  transform: translateY(10%);
+  transform-origin: 50% 78%;
+}
+
+.app-header__mascot-anchor--sm img {
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.28));
 }
 
 .app-header__control {

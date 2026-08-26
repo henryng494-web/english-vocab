@@ -55,12 +55,16 @@ export const MASCOT_PUBLIC_PATHS = {
   tiger: "/mascot/jungle-jokers/header/tiger.png?v=1",
 } as const;
 
-/** Header beam perch dimensions (width × height in px). */
+/** Header branch interaction dimensions (width × height in px). */
 export const MASCOT_HEADER_SIZES = {
-  monkey: { width: 42, height: 58 },
-  elephant: { width: 44, height: 60 },
-  crocodile: { width: 64, height: 36 },
-  tiger: { width: 46, height: 44 },
+  /* Monkey: arms grip branch, body & tail hang below */
+  monkey: { width: 40, height: 64 },
+  /* Elephant: sits on branch, two legs dangle down */
+  elephant: { width: 46, height: 68 },
+  /* Crocodile: body rests along the branch */
+  crocodile: { width: 68, height: 34 },
+  /* Tiger: round body perched on branch */
+  tiger: { width: 48, height: 46 },
 } as const;
 
 /** Trimmed PNGs — tight bounds for splash wordmark (mascots on letters). */

@@ -1,3 +1,4 @@
+import { HeaderBranch } from "@/components/layout/HeaderBranch";
 import {
   JungleMascot,
   type JungleMascotName,
@@ -9,7 +10,7 @@ type AppHeaderProps = {
   title: string;
   leading?: React.ReactNode;
   trailing?: React.ReactNode;
-  /** Optional mascot peeking from the bottom edge of header like hanging from a wooden beam. */
+  /** Optional mascot interacting with the curved branch border. */
   peekMascot?: JungleMascotName | boolean | "sm";
 };
 
@@ -34,7 +35,6 @@ export function AppHeader({
 
   return (
     <header className={`app-header${hasMascot ? " app-header--mascot" : ""}`}>
-      <div className="app-header__beam" aria-hidden />
       <div className="app-header__inner">
         <div className="app-header__side app-header__side--left">
           {leading ?? <span className="app-header__spacer" aria-hidden />}
@@ -48,6 +48,8 @@ export function AppHeader({
           {trailing ?? <span className="app-header__spacer" aria-hidden />}
         </div>
       </div>
+
+      <HeaderBranch />
 
       {hasMascot ? (
         <div
