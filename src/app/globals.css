@@ -976,24 +976,26 @@ body {
   overflow: visible;
 }
 
-/* Curved jungle branch — the header's only decorative border, floating
-   directly on the app background (no navy bar behind it). */
-.app-header__branch {
+/* Pre-composited header scene (branch + mascot) — aspect 800×160 */
+.app-header--scene {
+  padding-bottom: 0;
+}
+
+.app-header__scene {
   position: absolute;
   left: 0;
   right: 0;
   bottom: 0;
-  z-index: 15;
+  z-index: 1;
   display: block;
   width: 100%;
-  height: 1.5rem;
+  height: auto;
+  aspect-ratio: 800 / 160;
   pointer-events: none;
-  filter: drop-shadow(0 2px 3px rgba(122, 67, 26, 0.22));
 }
 
-/* Room below branch for dangling legs / hanging body */
-.app-header--mascot {
-  padding-bottom: 2.1rem;
+.app-header--scene .app-header__inner {
+  padding-bottom: 5.25rem;
 }
 
 .app-header__inner {
@@ -1051,29 +1053,6 @@ body {
   line-height: 1.2;
   color: var(--header-fg);
   white-space: nowrap;
-}
-
-/* Mascot perch — bottom/left set inline from branch-rim + contact math in AppHeader. */
-.app-header__mascot-anchor {
-  position: absolute;
-  z-index: 25;
-  pointer-events: none;
-  overflow: visible;
-}
-
-.app-header__mascot-figure {
-  display: block;
-  line-height: 0;
-}
-
-.app-header__mascot-anchor img {
-  display: block;
-  object-fit: contain;
-  filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.32));
-}
-
-.app-header__mascot-anchor--sm img {
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.28));
 }
 
 .app-header__control {

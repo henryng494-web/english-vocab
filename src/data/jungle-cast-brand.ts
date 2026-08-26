@@ -55,47 +55,38 @@ export const MASCOT_PUBLIC_PATHS = {
   tiger: "/mascot/jungle-jokers/header/tiger.png?v=1",
 } as const;
 
-/** Header branch interaction sizes — matches each PNG's natural aspect ratio. */
+/** Pre-composited header strips — branch + mascot interaction baked in (idea 1). */
+export const HEADER_SCENE_ART = {
+  monkey: {
+    path: "/mascot/header-scenes/monkey.png?v=1",
+    width: 800,
+    height: 160,
+  },
+  elephant: {
+    path: "/mascot/header-scenes/elephant.png?v=1",
+    width: 800,
+    height: 160,
+  },
+  crocodile: {
+    path: "/mascot/header-scenes/crocodile.png?v=1",
+    width: 800,
+    height: 160,
+  },
+  tiger: {
+    path: "/mascot/header-scenes/tiger.png?v=1",
+    width: 800,
+    height: 160,
+  },
+} as const;
+
+export type HeaderSceneMascot = keyof typeof HEADER_SCENE_ART;
+
+/** @deprecated Header uses HEADER_SCENE_ART — kept for avatars / cast pill. */
 export const MASCOT_HEADER_SIZES = {
-  /* Monkey: waist rests on branch, legs & tail dangle below */
   monkey: { width: 47, height: 64 },
-  /* Elephant: seated on branch, both legs dangle below */
   elephant: { width: 49, height: 68 },
-  /* Crocodile: body lies along the branch */
   crocodile: { width: 62, height: 34 },
-  /* Tiger: round body perched on top of the branch */
   tiger: { width: 48, height: 46 },
-} as const;
-
-/** Distance from header bottom to the branch top surface (matches HeaderBranch SVG). */
-export const HEADER_BRANCH_RIM_REM = 1.17;
-
-/** Fraction (0–1) down each mascot image where the branch should visually cross. */
-export const MASCOT_HEADER_CONTACT = {
-  /* Waist sits on branch; legs & tail dangle below */
-  monkey: 0.5,
-  /* Seat on branch; stick legs hang below */
-  elephant: 0.6,
-  /* Belly rests along the branch */
-  crocodile: 0.52,
-  /* Round body perched on top */
-  tiger: 0.85,
-} as const;
-
-/** Horizontal anchor (rem) — aligns each mascot with the branch landing zone. */
-export const MASCOT_HEADER_LEFT_REM = {
-  monkey: 2.5,
-  elephant: 2.35,
-  crocodile: 2.15,
-  tiger: 2.35,
-} as const;
-
-/** Slight tilt (deg) for a natural perching feel. */
-export const MASCOT_HEADER_TILT = {
-  monkey: 4,
-  elephant: 0,
-  crocodile: 0,
-  tiger: 0,
 } as const;
 
 /** Trimmed PNGs — tight bounds for splash wordmark (mascots on letters). */
