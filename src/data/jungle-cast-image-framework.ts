@@ -69,7 +69,6 @@ export const JUNGLE_CAST_IMAGE_FRAMEWORK = {
     brand: "src/data/jungle-cast-brand.ts",
     semanticRebuild: "scripts/rebuild-jungle-semantic-prompts.ts",
     castRebalance: "scripts/rebalance-jungle-casts.ts",
-    foxSemanticSource: "src/data/cast-word-image-prompts.ts",
   },
 
   /** Generation pipeline — order matters. */

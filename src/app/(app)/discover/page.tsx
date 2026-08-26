@@ -10,7 +10,7 @@ import {
 } from "@/components/discover/DiscoverDashboard";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { HeaderSelect } from "@/components/layout/HeaderSelect";
-import { CoachDog } from "@/components/mascot/CoachDog";
+import { JungleMascot } from "@/components/mascot/JungleMascot";
 import { useAppBootstrap } from "@/context/AppBootstrapContext";
 import { WORD_RANGES } from "@/data/word-ranges";
 import { DEFAULT_BOOTSTRAP_RANGE } from "@/lib/app-bootstrap";
@@ -445,8 +445,7 @@ export default function DiscoverPage() {
       <div className="app-screen app-screen--home">
         <AppHeader
           title="Home"
-          peekFox
-          foxPose="happy"
+          peekMascot="monkey"
           leading={
             <Link href="/account" className="app-header__icon-btn" aria-label="Menu">
               ☰
@@ -489,8 +488,7 @@ export default function DiscoverPage() {
     <div className="app-screen app-screen--journey">
       <AppHeader
         title="Vocab Journey"
-        peekFox="sm"
-        foxPose="happy"
+        peekMascot="crocodile"
         leading={
           <button
             type="button"
@@ -532,7 +530,7 @@ export default function DiscoverPage() {
           </div>
         ) : queue.length === 0 ? (
           <div className="journey-main journey-main--center px-2 text-center">
-            <CoachDog pose="sad" size={72} className="mb-3" />
+            <JungleMascot character="crocodile" size={72} className="mb-3" />
             <div className="w-full">
               <p className="text-foreground/80">
                 You&apos;ve finished this range. Words you learned or marked
@@ -570,7 +568,7 @@ export default function DiscoverPage() {
               <button
                 type="button"
                 onClick={() => updateStatus("mastered")}
-                className="btn-pill-outline w-full"
+                className="btn-pill-outline-secondary w-full"
               >
                 Already know
               </button>

@@ -1,5 +1,5 @@
 /**
- * Cast mascot word images — fox-trial delivery:
+ * Cast mascot word images — Jungle Jokers cast delivery:
  * full-scene bundled JPEGs in /public/word-images/{word}.jpg
  * Jungle Jokers cast (jungle9 bundle — semantic scenes + teaching props).
  */

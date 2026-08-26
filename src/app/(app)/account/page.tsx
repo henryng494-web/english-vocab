@@ -2,7 +2,7 @@
 
 import { AppHeader } from "@/components/layout/AppHeader";
 import { InstallAppHint } from "@/components/layout/InstallAppHint";
-import { CoachDog } from "@/components/mascot/CoachDog";
+import { JungleMascot, JungleCastPill } from "@/components/mascot/JungleMascot";
 import { displayFontClass } from "@/lib/fonts";
 import { LAYOUT_VERSION } from "@/lib/layout-version";
 import Link from "next/link";
@@ -12,8 +12,7 @@ export default function AccountPage() {
     <div className="app-screen app-screen--home">
       <AppHeader
         title="Account"
-        peekFox
-        foxPose="smirk"
+        peekMascot="elephant"
         leading={
           <Link href="/discover" className="app-header__icon-btn" aria-label="Back home">
             ←
@@ -23,17 +22,22 @@ export default function AccountPage() {
 
       <div className="page-scroll">
         <div className="space-y-6 px-4 pb-6">
-          <section className="home-card flex items-center gap-3">
-            <CoachDog pose="smirk" size={64} />
+          <section className="home-card flex items-center gap-4 border-pink-200 bg-pink-50/40">
+            <JungleMascot character="elephant" size={68} />
             <div>
-              <h2 className={`home-section-title ${displayFontClass}`}>Coach Fox</h2>
-              <p className="home-body-text">Your vocabulary learning buddy</p>
+              <div className="flex items-center gap-2">
+                <h2 className={`home-section-title ${displayFontClass}`}>Jungle Jokers</h2>
+              </div>
+              <p className="home-body-text text-pink-700">Bộ tứ đồng hành học từ vựng mỗi ngày</p>
+              <div className="mt-2">
+                <JungleCastPill size={24} />
+              </div>
             </div>
           </section>
 
           <InstallAppHint />
 
-          <section className="home-card">
+          <section className="home-card border-primary-200 bg-card">
             <h2 className={`home-section-title ${displayFontClass}`}>Sign in</h2>
             <p className="home-body-text mt-1">
               Save learning progress to Supabase when you are signed in.

@@ -93,6 +93,7 @@ function WordsPageContent() {
     <>
       <AppHeader
         title={meta.title}
+        peekMascot={filter === "known" ? "crocodile" : "tiger"}
         leading={
           <Link href="/discover" className="app-header__icon-btn" aria-label="Back">
             ←

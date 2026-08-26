@@ -5,7 +5,7 @@ import { ReviewQuestion } from "@/components/review/ReviewQuestion";
 import { ReviewRecallQuestion } from "@/components/review/ReviewRecallQuestion";
 import { ReviewReveal } from "@/components/review/ReviewReveal";
 import { ReviewSenseQuestion } from "@/components/review/ReviewSenseQuestion";
-import { CoachDog } from "@/components/mascot/CoachDog";
+import { JungleMascot } from "@/components/mascot/JungleMascot";
 import {
   writeLocalLearning,
 } from "@/lib/learning-storage";
@@ -526,8 +526,7 @@ export default function LearnPage() {
     <div className={`app-screen${inSession ? " app-screen--journey" : " app-screen--home"}`}>
       <AppHeader
         title={inSession ? `Review ${index + 1}/${queue.length}` : "Review"}
-        peekFox
-        foxPose="think"
+        peekMascot="tiger"
       />
 
       {loading ? (
@@ -598,9 +597,9 @@ export default function LearnPage() {
       ) : (
         <div className="page-scroll px-4">
           <div className="mx-auto flex max-w-sm flex-col items-center pt-6 text-center">
-            <CoachDog pose={sessionDone ? "happy" : "think"} size={88} />
+            <JungleMascot character={sessionDone ? "monkey" : "crocodile"} size={88} />
             <h2 className="mt-3 text-xl font-bold text-foreground">
-              {sessionDone ? "You're all caught up" : "No words due"}
+              {sessionDone ? "You're all caught up!" : "No words due"}
             </h2>
             <p className="mt-1 text-sm text-foreground/60">
               {sessionDone

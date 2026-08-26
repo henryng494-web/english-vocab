@@ -68,6 +68,7 @@ function SearchPageContent() {
     <>
       <AppHeader
         title="Search"
+        peekMascot="monkey"
         leading={
           <Link href="/discover" className="app-header__icon-btn" aria-label="Back">
             ←

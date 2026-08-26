@@ -33,7 +33,7 @@ function JourneyIcon({ active }: { active: boolean }) {
     <svg
       aria-hidden
       viewBox="0 0 24 24"
-      className={`h-6 w-6 ${active ? "text-primary" : "text-foreground/45"}`}
+      className={`h-6 w-6 ${active ? "text-accent-700" : "text-foreground/45"}`}
       fill="none"
       stroke="currentColor"
       strokeWidth="1.8"
@@ -52,7 +52,7 @@ function LearnIcon({ active }: { active: boolean }) {
     <svg
       aria-hidden
       viewBox="0 0 24 24"
-      className={`h-6 w-6 ${active ? "text-primary" : "text-foreground/45"}`}
+      className={`h-6 w-6 ${active ? "text-secondary" : "text-foreground/45"}`}
       fill="none"
       stroke="currentColor"
       strokeWidth="1.8"
@@ -68,7 +68,7 @@ function AccountIcon({ active }: { active: boolean }) {
     <svg
       aria-hidden
       viewBox="0 0 24 24"
-      className={`h-6 w-6 ${active ? "text-primary" : "text-foreground/45"}`}
+      className={`h-6 w-6 ${active ? "text-pink" : "text-foreground/45"}`}
       fill="none"
       stroke="currentColor"
       strokeWidth="1.8"
@@ -147,7 +147,7 @@ export function BottomTabBar() {
 
   return (
     <nav
-      className="bottom-tab-bar border-t border-primary-100"
+      className="bottom-tab-bar border-t border-slate-200"
       style={{
         paddingBottom: "max(env(safe-area-inset-bottom, 0px), 0.5rem)",
       }}
@@ -156,15 +156,32 @@ export function BottomTabBar() {
       <div className="mx-auto grid h-[var(--tab-bar-height)] max-w-lg grid-cols-4 overflow-visible">
         {tabs.map((tab) => {
           const active = tab.match(pathname);
+          const activeColorClass =
+            tab.href.startsWith("/journey")
+              ? "text-accent-700"
+              : tab.href.startsWith("/learn")
+                ? "text-secondary"
+                : tab.href.startsWith("/account")
+                  ? "text-pink"
+                  : "text-primary";
+          const activeBgClass =
+            tab.href.startsWith("/journey")
+              ? "bg-accent-50"
+              : tab.href.startsWith("/learn")
+                ? "bg-secondary-50"
+                : tab.href.startsWith("/account")
+                  ? "bg-pink-50"
+                  : "bg-primary-50";
+
           return (
             <Link
               key={tab.href}
               href={tab.href}
               className={`tab-bar-link ${
-                active ? "tab-bar-link--active" : "tab-bar-link--inactive"
+                active ? `tab-bar-link--active ${activeColorClass}` : "tab-bar-link--inactive"
               }`}
             >
-              <span className="tab-bar-link__pill">
+              <span className={`tab-bar-link__pill ${active ? activeBgClass : ""}`}>
                 <span className="tab-bar-link__icon">
                   {tab.icon(active)}
                   {tab.showBadge && dueCount > 0 ? (

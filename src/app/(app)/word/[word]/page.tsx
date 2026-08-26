@@ -5,7 +5,7 @@ import {
   type DiscoverWordData,
 } from "@/components/discover/DiscoverCard";
 import { AppHeader } from "@/components/layout/AppHeader";
-import { CoachDog } from "@/components/mascot/CoachDog";
+import { JungleMascot } from "@/components/mascot/JungleMascot";
 import {
   DISCOVER_WORD_CACHE_VERSION,
   isCacheEntryValid,
@@ -164,6 +164,7 @@ function WordDetailPageContent() {
     <div className="app-screen app-screen--journey">
       <AppHeader
         title={word ? capitalizeFirst(word) : "Word"}
+        peekMascot="elephant"
         leading={
           libraryContext ? (
             <Link
@@ -198,7 +199,7 @@ function WordDetailPageContent() {
 
         {error ? (
           <div className="word-detail__empty">
-            <CoachDog pose="sad" size={72} className="mb-3" />
+            <JungleMascot character="monkey" size={72} className="mb-3" />
             <p className="text-sm text-foreground/70">{error}</p>
           </div>
         ) : (
