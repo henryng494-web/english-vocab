@@ -1,9 +1,9 @@
 /**
- * Header branch scene — locked branch template + one mascot overlay per tab.
- * Branch image is NEVER modified; mascot is composited in CSS.
+ * Header branch scene — transparent branch (right edge) + one mascot overlay per tab.
  */
 import Image from "next/image";
 import {
+  HANGING_PURPLE_MONKEY,
   HEADER_BRANCH_TEMPLATE,
   MASCOT_HEADER_SIZES,
   MASCOT_PUBLIC_PATHS,
@@ -16,6 +16,11 @@ type HeaderBranchSceneProps = {
   character: HeaderBranchCharacter;
 };
 
+function mascotSrc(character: HeaderBranchCharacter): string {
+  if (character === "monkey") return HANGING_PURPLE_MONKEY;
+  return MASCOT_PUBLIC_PATHS[character];
+}
+
 export function HeaderBranchScene({ character }: HeaderBranchSceneProps) {
   const size = MASCOT_HEADER_SIZES[character];
 
@@ -25,16 +30,16 @@ export function HeaderBranchScene({ character }: HeaderBranchSceneProps) {
         src={HEADER_BRANCH_TEMPLATE}
         alt=""
         width={960}
-        height={540}
+        height={294}
         className="app-header__branch-art"
         priority
         unoptimized
       />
       <Image
-        src={MASCOT_PUBLIC_PATHS[character]}
+        src={mascotSrc(character)}
         alt=""
-        width={size.width}
-        height={size.height}
+        width={character === "monkey" ? 80 : size.width}
+        height={character === "monkey" ? 96 : size.height}
         className={`app-header__mascot-on-branch app-header__mascot-on-branch--${character}`}
         priority
         unoptimized

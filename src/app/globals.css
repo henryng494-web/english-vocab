@@ -981,12 +981,13 @@ body {
 .app-header__safe-area--branch {
   position: relative;
   display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  min-height: 3.5rem;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: flex-start;
+  min-height: 3.25rem;
 }
 
-/* Branch header — transparent overlay: branch left ~2/3, tools right */
+/* Branch header — transparent; tools left, branch right ~2/3 */
 .app-header--branch {
   background: transparent;
   border-bottom: none;
@@ -994,7 +995,8 @@ body {
 
 .app-header__branch-col {
   position: absolute;
-  left: 0;
+  right: 0;
+  left: auto;
   top: env(safe-area-inset-top, 0px);
   bottom: 0;
   width: 66.666%;
@@ -1002,24 +1004,27 @@ body {
   overflow: visible;
   pointer-events: none;
   z-index: 1;
+  background: transparent;
 }
 
 .app-header__branch-scene {
   position: absolute;
   inset: 0;
+  background: transparent;
 }
 
 .app-header__branch-art {
   position: absolute;
-  left: 0;
+  right: 0;
   top: 0;
   bottom: 0;
   width: 100%;
   height: 100%;
   display: block;
   object-fit: contain;
-  object-position: left center;
+  object-position: right center;
   z-index: 1;
+  background: transparent;
 }
 
 /* Mascot overlays — smaller than branch, one pose per tab */
@@ -1028,38 +1033,39 @@ body {
   z-index: 2;
   width: auto;
   object-fit: contain;
-  filter: drop-shadow(0 1px 2px rgba(30, 41, 59, 0.18));
+  filter: drop-shadow(0 1px 2px rgba(30, 41, 59, 0.15));
   pointer-events: none;
+  background: transparent;
 }
 
-/* Khỉ — treo/đu dưới cành (origin tại tay bám) */
+/* Khỉ tím — đu 1 tay bám cành (logo pose), treo từ ngọn trái của cành */
 .app-header__mascot-on-branch--monkey {
-  left: 2%;
-  top: 26%;
-  height: 38%;
+  left: 6%;
+  top: 20%;
+  height: 44%;
   transform-origin: 50% 0%;
-  transform: rotate(4deg);
 }
 
-/* Voi — ngồi thòng chân trên thân cành dày giữa-phải */
+/* Voi — ngồi thòng chân trên thân cành dày (mé phải) */
 .app-header__mascot-on-branch--elephant {
-  left: 46%;
-  top: 8%;
-  height: 48%;
+  right: 6%;
+  top: 6%;
+  left: auto;
+  height: 46%;
 }
 
-/* Cá sấu — bò sát trên mặt cành ngang */
+/* Cá sấu — bò trên mặt cành ngang */
 .app-header__mascot-on-branch--crocodile {
-  left: 28%;
-  top: 44%;
+  left: 22%;
+  top: 42%;
   height: 22%;
 }
 
-/* Hổ — ngồi trên ngã cành phía trên */
+/* Hổ — ngồi trên ngã cành */
 .app-header__mascot-on-branch--tiger {
-  left: 58%;
-  top: 6%;
-  height: 36%;
+  left: 32%;
+  top: 4%;
+  height: 34%;
 }
 
 .app-header__toolbar {
@@ -1068,13 +1074,13 @@ body {
   display: flex;
   flex-direction: row;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: flex-start;
   gap: 0.35rem;
-  margin-left: auto;
-  width: 100%;
+  flex-shrink: 0;
   min-height: 2.5rem;
   padding: 0.35rem 0.65rem 0.15rem;
   pointer-events: auto;
+  background: transparent;
 }
 
 .app-header__title--branch {
