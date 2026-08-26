@@ -55,7 +55,7 @@ export const MASCOT_PUBLIC_PATHS = {
   tiger: "/mascot/jungle-jokers/header/tiger.png?v=1",
 } as const;
 
-/** @deprecated Header uses inline SVG scenes — kept for avatars / cast pill. */
+/** Header PNGs — trimmed for compact app header strip. */
 export const MASCOT_HEADER_SIZES = {
   monkey: { width: 47, height: 64 },
   elephant: { width: 49, height: 68 },

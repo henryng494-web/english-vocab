@@ -1,4 +1,4 @@
-import { HeaderMascotScene, type HeaderSceneCharacter } from "@/components/layout/HeaderMascotScene";
+import { HeaderMascotStrip } from "@/components/layout/HeaderMascotStrip";
 import { displayFontClass } from "@/lib/fonts";
 import type { JungleMascotName } from "@/components/mascot/JungleMascot";
 
@@ -6,17 +6,9 @@ type AppHeaderProps = {
   title: string;
   leading?: React.ReactNode;
   trailing?: React.ReactNode;
-  /** SVG branch scene featuring this Jungle Jokers mascot. */
+  /** Colored brand header with all four Jungle Jokers mascots. */
   peekMascot?: JungleMascotName | boolean | "sm";
 };
-
-function resolveSceneCharacter(
-  peekMascot: JungleMascotName | boolean | "sm",
-): HeaderSceneCharacter | null {
-  if (!peekMascot || peekMascot === "sm" || peekMascot === "lineup") return null;
-  if (peekMascot === true) return "monkey";
-  return peekMascot;
-}
 
 export function AppHeader({
   title,
@@ -24,17 +16,17 @@ export function AppHeader({
   trailing,
   peekMascot = false,
 }: AppHeaderProps) {
-  const sceneCharacter = resolveSceneCharacter(peekMascot);
-  const showScene = Boolean(peekMascot);
+  const showBrand = Boolean(peekMascot);
 
   return (
-    <header className={`app-header${showScene ? " app-header--scene" : ""}`}>
+    <header className={`app-header${showBrand ? " app-header--brand" : ""}`}>
       <div className="app-header__inner">
         <div className="app-header__side app-header__side--left">
           {leading ?? <span className="app-header__spacer" aria-hidden />}
         </div>
 
         <div className="app-header__title-container">
+          {showBrand ? <HeaderMascotStrip /> : null}
           <h1 className={`app-header__title ${displayFontClass}`}>{title}</h1>
         </div>
 
@@ -42,8 +34,6 @@ export function AppHeader({
           {trailing ?? <span className="app-header__spacer" aria-hidden />}
         </div>
       </div>
-
-      {sceneCharacter ? <HeaderMascotScene character={sceneCharacter} /> : null}
     </header>
   );
 }
