@@ -1,5 +1,5 @@
 /**
- * Header branch scene — transparent branch (right edge) + one mascot overlay per tab.
+ * Header branch scene — rightTreeSection (210×85) + mascot overlay per tab.
  */
 import Image from "next/image";
 import {
@@ -25,12 +25,12 @@ export function HeaderBranchScene({ character }: HeaderBranchSceneProps) {
   const size = MASCOT_HEADER_SIZES[character];
 
   return (
-    <div className="app-header__branch-scene" aria-hidden>
+    <div className="rightTreeSection app-header__branch-scene" aria-hidden>
       <Image
         src={HEADER_BRANCH_TEMPLATE}
         alt=""
-        width={960}
-        height={294}
+        width={210}
+        height={85}
         className="app-header__branch-art"
         priority
         unoptimized
