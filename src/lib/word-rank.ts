@@ -25,10 +25,10 @@ export function tierBadgeColor(tier: ImportanceTier): string {
     case "Top 1000":
       return "bg-primary text-white border-primary-hover";
     case "Top 3000":
-      return "bg-primary-200 text-primary-800 border-primary-300";
+      return "bg-accent-100 text-accent-800 border-accent-200";
     case "Top 5000":
-      return "bg-primary-100 text-primary-800 border-primary-200";
+      return "bg-pink-100 text-pink-700 border-pink-200";
     default:
-      return "bg-primary-50 text-primary-800 border-primary-100";
+      return "bg-secondary-100 text-secondary-800 border-secondary-200";
   }
 }

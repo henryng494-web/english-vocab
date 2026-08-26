@@ -1,39 +1,67 @@
 @import "tailwindcss";
 
 :root {
-  /* Coach Fox collar teal (#18c8b8) + navy body (#182030) */
-  --background: #e8f7f4;
-  --foreground: #182030;
-  --surface: #d5f3ee;
-  --surface-strong: #b6e8e0;
-  --primary: #18c8b8;
-  --primary-hover: #14b8a6;
-  --primary-50: #f0fdfa;
-  --primary-100: #ccfbf1;
-  --primary-200: #99f6e4;
-  --primary-300: #5eead4;
-  --primary-700: #0f766e;
-  --primary-800: #115e59;
-  --secondary: #ef4444;
-  --secondary-hover: #dc2626;
-  --accent: #0d9488;
-  --accent-hover: #0f766e;
+  /* Jungle Jokers 4-Mascot Brand Palette:
+     - Monkey Violet: #8B5CF6 / #7C3AED (Primary brand)
+     - Elephant Pink: #EC4899 / #F472B6 (Delight & Badges)
+     - Crocodile Lime: #84CC16 / #65A30D (Accent, Freshness & Growth)
+     - Tiger Orange: #F97316 / #EA580C (Secondary action & Streak)
+     - Deep Navy: #1E293B (Typography & Wordmark)
+  */
+  --background: #f8f7fc;
+  --foreground: #1e293b;
+  --surface: #f3e8ff;
+  --surface-strong: #e9d5ff;
+
+  --primary: #8b5cf6;
+  --primary-hover: #7c3aed;
+  --primary-50: #faf5ff;
+  --primary-100: #f3e8ff;
+  --primary-200: #e9d5ff;
+  --primary-300: #d8b4fe;
+  --primary-700: #6d28d9;
+  --primary-800: #5b21b6;
+
+  --secondary: #f97316;
+  --secondary-hover: #ea580c;
+  --secondary-50: #fff7ed;
+  --secondary-100: #ffedd5;
+  --secondary-200: #fed7aa;
+  --secondary-700: #c2410c;
+  --secondary-800: #9a3412;
+
+  --accent: #84cc16;
+  --accent-hover: #65a30d;
+  --accent-50: #f7fee7;
+  --accent-100: #ecfccb;
+  --accent-200: #d9f99d;
+  --accent-700: #4d7c0f;
+  --accent-800: #3f6212;
+
+  --pink: #ec4899;
+  --pink-hover: #db2777;
+  --pink-50: #fdf2f8;
+  --pink-100: #fce7f3;
+  --pink-200: #fbcfe8;
+  --pink-700: #be185d;
+
   --card: #ffffff;
-  --card-border: #99f6e4;
-  --header-mid: #18c8b8;
-  --header-end: #182030;
-  --meaning: #0f766e;
-  --example-bg: #f0fdfa;
-  --example-vi: #0f766e;
-  --badge-bg: #ccfbf1;
-  --badge-text: #115e59;
+  --card-border: #e9d5ff;
+  --header-bg: #7c3aed;
+  --header-mid: #8b5cf6;
+  --header-end: #1e293b;
+  --header-fg: #ffffff;
+  --header-muted: #e9d5ff;
+
+  --meaning: #6d28d9;
+  --example-bg: #faf5ff;
+  --example-vi: #7c3aed;
+  --badge-bg: #f3e8ff;
+  --badge-text: #5b21b6;
   --tab-bar-bg: #ffffff;
   --tab-bar-height: 4rem;
   --app-height: 100svh;
-  --header-bg: #18c8b8;
-  --header-fg: #ffffff;
-  --header-muted: #115e59;
-  --card-shadow: 0 8px 24px rgba(24, 200, 184, 0.16);
+  --card-shadow: 0 8px 24px rgba(139, 92, 246, 0.12);
 }
 
 @theme inline {
@@ -71,8 +99,24 @@
   --color-primary-800: var(--primary-800);
   --color-secondary: var(--secondary);
   --color-secondary-hover: var(--secondary-hover);
+  --color-secondary-50: var(--secondary-50);
+  --color-secondary-100: var(--secondary-100);
+  --color-secondary-200: var(--secondary-200);
+  --color-secondary-700: var(--secondary-700);
+  --color-secondary-800: var(--secondary-800);
   --color-accent: var(--accent);
   --color-accent-hover: var(--accent-hover);
+  --color-accent-50: var(--accent-50);
+  --color-accent-100: var(--accent-100);
+  --color-accent-200: var(--accent-200);
+  --color-accent-700: var(--accent-700);
+  --color-accent-800: var(--accent-800);
+  --color-pink: var(--pink);
+  --color-pink-hover: var(--pink-hover);
+  --color-pink-50: var(--pink-50);
+  --color-pink-100: var(--pink-100);
+  --color-pink-200: var(--pink-200);
+  --color-pink-700: var(--pink-700);
 }
 
 html {
@@ -206,7 +250,8 @@ body {
   background: linear-gradient(
     90deg,
     var(--primary) 0%,
-    color-mix(in srgb, var(--primary) 70%, #84cc16) 100%
+    color-mix(in srgb, var(--secondary) 50%, var(--primary)) 50%,
+    var(--accent) 100%
   );
 }
 
@@ -674,7 +719,7 @@ body {
   height: 1.15rem;
   padding: 0 0.28rem;
   border-radius: 9999px;
-  background: var(--primary);
+  background: var(--secondary);
   color: #ffffff;
   font-family: var(--font-sans);
   font-size: 0.6875rem;
@@ -967,7 +1012,7 @@ body {
   appearance: none;
   -webkit-appearance: none;
   background-color: #ffffff;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%23182030' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%231E293B' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 0.45rem center;
   background-size: 0.5rem 0.32rem;
@@ -978,8 +1023,8 @@ body {
   font-family: var(--font-inter, "Inter"), "Segoe UI", sans-serif;
   font-size: 0.75rem;
   font-weight: 700;
-  color: #182030;
-  box-shadow: 0 1px 4px rgba(24, 32, 48, 0.12);
+  color: #1e293b;
+  box-shadow: 0 1px 4px rgba(30, 41, 59, 0.12);
 }
 
 .header-select {
