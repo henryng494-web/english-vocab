@@ -129,51 +129,165 @@ body {
 .welcome-splash__hero-wrap,
 .welcome-splash__stage,
 .welcome-splash__logo,
-.welcome-splash__mascot,
-.welcome-splash__accents {
+.welcome-splash__art {
   display: none;
+}
+
+.welcome-splash__accents {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.welcome-splash__accent {
+  position: absolute;
+  display: block;
+}
+
+.welcome-splash__accent--grass {
+  bottom: 16%;
+  left: 10%;
+  width: 2rem;
+  height: 1rem;
+  border-radius: 50% 50% 0 0;
+  background: linear-gradient(180deg, #84cc16 0%, #65a30d 100%);
+  box-shadow:
+    -0.5rem 0.15rem 0 -0.12rem #84cc16,
+    0.5rem 0.12rem 0 -0.15rem #a3e635;
+}
+
+.welcome-splash__accent--swing {
+  top: 12%;
+  right: 12%;
+  width: 2.5rem;
+  height: 3rem;
+}
+
+.welcome-splash__accent--swing::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 2px;
+  height: 1.65rem;
+  background: #94a3b8;
+  transform: translateX(-50%);
+}
+
+.welcome-splash__accent--swing::after {
+  content: "";
+  position: absolute;
+  top: 1.55rem;
+  left: 50%;
+  width: 1.5rem;
+  height: 0.3rem;
+  border-radius: 0.15rem;
+  background: #cbd5e1;
+  transform: translateX(-50%);
+}
+
+.welcome-splash__accent--flower {
+  bottom: 20%;
+  right: 14%;
+  width: 0.85rem;
+  height: 0.85rem;
+  border-radius: 50%;
+  background: #fbbf24;
+  box-shadow:
+    0 -0.45rem 0 -0.15rem #fde68a,
+    0 0.45rem 0 -0.15rem #fde68a,
+    -0.45rem 0 0 -0.15rem #fde68a,
+    0.45rem 0 0 -0.15rem #fde68a;
 }
 
 .welcome-splash__hero {
   position: relative;
+  z-index: 1;
   flex: 1;
   min-height: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 1.5rem 1rem 0.75rem;
+  padding: 1.25rem 1rem 0.5rem;
 }
 
-.welcome-splash__art {
-  width: auto;
-  max-width: min(100%, 22rem);
-  height: auto;
-  max-height: 100%;
-  object-fit: contain;
-}
-
-.welcome-splash__title-wrap {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0 1.5rem;
-  pointer-events: none;
+.welcome-splash__wordmark {
+  position: relative;
+  width: min(100%, 19rem);
+  padding: 2.25rem 2.5rem 1.75rem 2rem;
 }
 
 .welcome-splash__title {
+  position: relative;
+  z-index: 2;
   margin: 0;
   text-align: center;
   color: #1e293b;
   font-weight: 800;
-  font-size: clamp(2.5rem, 12.5vw, 3.25rem);
-  line-height: 0.95;
-  letter-spacing: -0.03em;
+  font-size: clamp(3rem, 15vw, 3.75rem);
+  line-height: 0.92;
+  letter-spacing: -0.04em;
 }
 
 .welcome-splash__title-line {
   display: block;
+}
+
+.welcome-splash__letter {
+  position: relative;
+  display: inline-block;
+}
+
+.welcome-splash__letter--j {
+  margin-right: -0.04em;
+}
+
+.welcome-splash__letter--s {
+  margin-left: -0.02em;
+}
+
+/* Mascots SMALLER than title letters — sit on / climb letters */
+.welcome-splash__mascot {
+  position: absolute;
+  z-index: 4;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.welcome-splash__mascot--monkey {
+  top: 0.35rem;
+  left: 1.35rem;
+  width: 1.65rem;
+  height: auto;
+  transform: rotate(-12deg);
+}
+
+.welcome-splash__mascot--elephant {
+  top: 0.15rem;
+  right: 0.2rem;
+  width: 1.15rem;
+  height: auto;
+  max-height: 4.25rem;
+  object-fit: contain;
+  object-position: top center;
+  transform: rotate(4deg);
+}
+
+.welcome-splash__mascot--crocodile {
+  top: 3.05rem;
+  left: 50%;
+  width: 2.35rem;
+  height: auto;
+  transform: translateX(-72%);
+}
+
+.welcome-splash__mascot--tiger {
+  bottom: 0.55rem;
+  right: 1.55rem;
+  width: 1.45rem;
+  height: auto;
+  transform: rotate(6deg);
 }
 
 .welcome-splash__title--sr {

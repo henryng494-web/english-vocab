@@ -11,9 +11,10 @@ export const APP_MASCOT_BRAND = {
   tagline: "Học từ vựng cùng bộ Jokers vui nhộn",
 } as const;
 
-/** Mascot ring art (no text) — HTML title overlays center. */
+/** Splash: HTML navy wordmark + small ref PNGs on letters (see WelcomeSplash). */
 export const WELCOME_SPLASH_ART = {
   path: "/mascot/welcome/welcome-splash-art.jpg",
+  mode: "wordmark" as const,
 } as const;
 
 /** @deprecated use WELCOME_SPLASH_ART + HTML title overlay */

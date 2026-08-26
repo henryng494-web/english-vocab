@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { displayFontClass } from "@/lib/fonts";
-import { APP_MASCOT_BRAND, WELCOME_SPLASH_ART } from "@/data/jungle-cast-brand";
+import { APP_MASCOT_BRAND, MASCOT_PUBLIC_PATHS } from "@/data/jungle-cast-brand";
 import type { BootstrapProgress } from "@/lib/app-bootstrap";
 
 type WelcomeSplashProps = {
@@ -14,20 +14,56 @@ export function WelcomeSplash({ progress }: WelcomeSplashProps) {
 
   return (
     <div className="welcome-splash" role="status" aria-live="polite" aria-busy="true">
+      <div className="welcome-splash__accents" aria-hidden>
+        <span className="welcome-splash__accent welcome-splash__accent--grass" />
+        <span className="welcome-splash__accent welcome-splash__accent--swing" />
+        <span className="welcome-splash__accent welcome-splash__accent--flower" />
+      </div>
+
       <div className="welcome-splash__hero">
-        <Image
-          src={WELCOME_SPLASH_ART.path}
-          alt=""
-          width={1024}
-          height={1536}
-          priority
-          className="welcome-splash__art"
-          sizes="100vw"
-        />
-        <div className={`welcome-splash__title-wrap ${displayFontClass}`}>
+        <div className={`welcome-splash__wordmark ${displayFontClass}`}>
+          <Image
+            src={MASCOT_PUBLIC_PATHS.monkey}
+            alt=""
+            width={64}
+            height={64}
+            priority
+            className="welcome-splash__mascot welcome-splash__mascot--monkey"
+          />
+          <Image
+            src={MASCOT_PUBLIC_PATHS.elephant}
+            alt=""
+            width={48}
+            height={120}
+            priority
+            className="welcome-splash__mascot welcome-splash__mascot--elephant"
+          />
+          <Image
+            src={MASCOT_PUBLIC_PATHS.crocodile}
+            alt=""
+            width={96}
+            height={32}
+            priority
+            className="welcome-splash__mascot welcome-splash__mascot--crocodile"
+          />
+          <Image
+            src={MASCOT_PUBLIC_PATHS.tiger}
+            alt=""
+            width={56}
+            height={56}
+            priority
+            className="welcome-splash__mascot welcome-splash__mascot--tiger"
+          />
+
           <h1 className="welcome-splash__title">
-            <span className="welcome-splash__title-line">Jungle</span>
-            <span className="welcome-splash__title-line">Jokers</span>
+            <span className="welcome-splash__title-line welcome-splash__title-line--1">
+              <span className="welcome-splash__letter welcome-splash__letter--j">J</span>
+              ungle
+            </span>
+            <span className="welcome-splash__title-line welcome-splash__title-line--2">
+              Joker
+              <span className="welcome-splash__letter welcome-splash__letter--s">s</span>
+            </span>
           </h1>
         </div>
         <p className="welcome-splash__title--sr">{APP_MASCOT_BRAND.name}</p>
