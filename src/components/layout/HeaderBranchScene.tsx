@@ -26,15 +26,17 @@ export function HeaderBranchScene({ character }: HeaderBranchSceneProps) {
 
   return (
     <div className="rightTreeSection app-header__branch-scene" aria-hidden>
-      <Image
-        src={HEADER_BRANCH_TEMPLATE}
-        alt=""
-        width={1830}
-        height={560}
-        className="app-header__branch-art"
-        priority
-        unoptimized
-      />
+      <div className="app-header__branch-flip">
+        <Image
+          src={HEADER_BRANCH_TEMPLATE}
+          alt=""
+          width={1830}
+          height={560}
+          className="app-header__branch-art"
+          priority
+          unoptimized
+        />
+      </div>
       <Image
         src={mascotSrc(character)}
         alt=""

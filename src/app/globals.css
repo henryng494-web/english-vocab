@@ -1065,21 +1065,44 @@ body {
   outline: none;
 }
 
-.app-header__branch-art {
+.app-header__branch-flip {
   position: absolute;
-  inset: 0;
+  top: 0;
+  right: 0;
   width: 100%;
-  height: 100%;
+  height: 60px;
+  overflow: visible;
+  z-index: 1;
+  pointer-events: none;
+  /* Safer vertical flip — stays visible on iOS/Safari (vs scaleY on img alone) */
+  transform: rotate(180deg) scaleX(-1);
+  transform-origin: center center;
+  backface-visibility: visible;
+  -webkit-backface-visibility: visible;
+}
+
+.app-header__branch-flip :is(img, span, picture) {
+  width: 100% !important;
+  height: 60px !important;
+  display: block !important;
+  backface-visibility: visible;
+  -webkit-backface-visibility: visible;
+}
+
+.app-header__branch-art {
+  position: relative;
+  width: 100%;
+  height: 60px;
   display: block;
   object-fit: contain;
-  object-position: right top;
+  object-position: right center;
   z-index: 1;
   background: transparent;
   border: none !important;
   outline: none !important;
   box-shadow: none;
-  transform: scaleY(-1);
-  transform-origin: right top;
+  backface-visibility: visible;
+  -webkit-backface-visibility: visible;
 }
 
 /* Mascot overlays — inside rightTreeSection */
@@ -1100,7 +1123,7 @@ body {
 .app-header__mascot-on-branch--monkey {
   left: 42%;
   right: auto;
-  top: clamp(28px, 6vw, 38px);
+  top: 25px;
   height: clamp(78px, 20vw, 96px);
   width: auto;
   transform: translateX(-50%);
