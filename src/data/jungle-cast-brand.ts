@@ -66,6 +66,9 @@ export const HEADER_BRANCH_SCENES = {
 /** Locked branch template (transparent PNG) — top-right header corner. */
 export const HEADER_BRANCH_TEMPLATE = "/mascot/branches/tree-branch-right.png?v=1";
 
+/** Header elephant — AI-generated sitting pose for branch (GenerateImage + elephant ref). */
+export const HEADER_SITTING_ELEPHANT = "/mascot/jungle-jokers/header-sitting-elephant-sm.png?v=1";
+
 /** Header monkey — AI-generated Jungle Jokers hang pose (GenerateImage + monkey ref). */
 export const HEADER_HANGING_MONKEY = "/mascot/jungle-jokers/header-hanging-monkey-sm.png?v=1";
 
