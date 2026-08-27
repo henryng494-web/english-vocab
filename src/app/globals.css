@@ -1124,10 +1124,10 @@ body {
 .app-header__mascot-on-branch--monkey {
   left: 42%;
   right: auto;
-  top: clamp(33px, 8.5vw, 37px);
+  top: clamp(45px, 10.5vw, 52px);
   height: clamp(82px, 21vw, 100px);
   width: auto;
-  transform: translateX(-50%);
+  transform: translateX(calc(-50% + 5px));
   transform-origin: top center;
 }
 
