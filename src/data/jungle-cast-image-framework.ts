@@ -1,5 +1,5 @@
 /**
- * Jungle Jokers — locked image-generation framework (rank 1–300).
+ * Jungle Jokers — locked image-generation framework (rank 1–1000).
  * Single source of truth for cast word-image pipeline.
  *
  * DO NOT change without bumping FRAMEWORK_VERSION and CAST_WORD_IMAGE_BUNDLE.
