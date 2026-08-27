@@ -978,6 +978,12 @@ body {
   padding-right: env(safe-area-inset-right, 0px);
 }
 
+.headerContainer {
+  position: relative;
+  overflow: visible;
+  z-index: 999;
+}
+
 .app-header__safe-area--branch {
   position: relative;
   display: flex;
@@ -985,6 +991,7 @@ body {
   align-items: flex-start;
   justify-content: space-between;
   min-height: 85px;
+  overflow: visible;
 }
 
 /* Branch header — tools left, fixed branch frame right */
@@ -997,17 +1004,23 @@ body {
   position: absolute;
   right: env(safe-area-inset-right, 0px);
   top: env(safe-area-inset-top, 0px);
-  z-index: 1;
+  width: 210px;
+  height: 85px;
+  z-index: 999;
+  overflow: visible;
   pointer-events: none;
   background: transparent;
 }
 
-/* Fixed branch frame — 210×85px */
+/* Fixed branch frame — 210×85px, pinned top-right */
 .rightTreeSection {
-  position: relative;
+  position: absolute;
+  top: 0;
+  right: 0;
   width: 210px;
   height: 85px;
   overflow: visible;
+  z-index: 999;
   background: transparent;
 }
 

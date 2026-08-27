@@ -63,8 +63,8 @@ export const HEADER_BRANCH_SCENES = {
   tiger: "/mascot/branches/header-scenes/tiger.webp?v=1",
 } as const;
 
-/** Locked branch template (transparent PNG). */
-export const HEADER_BRANCH_TEMPLATE = "/mascot/branches/header-branch-transparent.png?v=1";
+/** Locked branch template (transparent PNG) — top-right header corner. */
+export const HEADER_BRANCH_TEMPLATE = "/mascot/branches/tree-branch-right.png?v=1";
 
 /** Purple monkey hanging by one arm — header / logo pose. */
 export const HANGING_PURPLE_MONKEY = "/mascot/jungle-jokers/hanging-purple-monkey.png?v=1";
