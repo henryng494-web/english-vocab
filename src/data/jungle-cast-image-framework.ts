@@ -1,12 +1,12 @@
 /**
- * Jungle Jokers — locked image-generation framework (rank 1–1000, 3000–3500).
+ * Jungle Jokers — locked image-generation framework (rank 1–1000, 3000–5000).
  * Single source of truth for cast word-image pipeline.
  *
  * DO NOT change without bumping FRAMEWORK_VERSION and CAST_WORD_IMAGE_BUNDLE.
  */
-export const CAST_WORD_IMAGE_BUNDLE = "jungle15";
+export const CAST_WORD_IMAGE_BUNDLE = "jungle16";
 /** Highest preset rank with cast images (ranges may be non-contiguous). */
-export const CAST_WORD_IMAGE_TOP_RANK = 3500;
+export const CAST_WORD_IMAGE_TOP_RANK = 5000;
 
 import {
   JUNGLE_CAST_CHARACTER_REFS,
@@ -23,7 +23,7 @@ import {
 } from "@/data/jungle-cast-samples";
 
 /** Bump when framework rules or pipeline change (independent of image bundle). */
-export const JUNGLE_CAST_FRAMEWORK_VERSION = "jungle15-v1";
+export const JUNGLE_CAST_FRAMEWORK_VERSION = "jungle16-v1";
 
 export const JUNGLE_CAST_IMAGE_FRAMEWORK = {
   version: JUNGLE_CAST_FRAMEWORK_VERSION,
@@ -43,9 +43,10 @@ export const JUNGLE_CAST_IMAGE_FRAMEWORK = {
   minWidth: 1536,
 
   castPolicy: {
-    soloRotation: "even across monkey, elephant, crocodile, tiger (~15–16 each)",
-    duoDefault: 14,
-    allFourMaxPercent: 25,
+    soloRotation: "~15% solo across monkey, elephant, crocodile, tiger",
+    duoDefault: "~45% duo (6 pair combos)",
+    trioDefault: "~35% trio (4 choose 3 combos)",
+    allFourMaxPercent: "~10% all-four + group-word overrides",
     allFourWords: [
       "we", "all", "yes", "people", "love", "help", "with", "because", "two",
       "okay", "they", "some", "come", "give", "thank", "please", "sure",
