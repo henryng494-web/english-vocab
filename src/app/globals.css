@@ -965,7 +965,7 @@ body {
 /* —— App header (Jungle Jokers navigation) —— */
 .app-header {
   position: relative;
-  z-index: 20;
+  z-index: 999;
   flex-shrink: 0;
   background: transparent;
   color: var(--header-fg);
@@ -990,8 +990,26 @@ body {
   flex-direction: row;
   align-items: flex-start;
   justify-content: space-between;
-  min-height: 85px;
+  min-height: 96px;
   overflow: visible;
+}
+
+.app-header__left {
+  position: relative;
+  z-index: 1000;
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  overflow: visible;
+}
+
+.app-header__right {
+  position: absolute;
+  top: 0;
+  right: 0;
+  overflow: visible;
+  z-index: 999;
+  pointer-events: none;
 }
 
 /* Branch header — tools left, fixed branch frame right */
@@ -1004,21 +1022,21 @@ body {
   position: absolute;
   right: env(safe-area-inset-right, 0px);
   top: env(safe-area-inset-top, 0px);
-  width: 210px;
-  height: 85px;
+  width: 220px;
+  height: 96px;
   z-index: 999;
   overflow: visible;
   pointer-events: none;
   background: transparent;
 }
 
-/* Fixed branch frame — 210×85px, pinned top-right */
+/* Fixed branch frame — pinned top-right, branch grows from right edge leftward */
 .rightTreeSection {
   position: absolute;
   top: 0;
   right: 0;
-  width: 210px;
-  height: 85px;
+  width: 220px;
+  height: 96px;
   overflow: visible;
   z-index: 999;
   background: transparent;
@@ -1054,12 +1072,14 @@ body {
   background: transparent;
 }
 
-/* Khỉ tím — đu 1 tay, móc đúng nhánh gỗ */
+/* Khỉ tím splash — đu 1 tay, bàn tay móc đúng nhánh gỗ ngang */
 .app-header__mascot-on-branch--monkey {
-  left: 45px;
-  top: 28px;
-  height: 52px;
+  right: 58px;
+  top: 2px;
+  left: auto;
+  height: 76px;
   width: auto;
+  transform-origin: top center;
 }
 
 /* Voi — ngồi thòng chân trên thân cành dày (mé phải) */

@@ -51,12 +51,14 @@ export function AppHeader({
   return (
     <header className="app-header app-header--branch">
       <div className="headerContainer app-header__safe-area app-header__safe-area--branch">
-        <div className="app-header__toolbar">
-          {leading}
-          {trailing}
+        <div className="app-header__left">
+          <div className="app-header__toolbar">
+            {leading}
+            {trailing}
+          </div>
         </div>
 
-        <div className="app-header__branch-col">
+        <div className="app-header__right app-header__branch-col">
           <HeaderBranchScene character={branchCharacter} />
         </div>
 
