@@ -1072,12 +1072,14 @@ body {
   height: 100%;
   display: block;
   object-fit: contain;
-  object-position: right center;
+  object-position: right top;
   z-index: 1;
   background: transparent;
   border: none !important;
   outline: none !important;
   box-shadow: none;
+  transform: scaleY(-1);
+  transform-origin: right top;
 }
 
 /* Mascot overlays — inside rightTreeSection */
@@ -1096,9 +1098,9 @@ body {
 
 /* Khỉ tím — GenerateImage hang pose, fist hooks branch wood */
 .app-header__mascot-on-branch--monkey {
-  left: 40%;
+  left: 42%;
   right: auto;
-  top: clamp(16px, 4.5vw, 24px);
+  top: clamp(28px, 6vw, 38px);
   height: clamp(78px, 20vw, 96px);
   width: auto;
   transform: translateX(-50%);
