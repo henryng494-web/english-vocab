@@ -1,5 +1,5 @@
 /**
- * Header branch scene — rightTreeSection (210×85) + mascot overlay per tab.
+ * Header branch scene — rightTreeSection (66% header width) + mascot overlay per tab.
  */
 import Image from "next/image";
 import {
@@ -29,8 +29,8 @@ export function HeaderBranchScene({ character }: HeaderBranchSceneProps) {
       <Image
         src={HEADER_BRANCH_TEMPLATE}
         alt=""
-        width={220}
-        height={96}
+        width={1830}
+        height={560}
         className="app-header__branch-art"
         priority
         unoptimized
@@ -38,8 +38,8 @@ export function HeaderBranchScene({ character }: HeaderBranchSceneProps) {
       <Image
         src={mascotSrc(character)}
         alt=""
-        width={character === "monkey" ? 233 : size.width}
-        height={character === "monkey" ? 293 : size.height}
+        width={character === "monkey" ? 165 : size.width}
+        height={character === "monkey" ? 290 : size.height}
         className={`app-header__mascot-on-branch app-header__mascot-on-branch--${character}`}
         priority
         unoptimized
