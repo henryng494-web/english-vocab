@@ -3,8 +3,7 @@
 import { execSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import { resolve } from "node:path";
-import { getWordsInRange } from "@/data/preset-vocabulary";
-import { CAST_WORD_IMAGE_TOP_RANK } from "@/data/jungle-cast-image-framework";
+import { JUNGLE_WORD_IMAGE_ENTRIES } from "@/data/jungle-cast-word-image-prompts";
 
 const OUT = resolve(process.cwd(), "public/word-images");
 
@@ -27,7 +26,7 @@ function probe(word: string): { w: number; h: number; bad: boolean; reason: stri
   return { w, h, bad: false, reason: "ok" };
 }
 
-const words = getWordsInRange(1, CAST_WORD_IMAGE_TOP_RANK).map((e) => e.word);
+const words = Object.keys(JUNGLE_WORD_IMAGE_ENTRIES).sort();
 const bad: Array<{ word: string; reason: string; w: number; h: number }> = [];
 const ok: string[] = [];
 

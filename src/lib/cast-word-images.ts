@@ -4,12 +4,12 @@
  * Jungle Jokers cast (jungle10 bundle — rank 1–150 semantic scenes + teaching props).
  */
 
-import { getWordsInRange } from "@/data/preset-vocabulary";
 import { requiresSafeImageOnly } from "@/lib/safe-image-search";
 import {
   CAST_WORD_IMAGE_BUNDLE,
   CAST_WORD_IMAGE_TOP_RANK,
 } from "@/data/jungle-cast-image-framework";
+import { JUNGLE_WORD_IMAGE_ENTRIES } from "@/data/jungle-cast-word-image-prompts";
 
 export {
   buildJungleCastWordImagePrompt as buildCastWordImagePrompt,
@@ -36,9 +36,7 @@ export {
   getWelcomeHeroPath,
 } from "@/data/jungle-cast-brand";
 
-const CAST_WORDS = new Set(
-  getWordsInRange(1, CAST_WORD_IMAGE_TOP_RANK).map((entry) => entry.word),
-);
+const CAST_WORDS = new Set(Object.keys(JUNGLE_WORD_IMAGE_ENTRIES));
 
 const STATIC_PATH_RE =
   /^\/word-images\/[a-z]+\.jpg(?:\?v=(?:cast[\w-]+|jungle[\w-]+))?$/;

@@ -8,7 +8,7 @@ ART="/opt/cursor/artifacts/assets"
 dst="/workspace/public/word-images/${word}.jpg"
 
 src=""
-for p in "$prefix" jungle12 jungle11 jungle10 jungle9 jungle8-fix jungle8 jungle7; do
+for p in "$prefix" jungle15 jungle14 jungle13 jungle12 jungle11 jungle10 jungle9 jungle8-fix jungle8 jungle7; do
   if [ -f "${ART}/${p}-word-${word}" ]; then
     src="${ART}/${p}-word-${word}"
     break
