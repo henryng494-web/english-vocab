@@ -66,11 +66,14 @@ export const HEADER_BRANCH_SCENES = {
 /** Locked branch template (transparent PNG) — top-right header corner. */
 export const HEADER_BRANCH_TEMPLATE = "/mascot/branches/tree-branch-right.png?v=1";
 
-/** Purple monkey hanging by one arm — extracted from WELCOME_SPLASH_ART (hooks letter J). */
+/** Header monkey — hangs under horizontal branch (arm hooks up). Clean SVG/PNG. */
+export const HEADER_HANGING_MONKEY = "/mascot/jungle-jokers/hanging-under-branch-monkey.png?v=2";
+
+/** @deprecated splash J pose — wrong orientation for branch header */
 export const SPLASH_HANGING_MONKEY = "/mascot/jungle-jokers/hanging-purple-monkey-splash.png?v=2";
 
-/** @deprecated alias — use SPLASH_HANGING_MONKEY */
-export const HANGING_PURPLE_MONKEY = SPLASH_HANGING_MONKEY;
+/** @deprecated use HEADER_HANGING_MONKEY */
+export const HANGING_PURPLE_MONKEY = HEADER_HANGING_MONKEY;
 
 /** Header PNGs — trimmed for compact app header strip. */
 export const MASCOT_HEADER_SIZES = {

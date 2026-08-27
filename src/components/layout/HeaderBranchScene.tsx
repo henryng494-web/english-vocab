@@ -4,9 +4,9 @@
 import Image from "next/image";
 import {
   HEADER_BRANCH_TEMPLATE,
+  HEADER_HANGING_MONKEY,
   MASCOT_HEADER_SIZES,
   MASCOT_PUBLIC_PATHS,
-  SPLASH_HANGING_MONKEY,
 } from "@/data/jungle-cast-brand";
 import type { JungleMascotName } from "@/components/mascot/JungleMascot";
 
@@ -17,7 +17,7 @@ type HeaderBranchSceneProps = {
 };
 
 function mascotSrc(character: HeaderBranchCharacter): string {
-  if (character === "monkey") return SPLASH_HANGING_MONKEY;
+  if (character === "monkey") return HEADER_HANGING_MONKEY;
   return MASCOT_PUBLIC_PATHS[character];
 }
 
@@ -38,8 +38,8 @@ export function HeaderBranchScene({ character }: HeaderBranchSceneProps) {
       <Image
         src={mascotSrc(character)}
         alt=""
-        width={character === "monkey" ? 165 : size.width}
-        height={character === "monkey" ? 290 : size.height}
+        width={character === "monkey" ? 96 : size.width}
+        height={character === "monkey" ? 108 : size.height}
         className={`app-header__mascot-on-branch app-header__mascot-on-branch--${character}`}
         priority
         unoptimized
