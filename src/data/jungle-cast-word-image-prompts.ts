@@ -1,4 +1,4 @@
-/** Jungle Jokers word prompts — rank 1–300. Shape locked via multi-ref PNGs. */
+/** Jungle Jokers word prompts — rank 1–500. Shape locked via multi-ref PNGs. */
 import {
   JUNGLE_CAST_DESIGN_ONLY,
   JUNGLE_CAST_CROCODILE_SHAPE_RULE,
@@ -2307,6 +2307,1436 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
     ],
     "scene": "ONLY lime-green crocodile on plain white #FFFFFF — acting out the meaning of \"anyone\" clearly on white canvas. PROPS (grounded on white): open welcome gate inviting any passerby into sunny orchard. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"anyone\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
     "expressions": "Crocodile: expressive face on horizontal log body low to ground, four stub legs."
+  },
+  "orange": {
+    "cast": [
+      "monkey"
+    ],
+    "scene": "ONLY purple monkey on plain white #FFFFFF — acting out the meaning of \"orange\" clearly on white canvas. PROPS (grounded on white): fresh orange fruit sliced on plate — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"orange\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Monkey: expressive face matching word meaning, sitting side profile, exactly two arms two legs."
+  },
+  "pay": {
+    "cast": [
+      "elephant"
+    ],
+    "scene": "ONLY pink elephant on plain white #FFFFFF — acting out the meaning of \"pay\" clearly on white canvas. PROPS (grounded on white): person paying with credit card at counter — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"pay\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Elephant: expressive face, giant circle head + stick body unchanged, BOTH thin stick arms visible."
+  },
+  "happen": {
+    "cast": [
+      "crocodile"
+    ],
+    "scene": "ONLY lime-green crocodile on plain white #FFFFFF — acting out the meaning of \"happen\" clearly on white canvas. PROPS (grounded on white): unexpected surprise moment outdoors — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"happen\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Crocodile: expressive face on horizontal log body low to ground, four stub legs."
+  },
+  "true": {
+    "cast": [
+      "tiger"
+    ],
+    "scene": "ONLY orange tiger on plain white #FFFFFF — acting out the meaning of \"true\" clearly on white canvas. PROPS (grounded on white): green check mark correct answer — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"true\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Tiger: expressive face, orange sphere body unchanged, two stub arms two stub legs."
+  },
+  "each": {
+    "cast": [
+      "monkey"
+    ],
+    "scene": "ONLY purple monkey on plain white #FFFFFF — acting out the meaning of \"each\" clearly on white canvas. PROPS (grounded on white): person handing out one gift each — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"each\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Monkey: expressive face matching word meaning, sitting side profile, exactly two arms two legs."
+  },
+  "eat": {
+    "cast": [
+      "elephant"
+    ],
+    "scene": "ONLY pink elephant on plain white #FFFFFF — acting out the meaning of \"eat\" clearly on white canvas. PROPS (grounded on white): person eating meal — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"eat\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Elephant: expressive face, giant circle head + stick body unchanged, BOTH thin stick arms visible."
+  },
+  "mine": {
+    "cast": [
+      "crocodile"
+    ],
+    "scene": "ONLY lime-green crocodile on plain white #FFFFFF — acting out the meaning of \"mine\" clearly on white canvas. PROPS (grounded on white): person holding personal backpack belongings — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"mine\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Crocodile: expressive face on horizontal log body low to ground, four stub legs."
+  },
+  "brown": {
+    "cast": [
+      "tiger"
+    ],
+    "scene": "ONLY orange tiger on plain white #FFFFFF — acting out the meaning of \"brown\" clearly on white canvas. PROPS (grounded on white): brown leather wallet on wooden table — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"brown\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Tiger: expressive face, orange sphere body unchanged, two stub arms two stub legs."
+  },
+  "town": {
+    "cast": [
+      "monkey"
+    ],
+    "scene": "ONLY purple monkey on plain white #FFFFFF — acting out the meaning of \"town\" clearly on white canvas. PROPS (grounded on white): small town main street shops — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"town\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Monkey: expressive face matching word meaning, sitting side profile, exactly two arms two legs."
+  },
+  "afraid": {
+    "cast": [
+      "elephant"
+    ],
+    "scene": "ONLY pink elephant on plain white #FFFFFF — acting out the meaning of \"afraid\" clearly on white canvas. PROPS (grounded on white): person scared covering face hands — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"afraid\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Elephant: expressive face, giant circle head + stick body unchanged, BOTH thin stick arms visible."
+  },
+  "drink": {
+    "cast": [
+      "crocodile"
+    ],
+    "scene": "ONLY lime-green crocodile on plain white #FFFFFF — acting out the meaning of \"drink\" clearly on white canvas. PROPS (grounded on white): glass of water — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"drink\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Crocodile: expressive face on horizontal log body low to ground, four stub legs."
+  },
+  "whatever": {
+    "cast": [
+      "tiger"
+    ],
+    "scene": "ONLY orange tiger on plain white #FFFFFF — acting out the meaning of \"whatever\" clearly on white canvas. PROPS (grounded on white): person shrugging shoulders indifferent — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"whatever\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Tiger: expressive face, orange sphere body unchanged, two stub arms two stub legs."
+  },
+  "hurt": {
+    "cast": [
+      "monkey"
+    ],
+    "scene": "ONLY purple monkey on plain white #FFFFFF — acting out the meaning of \"hurt\" clearly on white canvas. PROPS (grounded on white): bandage on injured knee closeup — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"hurt\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Monkey: expressive face matching word meaning, sitting side profile, exactly two arms two legs."
+  },
+  "heart": {
+    "cast": [
+      "elephant"
+    ],
+    "scene": "ONLY pink elephant on plain white #FFFFFF — acting out the meaning of \"heart\" clearly on white canvas. PROPS (grounded on white): red heart shape hands gesture love — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"heart\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Elephant: expressive face, giant circle head + stick body unchanged, BOTH thin stick arms visible."
+  },
+  "young": {
+    "cast": [
+      "crocodile"
+    ],
+    "scene": "ONLY lime-green crocodile on plain white #FFFFFF — acting out the meaning of \"young\" clearly on white canvas. PROPS (grounded on white): young couple smiling outdoors together — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"young\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Crocodile: expressive face on horizontal log body low to ground, four stub legs."
+  },
+  "everyone": {
+    "cast": [
+      "monkey",
+      "elephant",
+      "crocodile",
+      "tiger"
+    ],
+    "scene": "All four mascots on plain white #FFFFFF — acting out the meaning of \"everyone\" clearly on white canvas. PROPS (grounded on white): diverse crowd of people together — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"everyone\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "All four: expressive faces matching word meaning. Tiger: sphere only. Crocodile: log low. Elephant: stick arms visible. Monkey: two arms two legs only."
+  },
+  "pink": {
+    "cast": [
+      "tiger"
+    ],
+    "scene": "ONLY orange tiger on plain white #FFFFFF — acting out the meaning of \"pink\" clearly on white canvas. PROPS (grounded on white): pink flower bouquet soft petals — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"pink\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Tiger: expressive face, orange sphere body unchanged, two stub arms two stub legs."
+  },
+  "chance": {
+    "cast": [
+      "monkey"
+    ],
+    "scene": "ONLY purple monkey on plain white #FFFFFF — acting out the meaning of \"chance\" clearly on white canvas. PROPS (grounded on white): rolling dice on game table luck — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"chance\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Monkey: expressive face matching word meaning, sitting side profile, exactly two arms two legs."
+  },
+  "read": {
+    "cast": [
+      "elephant"
+    ],
+    "scene": "ONLY pink elephant on plain white #FFFFFF — acting out the meaning of \"read\" clearly on white canvas. PROPS (grounded on white): person reading book in cozy chair — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"read\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Elephant: expressive face, giant circle head + stick body unchanged, BOTH thin stick arms visible."
+  },
+  "number": {
+    "cast": [
+      "crocodile"
+    ],
+    "scene": "ONLY lime-green crocodile on plain white #FFFFFF — acting out the meaning of \"number\" clearly on white canvas. PROPS (grounded on white): numbers written on classroom chalkboard — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"number\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Crocodile: expressive face on horizontal log body low to ground, four stub legs."
+  },
+  "change": {
+    "cast": [
+      "tiger"
+    ],
+    "scene": "ONLY orange tiger on plain white #FFFFFF — acting out the meaning of \"change\" clearly on white canvas. PROPS (grounded on white): coins and cash money exchange — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"change\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Tiger: expressive face, orange sphere body unchanged, two stub arms two stub legs."
+  },
+  "anyway": {
+    "cast": [
+      "monkey"
+    ],
+    "scene": "ONLY purple monkey on plain white #FFFFFF — acting out the meaning of \"anyway\" clearly on white canvas. PROPS (grounded on white): person continuing walk down road — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"anyway\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Monkey: expressive face matching word meaning, sitting side profile, exactly two arms two legs."
+  },
+  "week": {
+    "cast": [
+      "elephant"
+    ],
+    "scene": "ONLY pink elephant on plain white #FFFFFF — acting out the meaning of \"week\" clearly on white canvas. PROPS (grounded on white): weekly calendar planner on desk — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"week\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Elephant: expressive face, giant circle head + stick body unchanged, BOTH thin stick arms visible."
+  },
+  "point": {
+    "cast": [
+      "crocodile"
+    ],
+    "scene": "ONLY lime-green crocodile on plain white #FFFFFF — acting out the meaning of \"point\" clearly on white canvas. PROPS (grounded on white): finger pointing at map location — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"point\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Crocodile: expressive face on horizontal log body low to ground, four stub legs."
+  },
+  "purple": {
+    "cast": [
+      "tiger"
+    ],
+    "scene": "ONLY orange tiger on plain white #FFFFFF — acting out the meaning of \"purple\" clearly on white canvas. PROPS (grounded on white): purple grapes bunch on table — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"purple\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Tiger: expressive face, orange sphere body unchanged, two stub arms two stub legs."
+  },
+  "police": {
+    "cast": [
+      "monkey"
+    ],
+    "scene": "ONLY purple monkey on plain white #FFFFFF — acting out the meaning of \"police\" clearly on white canvas. PROPS (grounded on white): police officer uniform street patrol — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"police\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Monkey: expressive face matching word meaning, sitting side profile, exactly two arms two legs."
+  },
+  "word": {
+    "cast": [
+      "elephant"
+    ],
+    "scene": "ONLY pink elephant on plain white #FFFFFF — acting out the meaning of \"word\" clearly on white canvas. PROPS (grounded on white): dictionary open on wooden desk — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"word\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Elephant: expressive face, giant circle head + stick body unchanged, BOTH thin stick arms visible."
+  },
+  "fun": {
+    "cast": [
+      "crocodile"
+    ],
+    "scene": "ONLY lime-green crocodile on plain white #FFFFFF — acting out the meaning of \"fun\" clearly on white canvas. PROPS (grounded on white): friends laughing playing board game — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"fun\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Crocodile: expressive face on horizontal log body low to ground, four stub legs."
+  },
+  "wish": {
+    "cast": [
+      "tiger"
+    ],
+    "scene": "ONLY orange tiger on plain white #FFFFFF — acting out the meaning of \"wish\" clearly on white canvas. PROPS (grounded on white): person blowing dandelion seeds wish — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"wish\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Tiger: expressive face, orange sphere body unchanged, two stub arms two stub legs."
+  },
+  "bit": {
+    "cast": [
+      "monkey"
+    ],
+    "scene": "ONLY purple monkey on plain white #FFFFFF — acting out the meaning of \"bit\" clearly on white canvas. PROPS (grounded on white): small bite taken from cookie — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"bit\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Monkey: expressive face matching word meaning, sitting side profile, exactly two arms two legs."
+  },
+  "game": {
+    "cast": [
+      "elephant"
+    ],
+    "scene": "ONLY pink elephant on plain white #FFFFFF — acting out the meaning of \"game\" clearly on white canvas. PROPS (grounded on white): family playing board game table — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"game\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Elephant: expressive face, giant circle head + stick body unchanged, BOTH thin stick arms visible."
+  },
+  "party": {
+    "cast": [
+      "monkey",
+      "elephant",
+      "crocodile",
+      "tiger"
+    ],
+    "scene": "All four mascots on plain white #FFFFFF — acting out the meaning of \"party\" clearly on white canvas. PROPS (grounded on white): birthday party balloons and cake — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"party\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "All four: expressive faces matching word meaning. Tiger: sphere only. Crocodile: log low. Elephant: stick arms visible. Monkey: two arms two legs only."
+  },
+  "gray": {
+    "cast": [
+      "crocodile"
+    ],
+    "scene": "ONLY lime-green crocodile on plain white #FFFFFF — acting out the meaning of \"gray\" clearly on white canvas. PROPS (grounded on white): gray cloudy sky over city — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"gray\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Crocodile: expressive face on horizontal log body low to ground, four stub legs."
+  },
+  "set": {
+    "cast": [
+      "tiger"
+    ],
+    "scene": "ONLY orange tiger on plain white #FFFFFF — acting out the meaning of \"set\" clearly on white canvas. PROPS (grounded on white): table place setting dinner plate — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"set\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Tiger: expressive face, orange sphere body unchanged, two stub arms two stub legs."
+  },
+  "cut": {
+    "cast": [
+      "monkey"
+    ],
+    "scene": "ONLY purple monkey on plain white #FFFFFF — acting out the meaning of \"cut\" clearly on white canvas. PROPS (grounded on white): kitchen knife cutting fresh vegetables — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"cut\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Monkey: expressive face matching word meaning, sitting side profile, exactly two arms two legs."
+  },
+  "sleep": {
+    "cast": [
+      "elephant"
+    ],
+    "scene": "ONLY pink elephant on plain white #FFFFFF — acting out the meaning of \"sleep\" clearly on white canvas. PROPS (grounded on white): person sleeping peacefully in bed — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"sleep\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Elephant: expressive face, giant circle head + stick body unchanged, BOTH thin stick arms visible."
+  },
+  "shot": {
+    "cast": [
+      "crocodile"
+    ],
+    "scene": "ONLY lime-green crocodile on plain white #FFFFFF — acting out the meaning of \"shot\" clearly on white canvas. PROPS (grounded on white): basketball player shooting hoop — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"shot\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Crocodile: expressive face on horizontal log body low to ground, four stub legs."
+  },
+  "anybody": {
+    "cast": [
+      "tiger"
+    ],
+    "scene": "ONLY orange tiger on plain white #FFFFFF — acting out the meaning of \"anybody\" clearly on white canvas. PROPS (grounded on white): open welcome door for anyone — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"anybody\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Tiger: expressive face, orange sphere body unchanged, two stub arms two stub legs."
+  },
+  "stand": {
+    "cast": [
+      "monkey"
+    ],
+    "scene": "ONLY purple monkey on plain white #FFFFFF — acting out the meaning of \"stand\" clearly on white canvas. PROPS (grounded on white): person standing in queue line indoors — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"stand\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Monkey: expressive face matching word meaning, sitting side profile, exactly two arms two legs."
+  },
+  "water": {
+    "cast": [
+      "elephant"
+    ],
+    "scene": "ONLY pink elephant on plain white #FFFFFF — acting out the meaning of \"water\" clearly on white canvas. PROPS (grounded on white): clear water glass — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"water\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Elephant: expressive face, giant circle head + stick body unchanged, BOTH thin stick arms visible."
+  },
+  "monday": {
+    "cast": [
+      "crocodile"
+    ],
+    "scene": "ONLY lime-green crocodile on plain white #FFFFFF — acting out the meaning of \"monday\" clearly on white canvas. PROPS (grounded on white): calendar showing monday start week — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"monday\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Crocodile: expressive face on horizontal log body low to ground, four stub legs."
+  },
+  "trouble": {
+    "cast": [
+      "tiger"
+    ],
+    "scene": "ONLY orange tiger on plain white #FFFFFF — acting out the meaning of \"trouble\" clearly on white canvas. PROPS (grounded on white): person worried looking at broken car — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"trouble\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Tiger: expressive face, orange sphere body unchanged, two stub arms two stub legs."
+  },
+  "dear": {
+    "cast": [
+      "monkey"
+    ],
+    "scene": "ONLY purple monkey on plain white #FFFFFF — acting out the meaning of \"dear\" clearly on white canvas. PROPS (grounded on white): handwritten dear letter envelope — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"dear\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Monkey: expressive face matching word meaning, sitting side profile, exactly two arms two legs."
+  },
+  "couple": {
+    "cast": [
+      "monkey",
+      "elephant"
+    ],
+    "scene": "ONLY purple monkey and pink elephant on plain white #FFFFFF — acting out the meaning of \"couple\" clearly on white canvas. PROPS (grounded on white): romantic couple holding hands park — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"couple\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Monkey: expressive face matching word meaning, sitting side profile, exactly two arms two legs. Elephant: expressive face, giant circle head + stick body unchanged, BOTH thin stick arms visible."
+  },
+  "break": {
+    "cast": [
+      "elephant"
+    ],
+    "scene": "ONLY pink elephant on plain white #FFFFFF — acting out the meaning of \"break\" clearly on white canvas. PROPS (grounded on white): broken glass — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"break\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Elephant: expressive face, giant circle head + stick body unchanged, BOTH thin stick arms visible."
+  },
+  "story": {
+    "cast": [
+      "crocodile"
+    ],
+    "scene": "ONLY lime-green crocodile on plain white #FFFFFF — acting out the meaning of \"story\" clearly on white canvas. PROPS (grounded on white): storytelling book children bedtime reading lamp — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"story\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Crocodile: expressive face on horizontal log body low to ground, four stub legs."
+  },
+  "far": {
+    "cast": [
+      "tiger"
+    ],
+    "scene": "ONLY orange tiger on plain white #FFFFFF — acting out the meaning of \"far\" clearly on white canvas. PROPS (grounded on white): tools craftsman workshop hands making object — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"far\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Tiger: expressive face, orange sphere body unchanged, two stub arms two stub legs."
+  },
+  "tuesday": {
+    "cast": [
+      "monkey"
+    ],
+    "scene": "ONLY purple monkey on plain white #FFFFFF — acting out the meaning of \"tuesday\" clearly on white canvas. PROPS (grounded on white): calendar showing tuesday weekday — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"tuesday\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Monkey: expressive face matching word meaning, sitting side profile, exactly two arms two legs."
+  },
+  "close": {
+    "cast": [
+      "elephant"
+    ],
+    "scene": "ONLY pink elephant on plain white #FFFFFF — acting out the meaning of \"close\" clearly on white canvas. PROPS (grounded on white): closed door — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"close\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Elephant: expressive face, giant circle head + stick body unchanged, BOTH thin stick arms visible."
+  },
+  "funny": {
+    "cast": [
+      "crocodile"
+    ],
+    "scene": "ONLY lime-green crocodile on plain white #FFFFFF — acting out the meaning of \"funny\" clearly on white canvas. PROPS (grounded on white): fresh vegetables market basket colorful produce — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"funny\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Crocodile: expressive face on horizontal log body low to ground, four stub legs."
+  },
+  "lady": {
+    "cast": [
+      "tiger"
+    ],
+    "scene": "ONLY orange tiger on plain white #FFFFFF — acting out the meaning of \"lady\" clearly on white canvas. PROPS (grounded on white): office whiteboard team planning meeting notes — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"lady\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Tiger: expressive face, orange sphere body unchanged, two stub arms two stub legs."
+  },
+  "death": {
+    "cast": [
+      "monkey"
+    ],
+    "scene": "ONLY purple monkey on plain white #FFFFFF — acting out the meaning of \"death\" clearly on white canvas. PROPS (grounded on white): memorial candle remembrance quiet scene — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"death\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Monkey: expressive face matching word meaning, sitting side profile, exactly two arms two legs."
+  },
+  "walk": {
+    "cast": [
+      "elephant"
+    ],
+    "scene": "ONLY pink elephant on plain white #FFFFFF — acting out the meaning of \"walk\" clearly on white canvas. PROPS (grounded on white): person walking street — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"walk\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Elephant: expressive face, giant circle head + stick body unchanged, BOTH thin stick arms visible."
+  },
+  "fire": {
+    "cast": [
+      "crocodile"
+    ],
+    "scene": "ONLY lime-green crocodile on plain white #FFFFFF — acting out the meaning of \"fire\" clearly on white canvas. PROPS (grounded on white): campfire flames — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"fire\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Crocodile: expressive face on horizontal log body low to ground, four stub legs."
+  },
+  "wednesday": {
+    "cast": [
+      "tiger"
+    ],
+    "scene": "ONLY orange tiger on plain white #FFFFFF — acting out the meaning of \"wednesday\" clearly on white canvas. PROPS (grounded on white): calendar showing wednesday weekday — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"wednesday\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Tiger: expressive face, orange sphere body unchanged, two stub arms two stub legs."
+  },
+  "hate": {
+    "cast": [
+      "monkey"
+    ],
+    "scene": "ONLY purple monkey on plain white #FFFFFF — acting out the meaning of \"hate\" clearly on white canvas. PROPS (grounded on white): pet dog playing grass backyard sunshine — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"hate\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Monkey: expressive face matching word meaning, sitting side profile, exactly two arms two legs."
+  },
+  "gun": {
+    "cast": [
+      "elephant"
+    ],
+    "scene": "ONLY pink elephant on plain white #FFFFFF — acting out the meaning of \"gun\" clearly on white canvas. PROPS (grounded on white): hands preparing fresh food kitchen counter — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"gun\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Elephant: expressive face, giant circle head + stick body unchanged, BOTH thin stick arms visible."
+  },
+  "person": {
+    "cast": [
+      "crocodile"
+    ],
+    "scene": "ONLY lime-green crocodile on plain white #FFFFFF — acting out the meaning of \"person\" clearly on white canvas. PROPS (grounded on white): person portrait candid smile natural light — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"person\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Crocodile: expressive face on horizontal log body low to ground, four stub legs."
+  },
+  "inside": {
+    "cast": [
+      "tiger"
+    ],
+    "scene": "ONLY orange tiger on plain white #FFFFFF — acting out the meaning of \"inside\" clearly on white canvas. PROPS (grounded on white): person sitting inside tent — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"inside\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Tiger: expressive face, orange sphere body unchanged, two stub arms two stub legs."
+  },
+  "different": {
+    "cast": [
+      "monkey"
+    ],
+    "scene": "ONLY purple monkey on plain white #FFFFFF — acting out the meaning of \"different\" clearly on white canvas. PROPS (grounded on white): hands typing laptop modern office desk — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"different\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Monkey: expressive face matching word meaning, sitting side profile, exactly two arms two legs."
+  },
+  "captain": {
+    "cast": [
+      "elephant"
+    ],
+    "scene": "ONLY pink elephant on plain white #FFFFFF — acting out the meaning of \"captain\" clearly on white canvas. PROPS (grounded on white): hands preparing fresh food kitchen counter — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"captain\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Elephant: expressive face, giant circle head + stick body unchanged, BOTH thin stick arms visible."
+  },
+  "least": {
+    "cast": [
+      "crocodile"
+    ],
+    "scene": "ONLY lime-green crocodile on plain white #FFFFFF — acting out the meaning of \"least\" clearly on white canvas. PROPS (grounded on white): weather clouds sky landscape horizon view — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"least\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Crocodile: expressive face on horizontal log body low to ground, four stub legs."
+  },
+  "thursday": {
+    "cast": [
+      "tiger"
+    ],
+    "scene": "ONLY orange tiger on plain white #FFFFFF — acting out the meaning of \"thursday\" clearly on white canvas. PROPS (grounded on white): calendar showing thursday weekday — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"thursday\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Tiger: expressive face, orange sphere body unchanged, two stub arms two stub legs."
+  },
+  "important": {
+    "cast": [
+      "monkey"
+    ],
+    "scene": "ONLY purple monkey on plain white #FFFFFF — acting out the meaning of \"important\" clearly on white canvas. PROPS (grounded on white): important document highlight — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"important\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Monkey: expressive face matching word meaning, sitting side profile, exactly two arms two legs."
+  },
+  "also": {
+    "cast": [
+      "elephant"
+    ],
+    "scene": "ONLY pink elephant on plain white #FFFFFF — acting out the meaning of \"also\" clearly on white canvas. PROPS (grounded on white): two matching coffee cups — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"also\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Elephant: expressive face, giant circle head + stick body unchanged, BOTH thin stick arms visible."
+  },
+  "line": {
+    "cast": [
+      "crocodile"
+    ],
+    "scene": "ONLY lime-green crocodile on plain white #FFFFFF — acting out the meaning of \"line\" clearly on white canvas. PROPS (grounded on white): people standing queue line waiting — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"line\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Crocodile: expressive face on horizontal log body low to ground, four stub legs."
+  },
+  "office": {
+    "cast": [
+      "tiger"
+    ],
+    "scene": "ONLY orange tiger on plain white #FFFFFF — acting out the meaning of \"office\" clearly on white canvas. PROPS (grounded on white): modern office workspace desk computer — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"office\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Tiger: expressive face, orange sphere body unchanged, two stub arms two stub legs."
+  },
+  "dinner": {
+    "cast": [
+      "monkey"
+    ],
+    "scene": "ONLY purple monkey on plain white #FFFFFF — acting out the meaning of \"dinner\" clearly on white canvas. PROPS (grounded on white): dinner person working activity photo — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"dinner\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Monkey: expressive face matching word meaning, sitting side profile, exactly two arms two legs."
+  },
+  "quite": {
+    "cast": [
+      "elephant"
+    ],
+    "scene": "ONLY pink elephant on plain white #FFFFFF — acting out the meaning of \"quite\" clearly on white canvas. PROPS (grounded on white): measuring cup partial fill kitchen — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"quite\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Elephant: expressive face, giant circle head + stick body unchanged, BOTH thin stick arms visible."
+  },
+  "against": {
+    "cast": [
+      "crocodile"
+    ],
+    "scene": "ONLY lime-green crocodile on plain white #FFFFFF — acting out the meaning of \"against\" clearly on white canvas. PROPS (grounded on white): scientific microscope laboratory research bench — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"against\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Crocodile: expressive face on horizontal log body low to ground, four stub legs."
+  },
+  "fight": {
+    "cast": [
+      "tiger",
+      "monkey"
+    ],
+    "scene": "ONLY orange tiger and purple monkey on plain white #FFFFFF — acting out the meaning of \"fight\" clearly on white canvas. PROPS (grounded on white): boxing training sport gym fighters — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"fight\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Tiger: expressive face, orange sphere body unchanged, two stub arms two stub legs. Monkey: expressive face matching word meaning, sitting side profile, exactly two arms two legs."
+  },
+  "friday": {
+    "cast": [
+      "tiger"
+    ],
+    "scene": "ONLY orange tiger on plain white #FFFFFF — acting out the meaning of \"friday\" clearly on white canvas. PROPS (grounded on white): calendar showing friday weekday — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"friday\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Tiger: expressive face, orange sphere body unchanged, two stub arms two stub legs."
+  },
+  "side": {
+    "cast": [
+      "monkey"
+    ],
+    "scene": "ONLY purple monkey on plain white #FFFFFF — acting out the meaning of \"side\" clearly on white canvas. PROPS (grounded on white): side by side comparison two products table — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"side\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Monkey: expressive face matching word meaning, sitting side profile, exactly two arms two legs."
+  },
+  "half": {
+    "cast": [
+      "elephant"
+    ],
+    "scene": "ONLY pink elephant on plain white #FFFFFF — acting out the meaning of \"half\" clearly on white canvas. PROPS (grounded on white): person jogging park trail morning exercise — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"half\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Elephant: expressive face, giant circle head + stick body unchanged, BOTH thin stick arms visible."
+  },
+  "pick": {
+    "cast": [
+      "crocodile"
+    ],
+    "scene": "ONLY lime-green crocodile on plain white #FFFFFF — acting out the meaning of \"pick\" clearly on white canvas. PROPS (grounded on white): scientific microscope laboratory research bench — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"pick\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Crocodile: expressive face on horizontal log body low to ground, four stub legs."
+  },
+  "question": {
+    "cast": [
+      "tiger"
+    ],
+    "scene": "ONLY orange tiger on plain white #FFFFFF — acting out the meaning of \"question\" clearly on white canvas. PROPS (grounded on white): question mark chalkboard curiosity thinking student — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"question\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Tiger: expressive face, orange sphere body unchanged, two stub arms two stub legs."
+  },
+  "ahead": {
+    "cast": [
+      "monkey"
+    ],
+    "scene": "ONLY purple monkey on plain white #FFFFFF — acting out the meaning of \"ahead\" clearly on white canvas. PROPS (grounded on white): hands typing laptop modern office desk — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"ahead\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Monkey: expressive face matching word meaning, sitting side profile, exactly two arms two legs."
+  },
+  "cool": {
+    "cast": [
+      "elephant"
+    ],
+    "scene": "ONLY pink elephant on plain white #FFFFFF — acting out the meaning of \"cool\" clearly on white canvas. PROPS (grounded on white): hands typing laptop modern office desk — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"cool\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Elephant: expressive face, giant circle head + stick body unchanged, BOTH thin stick arms visible."
+  },
+  "body": {
+    "cast": [
+      "crocodile"
+    ],
+    "scene": "ONLY lime-green crocodile on plain white #FFFFFF — acting out the meaning of \"body\" clearly on white canvas. PROPS (grounded on white): fitness body workout gym health — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"body\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Crocodile: expressive face on horizontal log body low to ground, four stub legs."
+  },
+  "saturday": {
+    "cast": [
+      "tiger"
+    ],
+    "scene": "ONLY orange tiger on plain white #FFFFFF — acting out the meaning of \"saturday\" clearly on white canvas. PROPS (grounded on white): calendar showing saturday weekday — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"saturday\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Tiger: expressive face, orange sphere body unchanged, two stub arms two stub legs."
+  },
+  "high": {
+    "cast": [
+      "monkey"
+    ],
+    "scene": "ONLY purple monkey on plain white #FFFFFF — acting out the meaning of \"high\" clearly on white canvas. PROPS (grounded on white): office whiteboard team planning meeting notes — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"high\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Monkey: expressive face matching word meaning, sitting side profile, exactly two arms two legs."
+  },
+  "husband": {
+    "cast": [
+      "elephant",
+      "tiger"
+    ],
+    "scene": "ONLY pink elephant and orange tiger on plain white #FFFFFF — acting out the meaning of \"husband\" clearly on white canvas. PROPS (grounded on white): married couple wedding rings hands love — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"husband\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Elephant: expressive face, giant circle head + stick body unchanged, BOTH thin stick arms visible. Tiger: expressive face, orange sphere body unchanged, two stub arms two stub legs."
+  },
+  "reason": {
+    "cast": [
+      "elephant"
+    ],
+    "scene": "ONLY pink elephant on plain white #FFFFFF — acting out the meaning of \"reason\" clearly on white canvas. PROPS (grounded on white): lightbulb reason logic thinking desk notes — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"reason\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Elephant: expressive face, giant circle head + stick body unchanged, BOTH thin stick arms visible."
+  },
+  "almost": {
+    "cast": [
+      "crocodile"
+    ],
+    "scene": "ONLY lime-green crocodile on plain white #FFFFFF — acting out the meaning of \"almost\" clearly on white canvas. PROPS (grounded on white): finish line runner nearly complete race — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"almost\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Crocodile: expressive face on horizontal log body low to ground, four stub legs."
+  },
+  "dog": {
+    "cast": [
+      "tiger"
+    ],
+    "scene": "ONLY orange tiger on plain white #FFFFFF — acting out the meaning of \"dog\" clearly on white canvas. PROPS (grounded on white): golden retriever dog park happy — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"dog\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Tiger: expressive face, orange sphere body unchanged, two stub arms two stub legs."
+  },
+  "buy": {
+    "cast": [
+      "monkey"
+    ],
+    "scene": "ONLY purple monkey on plain white #FFFFFF — acting out the meaning of \"buy\" clearly on white canvas. PROPS (grounded on white): person action everyday activity candid photo — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"buy\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Monkey: expressive face matching word meaning, sitting side profile, exactly two arms two legs."
+  },
+  "truth": {
+    "cast": [
+      "elephant"
+    ],
+    "scene": "ONLY pink elephant on plain white #FFFFFF — acting out the meaning of \"truth\" clearly on white canvas. PROPS (grounded on white): magnifying glass on document truth — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"truth\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Elephant: expressive face, giant circle head + stick body unchanged, BOTH thin stick arms visible."
+  },
+  "sunday": {
+    "cast": [
+      "crocodile"
+    ],
+    "scene": "ONLY lime-green crocodile on plain white #FFFFFF — acting out the meaning of \"sunday\" clearly on white canvas. PROPS (grounded on white): calendar showing sunday weekday — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"sunday\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Crocodile: expressive face on horizontal log body low to ground, four stub legs."
+  },
+  "hot": {
+    "cast": [
+      "tiger"
+    ],
+    "scene": "ONLY orange tiger on plain white #FFFFFF — acting out the meaning of \"hot\" clearly on white canvas. PROPS (grounded on white): hot sunny weather — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"hot\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Tiger: expressive face, orange sphere body unchanged, two stub arms two stub legs."
+  },
+  "anymore": {
+    "cast": [
+      "monkey"
+    ],
+    "scene": "ONLY purple monkey on plain white #FFFFFF — acting out the meaning of \"anymore\" clearly on white canvas. PROPS (grounded on white): scientific microscope laboratory research bench — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"anymore\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Monkey: expressive face matching word meaning, sitting side profile, exactly two arms two legs."
+  },
+  "behind": {
+    "cast": [
+      "elephant"
+    ],
+    "scene": "ONLY pink elephant on plain white #FFFFFF — acting out the meaning of \"behind\" clearly on white canvas. PROPS (grounded on white): pet dog playing grass backyard sunshine — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"behind\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Elephant: expressive face, giant circle head + stick body unchanged, BOTH thin stick arms visible."
+  },
+  "speak": {
+    "cast": [
+      "crocodile"
+    ],
+    "scene": "ONLY lime-green crocodile on plain white #FFFFFF — acting out the meaning of \"speak\" clearly on white canvas. PROPS (grounded on white): person speaking into microphone — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"speak\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Crocodile: expressive face on horizontal log body low to ground, four stub legs."
+  },
+  "bed": {
+    "cast": [
+      "tiger"
+    ],
+    "scene": "ONLY orange tiger on plain white #FFFFFF — acting out the meaning of \"bed\" clearly on white canvas. PROPS (grounded on white): hands typing laptop modern office desk — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"bed\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Tiger: expressive face, orange sphere body unchanged, two stub arms two stub legs."
+  },
+  "moment": {
+    "cast": [
+      "monkey"
+    ],
+    "scene": "ONLY purple monkey on plain white #FFFFFF — acting out the meaning of \"moment\" clearly on white canvas. PROPS (grounded on white): camera capturing special moment candid photo — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"moment\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Monkey: expressive face matching word meaning, sitting side profile, exactly two arms two legs."
+  },
+  "blood": {
+    "cast": [
+      "elephant"
+    ],
+    "scene": "ONLY pink elephant on plain white #FFFFFF — acting out the meaning of \"blood\" clearly on white canvas. PROPS (grounded on white): blood donation medical healthcare hospital — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"blood\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Elephant: expressive face, giant circle head + stick body unchanged, BOTH thin stick arms visible."
+  },
+  "march": {
+    "cast": [
+      "crocodile"
+    ],
+    "scene": "ONLY lime-green crocodile on plain white #FFFFFF — acting out the meaning of \"march\" clearly on white canvas. PROPS (grounded on white): calendar page march month — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"march\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Crocodile: expressive face on horizontal log body low to ground, four stub legs."
+  },
+  "ma": {
+    "cast": [
+      "tiger"
+    ],
+    "scene": "ONLY orange tiger on plain white #FFFFFF — acting out the meaning of \"ma\" clearly on white canvas. PROPS (grounded on white): map travel planning pins destination table — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"ma\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Tiger: expressive face, orange sphere body unchanged, two stub arms two stub legs."
+  },
+  "shall": {
+    "cast": [
+      "monkey"
+    ],
+    "scene": "ONLY purple monkey on plain white #FFFFFF — acting out the meaning of \"shall\" clearly on white canvas. PROPS (grounded on white): musical instruments practice room wooden floor — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"shall\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Monkey: expressive face matching word meaning, sitting side profile, exactly two arms two legs."
+  },
+  "stupid": {
+    "cast": [
+      "elephant"
+    ],
+    "scene": "ONLY pink elephant on plain white #FFFFFF — acting out the meaning of \"stupid\" clearly on white canvas. PROPS (grounded on white): pottery wheel hands shaping clay studio — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"stupid\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Elephant: expressive face, giant circle head + stick body unchanged, BOTH thin stick arms visible."
+  },
+  "along": {
+    "cast": [
+      "crocodile"
+    ],
+    "scene": "ONLY lime-green crocodile on plain white #FFFFFF — acting out the meaning of \"along\" clearly on white canvas. PROPS (grounded on white): hands typing laptop modern office desk — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"along\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Crocodile: expressive face on horizontal log body low to ground, four stub legs."
+  },
+  "either": {
+    "cast": [
+      "tiger"
+    ],
+    "scene": "ONLY orange tiger on plain white #FFFFFF — acting out the meaning of \"either\" clearly on white canvas. PROPS (grounded on white): either person working activity photo — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"either\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Tiger: expressive face, orange sphere body unchanged, two stub arms two stub legs."
+  },
+  "though": {
+    "cast": [
+      "monkey"
+    ],
+    "scene": "ONLY purple monkey on plain white #FFFFFF — acting out the meaning of \"though\" clearly on white canvas. PROPS (grounded on white): person climbing mountain despite challenge — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"though\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Monkey: expressive face matching word meaning, sitting side profile, exactly two arms two legs."
+  },
+  "front": {
+    "cast": [
+      "elephant"
+    ],
+    "scene": "ONLY pink elephant on plain white #FFFFFF — acting out the meaning of \"front\" clearly on white canvas. PROPS (grounded on white): house front door entrance welcome mat — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"front\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Elephant: expressive face, giant circle head + stick body unchanged, BOTH thin stick arms visible."
+  },
+  "sister": {
+    "cast": [
+      "monkey",
+      "tiger"
+    ],
+    "scene": "ONLY purple monkey and orange tiger on plain white #FFFFFF — acting out the meaning of \"sister\" clearly on white canvas. PROPS (grounded on white): sister person working activity photo — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"sister\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Monkey: expressive face matching word meaning, sitting side profile, exactly two arms two legs. Tiger: expressive face, orange sphere body unchanged, two stub arms two stub legs."
+  },
+  "april": {
+    "cast": [
+      "crocodile"
+    ],
+    "scene": "ONLY lime-green crocodile on plain white #FFFFFF — acting out the meaning of \"april\" clearly on white canvas. PROPS (grounded on white): calendar page april month — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"april\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Crocodile: expressive face on horizontal log body low to ground, four stub legs."
+  },
+  "bye": {
+    "cast": [
+      "tiger"
+    ],
+    "scene": "ONLY orange tiger on plain white #FFFFFF — acting out the meaning of \"bye\" clearly on white canvas. PROPS (grounded on white): fresh vegetables market basket colorful produce — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"bye\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Tiger: expressive face, orange sphere body unchanged, two stub arms two stub legs."
+  },
+  "send": {
+    "cast": [
+      "monkey"
+    ],
+    "scene": "ONLY purple monkey on plain white #FFFFFF — acting out the meaning of \"send\" clearly on white canvas. PROPS (grounded on white): hand placing letter in mailbox — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"send\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Monkey: expressive face matching word meaning, sitting side profile, exactly two arms two legs."
+  },
+  "welcome": {
+    "cast": [
+      "monkey",
+      "tiger"
+    ],
+    "scene": "ONLY purple monkey and orange tiger on plain white #FFFFFF — acting out the meaning of \"welcome\" clearly on white canvas. PROPS (grounded on white): pet dog playing grass backyard sunshine — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"welcome\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Monkey: expressive face matching word meaning, sitting side profile, exactly two arms two legs. Tiger: expressive face, orange sphere body unchanged, two stub arms two stub legs."
+  },
+  "trust": {
+    "cast": [
+      "elephant",
+      "monkey"
+    ],
+    "scene": "ONLY pink elephant and purple monkey on plain white #FFFFFF — acting out the meaning of \"trust\" clearly on white canvas. PROPS (grounded on white): handshake trust partnership agreement business deal — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"trust\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Elephant: expressive face, giant circle head + stick body unchanged, BOTH thin stick arms visible. Monkey: expressive face matching word meaning, sitting side profile, exactly two arms two legs."
+  },
+  "free": {
+    "cast": [
+      "elephant"
+    ],
+    "scene": "ONLY pink elephant on plain white #FFFFFF — acting out the meaning of \"free\" clearly on white canvas. PROPS (grounded on white): open birdcage door bird flying free — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"free\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Elephant: expressive face, giant circle head + stick body unchanged, BOTH thin stick arms visible."
+  },
+  "book": {
+    "cast": [
+      "crocodile"
+    ],
+    "scene": "ONLY lime-green crocodile on plain white #FFFFFF — acting out the meaning of \"book\" clearly on white canvas. PROPS (grounded on white): open book reading cozy library — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"book\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Crocodile: expressive face on horizontal log body low to ground, four stub legs."
+  },
+  "answer": {
+    "cast": [
+      "tiger"
+    ],
+    "scene": "ONLY orange tiger on plain white #FFFFFF — acting out the meaning of \"answer\" clearly on white canvas. PROPS (grounded on white): student answering question in classroom — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"answer\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Tiger: expressive face, orange sphere body unchanged, two stub arms two stub legs."
+  },
+  "between": {
+    "cast": [
+      "monkey"
+    ],
+    "scene": "ONLY purple monkey on plain white #FFFFFF — acting out the meaning of \"between\" clearly on white canvas. PROPS (grounded on white): person standing between two trees — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"between\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Monkey: expressive face matching word meaning, sitting side profile, exactly two arms two legs."
+  },
+  "children": {
+    "cast": [
+      "monkey",
+      "elephant",
+      "crocodile",
+      "tiger"
+    ],
+    "scene": "All four mascots on plain white #FFFFFF — acting out the meaning of \"children\" clearly on white canvas. PROPS (grounded on white): pottery wheel hands shaping clay studio — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"children\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "All four: expressive faces matching word meaning. Tiger: sphere only. Crocodile: log low. Elephant: stick arms visible. Monkey: two arms two legs only."
+  },
+  "may": {
+    "cast": [
+      "elephant"
+    ],
+    "scene": "ONLY pink elephant on plain white #FFFFFF — acting out the meaning of \"may\" clearly on white canvas. PROPS (grounded on white): calendar page may month — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"may\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Elephant: expressive face, giant circle head + stick body unchanged, BOTH thin stick arms visible."
+  },
+  "war": {
+    "cast": [
+      "crocodile"
+    ],
+    "scene": "ONLY lime-green crocodile on plain white #FFFFFF — acting out the meaning of \"war\" clearly on white canvas. PROPS (grounded on white): anti war peace dove symbol white bird — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"war\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Crocodile: expressive face on horizontal log body low to ground, four stub legs."
+  },
+  "hurry": {
+    "cast": [
+      "tiger"
+    ],
+    "scene": "ONLY orange tiger on plain white #FFFFFF — acting out the meaning of \"hurry\" clearly on white canvas. PROPS (grounded on white): hands preparing fresh food kitchen counter — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"hurry\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Tiger: expressive face, orange sphere body unchanged, two stub arms two stub legs."
+  },
+  "fact": {
+    "cast": [
+      "monkey"
+    ],
+    "scene": "ONLY purple monkey on plain white #FFFFFF — acting out the meaning of \"fact\" clearly on white canvas. PROPS (grounded on white): checked facts list on clipboard — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"fact\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Monkey: expressive face matching word meaning, sitting side profile, exactly two arms two legs."
+  },
+  "brought": {
+    "cast": [
+      "elephant"
+    ],
+    "scene": "ONLY pink elephant on plain white #FFFFFF — acting out the meaning of \"brought\" clearly on white canvas. PROPS (grounded on white): weather clouds sky landscape horizon view — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"brought\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Elephant: expressive face, giant circle head + stick body unchanged, BOTH thin stick arms visible."
+  },
+  "clear": {
+    "cast": [
+      "crocodile"
+    ],
+    "scene": "ONLY lime-green crocodile on plain white #FFFFFF — acting out the meaning of \"clear\" clearly on white canvas. PROPS (grounded on white): clear blue sky after rain — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"clear\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Crocodile: expressive face on horizontal log body low to ground, four stub legs."
+  },
+  "bet": {
+    "cast": [
+      "tiger"
+    ],
+    "scene": "ONLY orange tiger on plain white #FFFFFF — acting out the meaning of \"bet\" clearly on white canvas. PROPS (grounded on white): city street crosswalk people walking commute — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"bet\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Tiger: expressive face, orange sphere body unchanged, two stub arms two stub legs."
+  },
+  "glad": {
+    "cast": [
+      "monkey"
+    ],
+    "scene": "ONLY purple monkey on plain white #FFFFFF — acting out the meaning of \"glad\" clearly on white canvas. PROPS (grounded on white): coffee cup morning window light workspace — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"glad\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Monkey: expressive face matching word meaning, sitting side profile, exactly two arms two legs."
+  },
+  "daughter": {
+    "cast": [
+      "monkey",
+      "crocodile"
+    ],
+    "scene": "ONLY purple monkey and lime-green crocodile on plain white #FFFFFF — acting out the meaning of \"daughter\" clearly on white canvas. PROPS (grounded on white): daughter person working activity photo — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"daughter\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Monkey: expressive face matching word meaning, sitting side profile, exactly two arms two legs. Crocodile: expressive face on horizontal log body low to ground, four stub legs."
+  },
+  "june": {
+    "cast": [
+      "elephant"
+    ],
+    "scene": "ONLY pink elephant on plain white #FFFFFF — acting out the meaning of \"june\" clearly on white canvas. PROPS (grounded on white): calendar page june month — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"june\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Elephant: expressive face, giant circle head + stick body unchanged, BOTH thin stick arms visible."
+  },
+  "outside": {
+    "cast": [
+      "crocodile"
+    ],
+    "scene": "ONLY lime-green crocodile on plain white #FFFFFF — acting out the meaning of \"outside\" clearly on white canvas. PROPS (grounded on white): weather clouds sky landscape horizon view — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"outside\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Crocodile: expressive face on horizontal log body low to ground, four stub legs."
+  },
+  "city": {
+    "cast": [
+      "tiger"
+    ],
+    "scene": "ONLY orange tiger on plain white #FFFFFF — acting out the meaning of \"city\" clearly on white canvas. PROPS (grounded on white): city skyline aerial view buildings — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"city\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Tiger: expressive face, orange sphere body unchanged, two stub arms two stub legs."
+  },
+  "full": {
+    "cast": [
+      "monkey"
+    ],
+    "scene": "ONLY purple monkey on plain white #FFFFFF — acting out the meaning of \"full\" clearly on white canvas. PROPS (grounded on white): glass filled to brim with water — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"full\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Monkey: expressive face matching word meaning, sitting side profile, exactly two arms two legs."
+  },
+  "till": {
+    "cast": [
+      "elephant"
+    ],
+    "scene": "ONLY pink elephant on plain white #FFFFFF — acting out the meaning of \"till\" clearly on white canvas. PROPS (grounded on white): weather clouds sky landscape horizon view — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"till\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Elephant: expressive face, giant circle head + stick body unchanged, BOTH thin stick arms visible."
+  },
+  "sick": {
+    "cast": [
+      "crocodile"
+    ],
+    "scene": "ONLY lime-green crocodile on plain white #FFFFFF — acting out the meaning of \"sick\" clearly on white canvas. PROPS (grounded on white): office whiteboard team planning meeting notes — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"sick\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Crocodile: expressive face on horizontal log body low to ground, four stub legs."
+  },
+  "light": {
+    "cast": [
+      "tiger"
+    ],
+    "scene": "ONLY orange tiger on plain white #FFFFFF — acting out the meaning of \"light\" clearly on white canvas. PROPS (grounded on white): sunlight window — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"light\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Tiger: expressive face, orange sphere body unchanged, two stub arms two stub legs."
+  },
+  "july": {
+    "cast": [
+      "monkey"
+    ],
+    "scene": "ONLY purple monkey on plain white #FFFFFF — acting out the meaning of \"july\" clearly on white canvas. PROPS (grounded on white): calendar page july month — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"july\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Monkey: expressive face matching word meaning, sitting side profile, exactly two arms two legs."
+  },
+  "shoot": {
+    "cast": [
+      "elephant"
+    ],
+    "scene": "ONLY pink elephant on plain white #FFFFFF — acting out the meaning of \"shoot\" clearly on white canvas. PROPS (grounded on white): child drawing crayons paper creative table — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"shoot\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Elephant: expressive face, giant circle head + stick body unchanged, BOTH thin stick arms visible."
+  },
+  "wonderful": {
+    "cast": [
+      "crocodile"
+    ],
+    "scene": "ONLY lime-green crocodile on plain white #FFFFFF — acting out the meaning of \"wonderful\" clearly on white canvas. PROPS (grounded on white): happy satisfied person smiling achievement moment — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"wonderful\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Crocodile: expressive face on horizontal log body low to ground, four stub legs."
+  },
+  "save": {
+    "cast": [
+      "tiger"
+    ],
+    "scene": "ONLY orange tiger on plain white #FFFFFF — acting out the meaning of \"save\" clearly on white canvas. PROPS (grounded on white): piggy bank saving money coins finance — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"save\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Tiger: expressive face, orange sphere body unchanged, two stub arms two stub legs."
+  },
+  "hour": {
+    "cast": [
+      "monkey"
+    ],
+    "scene": "ONLY purple monkey on plain white #FFFFFF — acting out the meaning of \"hour\" clearly on white canvas. PROPS (grounded on white): clock hour time waiting office wall — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"hour\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Monkey: expressive face matching word meaning, sitting side profile, exactly two arms two legs."
+  },
+  "country": {
+    "cast": [
+      "elephant"
+    ],
+    "scene": "ONLY pink elephant on plain white #FFFFFF — acting out the meaning of \"country\" clearly on white canvas. PROPS (grounded on white): countryside green hills landscape flag — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"country\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Elephant: expressive face, giant circle head + stick body unchanged, BOTH thin stick arms visible."
+  },
+  "august": {
+    "cast": [
+      "crocodile"
+    ],
+    "scene": "ONLY lime-green crocodile on plain white #FFFFFF — acting out the meaning of \"august\" clearly on white canvas. PROPS (grounded on white): calendar page august month — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"august\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Crocodile: expressive face on horizontal log body low to ground, four stub legs."
+  },
+  "able": {
+    "cast": [
+      "tiger"
+    ],
+    "scene": "ONLY orange tiger on plain white #FFFFFF — acting out the meaning of \"able\" clearly on white canvas. PROPS (grounded on white): sewing fabric tailor hands stitching cloth — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"able\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Tiger: expressive face, orange sphere body unchanged, two stub arms two stub legs."
+  },
+  "perfect": {
+    "cast": [
+      "monkey"
+    ],
+    "scene": "ONLY purple monkey on plain white #FFFFFF — acting out the meaning of \"perfect\" clearly on white canvas. PROPS (grounded on white): weather clouds sky landscape horizon view — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"perfect\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Monkey: expressive face matching word meaning, sitting side profile, exactly two arms two legs."
+  },
+  "order": {
+    "cast": [
+      "elephant"
+    ],
+    "scene": "ONLY pink elephant on plain white #FFFFFF — acting out the meaning of \"order\" clearly on white canvas. PROPS (grounded on white): order person working activity photo — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"order\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Elephant: expressive face, giant circle head + stick body unchanged, BOTH thin stick arms visible."
+  },
+  "september": {
+    "cast": [
+      "crocodile"
+    ],
+    "scene": "ONLY lime-green crocodile on plain white #FFFFFF — acting out the meaning of \"september\" clearly on white canvas. PROPS (grounded on white): calendar page september month — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"september\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Crocodile: expressive face on horizontal log body low to ground, four stub legs."
+  },
+  "alive": {
+    "cast": [
+      "tiger"
+    ],
+    "scene": "ONLY orange tiger on plain white #FFFFFF — acting out the meaning of \"alive\" clearly on white canvas. PROPS (grounded on white): hands typing laptop modern office desk — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"alive\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Tiger: expressive face, orange sphere body unchanged, two stub arms two stub legs."
+  },
+  "food": {
+    "cast": [
+      "monkey"
+    ],
+    "scene": "ONLY purple monkey on plain white #FFFFFF — acting out the meaning of \"food\" clearly on white canvas. PROPS (grounded on white): healthy food plate — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"food\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Monkey: expressive face matching word meaning, sitting side profile, exactly two arms two legs."
+  },
+  "gentlemen": {
+    "cast": [
+      "monkey",
+      "elephant",
+      "crocodile",
+      "tiger"
+    ],
+    "scene": "All four mascots on plain white #FFFFFF — acting out the meaning of \"gentlemen\" clearly on white canvas. PROPS (grounded on white): city street crosswalk people walking commute — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"gentlemen\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "All four: expressive faces matching word meaning. Tiger: sphere only. Crocodile: log low. Elephant: stick arms visible. Monkey: two arms two legs only."
+  },
+  "luck": {
+    "cast": [
+      "elephant"
+    ],
+    "scene": "ONLY pink elephant on plain white #FFFFFF — acting out the meaning of \"luck\" clearly on white canvas. PROPS (grounded on white): person reading open book cozy desk lamp — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"luck\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Elephant: expressive face, giant circle head + stick body unchanged, BOTH thin stick arms visible."
+  },
+  "hair": {
+    "cast": [
+      "crocodile"
+    ],
+    "scene": "ONLY lime-green crocodile on plain white #FFFFFF — acting out the meaning of \"hair\" clearly on white canvas. PROPS (grounded on white): hair salon styling mirror haircut — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"hair\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Crocodile: expressive face on horizontal log body low to ground, four stub legs."
+  },
+  "drive": {
+    "cast": [
+      "tiger"
+    ],
+    "scene": "ONLY orange tiger on plain white #FFFFFF — acting out the meaning of \"drive\" clearly on white canvas. PROPS (grounded on white): pet dog playing grass backyard sunshine — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"drive\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Tiger: expressive face, orange sphere body unchanged, two stub arms two stub legs."
+  },
+  "promise": {
+    "cast": [
+      "elephant",
+      "crocodile"
+    ],
+    "scene": "ONLY pink elephant and lime-green crocodile on plain white #FFFFFF — acting out the meaning of \"promise\" clearly on white canvas. PROPS (grounded on white): construction blueprint hard hat building site — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"promise\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Elephant: expressive face, giant circle head + stick body unchanged, BOTH thin stick arms visible. Crocodile: expressive face on horizontal log body low to ground, four stub legs."
+  },
+  "sex": {
+    "cast": [
+      "monkey"
+    ],
+    "scene": "ONLY purple monkey on plain white #FFFFFF — acting out the meaning of \"sex\" clearly on white canvas. PROPS (grounded on white): gender symbols equality diversity people together — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"sex\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Monkey: expressive face matching word meaning, sitting side profile, exactly two arms two legs."
+  },
+  "music": {
+    "cast": [
+      "elephant"
+    ],
+    "scene": "ONLY pink elephant on plain white #FFFFFF — acting out the meaning of \"music\" clearly on white canvas. PROPS (grounded on white): person listening headphones enjoying music — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"music\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Elephant: expressive face, giant circle head + stick body unchanged, BOTH thin stick arms visible."
+  },
+  "october": {
+    "cast": [
+      "crocodile"
+    ],
+    "scene": "ONLY lime-green crocodile on plain white #FFFFFF — acting out the meaning of \"october\" clearly on white canvas. PROPS (grounded on white): calendar page october month — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"october\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Crocodile: expressive face on horizontal log body low to ground, four stub legs."
+  },
+  "ya": {
+    "cast": [
+      "tiger"
+    ],
+    "scene": "ONLY orange tiger on plain white #FFFFFF — acting out the meaning of \"ya\" clearly on white canvas. PROPS (grounded on white): coffee cup morning window light workspace — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"ya\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Tiger: expressive face, orange sphere body unchanged, two stub arms two stub legs."
+  },
+  "power": {
+    "cast": [
+      "monkey"
+    ],
+    "scene": "ONLY purple monkey on plain white #FFFFFF — acting out the meaning of \"power\" clearly on white canvas. PROPS (grounded on white): electric power lines sunset energy grid — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"power\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Monkey: expressive face matching word meaning, sitting side profile, exactly two arms two legs."
+  },
+  "sort": {
+    "cast": [
+      "elephant"
+    ],
+    "scene": "ONLY pink elephant on plain white #FFFFFF — acting out the meaning of \"sort\" clearly on white canvas. PROPS (grounded on white): sorting laundry colors baskets organization home — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"sort\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Elephant: expressive face, giant circle head + stick body unchanged, BOTH thin stick arms visible."
+  },
+  "special": {
+    "cast": [
+      "crocodile"
+    ],
+    "scene": "ONLY lime-green crocodile on plain white #FFFFFF — acting out the meaning of \"special\" clearly on white canvas. PROPS (grounded on white): scientific microscope laboratory research bench — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"special\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Crocodile: expressive face on horizontal log body low to ground, four stub legs."
+  },
+  "serious": {
+    "cast": [
+      "tiger"
+    ],
+    "scene": "ONLY orange tiger on plain white #FFFFFF — acting out the meaning of \"serious\" clearly on white canvas. PROPS (grounded on white): green plants garden sunlight watering can — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"serious\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Tiger: expressive face, orange sphere body unchanged, two stub arms two stub legs."
+  },
+  "street": {
+    "cast": [
+      "monkey"
+    ],
+    "scene": "ONLY purple monkey on plain white #FFFFFF — acting out the meaning of \"street\" clearly on white canvas. PROPS (grounded on white): busy city street crosswalk people — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"street\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Monkey: expressive face matching word meaning, sitting side profile, exactly two arms two legs."
+  },
+  "dance": {
+    "cast": [
+      "crocodile",
+      "tiger"
+    ],
+    "scene": "ONLY lime-green crocodile and orange tiger on plain white #FFFFFF — acting out the meaning of \"dance\" clearly on white canvas. PROPS (grounded on white): couple dance ballroom elegant motion — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"dance\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Crocodile: expressive face on horizontal log body low to ground, four stub legs. Tiger: expressive face, orange sphere body unchanged, two stub arms two stub legs."
+  },
+  "hang": {
+    "cast": [
+      "elephant"
+    ],
+    "scene": "ONLY pink elephant on plain white #FFFFFF — acting out the meaning of \"hang\" clearly on white canvas. PROPS (grounded on white): sewing fabric tailor hands stitching cloth — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"hang\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Elephant: expressive face, giant circle head + stick body unchanged, BOTH thin stick arms visible."
+  },
+  "november": {
+    "cast": [
+      "crocodile"
+    ],
+    "scene": "ONLY lime-green crocodile on plain white #FFFFFF — acting out the meaning of \"november\" clearly on white canvas. PROPS (grounded on white): calendar page november month — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"november\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Crocodile: expressive face on horizontal log body low to ground, four stub legs."
+  },
+  "touch": {
+    "cast": [
+      "tiger"
+    ],
+    "scene": "ONLY orange tiger on plain white #FFFFFF — acting out the meaning of \"touch\" clearly on white canvas. PROPS (grounded on white): hand touching soft fabric — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"touch\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Tiger: expressive face, orange sphere body unchanged, two stub arms two stub legs."
+  },
+  "team": {
+    "cast": [
+      "monkey",
+      "elephant",
+      "crocodile",
+      "tiger"
+    ],
+    "scene": "All four mascots on plain white #FFFFFF — acting out the meaning of \"team\" clearly on white canvas. PROPS (grounded on white): team huddle sports cooperation motivation circle — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"team\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "All four: expressive faces matching word meaning. Tiger: sphere only. Crocodile: log low. Elephant: stick arms visible. Monkey: two arms two legs only."
+  },
+  "company": {
+    "cast": [
+      "monkey",
+      "elephant",
+      "crocodile",
+      "tiger"
+    ],
+    "scene": "All four mascots on plain white #FFFFFF — acting out the meaning of \"company\" clearly on white canvas. PROPS (grounded on white): team meeting office collaboration laptop — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"company\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "All four: expressive faces matching word meaning. Tiger: sphere only. Crocodile: log low. Elephant: stick arms visible. Monkey: two arms two legs only."
+  },
+  "pull": {
+    "cast": [
+      "monkey"
+    ],
+    "scene": "ONLY purple monkey on plain white #FFFFFF — acting out the meaning of \"pull\" clearly on white canvas. PROPS (grounded on white): person pulling suitcase airport travel walk — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"pull\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Monkey: expressive face matching word meaning, sitting side profile, exactly two arms two legs."
+  },
+  "plan": {
+    "cast": [
+      "elephant"
+    ],
+    "scene": "ONLY pink elephant on plain white #FFFFFF — acting out the meaning of \"plan\" clearly on white canvas. PROPS (grounded on white): architect planning blueprint desk ruler pencil — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"plan\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Elephant: expressive face, giant circle head + stick body unchanged, BOTH thin stick arms visible."
+  },
+  "sweet": {
+    "cast": [
+      "crocodile"
+    ],
+    "scene": "ONLY lime-green crocodile on plain white #FFFFFF — acting out the meaning of \"sweet\" clearly on white canvas. PROPS (grounded on white): musical instruments practice room wooden floor — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"sweet\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Crocodile: expressive face on horizontal log body low to ground, four stub legs."
+  },
+  "coffee": {
+    "cast": [
+      "tiger"
+    ],
+    "scene": "ONLY orange tiger on plain white #FFFFFF — acting out the meaning of \"coffee\" clearly on white canvas. PROPS (grounded on white): hot coffee cup morning table — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"coffee\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Tiger: expressive face, orange sphere body unchanged, two stub arms two stub legs."
+  },
+  "lucky": {
+    "cast": [
+      "monkey"
+    ],
+    "scene": "ONLY purple monkey on plain white #FFFFFF — acting out the meaning of \"lucky\" clearly on white canvas. PROPS (grounded on white): musical instruments practice room wooden floor — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"lucky\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Monkey: expressive face matching word meaning, sitting side profile, exactly two arms two legs."
+  },
+  "sound": {
+    "cast": [
+      "elephant"
+    ],
+    "scene": "ONLY pink elephant on plain white #FFFFFF — acting out the meaning of \"sound\" clearly on white canvas. PROPS (grounded on white): sound waves music speaker audio studio — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"sound\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Elephant: expressive face, giant circle head + stick body unchanged, BOTH thin stick arms visible."
+  },
+  "safe": {
+    "cast": [
+      "crocodile"
+    ],
+    "scene": "ONLY lime-green crocodile on plain white #FFFFFF — acting out the meaning of \"safe\" clearly on white canvas. PROPS (grounded on white): safe lock vault security metal bank — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"safe\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Crocodile: expressive face on horizontal log body low to ground, four stub legs."
+  },
+  "date": {
+    "cast": [
+      "tiger"
+    ],
+    "scene": "ONLY orange tiger on plain white #FFFFFF — acting out the meaning of \"date\" clearly on white canvas. PROPS (grounded on white): calendar date circled red marker planner — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"date\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Tiger: expressive face, orange sphere body unchanged, two stub arms two stub legs."
+  },
+  "president": {
+    "cast": [
+      "monkey"
+    ],
+    "scene": "ONLY purple monkey on plain white #FFFFFF — acting out the meaning of \"president\" clearly on white canvas. PROPS (grounded on white): presidential podium flags speech — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"president\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Monkey: expressive face matching word meaning, sitting side profile, exactly two arms two legs."
+  },
+  "himself": {
+    "cast": [
+      "elephant"
+    ],
+    "scene": "ONLY pink elephant on plain white #FFFFFF — acting out the meaning of \"himself\" clearly on white canvas. PROPS (grounded on white): man looking at himself in mirror — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"himself\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Elephant: expressive face, giant circle head + stick body unchanged, BOTH thin stick arms visible."
+  },
+  "seem": {
+    "cast": [
+      "crocodile"
+    ],
+    "scene": "ONLY lime-green crocodile on plain white #FFFFFF — acting out the meaning of \"seem\" clearly on white canvas. PROPS (grounded on white): person action everyday activity candid photo — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"seem\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Crocodile: expressive face on horizontal log body low to ground, four stub legs."
+  },
+  "air": {
+    "cast": [
+      "tiger"
+    ],
+    "scene": "ONLY orange tiger on plain white #FFFFFF — acting out the meaning of \"air\" clearly on white canvas. PROPS (grounded on white): office whiteboard team planning meeting notes — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"air\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Tiger: expressive face, orange sphere body unchanged, two stub arms two stub legs."
+  },
+  "picture": {
+    "cast": [
+      "monkey"
+    ],
+    "scene": "ONLY purple monkey on plain white #FFFFFF — acting out the meaning of \"picture\" clearly on white canvas. PROPS (grounded on white): picture frame wall home decor interior — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"picture\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Monkey: expressive face matching word meaning, sitting side profile, exactly two arms two legs."
+  },
+  "fast": {
+    "cast": [
+      "elephant"
+    ],
+    "scene": "ONLY pink elephant on plain white #FFFFFF — acting out the meaning of \"fast\" clearly on white canvas. PROPS (grounded on white): fast car speed — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"fast\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Elephant: expressive face, giant circle head + stick body unchanged, BOTH thin stick arms visible."
+  },
+  "perhaps": {
+    "cast": [
+      "crocodile"
+    ],
+    "scene": "ONLY lime-green crocodile on plain white #FFFFFF — acting out the meaning of \"perhaps\" clearly on white canvas. PROPS (grounded on white): person thinking uncertain chin hand — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"perhaps\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Crocodile: expressive face on horizontal log body low to ground, four stub legs."
+  },
+  "catch": {
+    "cast": [
+      "tiger"
+    ],
+    "scene": "ONLY orange tiger on plain white #FFFFFF — acting out the meaning of \"catch\" clearly on white canvas. PROPS (grounded on white): pottery wheel hands shaping clay studio — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"catch\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Tiger: expressive face, orange sphere body unchanged, two stub arms two stub legs."
+  },
+  "ride": {
+    "cast": [
+      "monkey"
+    ],
+    "scene": "ONLY purple monkey on plain white #FFFFFF — acting out the meaning of \"ride\" clearly on white canvas. PROPS (grounded on white): hands preparing fresh food kitchen counter — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"ride\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Monkey: expressive face matching word meaning, sitting side profile, exactly two arms two legs."
+  },
+  "win": {
+    "cast": [
+      "elephant"
+    ],
+    "scene": "ONLY pink elephant on plain white #FFFFFF — acting out the meaning of \"win\" clearly on white canvas. PROPS (grounded on white): winner trophy celebration victory sport team happy — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"win\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Elephant: expressive face, giant circle head + stick body unchanged, BOTH thin stick arms visible."
+  },
+  "top": {
+    "cast": [
+      "crocodile"
+    ],
+    "scene": "ONLY lime-green crocodile on plain white #FFFFFF — acting out the meaning of \"top\" clearly on white canvas. PROPS (grounded on white): mountain top summit view achievement flag peak — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"top\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Crocodile: expressive face on horizontal log body low to ground, four stub legs."
+  },
+  "dream": {
+    "cast": [
+      "tiger"
+    ],
+    "scene": "ONLY orange tiger on plain white #FFFFFF — acting out the meaning of \"dream\" clearly on white canvas. PROPS (grounded on white): person dreaming sleep peaceful bedroom — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"dream\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Tiger: expressive face, orange sphere body unchanged, two stub arms two stub legs."
+  },
+  "sign": {
+    "cast": [
+      "monkey"
+    ],
+    "scene": "ONLY purple monkey on plain white #FFFFFF — acting out the meaning of \"sign\" clearly on white canvas. PROPS (grounded on white): road sign traffic direction street urban — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"sign\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Monkey: expressive face matching word meaning, sitting side profile, exactly two arms two legs."
+  },
+  "sense": {
+    "cast": [
+      "elephant"
+    ],
+    "scene": "ONLY pink elephant on plain white #FFFFFF — acting out the meaning of \"sense\" clearly on white canvas. PROPS (grounded on white): five senses icons taste smell touch chart — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"sense\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Elephant: expressive face, giant circle head + stick body unchanged, BOTH thin stick arms visible."
+  },
+  "beat": {
+    "cast": [
+      "crocodile"
+    ],
+    "scene": "ONLY lime-green crocodile on plain white #FFFFFF — acting out the meaning of \"beat\" clearly on white canvas. PROPS (grounded on white): stack of colorful books library study table — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"beat\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Crocodile: expressive face on horizontal log body low to ground, four stub legs."
+  },
+  "control": {
+    "cast": [
+      "tiger"
+    ],
+    "scene": "ONLY orange tiger on plain white #FFFFFF — acting out the meaning of \"control\" clearly on white canvas. PROPS (grounded on white): scientific microscope laboratory research bench — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"control\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Tiger: expressive face, orange sphere body unchanged, two stub arms two stub legs."
+  },
+  "drop": {
+    "cast": [
+      "monkey"
+    ],
+    "scene": "ONLY purple monkey on plain white #FFFFFF — acting out the meaning of \"drop\" clearly on white canvas. PROPS (grounded on white): child drawing crayons paper creative table — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"drop\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Monkey: expressive face matching word meaning, sitting side profile, exactly two arms two legs."
+  },
+  "cold": {
+    "cast": [
+      "elephant"
+    ],
+    "scene": "ONLY pink elephant on plain white #FFFFFF — acting out the meaning of \"cold\" clearly on white canvas. PROPS (grounded on white): cold winter snow — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"cold\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Elephant: expressive face, giant circle head + stick body unchanged, BOTH thin stick arms visible."
+  },
+  "darling": {
+    "cast": [
+      "crocodile"
+    ],
+    "scene": "ONLY lime-green crocodile on plain white #FFFFFF — acting out the meaning of \"darling\" clearly on white canvas. PROPS (grounded on white): person jogging park trail morning exercise — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"darling\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Crocodile: expressive face on horizontal log body low to ground, four stub legs."
+  },
+  "figure": {
+    "cast": [
+      "tiger"
+    ],
+    "scene": "ONLY orange tiger on plain white #FFFFFF — acting out the meaning of \"figure\" clearly on white canvas. PROPS (grounded on white): human figure silhouette sunset beach — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"figure\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Tiger: expressive face, orange sphere body unchanged, two stub arms two stub legs."
+  },
+  "king": {
+    "cast": [
+      "monkey"
+    ],
+    "scene": "ONLY purple monkey on plain white #FFFFFF — acting out the meaning of \"king\" clearly on white canvas. PROPS (grounded on white): chess king piece strategy board game — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"king\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Monkey: expressive face matching word meaning, sitting side profile, exactly two arms two legs."
+  },
+  "poor": {
+    "cast": [
+      "elephant"
+    ],
+    "scene": "ONLY pink elephant on plain white #FFFFFF — acting out the meaning of \"poor\" clearly on white canvas. PROPS (grounded on white): pet dog playing grass backyard sunshine — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"poor\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Elephant: expressive face, giant circle head + stick body unchanged, BOTH thin stick arms visible."
+  },
+  "throw": {
+    "cast": [
+      "crocodile"
+    ],
+    "scene": "ONLY lime-green crocodile on plain white #FFFFFF — acting out the meaning of \"throw\" clearly on white canvas. PROPS (grounded on white): person throwing frisbee park outdoor fun action — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"throw\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Crocodile: expressive face on horizontal log body low to ground, four stub legs."
+  },
+  "write": {
+    "cast": [
+      "tiger"
+    ],
+    "scene": "ONLY orange tiger on plain white #FFFFFF — acting out the meaning of \"write\" clearly on white canvas. PROPS (grounded on white): person writing in notebook at desk — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"write\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Tiger: expressive face, orange sphere body unchanged, two stub arms two stub legs."
+  },
+  "suppose": {
+    "cast": [
+      "monkey"
+    ],
+    "scene": "ONLY purple monkey on plain white #FFFFFF — acting out the meaning of \"suppose\" clearly on white canvas. PROPS (grounded on white): construction blueprint hard hat building site — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"suppose\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Monkey: expressive face matching word meaning, sitting side profile, exactly two arms two legs."
+  },
+  "small": {
+    "cast": [
+      "elephant"
+    ],
+    "scene": "ONLY pink elephant on plain white #FFFFFF — acting out the meaning of \"small\" clearly on white canvas. PROPS (grounded on white): small kitten — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"small\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Elephant: expressive face, giant circle head + stick body unchanged, BOTH thin stick arms visible."
+  },
+  "human": {
+    "cast": [
+      "monkey",
+      "elephant",
+      "crocodile",
+      "tiger"
+    ],
+    "scene": "All four mascots on plain white #FFFFFF — acting out the meaning of \"human\" clearly on white canvas. PROPS (grounded on white): diverse people faces together portrait — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"human\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "All four: expressive faces matching word meaning. Tiger: sphere only. Crocodile: log low. Elephant: stick arms visible. Monkey: two arms two legs only."
+  },
+  "piece": {
+    "cast": [
+      "crocodile"
+    ],
+    "scene": "ONLY lime-green crocodile on plain white #FFFFFF — acting out the meaning of \"piece\" clearly on white canvas. PROPS (grounded on white): jigsaw puzzle piece fitting together hands — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"piece\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Crocodile: expressive face on horizontal log body low to ground, four stub legs."
+  },
+  "boss": {
+    "cast": [
+      "tiger"
+    ],
+    "scene": "ONLY orange tiger on plain white #FFFFFF — acting out the meaning of \"boss\" clearly on white canvas. PROPS (grounded on white): hands typing laptop modern office desk — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"boss\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Tiger: expressive face, orange sphere body unchanged, two stub arms two stub legs."
   }
 } as const;
 

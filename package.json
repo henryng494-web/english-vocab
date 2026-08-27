@@ -19,6 +19,8 @@
     "build:jungle-casts-101-150": "npx tsx scripts/build-jungle-casts-rank-101-150.ts",
     "build:jungle-casts-151-160": "npx tsx scripts/build-jungle-casts-rank-151-160.ts",
     "build:jungle-casts-161-300": "npx tsx scripts/build-jungle-casts-rank-161-300.ts",
+    "build:jungle-casts-301-500": "npx tsx scripts/build-jungle-casts-rank-301-500.ts",
+    "jungle13:copy-all": "npx tsx scripts/jungle13-copy-all.ts",
     "detect:pollinations-cast-images": "npx tsx scripts/detect-pollinations-cast-images.ts",
     "jungle:gen-args": "npx tsx scripts/jungle-gen-args.ts",
     "scan:jungle-word-images": "npx tsx scripts/scan-jungle-word-images.ts",
