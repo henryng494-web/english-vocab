@@ -1094,15 +1094,15 @@ body {
   box-shadow: none;
 }
 
-/* Khỉ tím — đu dưới cành ngang, tay móc ngược lên nhánh gỗ */
+/* Khỉ tím — GenerateImage hang pose, fist hooks branch wood */
 .app-header__mascot-on-branch--monkey {
-  right: 32%;
-  top: clamp(24px, 6.2vw, 32px);
-  left: auto;
-  height: clamp(72px, 18.5vw, 90px);
+  left: 40%;
+  right: auto;
+  top: clamp(16px, 4.5vw, 24px);
+  height: clamp(78px, 20vw, 96px);
   width: auto;
-  transform: rotate(-3deg);
-  transform-origin: 74% 7%;
+  transform: translateX(-50%);
+  transform-origin: top center;
 }
 
 /* Voi — ngồi trên thân cành dày (mé phải) */

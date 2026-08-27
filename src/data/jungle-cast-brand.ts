@@ -66,8 +66,8 @@ export const HEADER_BRANCH_SCENES = {
 /** Locked branch template (transparent PNG) — top-right header corner. */
 export const HEADER_BRANCH_TEMPLATE = "/mascot/branches/tree-branch-right.png?v=1";
 
-/** Header monkey — hangs under horizontal branch (arm hooks up). Clean SVG/PNG. */
-export const HEADER_HANGING_MONKEY = "/mascot/jungle-jokers/hanging-under-branch-monkey.png?v=2";
+/** Header monkey — AI-generated Jungle Jokers hang pose (GenerateImage + monkey ref). */
+export const HEADER_HANGING_MONKEY = "/mascot/jungle-jokers/header-hanging-monkey-sm.png?v=1";
 
 /** @deprecated splash J pose — wrong orientation for branch header */
 export const SPLASH_HANGING_MONKEY = "/mascot/jungle-jokers/hanging-purple-monkey-splash.png?v=2";

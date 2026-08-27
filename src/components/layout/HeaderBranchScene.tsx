@@ -38,8 +38,8 @@ export function HeaderBranchScene({ character }: HeaderBranchSceneProps) {
       <Image
         src={mascotSrc(character)}
         alt=""
-        width={character === "monkey" ? 96 : size.width}
-        height={character === "monkey" ? 108 : size.height}
+        width={character === "monkey" ? 130 : size.width}
+        height={character === "monkey" ? 256 : size.height}
         className={`app-header__mascot-on-branch app-header__mascot-on-branch--${character}`}
         priority
         unoptimized
