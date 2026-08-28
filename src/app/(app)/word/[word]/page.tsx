@@ -12,6 +12,7 @@ import {
   loadPersistedWordCache,
   persistWordCache,
 } from "@/lib/discover-word-cache";
+import { mapApiWordToDiscoverData } from "@/lib/discover-fetch";
 import { refreshSingleWordImage } from "@/lib/refresh-stale-word-images";
 import { shouldRefreshImageUrl } from "@/lib/unsplash";
 import { capitalizeFirst } from "@/lib/format-text";
@@ -94,24 +95,14 @@ function WordDetailPageContent() {
           throw new Error(payload.details ?? payload.error ?? "Failed to load word");
         }
         const apiWord = payload.word as Record<string, unknown>;
-        const loaded: DiscoverWordData = {
-          word,
-          rank: Number(apiWord.rank ?? rank),
-          importance_tier: String(
-            apiWord.importance_tier ?? getImportanceTier(rank),
-          ),
-          phonetic: apiWord.phonetic as string | null | undefined,
-          word_type: apiWord.word_type as string | null | undefined,
-          vietnamese_meaning: apiWord.vietnamese_meaning as string | null | undefined,
-          english_definition: apiWord.english_definition as string | null | undefined,
-          examples: apiWord.examples as string | null | undefined,
-          image_url: (apiWord.image_url as string | null | undefined) ?? null,
-          collocations: apiWord.collocations as string | null | undefined,
-          search_keyword: (apiWord.search_keyword as string | null | undefined) ?? word,
-          word_family: Array.isArray(apiWord.word_family)
-            ? (apiWord.word_family as DiscoverWordData["word_family"])
-            : null,
-        };
+        const loaded = mapApiWordToDiscoverData(
+          {
+            word,
+            rank,
+            importance_tier: getImportanceTier(rank),
+          },
+          apiWord,
+        );
         if (!loaded.vietnamese_meaning?.trim()) {
           throw new Error(`Incomplete data for "${word}"`);
         }

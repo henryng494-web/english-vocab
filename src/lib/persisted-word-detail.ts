@@ -40,6 +40,9 @@ export function isPersistedWordDetailComplete(
   if (detail.word.toLowerCase() !== word.toLowerCase()) return false;
   if (!detail.vietnamese_meaning?.trim()) return false;
   if (containsForeignScript(detail.vietnamese_meaning)) return false;
-  if (!hasQualityExamples(word, parseExamples(detail.examples), detail.word_type)) return false;
+  if (!hasQualityExamples(word, parseExamples(detail.examples), detail.word_type)) {
+    return false;
+  }
+  if (isStalePersistedWordDetail(detail)) return false;
   return true;
 }
