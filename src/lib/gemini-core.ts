@@ -1,5 +1,12 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { capitalizeFirst } from "@/lib/format-text";
+import {
+  buildDefinitionPrompt,
+  buildEnrichPrompt,
+  buildExampleTranslationPrompt,
+  buildExamplesPrompt,
+  buildMeaningPrompt,
+} from "@/lib/gemini-prompts";
 import { sanitizeVietnameseText } from "@/lib/sanitize-vi";
 import { getPresetRank } from "@/data/preset-word-details";
 import { buildDefinitionFromVietnameseMeaning } from "@/lib/translate-vi";
@@ -40,6 +47,7 @@ type GeminiJsonShape = {
   phonetic?: string;
   ipa?: string;
   pos?: string;
+  register?: string;
   meaning?: string;
   vietnamese?: string;
   definition?: string;
@@ -59,44 +67,15 @@ function clampFrequencyRank(rank: number): number {
   return Math.round(rank);
 }
 
-function buildPrompt(word: string): string {
-  return `You are an English teacher writing a Vietnamese learner flashcard.
+function primaryModelName(): string {
+  return FALLBACK_MODELS[0];
+}
 
-Word: "${word}"
-
-Gold standard for "hole":
-- meaning: "Lỗ, hố"
-- examples:
-  1. en: "There is a hole in my pocket." (7 words)
-     vi: "Có một cái lỗ trong túi quần của tôi."
-  2. en: "Dig a hole in the garden." (6 words)
-     vi: "Đào một cái hố trong vườn."
-
-Rules:
-- Use ONLY the most common everyday PRIMARY sense.
-- Numbers (one, twenty...) = counting number, NEVER money/slang.
-- meaning: short common Vietnamese (like "Lỗ, hố"), not a long definition.
-- Vietnamese must use Latin quốc ngữ only — never Chinese, Japanese, or Korean characters (wrong: "âm谋"; right: "âm mưu").
-- examples: EXACTLY 2 English sentences, 5–10 words each, real daily life, MUST contain "${word}".
-- Vietnamese translations must be natural (not word-by-word).
-- NEVER write meta lines like "I learned the word...", "Please use ... in a sentence", "This is a sentence with...".
-- pos: noun|verb|adjective|adverb|pronoun|preposition|conjunction|article|number|interjection|determiner
-- phonetic: American English IPA in slashes (e.g. spent → /spɛnt/, opens → /ˈoʊpənz/) — NEVER repeat the spelling like /spent/
-- searchKeyword: 2–4 English words for a CLEAR stock photo a beginner instantly links to the primary meaning. Use a visible object or person doing an action — NOT the vocabulary word alone when it is abstract, and NEVER a vague phrase like "everyday scene".
-  Examples: hole → "hole in ground", organic → "organic vegetables garden", run → "person running", happy → "smiling person", think → "person thinking".
-
-Respond with ONLY valid JSON:
-{
-  "word": "${word}",
-  "phonetic": "/ipa/",
-  "pos": "noun",
-  "meaning": "Nghĩa tiếng Việt thông dụng nhất",
-  "examples": [
-    { "en": "5-10 word English sentence.", "vi": "Bản dịch tự nhiên." },
-    { "en": "5-10 word English sentence.", "vi": "Bản dịch tự nhiên." }
-  ],
-  "searchKeyword": "concrete photo phrase"
-}`;
+async function generateGeminiText(prompt: string): Promise<string> {
+  const genAI = getGeminiClient();
+  const model = genAI.getGenerativeModel({ model: primaryModelName() });
+  const result = await model.generateContent(prompt);
+  return result.response.text().trim();
 }
 
 function parseExamples(
@@ -137,8 +116,6 @@ function parseGeminiResponse(text: string, word: string): WordEnrichment {
     meaningRaw;
 
   const examples = keepNaturalExamples(word, parseExamples(parsed.examples));
-  // Prefer real corpus-derived data over any rank Gemini might report — an
-  // LLM guess is far less reliable than a measured frequency rank.
   const frequencyRank = clampFrequencyRank(
     getPresetRank(word) || Number(parsed.rank) || 5000,
   );
@@ -172,7 +149,7 @@ async function enrichWithModel(
 ): Promise<WordEnrichment> {
   const genAI = getGeminiClient();
   const model = genAI.getGenerativeModel({ model: modelName });
-  const result = await model.generateContent(buildPrompt(word));
+  const result = await model.generateContent(buildEnrichPrompt(word));
   return parseGeminiResponse(result.response.text().trim(), word);
 }
 
@@ -180,24 +157,18 @@ async function enrichWithModel(
 export async function translateVietnameseWithGemini(
   word: string,
 ): Promise<string | null> {
-  const genAI = getGeminiClient();
-  const prompt = `English word: "${word}".
+  if (!process.env.GEMINI_API_KEY?.trim()) return null;
 
-Reply with ONLY the most common Vietnamese meaning (primary sense).
-For numbers like "twenty", reply "Hai mươi" — never slang or money.
-Use Latin Vietnamese only — never Chinese characters.
-No English, no JSON, no explanation.`;
-
-  const modelName = FALLBACK_MODELS[0];
   try {
-    const model = genAI.getGenerativeModel({ model: modelName });
-    const result = await model.generateContent(prompt);
     const text = sanitizeVietnameseText(
-      result.response.text().trim().replace(/^["']|["']$/g, ""),
+      (await generateGeminiText(buildMeaningPrompt(word))).replace(
+        /^["']|["']$/g,
+        "",
+      ),
     );
     return text || null;
   } catch (error) {
-    console.warn(`Gemini VI "${modelName}" failed for "${word}":`, error);
+    console.warn(`Gemini VI "${primaryModelName()}" failed for "${word}":`, error);
     return null;
   }
 }
@@ -207,30 +178,48 @@ export async function translateDefinitionWithGemini(
   word: string,
   englishDefinition?: string,
 ): Promise<string | null> {
-  const genAI = getGeminiClient();
-  const context = englishDefinition?.trim()
-    ? `English definition: "${englishDefinition.trim()}".`
-    : "";
-  const prompt = `English word: "${word}". ${context}
+  if (!process.env.GEMINI_API_KEY?.trim()) return null;
 
-Write ONE short, natural Vietnamese definition (1 sentence) using the PRIMARY everyday sense.
-For "twenty": "Số đếm hai mươi (20)."
-Use Latin Vietnamese only — never Chinese characters.
-Reply with ONLY the Vietnamese definition. No English, no JSON.`;
-
-  const modelName = FALLBACK_MODELS[0];
   try {
-    const model = genAI.getGenerativeModel({ model: modelName });
-    const result = await model.generateContent(prompt);
     const text = sanitizeVietnameseText(
-      result.response.text().trim().replace(/^["']|["']$/g, ""),
+      (
+        await generateGeminiText(
+          buildDefinitionPrompt(word, englishDefinition),
+        )
+      ).replace(/^["']|["']$/g, ""),
     );
     return text || null;
   } catch (error) {
     console.warn(
-      `Gemini VI definition "${modelName}" failed for "${word}":`,
+      `Gemini VI definition "${primaryModelName()}" failed for "${word}":`,
       error,
     );
+    return null;
+  }
+}
+
+/** Gemini — natural Vietnamese for one example sentence. */
+export async function translateExampleWithGemini(
+  englishSentence: string,
+  word: string,
+  pos?: string | null,
+  meaning?: string | null,
+): Promise<string | null> {
+  if (!process.env.GEMINI_API_KEY?.trim()) return null;
+  const en = englishSentence.trim();
+  if (!en) return null;
+
+  try {
+    const text = sanitizeVietnameseText(
+      (
+        await generateGeminiText(
+          buildExampleTranslationPrompt(en, word, pos, meaning),
+        )
+      ).replace(/^["']|["']$/g, ""),
+    );
+    return text || null;
+  } catch (error) {
+    console.warn(`Gemini example VI failed for "${word}":`, error);
     return null;
   }
 }
@@ -243,34 +232,10 @@ export async function generateExamplesWithGemini(
 ): Promise<VocabExample[] | null> {
   if (!process.env.GEMINI_API_KEY?.trim()) return null;
 
-  const genAI = getGeminiClient();
-  const posHint = pos?.trim() ? `Part of speech: ${pos}.` : "";
-  const meaningHint = meaning?.trim()
-    ? `Primary Vietnamese meaning: ${meaning.trim()}.`
-    : "";
-  const prompt = `Write a Vietnamese learner flashcard for "${word}".
-${posHint} ${meaningHint}
-
-Gold standard for hole:
-- There is a hole in my pocket. → Có một cái lỗ trong túi quần của tôi.
-- Dig a hole in the garden. → Đào một cái hố trong vườn.
-
-Return EXACTLY 2 English sentences:
-- 5 to 10 words each
-- real daily life
-- must contain "${word}"
-- primary everyday sense only
-- natural Vietnamese translation (not word-by-word)
-- NEVER "I learned the word...", "Please use ... in a sentence", "This is a sentence with..."
-
-ONLY JSON:
-{"examples":[{"en":"...","vi":"..."},{"en":"...","vi":"..."}]}`;
-
-  const modelName = FALLBACK_MODELS[0];
   try {
-    const model = genAI.getGenerativeModel({ model: modelName });
-    const result = await model.generateContent(prompt);
-    const text = result.response.text().trim();
+    const text = await generateGeminiText(
+      buildExamplesPrompt(word, pos, meaning),
+    );
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (!jsonMatch) return null;
     const parsed = JSON.parse(jsonMatch[0]) as GeminiJsonShape;
@@ -289,18 +254,14 @@ export async function generatePhoneticWithGemini(
 ): Promise<string | null> {
   if (!process.env.GEMINI_API_KEY?.trim()) return null;
 
-  const genAI = getGeminiClient();
   const prompt = `English word: "${word}".
 
 Reply with ONLY the American English IPA pronunciation in slashes.
 Example: spent → /spɛnt/, opens → /ˈoʊpənz/
 Do NOT repeat the spelling (wrong: /spent/). No other text.`;
 
-  const modelName = FALLBACK_MODELS[0];
   try {
-    const model = genAI.getGenerativeModel({ model: modelName });
-    const result = await model.generateContent(prompt);
-    const text = result.response.text().trim().replace(/^["']|["']$/g, "");
+    const text = (await generateGeminiText(prompt)).replace(/^["']|["']$/g, "");
     if (!text || isPlaceholderPhonetic(word, text)) return null;
     return formatIpa(text, word);
   } catch (error) {

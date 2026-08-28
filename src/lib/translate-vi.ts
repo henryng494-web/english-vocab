@@ -8,7 +8,7 @@ import {
 } from "@/lib/gemini-core";
 
 export type ResolveViOptions = {
-  /** Last resort — lightweight single-word Gemini call */
+  /** Prefer Gemini; MyMemory is last resort when Gemini is unavailable. */
   allowGemini?: boolean;
 };
 
@@ -114,17 +114,19 @@ export async function resolveVietnameseDefinition(
   if (trimmed && !isMissingDefinition(trimmed)) {
     if (!looksLikeEnglish(trimmed)) {
       result = capitalizeFirst(trimmed);
-    } else {
+    } else if (options?.allowGemini && process.env.GEMINI_API_KEY?.trim()) {
+      try {
+        const geminiDef = await translateDefinitionWithGemini(word, trimmed);
+        if (geminiDef?.trim()) result = capitalizeFirst(geminiDef.trim());
+      } catch (error) {
+        console.warn(`Gemini VI definition failed for "${word}":`, error);
+      }
+    }
+
+    if (isMissingDefinition(result)) {
       const fromMyMemory = await fetchMyMemoryTranslation(trimmed);
       if (fromMyMemory && !looksLikeEnglish(fromMyMemory)) {
         result = capitalizeFirst(fromMyMemory);
-      } else if (options?.allowGemini && process.env.GEMINI_API_KEY?.trim()) {
-        try {
-          const geminiDef = await translateDefinitionWithGemini(word, trimmed);
-          if (geminiDef?.trim()) result = capitalizeFirst(geminiDef.trim());
-        } catch (error) {
-          console.warn(`Gemini VI definition failed for "${word}":`, error);
-        }
       }
     }
   }
@@ -159,9 +161,6 @@ export async function resolveVietnameseMeaning(
   const staticVi = getStaticVietnamese(word);
   if (staticVi) return sanitizeVietnameseText(staticVi) || staticVi;
 
-  const fromMyMemory = await fetchMyMemoryTranslation(word);
-  if (fromMyMemory) return sanitizeVietnameseText(fromMyMemory) || fromMyMemory;
-
   if (options?.allowGemini && process.env.GEMINI_API_KEY?.trim()) {
     try {
       const geminiVi = await translateVietnameseWithGemini(word);
@@ -170,6 +169,9 @@ export async function resolveVietnameseMeaning(
       console.warn(`Gemini VI translation failed for "${word}":`, error);
     }
   }
+
+  const fromMyMemory = await fetchMyMemoryTranslation(word);
+  if (fromMyMemory) return sanitizeVietnameseText(fromMyMemory) || fromMyMemory;
 
   return "—";
 }

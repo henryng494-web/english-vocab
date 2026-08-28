@@ -5,6 +5,7 @@ import {
   keepNaturalExamples,
 } from "@/lib/example-quality";
 import type { VocabExample } from "@/lib/parse-examples";
+import { translateExampleWithGemini } from "@/lib/gemini-core";
 import { fetchMyMemoryTranslation } from "@/lib/translate-vi";
 import { normalizeWordType } from "@/lib/word-type";
 
@@ -191,10 +192,12 @@ export function buildNaturalExamples(
   );
 }
 
-/** Fill missing or English-leaked Vietnamese lines via EN→VI lookup. */
+/** Fill missing or English-leaked Vietnamese lines — Gemini first, MyMemory last. */
 export async function fillExampleTranslations(
   examples: VocabExample[],
   word?: string,
+  pos?: string | null,
+  meaning?: string | null,
 ): Promise<VocabExample[]> {
   const filled: VocabExample[] = [];
   for (const item of examples) {
@@ -206,7 +209,10 @@ export async function fillExampleTranslations(
       !vi ||
       (head && containsUntranslatedHeadword(vi, head))
     ) {
-      vi = (await fetchMyMemoryTranslation(en)) || vi;
+      vi =
+        (await translateExampleWithGemini(en, head || en, pos, meaning)) ||
+        (await fetchMyMemoryTranslation(en)) ||
+        vi;
     }
     if (!vi) continue;
     if (head && containsUntranslatedHeadword(vi, head)) continue;

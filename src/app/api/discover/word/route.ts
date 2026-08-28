@@ -161,7 +161,7 @@ async function repairExamplesIfNeeded(
   }
 
   const ensured = ensureExamples(word, parsed, wordType, meaning);
-  const translated = await fillExampleTranslations(ensured, word);
+  const translated = await fillExampleTranslations(ensured, word, wordType, meaning);
   const finalExamples = hasQualityExamples(word, translated, wordType)
     ? translated
     : ensured;
