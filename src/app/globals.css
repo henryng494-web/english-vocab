@@ -2055,7 +2055,7 @@ body {
 .app-menu {
   position: fixed;
   inset: 0;
-  z-index: 120;
+  z-index: 110;
 }
 
 .app-menu__backdrop {
@@ -2067,7 +2067,7 @@ body {
 
 .app-menu__panel {
   position: absolute;
-  top: 0;
+  top: calc(env(safe-area-inset-top, 0px) + 3.45rem);
   left: 0;
   bottom: 0;
   width: min(88vw, 20rem);
@@ -2077,21 +2077,15 @@ body {
   box-shadow: 0 12px 40px rgb(15 23 42 / 0.18);
 }
 
-.app-menu__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: calc(env(safe-area-inset-top, 0px) + 0.85rem) 1rem 0.85rem;
-  border-bottom: 1px solid var(--secondary-200);
-}
-
-.app-menu__title {
-  font-size: 1.125rem;
-  font-weight: 800;
-  color: var(--foreground);
+.app-header--menu-open {
+  z-index: 120;
 }
 
 .app-menu__close {
+  position: absolute;
+  top: 0.65rem;
+  right: 0.75rem;
+  z-index: 2;
   display: flex;
   height: 2.25rem;
   width: 2.25rem;
@@ -2105,6 +2099,7 @@ body {
 }
 
 .app-menu__body {
+  position: relative;
   min-height: 0;
   flex: 1;
   overflow: auto;
@@ -2168,8 +2163,8 @@ body {
 }
 
 .app-menu__chips {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.5rem;
   margin-top: 0.65rem;
 }
@@ -2182,10 +2177,11 @@ body {
   border: 1px solid var(--secondary-200);
   border-radius: 9999px;
   background: var(--background);
-  padding: 0.45rem 0.75rem;
+  padding: 0.45rem 0.5rem;
   font-size: 0.8125rem;
   font-weight: 700;
   color: var(--foreground);
+  text-align: center;
 }
 
 .app-menu__chip.is-active {

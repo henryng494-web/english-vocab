@@ -73,8 +73,8 @@ export function AppMenuDrawer({ open, onClose }: AppMenuDrawerProps) {
 
   if (!open || typeof document === "undefined") return null;
 
-  const primaryGoals = DAILY_GOAL_OPTIONS.slice(0, 4);
-  const extraGoals = DAILY_GOAL_OPTIONS.slice(4);
+  const goalRowOne = DAILY_GOAL_OPTIONS.slice(0, 3);
+  const goalRowTwo = DAILY_GOAL_OPTIONS.slice(3);
 
   return createPortal(
     <div className="app-menu" role="presentation">
@@ -85,14 +85,11 @@ export function AppMenuDrawer({ open, onClose }: AppMenuDrawerProps) {
         onClick={onClose}
       />
       <aside className="app-menu__panel" role="dialog" aria-modal="true" aria-label="Menu">
-        <div className="app-menu__header">
-          <h2 className="app-menu__title">Menu</h2>
+        <div className="app-menu__body">
           <button type="button" className="app-menu__close" onClick={onClose} aria-label="Close">
             ✕
           </button>
-        </div>
 
-        <div className="app-menu__body">
           <section className="app-menu__section">
             <h3 className="app-menu__section-title">Learning</h3>
             <ToggleRow
@@ -107,7 +104,7 @@ export function AppMenuDrawer({ open, onClose }: AppMenuDrawerProps) {
             <h3 className="app-menu__section-title">Daily study goal</h3>
             <p className="app-menu__hint">How long do you want to study each day?</p>
             <div className="app-menu__chips">
-              {primaryGoals.map((minutes) => (
+              {goalRowOne.map((minutes) => (
                 <button
                   key={minutes}
                   type="button"
@@ -121,7 +118,7 @@ export function AppMenuDrawer({ open, onClose }: AppMenuDrawerProps) {
               ))}
             </div>
             <div className="app-menu__chips app-menu__chips--secondary">
-              {extraGoals.map((minutes) => (
+              {goalRowTwo.map((minutes) => (
                 <button
                   key={minutes}
                   type="button"

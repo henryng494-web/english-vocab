@@ -5,6 +5,7 @@ import { StudyReminderScheduler } from "@/components/layout/StudyReminderSchedul
 import { StudyTimeTracker } from "@/components/layout/StudyTimeTracker";
 import { ViewportHeightSync } from "@/components/layout/ViewportHeightSync";
 import { WelcomeSplash } from "@/components/welcome/WelcomeSplash";
+import { AppMenuProvider } from "@/context/AppMenuContext";
 import { AppSettingsProvider } from "@/context/AppSettingsContext";
 import {
   AppBootstrapProvider,
@@ -35,9 +36,11 @@ function MobileShellInner({ children }: { children: React.ReactNode }) {
 export function MobileShell({ children }: { children: React.ReactNode }) {
   return (
     <AppSettingsProvider>
-      <AppBootstrapProvider>
-        <MobileShellInner>{children}</MobileShellInner>
-      </AppBootstrapProvider>
+      <AppMenuProvider>
+        <AppBootstrapProvider>
+          <MobileShellInner>{children}</MobileShellInner>
+        </AppBootstrapProvider>
+      </AppMenuProvider>
     </AppSettingsProvider>
   );
 }

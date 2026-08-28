@@ -1,28 +1,24 @@
 "use client";
 
-import { AppMenuDrawer } from "@/components/layout/AppMenuDrawer";
-import { useState } from "react";
+import { useAppMenu } from "@/context/AppMenuContext";
 
 type AppMenuButtonProps = {
   className?: string;
 };
 
 export function AppMenuButton({ className = "app-header__icon-btn" }: AppMenuButtonProps) {
-  const [open, setOpen] = useState(false);
+  const { openMenu, open } = useAppMenu();
 
   return (
-    <>
-      <button
-        type="button"
-        className={className}
-        aria-label="Menu"
-        aria-haspopup="dialog"
-        aria-expanded={open}
-        onClick={() => setOpen(true)}
-      >
-        ☰
-      </button>
-      <AppMenuDrawer open={open} onClose={() => setOpen(false)} />
-    </>
+    <button
+      type="button"
+      className={className}
+      aria-label="Menu"
+      aria-haspopup="dialog"
+      aria-expanded={open}
+      onClick={openMenu}
+    >
+      ☰
+    </button>
   );
 }
