@@ -1,6 +1,7 @@
 "use client";
 
 import { AppHeader } from "@/components/layout/AppHeader";
+import { AppMenuButton } from "@/components/layout/AppMenuButton";
 import { ReviewQuestion } from "@/components/review/ReviewQuestion";
 import { ReviewRecallQuestion } from "@/components/review/ReviewRecallQuestion";
 import { ReviewReveal } from "@/components/review/ReviewReveal";
@@ -648,6 +649,7 @@ export default function LearnPage() {
     <div className={`app-screen${inSession ? " app-screen--journey" : " app-screen--home"}`}>
       <AppHeader
         title={inSession ? `Review ${index + 1}/${queue.length}` : "Review"}
+        leading={<AppMenuButton />}
       />
 
       {loading ? (

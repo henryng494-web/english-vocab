@@ -1,17 +1,20 @@
 "use client";
 
 import { preloadWordPronunciation, speakEnglishText } from "@/lib/speak-word";
+import { useAutoSpeakSetting } from "@/context/AppSettingsContext";
 import { useEffect, useRef } from "react";
 
-/** Auto-pronounce when `text` changes (new word card). */
+/** Auto-pronounce when `text` changes (new word card). Respects menu setting. */
 export function useAutoSpeakWord(
   text: string | null | undefined,
   enabled = true,
 ): void {
+  const autoSpeakEnabled = useAutoSpeakSetting();
   const lastRef = useRef<string | null>(null);
+  const active = enabled && autoSpeakEnabled;
 
   useEffect(() => {
-    if (!enabled) return;
+    if (!active) return;
     const trimmed = text?.trim() ?? "";
     if (!trimmed) return;
 
@@ -26,5 +29,5 @@ export function useAutoSpeakWord(
     }, 420);
 
     return () => window.clearTimeout(timer);
-  }, [text, enabled]);
+  }, [text, active]);
 }

@@ -9,6 +9,7 @@ import {
   DiscoverDashboard,
 } from "@/components/discover/DiscoverDashboard";
 import { AppHeader } from "@/components/layout/AppHeader";
+import { AppMenuButton } from "@/components/layout/AppMenuButton";
 import { HeaderSelect } from "@/components/layout/HeaderSelect";
 import { JungleMascot } from "@/components/mascot/JungleMascot";
 import { useAppBootstrap } from "@/context/AppBootstrapContext";
@@ -34,8 +35,9 @@ import {
   preloadWordImagesFromCache,
   type WordImagePrefetchTarget,
 } from "@/lib/image-preload";
+import { getTodayStudySeconds } from "@/lib/study-time";
+import { useAppSettings } from "@/context/AppSettingsContext";
 import {
-  getDailyGoalTarget,
   getTodayWordsLearned,
   incrementTodayWordsLearned,
 } from "@/lib/daily-goal";
@@ -88,9 +90,22 @@ export default function DiscoverPage() {
   const [wordsKnown, setWordsKnown] = useState(0);
   const [wordsReviewing, setWordsReviewing] = useState(0);
   const [todayLearned, setTodayLearned] = useState(0);
+  const { dailyGoalMinutes } = useAppSettings();
+  const [todayStudySeconds, setTodayStudySeconds] = useState(0);
   const inflightSaves = useRef(new Set<string>());
 
-  const todayGoal = getDailyGoalTarget();
+  const todayGoalMinutes = dailyGoalMinutes;
+
+  useEffect(() => {
+    const refreshStudyTime = () => setTodayStudySeconds(getTodayStudySeconds());
+    refreshStudyTime();
+    window.addEventListener("study-time-changed", refreshStudyTime);
+    window.addEventListener("focus", refreshStudyTime);
+    return () => {
+      window.removeEventListener("study-time-changed", refreshStudyTime);
+      window.removeEventListener("focus", refreshStudyTime);
+    };
+  }, []);
   const rangeMeta = useMemo(
     () => WORD_RANGES.find((r) => r.id === rangeId),
     [rangeId],
@@ -448,9 +463,7 @@ export default function DiscoverPage() {
           hideTitle
           leading={
             <div className="app-header__actions">
-              <Link href="/account" className="app-header__icon-btn" aria-label="Menu">
-                ☰
-              </Link>
+              <AppMenuButton />
               <Link href="/search" className="app-header__icon-btn" aria-label="Search words">
                 🔍
               </Link>
@@ -470,9 +483,10 @@ export default function DiscoverPage() {
             currentIndex={currentIndex}
             wordsKnown={wordsKnown}
             wordsReviewing={wordsReviewing}
-            streakDays={todayLearned > 0 ? 1 : 0}
-            todayLearned={todayLearned}
-            todayGoal={todayGoal}
+            streakDays={todayStudySeconds >= todayGoalMinutes * 60 ? 1 : 0}
+            todayStudySeconds={todayStudySeconds}
+            todayGoalMinutes={todayGoalMinutes}
+            todayWordsLearned={todayLearned}
             onStartLearning={() => router.push("/journey")}
             onOpenKnown={() => router.push("/words?filter=known")}
             onOpenReview={() => router.push("/words?filter=review")}

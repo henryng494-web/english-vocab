@@ -10,8 +10,9 @@ type DiscoverDashboardProps = {
   wordsKnown: number;
   wordsReviewing: number;
   streakDays: number;
-  todayLearned: number;
-  todayGoal: number;
+  todayStudySeconds: number;
+  todayGoalMinutes: number;
+  todayWordsLearned: number;
   onStartLearning: () => void;
   onOpenKnown: () => void;
   onOpenReview: () => void;
@@ -44,8 +45,9 @@ export function DiscoverDashboard({
   wordsKnown,
   wordsReviewing,
   streakDays,
-  todayLearned,
-  todayGoal,
+  todayStudySeconds,
+  todayGoalMinutes,
+  todayWordsLearned,
   onStartLearning,
   onOpenKnown,
   onOpenReview,
@@ -54,6 +56,7 @@ export function DiscoverDashboard({
     queueLength > 0
       ? Math.round((currentIndex / queueLength) * 100)
       : 0;
+  const todayStudyMinutes = Math.floor(todayStudySeconds / 60);
 
   return (
     <div className="home-scroll page-scroll">
@@ -92,7 +95,9 @@ export function DiscoverDashboard({
         <section>
           <div className="home-section-header">
             <h3 className="home-section-label">Today&apos;s Goal</h3>
-            <span className="home-link-text text-accent-700 font-bold">{todayLearned} / {todayGoal}</span>
+            <span className="home-link-text text-accent-700 font-bold">
+              {todayStudyMinutes} / {todayGoalMinutes} min
+            </span>
           </div>
           <div className="home-card home-card--compact border-accent-200 bg-accent-50/40">
             <div className="flex items-center gap-3">
@@ -100,8 +105,17 @@ export function DiscoverDashboard({
                 🎯
               </span>
               <div className="min-w-0 flex-1">
-                <p className="home-card-title">Learn {todayGoal} new words</p>
-                <ProgressBar value={todayLearned} max={todayGoal} colorClass="bg-accent" />
+                <p className="home-card-title">
+                  Study {todayGoalMinutes} minutes today
+                </p>
+                <ProgressBar
+                  value={todayStudyMinutes}
+                  max={todayGoalMinutes}
+                  colorClass="bg-accent"
+                />
+                <p className="home-body-text mt-2 text-sm text-foreground/60">
+                  {todayWordsLearned} new word{todayWordsLearned === 1 ? "" : "s"} learned today
+                </p>
               </div>
             </div>
           </div>

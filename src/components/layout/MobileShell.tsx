@@ -1,8 +1,11 @@
 "use client";
 
 import { BottomTabBar } from "@/components/layout/BottomTabBar";
+import { StudyReminderScheduler } from "@/components/layout/StudyReminderScheduler";
+import { StudyTimeTracker } from "@/components/layout/StudyTimeTracker";
 import { ViewportHeightSync } from "@/components/layout/ViewportHeightSync";
 import { WelcomeSplash } from "@/components/welcome/WelcomeSplash";
+import { AppSettingsProvider } from "@/context/AppSettingsContext";
 import {
   AppBootstrapProvider,
   useAppBootstrap,
@@ -14,6 +17,8 @@ function MobileShellInner({ children }: { children: React.ReactNode }) {
   return (
     <>
       <ViewportHeightSync />
+      <StudyTimeTracker />
+      <StudyReminderScheduler />
       <div className="app-page">
         <div className="app-shell mx-auto w-full max-w-lg bg-background">
           <div className="shell-content">
@@ -29,8 +34,10 @@ function MobileShellInner({ children }: { children: React.ReactNode }) {
 
 export function MobileShell({ children }: { children: React.ReactNode }) {
   return (
-    <AppBootstrapProvider>
-      <MobileShellInner>{children}</MobileShellInner>
-    </AppBootstrapProvider>
+    <AppSettingsProvider>
+      <AppBootstrapProvider>
+        <MobileShellInner>{children}</MobileShellInner>
+      </AppBootstrapProvider>
+    </AppSettingsProvider>
   );
 }
