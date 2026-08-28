@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import { VocabExampleList } from "@/components/flashcard/VocabExampleList";
 import { capitalizeFirst } from "@/lib/format-text";
-import { formatVietnameseMeaning } from "@/lib/sanitize-vi";
 import { parseExamples } from "@/lib/parse-examples";
 import type { WordFamilyMember } from "@/types/database";
 
@@ -23,7 +22,6 @@ const POS_ABBREV: Record<string, string> = {
 
 type WordCardDetailsProps = {
   word: string;
-  meaning?: string | null;
   examples?: string | null;
   wordType?: string | null;
   family?: WordFamilyMember[] | null;
@@ -35,7 +33,6 @@ type WordCardDetailsProps = {
 
 export function WordCardDetails({
   word,
-  meaning,
   examples,
   wordType,
   family,
@@ -112,17 +109,6 @@ export function WordCardDetails({
       >
         <div className={`card-details__flip${showFamily ? " is-family" : ""}`}>
           <div className="card-details__face card-details__face--meaning">
-            {meaning ? (
-              <p
-                className={`vocab-meaning shrink-0 font-semibold ${
-                  compact
-                    ? "discover-card__meaning text-xl leading-normal"
-                    : "text-xl text-primary-700"
-                }`}
-              >
-                {formatVietnameseMeaning(meaning)}
-              </p>
-            ) : null}
             <div
               className={
                 compact ? "discover-card__examples min-h-0 flex-1 overflow-hidden" : undefined
@@ -132,7 +118,6 @@ export function WordCardDetails({
                 word={word}
                 examples={parsed}
                 wordType={wordType}
-                meaning={meaning}
                 compact={compact}
                 boxed={!compact}
               />

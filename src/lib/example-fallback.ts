@@ -8,6 +8,7 @@ import type { VocabExample } from "@/lib/parse-examples";
 import { translateExampleWithGemini } from "@/lib/gemini-core";
 import { fetchMyMemoryTranslation } from "@/lib/translate-vi";
 import { normalizeWordType } from "@/lib/word-type";
+import { primaryVietnameseMeaning } from "@/lib/word-meanings";
 
 const TARGET_COUNT = 2;
 
@@ -22,11 +23,9 @@ function displayWord(word: string): string {
   return word.trim() || "word";
 }
 
-/** Primary Vietnamese gloss only — never join multiple senses with semicolons. */
+/** Primary Vietnamese gloss only — first of up to two stored lines. */
 export function primaryMeaningLabel(meaning?: string | null): string {
-  const trimmed = meaning?.trim();
-  if (!trimmed || trimmed === "—") return "";
-  return trimmed.split(/[/|,;]/)[0]?.trim() ?? trimmed;
+  return primaryVietnameseMeaning(meaning);
 }
 
 function meaningLabel(meaning?: string | null): string {

@@ -15,7 +15,13 @@ export const POS_CLASSIFICATION_RULES = `STEP 1 — Classify the word BEFORE tra
 
 Pick the PRIMARY sense learners meet most often for that word's rank — but NEVER force a formal/legal word into casual "bằng cách này" if the real sense is trang trọng/văn bản.`;
 
-export const POS_MEANING_RULES = `STEP 2 — Translate by pos + register (short Vietnamese gloss, not a paragraph):
+export const MEANING_COUNT_RULES = `STEP 2 — Vietnamese meanings (MAX 2 lines):
+- If the word has ONE common sense → "meanings" array with 1 short gloss.
+- If TWO distinct common senses → "meanings" with exactly 2 glosses, most frequent FIRST.
+- Each gloss: short (2–6 words), correct pos + register — never merge unrelated senses with commas on one line.
+- NEVER return more than 2 meanings.`;
+
+export const POS_MEANING_RULES = `Translate each meaning by pos + register:
 
 noun → danh từ cụ thể/trừu tượng (e.g. "Lỗ, hố", "Hợp đồng")
 verb → động từ, nêu hành động chính (e.g. "Chấp nhận", "Đào, xới")
@@ -38,8 +44,10 @@ register tweaks:
 
 export const EXAMPLE_RULES = (word: string) => `STEP 3 — Examples (EXACTLY 2):
 - English: 5–10 words, MUST contain "${word}"
-- Match the register of the primary sense (formal word → formal sentence, not casual chat)
-- Vietnamese: natural, not word-by-word; place function words (theo đây, do đó) where Vietnamese idiom expects them
+- If 2 meanings → example 1 illustrates meaning 1 ONLY, example 2 illustrates meaning 2 ONLY (set senseIndex 1 and 2)
+- If 1 meaning → both examples illustrate that same meaning (senseIndex 1 for both)
+- Match register (formal word → formal sentence, not casual chat)
+- Vietnamese: natural, not word-by-word
 - NEVER meta lines ("I learned the word...", "Please use ... in a sentence")`;
 
 export const SHARED_OUTPUT_RULES = `- Vietnamese: Latin quốc ngữ only — never Chinese/Japanese/Korean characters
@@ -52,14 +60,19 @@ export function buildEnrichPrompt(word: string): string {
 Word: "${word}"
 
 Gold standards:
-• hole (noun, everyday): meaning "Lỗ, hố"
-  - There is a hole in my pocket. → Có một cái lỗ trong túi quần của tôi.
-  - Dig a hole in the garden. → Đào một cái hố trong vườn.
-• hereby (adverb, legal): meaning "Theo đây (trang trọng)"
+• run (verb, everyday) — 2 senses:
+  meanings: ["Chạy", "Vận hành"]
+  examples: sense 1 "I run every morning." / sense 2 "She runs a small cafe."
+• hole (noun, everyday) — 1 sense:
+  meanings: ["Lỗ, hố"]
+  examples: both about a physical hole
+• hereby (adverb, legal) — 1 sense:
+  meanings: ["Theo đây (trang trọng)"]
   - I hereby accept your job offer. → Tôi theo đây chấp nhận lời mời làm việc của bạn.
-  - We hereby declare the meeting closed. → Chúng tôi theo đây tuyên bố cuộc họp bế mạc.
 
 ${POS_CLASSIFICATION_RULES}
+
+${MEANING_COUNT_RULES}
 
 ${POS_MEANING_RULES}
 
@@ -73,10 +86,10 @@ Respond with ONLY valid JSON:
   "pos": "noun",
   "register": "everyday",
   "phonetic": "/ipa/",
-  "meaning": "Nghĩa tiếng Việt ngắn gọn theo đúng loại từ",
+  "meanings": ["Nghĩa 1", "Nghĩa 2 hoặc bỏ nếu chỉ 1 nghĩa"],
   "examples": [
-    { "en": "English sentence.", "vi": "Bản dịch tự nhiên." },
-    { "en": "English sentence.", "vi": "Bản dịch tự nhiên." }
+    { "en": "English for meaning 1.", "vi": "Bản dịch.", "senseIndex": 1 },
+    { "en": "English for meaning 2.", "vi": "Bản dịch.", "senseIndex": 2 }
   ],
   "searchKeyword": "concrete photo phrase"
 }`;
@@ -87,9 +100,11 @@ export function buildMeaningPrompt(word: string): string {
 
 ${POS_CLASSIFICATION_RULES}
 
+${MEANING_COUNT_RULES}
+
 ${POS_MEANING_RULES}
 
-Reply with ONLY the short Vietnamese meaning (primary sense), matching pos and register.
+Reply with ONLY the short Vietnamese meanings for the primary sense(s), max 2 lines separated by newline.
 For numbers like "twenty", reply "Hai mươi".
 No English, no JSON, no explanation.`;
 }
@@ -126,10 +141,12 @@ ${posHint} ${meaningHint}
 
 ${POS_CLASSIFICATION_RULES}
 
+${MEANING_COUNT_RULES}
+
 ${EXAMPLE_RULES(word)}
 
 ONLY JSON:
-{"examples":[{"en":"...","vi":"..."},{"en":"...","vi":"..."}]}`;
+{"examples":[{"en":"...","vi":"...","senseIndex":1},{"en":"...","vi":"...","senseIndex":2}]}`;
 }
 
 export function buildExampleTranslationPrompt(

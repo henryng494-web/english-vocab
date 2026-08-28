@@ -1,7 +1,7 @@
 "use client";
 
-import { formatVietnameseMeaning } from "@/lib/sanitize-vi";
 import { parseExamples } from "@/lib/parse-examples";
+import { resolveWordRegister } from "@/lib/word-meanings";
 import { WordImage } from "@/components/word/WordImage";
 import type { VocabWord } from "@/types/database";
 import { WordCardHeader } from "./WordCardHeader";
@@ -36,6 +36,7 @@ function FlashcardBody({
   showDetails: boolean;
 }) {
   const examples = showDetails ? parseExamples(word.examples) : [];
+  const register = resolveWordRegister(word);
 
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-5 pb-5 pt-4">
@@ -43,21 +44,16 @@ function FlashcardBody({
         word={word.word}
         phonetic={word.phonetic}
         wordType={word.word_type}
+        meanings={word.vietnamese_meaning}
+        register={register}
       />
 
       {showDetails ? (
-        <div className="mt-4 space-y-3">
-          {word.vietnamese_meaning && (
-            <p className="text-xl font-semibold text-primary-700">
-              {formatVietnameseMeaning(word.vietnamese_meaning)}
-            </p>
-          )}
-
+        <div className="mt-4">
           <VocabExampleList
             word={word.word}
             examples={examples}
             wordType={word.word_type}
-            meaning={word.vietnamese_meaning}
             boxed
           />
         </div>

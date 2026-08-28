@@ -5,6 +5,8 @@ import { WordCardDetails } from "@/components/flashcard/WordCardDetails";
 import { WordImage } from "@/components/word/WordImage";
 import { displayPhonetic } from "@/lib/phonetic";
 import type { WordFamilyMember } from "@/types/database";
+import type { WordRegister } from "@/lib/word-meanings";
+import { resolveWordRegister } from "@/lib/word-meanings";
 
 export type DiscoverWordData = {
   word: string;
@@ -17,6 +19,7 @@ export type DiscoverWordData = {
   examples?: string | null;
   image_url?: string | null;
   collocations?: string | null;
+  register?: WordRegister | null;
   search_keyword?: string | null;
   word_family?: WordFamilyMember[] | null;
   family_members?: string[] | null;
@@ -81,6 +84,7 @@ export function DiscoverCard({
 }: DiscoverCardProps) {
   const detailsLoading = loading && !data.vietnamese_meaning?.trim();
   const phonetic = displayPhonetic(data.word, data.phonetic);
+  const register = resolveWordRegister(data);
 
   return (
     <div
@@ -109,12 +113,14 @@ export function DiscoverCard({
           word={data.word}
           phonetic={phonetic}
           wordType={data.word_type}
+          meanings={data.vietnamese_meaning}
+          register={register}
           loadingPhonetic={detailsLoading && !phonetic}
+          compact={compact}
         />
 
         <WordCardDetails
           word={data.word}
-          meaning={data.vietnamese_meaning}
           examples={data.examples}
           wordType={data.word_type}
           family={data.word_family}

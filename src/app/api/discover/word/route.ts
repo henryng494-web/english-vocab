@@ -24,6 +24,7 @@ import {
 import { isClosedClassWord } from "@/lib/word-image-strategy";
 import { isExcludedVocabWord } from "@/lib/proper-noun";
 import { sanitizeVietnameseText } from "@/lib/sanitize-vi";
+import { resolveWordRegister } from "@/lib/word-meanings";
 import { normalizeVocabInput } from "@/lib/word-validation";
 import { getFamilyHeadword } from "@/lib/word-family";
 import type { WordDetail } from "@/types/database";
@@ -90,6 +91,7 @@ function persistedDetailToDiscoverWord(
     english_definition: detail.english_definition,
     examples: detail.examples,
     collocations: detail.collocations,
+    register: resolveWordRegister(detail),
     image_url: imageUrl,
     rank,
     importance_tier: getImportanceTier(rank),

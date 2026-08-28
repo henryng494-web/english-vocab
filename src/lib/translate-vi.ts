@@ -2,6 +2,7 @@ import { capitalizeFirst } from "@/lib/format-text";
 import { sanitizeVietnameseText } from "@/lib/sanitize-vi";
 import { normalizeWordType } from "@/lib/word-type";
 import { getStaticVietnamese } from "@/lib/static-vietnamese";
+import { primaryVietnameseMeaning } from "@/lib/word-meanings";
 import {
   translateDefinitionWithGemini,
   translateVietnameseWithGemini,
@@ -62,7 +63,7 @@ export function buildDefinitionFromVietnameseMeaning(
   vietnameseMeaning: string,
   wordType?: string | null,
 ): string {
-  const raw = vietnameseMeaning.trim();
+  const raw = primaryVietnameseMeaning(vietnameseMeaning) || vietnameseMeaning.trim();
   if (!raw || raw === "—") return "";
 
   const segments = raw

@@ -15,6 +15,7 @@ import {
   type ReviewIntervalDays,
 } from "@/lib/review-schedule";
 import type { VocabWord } from "@/types/database";
+import { resolveWordRegister } from "@/lib/word-meanings";
 
 type ReviewRevealProps = {
   word: VocabWord;
@@ -41,6 +42,8 @@ function toDiscoverData(word: VocabWord): DiscoverWordData {
     image_url: word.image_url,
     search_keyword: word.search_keyword,
     word_family: word.word_family,
+    collocations: word.collocations,
+    register: resolveWordRegister(word),
   };
 }
 

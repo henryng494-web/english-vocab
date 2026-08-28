@@ -15,6 +15,12 @@ import { getImportanceTier } from "@/lib/word-rank";
 import { formatIpa, isPlaceholderPhonetic } from "@/lib/phonetic";
 import { keepNaturalExamples } from "@/lib/example-fallback";
 import type { VocabExample } from "@/lib/parse-examples";
+import {
+  encodeRegisterCollocation,
+  normalizeWordRegister,
+  serializeVietnameseMeanings,
+  type WordRegister,
+} from "@/lib/word-meanings";
 
 /**
  * "-latest" lite alias has the most generous free-tier quota; heavier/preview
@@ -30,6 +36,8 @@ const FALLBACK_MODELS = [
 export type WordEnrichment = {
   englishDefinition: string;
   vietnameseMeaning: string;
+  vietnameseMeanings: string[];
+  register: WordRegister | null;
   examples: VocabExample[];
   phonetic: string;
   wordType: string;
@@ -49,12 +57,33 @@ type GeminiJsonShape = {
   pos?: string;
   register?: string;
   meaning?: string;
+  meanings?: string[];
   vietnamese?: string;
   definition?: string;
-  examples?: Array<string | { en?: string; vi?: string }>;
+  examples?: Array<
+    string | { en?: string; vi?: string; senseIndex?: number; sense?: number }
+  >;
   searchKeyword?: string;
   rank?: number;
 };
+
+function parseMeanings(parsed: GeminiJsonShape, fallbackWord: string): string[] {
+  const fromArray = Array.isArray(parsed.meanings)
+    ? parsed.meanings
+        .map((item) => sanitizeVietnameseText(String(item ?? "").trim()))
+        .filter(Boolean)
+        .slice(0, 2)
+    : [];
+
+  if (fromArray.length) return fromArray;
+
+  const legacy =
+    sanitizeVietnameseText(
+      parsed.meaning?.trim() || parsed.vietnamese?.trim() || "",
+    ) || fallbackWord;
+
+  return legacy ? [legacy] : [];
+}
 
 function getGeminiClient() {
   const apiKey = process.env.GEMINI_API_KEY;
@@ -104,11 +133,11 @@ function parseGeminiResponse(text: string, word: string): WordEnrichment {
   }
 
   const parsed = JSON.parse(jsonMatch[0]) as GeminiJsonShape;
-  const meaningRaw =
-    sanitizeVietnameseText(
-      parsed.meaning?.trim() || parsed.vietnamese?.trim() || "",
-    ) || word;
+  const meanings = parseMeanings(parsed, word);
+  const normalizedMeanings = meanings.map((item) => capitalizeFirst(item));
+  const meaningRaw = normalizedMeanings[0] ?? word;
   const wordType = normalizeWordType(parsed.pos?.trim(), word) ?? "unknown";
+  const register = normalizeWordRegister(parsed.register);
 
   const definition =
     parsed.definition?.trim() ||
@@ -127,11 +156,13 @@ function parseGeminiResponse(text: string, word: string): WordEnrichment {
 
   return {
     englishDefinition: capitalizeFirst(definition),
-    vietnameseMeaning: capitalizeFirst(meaningRaw),
+    vietnameseMeaning: serializeVietnameseMeanings(normalizedMeanings),
+    vietnameseMeanings: normalizedMeanings,
+    register,
     examples,
     phonetic,
     wordType,
-    collocations: null,
+    collocations: encodeRegisterCollocation(register),
     searchKeyword,
     frequencyRank,
     importanceTier: getImportanceTier(

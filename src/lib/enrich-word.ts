@@ -6,7 +6,12 @@ import {
   hasQualityExamples,
   keepNaturalExamples,
 } from "@/lib/example-fallback";
-import { generateExamplesWithGemini, enrichWithGemini, generatePhoneticWithGemini, type WordEnrichment } from "@/lib/gemini-core";
+import {
+  generateExamplesWithGemini,
+  enrichWithGemini,
+  generatePhoneticWithGemini,
+  type WordEnrichment,
+} from "@/lib/gemini-core";
 import { getStaticVietnamese } from "@/lib/static-vietnamese";
 import { formatIpa, isPlaceholderPhonetic } from "@/lib/phonetic";
 import {
@@ -19,6 +24,10 @@ import {
 import type { VocabExample } from "@/lib/parse-examples";
 import { normalizeWordType } from "@/lib/word-type";
 import { getImportanceTier } from "@/lib/word-rank";
+import {
+  parseVietnameseMeanings,
+  serializeVietnameseMeanings,
+} from "@/lib/word-meanings";
 
 export type { WordEnrichment } from "@/lib/gemini-core";
 
@@ -95,6 +104,16 @@ async function finalizeExamples(
   return translatedEnsured.length ? translatedEnsured.slice(0, 2) : ensured;
 }
 
+function meaningFields(meaning: string) {
+  const meanings = parseVietnameseMeanings(meaning);
+  return {
+    vietnameseMeaning: serializeVietnameseMeanings(meanings) || meaning,
+    vietnameseMeanings: meanings,
+    register: null as WordEnrichment["register"],
+    collocations: null as string | null,
+  };
+}
+
 async function standardToEnrichment(
   word: string,
   rank?: number,
@@ -117,11 +136,10 @@ async function standardToEnrichment(
 
   return {
     englishDefinition: entry.definition,
-    vietnameseMeaning: entry.meaning,
+    ...meaningFields(entry.meaning),
     examples,
     phonetic: await finalizePhonetic(word, entry.phonetic),
     wordType,
-    collocations: null,
     searchKeyword: entry.searchKeyword || simpleKeyword(word),
     frequencyRank,
     importanceTier: normalizeTier(frequencyRank),
@@ -187,11 +205,10 @@ export async function getBasicEnrichment(
 
   return {
     englishDefinition: definition,
-    vietnameseMeaning: vietnamese,
+    ...meaningFields(vietnamese),
     examples,
     phonetic: `/${word}/`,
     wordType,
-    collocations: null,
     searchKeyword: simpleKeyword(word),
     frequencyRank,
     importanceTier: normalizeTier(frequencyRank),

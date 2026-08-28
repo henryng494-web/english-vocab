@@ -7,6 +7,10 @@ import { resolveWordImageUrl } from "@/lib/unsplash";
 import { getImportanceTier } from "@/lib/word-rank";
 import { normalizeWordType } from "@/lib/word-type";
 import { sanitizeVietnameseText } from "@/lib/sanitize-vi";
+import {
+  encodeRegisterCollocation,
+  serializeVietnameseMeanings,
+} from "@/lib/word-meanings";
 import { withWordFamily } from "@/lib/word-family-display";
 
 export function enrichmentToDiscoverWord(
@@ -25,10 +29,19 @@ export function enrichmentToDiscoverWord(
     phonetic: enrichment.phonetic,
     word_type:
       normalizeWordType(enrichment.wordType, word) ?? enrichment.wordType,
-    vietnamese_meaning: sanitizeVietnameseText(enrichment.vietnameseMeaning),
+    vietnamese_meaning: sanitizeVietnameseText(
+      serializeVietnameseMeanings(
+        enrichment.vietnameseMeanings?.length
+          ? enrichment.vietnameseMeanings
+          : [enrichment.vietnameseMeaning],
+      ),
+    ),
     english_definition: enrichment.englishDefinition,
     examples: serializeExamples(enrichment.examples),
-    collocations: enrichment.collocations,
+    collocations:
+      enrichment.collocations ??
+      encodeRegisterCollocation(enrichment.register),
+    register: enrichment.register,
     image_url: resolveWordImageUrl(word, imageUrl, keyword, enrichment.wordType),
     rank: enrichment.frequencyRank,
     importance_tier: enrichment.importanceTier,
