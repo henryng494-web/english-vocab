@@ -113,6 +113,13 @@ export function resolveWordRegister(input: {
   return input.register ?? decodeRegisterFromCollocation(input.collocations);
 }
 
+/** UI fallback while cached rows still lack register metadata. */
+export function displayWordRegister(
+  register: WordRegister | null | undefined,
+): WordRegister {
+  return register ?? "everyday";
+}
+
 export function formatMeaningsForDisplay(text: string | null | undefined): string[] {
   return parseVietnameseMeanings(text)
     .map((line) => stripEmbeddedRegisterHints(line))
