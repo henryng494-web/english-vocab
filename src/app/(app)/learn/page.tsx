@@ -36,6 +36,13 @@ import {
   writeReviewSchedule,
   type ReviewIntervalDays,
 } from "@/lib/review-schedule";
+import {
+  applyReviewSessionSnapshot,
+  clearReviewSessionSnapshot,
+  markReviewSessionCompleted,
+  readReviewSessionSnapshot,
+  saveReviewSessionInProgress,
+} from "@/lib/review-session-storage";
 import { shouldRefreshImageUrl } from "@/lib/unsplash";
 import { refreshAllStaleWordImages } from "@/lib/refresh-stale-word-images";
 import type { LearningStatus, VocabWord } from "@/types/database";
@@ -249,12 +256,71 @@ export default function LearnPage() {
 
   const applyReviewSession = useCallback(
     (fetched: VocabWord[], due: VocabWord[], startFirst = true) => {
+      const snapshot = readReviewSessionSnapshot();
+      const sessionDue = applyReviewSessionSnapshot(due, snapshot);
+
       setAllWords(fetched);
-      setQueue(due);
+      setQueue(sessionDue);
+      setSessionDone(sessionDue.length === 0);
+      warmReviewImages(sessionDue, fetched);
+
+      if (!startFirst || sessionDue.length === 0) {
+        void refreshAllStaleWordImages(
+          fetched.map((word) => ({
+            word: word.word,
+            imageUrl: word.image_url,
+            meaning: word.vietnamese_meaning,
+            wordType: word.word_type,
+            searchKeyword: word.search_keyword,
+          })),
+          3,
+        ).then((updates) => {
+          applyImageUpdatesToState(updates, setAllWords, setQueue, setChoices);
+        });
+        return;
+      }
+
+      const inProgress = snapshot?.inProgress;
+      if (inProgress) {
+        const resumeIndex = sessionDue.findIndex(
+          (item) =>
+            item.word.trim().toLowerCase() ===
+            inProgress.word.trim().toLowerCase(),
+        );
+        if (resumeIndex >= 0) {
+          setIndex(resumeIndex);
+          setPhase("reveal");
+          setQuizKind(
+            buildReviewQuestionPlan(
+              sessionDue[resumeIndex],
+              fetched,
+              resumeIndex,
+            ).kind,
+          );
+          setLocked(true);
+          setCorrect(inProgress.correct);
+          setIntervalDays(inProgress.intervalDays);
+          setTimesReviewed(inProgress.timesReviewed);
+          setMarkMastered(inProgress.markMastered);
+          prefetchQuestionsAhead(resumeIndex);
+          void refreshAllStaleWordImages(
+            fetched.map((word) => ({
+              word: word.word,
+              imageUrl: word.image_url,
+              meaning: word.vietnamese_meaning,
+              wordType: word.word_type,
+              searchKeyword: word.search_keyword,
+            })),
+            3,
+          ).then((updates) => {
+            applyImageUpdatesToState(updates, setAllWords, setQueue, setChoices);
+          });
+          return;
+        }
+      }
+
       setIndex(0);
-      setSessionDone(false);
-      warmReviewImages(due, fetched);
-      if (startFirst && due[0]) startQuestion(due[0], fetched, 0);
+      startQuestion(sessionDue[0], fetched, 0);
 
       void refreshAllStaleWordImages(
         fetched.map((word) => ({
@@ -269,7 +335,7 @@ export default function LearnPage() {
         applyImageUpdatesToState(updates, setAllWords, setQueue, setChoices);
       });
     },
-    [startQuestion, warmReviewImages],
+    [prefetchQuestionsAhead, startQuestion, warmReviewImages],
   );
 
   const fetchWords = useCallback(
@@ -281,12 +347,14 @@ export default function LearnPage() {
       try {
         const all = await fetchReviewWords();
         const due = buildDueReviewQueue(all);
-        updateReviewCache({ allWords: all, dueQueue: due });
+        const snapshot = readReviewSessionSnapshot();
+        const sessionDue = applyReviewSessionSnapshot(due, snapshot);
+        updateReviewCache({ allWords: all, dueQueue: sessionDue });
         if (options?.silent) {
           setAllWords(all);
           setQueue((prev) => {
-            if (prev.length === 0) return due;
-            return mergeQueueWordData(prev, due);
+            if (prev.length === 0) return sessionDue;
+            return applyReviewSessionSnapshot(mergeQueueWordData(prev, all), snapshot);
           });
           void prepareReviewSession(all);
           return;
@@ -332,6 +400,28 @@ export default function LearnPage() {
       window.clearTimeout(timer);
     };
   }, [locked, phase]);
+
+  useEffect(() => {
+    if (phase !== "reveal" || !currentWord) return;
+    saveReviewSessionInProgress(
+      {
+        word: currentWord.word,
+        correct,
+        intervalDays,
+        timesReviewed,
+        markMastered,
+      },
+      queue,
+    );
+  }, [
+    phase,
+    currentWord,
+    correct,
+    intervalDays,
+    timesReviewed,
+    markMastered,
+    queue,
+  ]);
 
   useEffect(() => {
     if (!currentWord) return;
@@ -436,15 +526,27 @@ export default function LearnPage() {
   ) {
     if (locked || !currentWord) return;
     const schedule = getReviewSchedule(currentWord.word);
+    const nextInterval = isCorrect
+      ? advanceReviewInterval(schedule.intervalDays)
+      : schedule.intervalDays;
+    const nextTimes = isCorrect
+      ? schedule.timesReviewed + 1
+      : schedule.timesReviewed;
     setLocked(true);
     setCorrect(isCorrect);
     setSelectedKey(key);
     setUnsure(wasUnsure);
-    setIntervalDays(
-      isCorrect ? advanceReviewInterval(schedule.intervalDays) : schedule.intervalDays,
-    );
-    setTimesReviewed(
-      isCorrect ? schedule.timesReviewed + 1 : schedule.timesReviewed,
+    setIntervalDays(nextInterval);
+    setTimesReviewed(nextTimes);
+    saveReviewSessionInProgress(
+      {
+        word: currentWord.word,
+        correct: isCorrect,
+        intervalDays: nextInterval,
+        timesReviewed: nextTimes,
+        markMastered: false,
+      },
+      queueRef.current,
     );
     revealDelayRef.current = immediate ? 0 : REVEAL_DELAY_MS;
     if (immediate) {
@@ -524,11 +626,16 @@ export default function LearnPage() {
     }
 
     const nextIndex = index + 1;
+    const remaining = queue.slice(nextIndex);
+    markReviewSessionCompleted(currentWord.word, remaining);
+    updateReviewCache({ allWords, dueQueue: remaining });
+
     setConfirming(false);
     if (nextIndex >= queue.length) {
       setSessionDone(true);
       setQueue([]);
       setIndex(0);
+      clearReviewSessionSnapshot();
       return;
     }
     setIndex(nextIndex);
