@@ -24,13 +24,22 @@ const REGISTER_LABELS_VI: Record<WordRegister, string> = {
   slang: "Lóng",
 };
 
+const EMBEDDED_REGISTER_HINT_RE =
+  /\((trang trọng|pháp lý|học thuật|văn học|lóng|thân mật)\)/i;
+
+const EMBEDDED_REGISTER_HINT_STRIP_RE =
+  /\s*\((trang trọng|pháp lý|học thuật|văn học|lóng|thân mật)\)\s*/gi;
+
+/** True when meaning text still carries old inline register hints. */
+export function hasEmbeddedRegisterHints(text: string | null | undefined): boolean {
+  if (!text?.trim()) return false;
+  return EMBEDDED_REGISTER_HINT_RE.test(text);
+}
+
 /** Remove register hints duplicated from the Register badge, e.g. "(trang trọng)". */
 export function stripEmbeddedRegisterHints(text: string): string {
   return text
-    .replace(
-      /\s*\((trang trọng|pháp lý|học thuật|văn học|lóng|thân mật)\)\s*/gi,
-      "",
-    )
+    .replace(EMBEDDED_REGISTER_HINT_STRIP_RE, "")
     .replace(/\s{2,}/g, " ")
     .trim();
 }

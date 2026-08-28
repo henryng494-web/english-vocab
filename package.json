@@ -42,7 +42,8 @@
     "test:pexels": "npx tsx scripts/test-pexels-keywords.ts",
     "backfill:images": "npx tsx scripts/backfill-stock-images.ts",
     "refresh:all-images": "npm run backfill:images -- --force",
-    "re-enrich:formal": "npx tsx scripts/re-enrich-formal-words.ts"
+    "re-enrich:stale": "npx tsx scripts/re-enrich-stale-words.ts",
+    "re-enrich:formal": "npx tsx scripts/re-enrich-stale-words.ts -- --formal-only"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.0",
