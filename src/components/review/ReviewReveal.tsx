@@ -8,6 +8,8 @@ import {
 } from "@/components/discover/DiscoverCard";
 import {
   REVIEW_INTERVALS,
+  REVIEW_MASTERED_LABEL,
+  formatReviewConfirmLabel,
   formatReviewInLabel,
   intervalLevelIndex,
   type ReviewIntervalDays,
@@ -19,7 +21,9 @@ type ReviewRevealProps = {
   correct: boolean;
   timesReviewed: number;
   intervalDays: ReviewIntervalDays;
+  markMastered: boolean;
   onIntervalChange: (days: ReviewIntervalDays) => void;
+  onMarkMasteredChange: (mastered: boolean) => void;
   onConfirm: () => void;
   confirming: boolean;
 };
@@ -45,11 +49,15 @@ export function ReviewReveal({
   correct,
   timesReviewed,
   intervalDays,
+  markMastered,
   onIntervalChange,
+  onMarkMasteredChange,
   onConfirm,
   confirming,
 }: ReviewRevealProps) {
-  const filled = intervalLevelIndex(intervalDays) + 1;
+  const filled = markMastered
+    ? REVIEW_INTERVALS.length
+    : intervalLevelIndex(intervalDays) + 1;
   const timesLabel =
     timesReviewed <= 0
       ? "Not yet"
@@ -132,7 +140,7 @@ export function ReviewReveal({
             disabled={confirming}
             onClick={onConfirm}
           >
-            {formatReviewInLabel(intervalDays)}
+            {formatReviewConfirmLabel(intervalDays, markMastered)}
           </button>
           <button
             ref={btnRef}
@@ -164,11 +172,12 @@ export function ReviewReveal({
                   <button
                     type="button"
                     role="option"
-                    aria-selected={days === intervalDays}
+                    aria-selected={!markMastered && days === intervalDays}
                     className={`review-schedule__option${
-                      days === intervalDays ? " is-active" : ""
+                      !markMastered && days === intervalDays ? " is-active" : ""
                     }`}
                     onClick={() => {
+                      onMarkMasteredChange(false);
                       onIntervalChange(days);
                       setOpen(false);
                     }}
@@ -177,6 +186,23 @@ export function ReviewReveal({
                   </button>
                 </li>
               ))}
+              <li role="separator" className="review-schedule__divider" aria-hidden />
+              <li role="none">
+                <button
+                  type="button"
+                  role="option"
+                  aria-selected={markMastered}
+                  className={`review-schedule__option review-schedule__option--mastered${
+                    markMastered ? " is-active" : ""
+                  }`}
+                  onClick={() => {
+                    onMarkMasteredChange(true);
+                    setOpen(false);
+                  }}
+                >
+                  {REVIEW_MASTERED_LABEL}
+                </button>
+              </li>
             </ul>,
             document.body,
           )

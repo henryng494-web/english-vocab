@@ -6,6 +6,9 @@ export const REVIEW_INTERVALS = [1, 2, 4, 7, 14, 30] as const;
 
 export type ReviewIntervalDays = (typeof REVIEW_INTERVALS)[number];
 
+/** Mark word as fully known — no further scheduled reviews. */
+export const REVIEW_MASTERED_LABEL = "Đã nhớ";
+
 export type ReviewScheduleEntry = {
   intervalDays: ReviewIntervalDays;
   nextReviewAt: string;
@@ -22,6 +25,13 @@ function isInterval(value: number): value is ReviewIntervalDays {
 
 export function formatReviewInLabel(days: number): string {
   return days === 1 ? "Review in 1 day" : `Review in ${days} days`;
+}
+
+export function formatReviewConfirmLabel(
+  days: ReviewIntervalDays,
+  markMastered: boolean,
+): string {
+  return markMastered ? REVIEW_MASTERED_LABEL : formatReviewInLabel(days);
 }
 
 export function advanceReviewInterval(current: ReviewIntervalDays): ReviewIntervalDays {

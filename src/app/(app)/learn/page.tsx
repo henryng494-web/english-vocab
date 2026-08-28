@@ -100,6 +100,7 @@ export default function LearnPage() {
   const [locked, setLocked] = useState(false);
   const [correct, setCorrect] = useState(false);
   const [intervalDays, setIntervalDays] = useState<ReviewIntervalDays>(1);
+  const [markMastered, setMarkMastered] = useState(false);
   const [timesReviewed, setTimesReviewed] = useState(0);
   const [loading, setLoading] = useState(!bootstrapReview);
   const [confirming, setConfirming] = useState(false);
@@ -215,6 +216,7 @@ export default function LearnPage() {
     setLocked(false);
     setCorrect(false);
     setIntervalDays(schedule.intervalDays);
+    setMarkMastered(false);
     setTimesReviewed(schedule.timesReviewed);
 
     const { targets } = collectReviewQuestionImageTargets(word, pool, questionIndex);
@@ -495,17 +497,30 @@ export default function LearnPage() {
   async function confirmReview() {
     if (!currentWord || confirming) return;
     setConfirming(true);
-    writeReviewSchedule(currentWord.word, intervalDays, timesReviewed);
-    const status: LearningStatus = correct ? "learning" : "need_review";
-    writeLocalLearning(currentWord.word, status);
-    try {
-      await fetch("/api/words/status", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ word: currentWord.word, status }),
-      });
-    } catch {
-      /* local schedule already saved */
+    if (markMastered) {
+      writeLocalLearning(currentWord.word, "mastered");
+      try {
+        await fetch("/api/words/status", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ word: currentWord.word, status: "mastered" }),
+        });
+      } catch {
+        /* local status already saved */
+      }
+    } else {
+      writeReviewSchedule(currentWord.word, intervalDays, timesReviewed);
+      const status: LearningStatus = correct ? "learning" : "need_review";
+      writeLocalLearning(currentWord.word, status);
+      try {
+        await fetch("/api/words/status", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ word: currentWord.word, status }),
+        });
+      } catch {
+        /* local schedule already saved */
+      }
     }
 
     const nextIndex = index + 1;
@@ -587,7 +602,9 @@ export default function LearnPage() {
           correct={correct}
           timesReviewed={timesReviewed}
           intervalDays={intervalDays}
+          markMastered={markMastered}
           onIntervalChange={setIntervalDays}
+          onMarkMasteredChange={setMarkMastered}
           onConfirm={() => {
             void confirmReview();
           }}

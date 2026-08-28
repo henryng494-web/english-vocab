@@ -1746,6 +1746,17 @@ body {
   color: var(--secondary);
 }
 
+.review-schedule__divider {
+  height: 1px;
+  margin: 0.25rem 0.35rem;
+  background: var(--card-border);
+  list-style: none;
+}
+
+.review-schedule__option--mastered.is-active {
+  color: var(--accent);
+}
+
 .app-header__actions {
   display: inline-flex;
   align-items: center;
