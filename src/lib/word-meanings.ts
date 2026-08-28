@@ -18,11 +18,22 @@ const REGISTER_COLLATION_PREFIX = "__register:";
 const REGISTER_LABELS_VI: Record<WordRegister, string> = {
   everyday: "Đời thường",
   formal: "Trang trọng",
-  legal: "Pháp lý",
+  legal: "Trang trọng",
   technical: "Chuyên ngành",
   literary: "Văn học",
   slang: "Lóng",
 };
+
+/** Remove register hints duplicated from the Register badge, e.g. "(trang trọng)". */
+export function stripEmbeddedRegisterHints(text: string): string {
+  return text
+    .replace(
+      /\s*\((trang trọng|pháp lý|học thuật|văn học|lóng|thân mật)\)\s*/gi,
+      "",
+    )
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
 
 export function normalizeWordRegister(value: unknown): WordRegister | null {
   if (typeof value !== "string") return null;
@@ -94,5 +105,8 @@ export function resolveWordRegister(input: {
 }
 
 export function formatMeaningsForDisplay(text: string | null | undefined): string[] {
-  return parseVietnameseMeanings(text).map((line) => capitalizeFirst(line));
+  return parseVietnameseMeanings(text)
+    .map((line) => stripEmbeddedRegisterHints(line))
+    .filter(Boolean)
+    .map((line) => capitalizeFirst(line));
 }

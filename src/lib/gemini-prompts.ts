@@ -8,7 +8,7 @@ export const POS_CLASSIFICATION_RULES = `STEP 1 — Classify the word BEFORE tra
 - register: everyday | formal | legal | technical | literary | slang
   • everyday = common speech, daily life
   • formal = polite official speech, announcements, business
-  • legal = contracts, laws, official documents (hereby, hereby, pursuant, aforesaid)
+  • legal = contracts, laws, official documents (hereby, pursuant, aforesaid) — still set register to "formal" for learner display unless truly slang/technical
   • technical = science, medicine, engineering jargon
   • literary = rare literary/archaic usage
   • slang = informal / very casual (skip unless it is the ONLY common sense)
@@ -38,7 +38,8 @@ article/determiner → mạo từ/hạn định (e.g. "Một", "Các")
 interjection → thán từ (e.g. "Ôi!", "Wow")
 
 register tweaks:
-- formal/legal → gloss may add "(trang trọng)" when helpful; examples may be official sentences
+- NEVER write register hints inside meanings — no "(trang trọng)", "(pháp lý)" in the gloss; the register JSON field carries tone
+- formal/legal → examples may be official sentences
 - technical → keep precise domain term if standard in Vietnamese
 - everyday → natural spoken Vietnamese`;
 
@@ -66,8 +67,9 @@ Gold standards:
 • hole (noun, everyday) — 1 sense:
   meanings: ["Lỗ, hố"]
   examples: both about a physical hole
-• hereby (adverb, legal) — 1 sense:
-  meanings: ["Theo đây (trang trọng)"]
+• hereby (adverb, formal) — 1 sense:
+  meanings: ["Theo đây"]
+  register: "formal"
   - I hereby accept your job offer. → Tôi theo đây chấp nhận lời mời làm việc của bạn.
 
 ${POS_CLASSIFICATION_RULES}
