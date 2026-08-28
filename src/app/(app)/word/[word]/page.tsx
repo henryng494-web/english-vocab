@@ -164,7 +164,6 @@ function WordDetailPageContent() {
     <div className="app-screen app-screen--journey">
       <AppHeader
         title={word ? capitalizeFirst(word) : "Word"}
-        peekMascot="elephant"
         leading={
           libraryContext ? (
             <Link

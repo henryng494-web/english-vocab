@@ -526,7 +526,6 @@ export default function LearnPage() {
     <div className={`app-screen${inSession ? " app-screen--journey" : " app-screen--home"}`}>
       <AppHeader
         title={inSession ? `Review ${index + 1}/${queue.length}` : "Review"}
-        peekMascot="tiger"
       />
 
       {loading ? (

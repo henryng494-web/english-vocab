@@ -446,8 +446,7 @@ export default function DiscoverPage() {
         <AppHeader
           title="Home"
           hideTitle
-          peekMascot="monkey"
-          trailing={
+          leading={
             <div className="app-header__actions">
               <Link href="/account" className="app-header__icon-btn" aria-label="Menu">
                 ☰
@@ -487,7 +486,6 @@ export default function DiscoverPage() {
     <div className="app-screen app-screen--journey">
       <AppHeader
         title="Vocab Journey"
-        peekMascot="crocodile"
         leading={
           <button
             type="button"

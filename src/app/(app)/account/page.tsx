@@ -12,7 +12,6 @@ export default function AccountPage() {
     <div className="app-screen app-screen--home">
       <AppHeader
         title="Account"
-        peekMascot="elephant"
         leading={
           <Link href="/discover" className="app-header__icon-btn" aria-label="Back home">
             ←
