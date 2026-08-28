@@ -1,12 +1,13 @@
 "use client";
 
-import { preloadSpeechVoices } from "@/lib/speak-word";
+import { preloadSpeechVoices, preloadWordPronunciation } from "@/lib/speak-word";
 import { useEffect } from "react";
 
-/** Load en-US voices early so the first auto-pronounce sounds natural. */
+/** Warm up human audio + Safari voices so the first pronounce sounds natural. */
 export function SpeechVoiceWarmup() {
   useEffect(() => {
     preloadSpeechVoices();
+    preloadWordPronunciation("hello");
   }, []);
 
   return null;

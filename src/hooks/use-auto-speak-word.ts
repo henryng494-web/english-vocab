@@ -1,6 +1,6 @@
 "use client";
 
-import { speakEnglishText } from "@/lib/speak-word";
+import { preloadWordPronunciation, speakEnglishText } from "@/lib/speak-word";
 import { useEffect, useRef } from "react";
 
 /** Auto-pronounce when `text` changes (new word card). */
@@ -18,6 +18,8 @@ export function useAutoSpeakWord(
     const key = trimmed.toLowerCase();
     if (key === lastRef.current) return;
     lastRef.current = key;
+
+    preloadWordPronunciation(trimmed);
 
     const timer = window.setTimeout(() => {
       speakEnglishText(trimmed);

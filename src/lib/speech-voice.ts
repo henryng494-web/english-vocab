@@ -25,8 +25,16 @@ const PREFERRED_VOICE_PATTERNS: readonly RegExp[] = [
   /\bvictoria\b/i,
 ];
 
+const PREFERRED_VOICE_URIS: readonly RegExp[] = [
+  /enhanced.*en-us.*samantha/i,
+  /en-us.*samantha.*enhanced/i,
+  /compact.*en-us.*samantha/i,
+  /en-us.*samantha/i,
+  /enhanced.*en-us.*ava/i,
+  /en-us.*ava/i,
+];
+
 const AVOID_VOICE_PATTERNS: readonly RegExp[] = [
-  /compact/i,
   /robot/i,
   /cellos/i,
   /bells/i,
@@ -44,17 +52,27 @@ const AVOID_VOICE_PATTERNS: readonly RegExp[] = [
   /bruce/i,
   /grandma/i,
   /grandpa/i,
+  /eloquence/i,
 ];
 
 let cachedVoice: SpeechSynthesisVoice | null | undefined;
 let voicesReady: Promise<SpeechSynthesisVoice | null> | null = null;
 
+function isAppleWebKit(): boolean {
+  if (typeof navigator === "undefined") return false;
+  return /iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent) &&
+    /AppleWebKit/.test(navigator.userAgent);
+}
+
 function scoreVoice(voice: SpeechSynthesisVoice): number {
   const name = voice.name;
+  const uri = voice.voiceURI;
   const lang = voice.lang.toLowerCase();
 
   if (!lang.startsWith("en")) return -1000;
-  if (AVOID_VOICE_PATTERNS.some((pattern) => pattern.test(name))) return -500;
+  if (AVOID_VOICE_PATTERNS.some((pattern) => pattern.test(name + uri))) {
+    return -500;
+  }
 
   let score = 0;
   if (lang.startsWith("en-us")) score += 40;
@@ -67,9 +85,17 @@ function scoreVoice(voice: SpeechSynthesisVoice): number {
     }
   }
 
-  if (/natural|neural|premium|enhanced|wavenet|online|siri/i.test(name)) score += 45;
+  for (let index = 0; index < PREFERRED_VOICE_URIS.length; index++) {
+    if (PREFERRED_VOICE_URIS[index].test(uri)) {
+      score += 140 - index * 4;
+    }
+  }
+
+  if (/natural|neural|premium|enhanced|wavenet|online|siri/i.test(name + uri)) {
+    score += 45;
+  }
   if (/google|microsoft/i.test(name) && lang.startsWith("en-us")) score += 25;
-  if (!voice.localService) score += 28;
+  if (!voice.localService && !isAppleWebKit()) score += 28;
   if (voice.default) score += 4;
 
   return score;
@@ -90,6 +116,14 @@ function pickBestVoice(voices: SpeechSynthesisVoice[]): SpeechSynthesisVoice | n
   return best;
 }
 
+function resolveVoiceFromList(voices: SpeechSynthesisVoice[]): SpeechSynthesisVoice | null {
+  const best = pickBestVoice(voices);
+  if (!best) return null;
+
+  const matched = voices.find((voice) => voice.voiceURI === best.voiceURI);
+  return matched ?? best;
+}
+
 export function ensureSpeechVoicesReady(): Promise<SpeechSynthesisVoice | null> {
   if (typeof window === "undefined" || !window.speechSynthesis) {
     return Promise.resolve(null);
@@ -102,19 +136,56 @@ export function ensureSpeechVoicesReady(): Promise<SpeechSynthesisVoice | null> 
   if (voicesReady) return voicesReady;
 
   voicesReady = new Promise((resolve) => {
-    const finalize = () => {
-      const voices = window.speechSynthesis.getVoices();
-      cachedVoice = pickBestVoice(voices);
-      resolve(cachedVoice);
+    let settled = false;
+    let attempts = 0;
+    const maxAttempts = 40;
+
+    const finish = (voice: SpeechSynthesisVoice | null) => {
+      if (settled) return;
+      settled = true;
+      cachedVoice = voice;
+      resolve(voice);
     };
 
-    finalize();
-    if (window.speechSynthesis.getVoices().length === 0) {
-      window.speechSynthesis.addEventListener("voiceschanged", finalize, {
-        once: true,
-      });
-      window.setTimeout(finalize, 800);
+    const tryPick = (): SpeechSynthesisVoice | null => {
+      const voices = window.speechSynthesis.getVoices();
+      if (!voices.length) return null;
+      return resolveVoiceFromList(voices);
+    };
+
+    const onVoicesChanged = () => {
+      const voice = tryPick();
+      if (voice) {
+        window.speechSynthesis.removeEventListener("voiceschanged", onVoicesChanged);
+        finish(voice);
+      }
+    };
+
+    window.speechSynthesis.addEventListener("voiceschanged", onVoicesChanged);
+
+    const voice = tryPick();
+    if (voice) {
+      window.speechSynthesis.removeEventListener("voiceschanged", onVoicesChanged);
+      finish(voice);
+      return;
     }
+
+    const poll = window.setInterval(() => {
+      attempts += 1;
+      const nextVoice = tryPick();
+      if (nextVoice) {
+        window.clearInterval(poll);
+        window.speechSynthesis.removeEventListener("voiceschanged", onVoicesChanged);
+        finish(nextVoice);
+        return;
+      }
+
+      if (attempts >= maxAttempts) {
+        window.clearInterval(poll);
+        window.speechSynthesis.removeEventListener("voiceschanged", onVoicesChanged);
+        finish(null);
+      }
+    }, 100);
   });
 
   return voicesReady;
@@ -129,8 +200,8 @@ export function applyNaturalSpeechSettings(
   voice: SpeechSynthesisVoice | null,
 ): void {
   utterance.lang = voice?.lang ?? "en-US";
-  utterance.rate = 1.02;
-  utterance.pitch = 1.08;
+  utterance.rate = isAppleWebKit() ? 1.06 : 1.02;
+  utterance.pitch = isAppleWebKit() ? 1.12 : 1.08;
   utterance.volume = 1;
   if (voice) utterance.voice = voice;
 }
