@@ -2,9 +2,10 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { WordCardHeader } from "@/components/flashcard/WordCardHeader";
-import { WordCardDetails } from "@/components/flashcard/WordCardDetails";
-import { ReviewWordImage } from "@/components/review/ReviewWordImage";
+import {
+  DiscoverCard,
+  type DiscoverWordData,
+} from "@/components/discover/DiscoverCard";
 import {
   REVIEW_INTERVALS,
   formatReviewInLabel,
@@ -22,6 +23,22 @@ type ReviewRevealProps = {
   onConfirm: () => void;
   confirming: boolean;
 };
+
+function toDiscoverData(word: VocabWord): DiscoverWordData {
+  return {
+    word: word.word,
+    rank: word.rank,
+    importance_tier: word.importance_tier,
+    phonetic: word.phonetic,
+    word_type: word.word_type,
+    vietnamese_meaning: word.vietnamese_meaning,
+    english_definition: word.english_definition,
+    examples: word.examples,
+    image_url: word.image_url,
+    search_keyword: word.search_keyword,
+    word_family: word.word_family,
+  };
+}
 
 export function ReviewReveal({
   word,
@@ -84,29 +101,9 @@ export function ReviewReveal({
 
   return (
     <div className="review-reveal">
-      <div className="review-reveal__card">
-        <ReviewWordImage
-          word={word.word}
-          imageUrl={word.image_url}
-          searchKeyword={word.search_keyword}
-          wordType={word.word_type}
-          meaning={word.vietnamese_meaning}
-          className="review-reveal__image"
-        />
-        <div className="review-reveal__body">
-          <WordCardHeader
-            word={word.word}
-            phonetic={word.phonetic}
-            wordType={word.word_type}
-          />
-          <WordCardDetails
-            word={word.word}
-            meaning={word.vietnamese_meaning}
-            examples={word.examples}
-            wordType={word.word_type}
-            family={word.word_family}
-            layout="flow"
-          />
+      <div className="journey-panel review-reveal__panel">
+        <div className="journey-card-slot">
+          <DiscoverCard data={toDiscoverData(word)} compact />
         </div>
       </div>
 

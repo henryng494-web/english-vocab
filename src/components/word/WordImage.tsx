@@ -1,6 +1,10 @@
 "use client";
 
 import Image from "next/image";
+import {
+  isCastWordImageWord,
+  isStaticCastWordImageUrl,
+} from "@/lib/cast-word-images";
 import { useWordImageSrc } from "@/lib/use-word-image-src";
 
 export type WordImageProps = {
@@ -50,6 +54,11 @@ export function WordImage({
     return null;
   }
 
+  const fitClass =
+    isStaticCastWordImageUrl(src) || isCastWordImageWord(word)
+      ? "object-contain"
+      : className;
+
   return (
     <Image
       src={src}
@@ -57,7 +66,7 @@ export function WordImage({
       fill={fill && width == null && height == null}
       width={width}
       height={height}
-      className={className}
+      className={fitClass}
       sizes={sizes}
       priority={priority}
       unoptimized

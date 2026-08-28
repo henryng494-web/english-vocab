@@ -414,11 +414,6 @@ body {
   background: var(--primary);
 }
 
-.review-reveal__body .card-details {
-  flex: 1 1 auto;
-  min-height: 0;
-}
-
 .card-details--flow .card-details__scene {
   flex: 1 1 auto;
   min-height: 0;
@@ -456,46 +451,6 @@ body {
   display: flex;
   min-height: 0;
   overflow-y: auto;
-}
-
-.review-reveal__body ul.space-y-2 {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-}
-
-.review-reveal__body ul.space-y-2 > li {
-  overflow: visible;
-  padding: 0.5rem 0.7rem;
-  font-size: 0.9375rem;
-  line-height: 1.4;
-}
-
-.review-reveal__body ul.space-y-2 > li p {
-  overflow: visible;
-  display: block;
-  -webkit-line-clamp: unset;
-}
-
-.review-reveal__body h2 {
-  font-size: 1.875rem;
-  line-height: 2.125rem;
-}
-
-.review-reveal__body .vocab-meaning {
-  font-size: 1.125rem;
-  line-height: 1.35;
-}
-
-.review-reveal__body .card-details__face--family {
-  justify-content: flex-start;
-  gap: 0.45rem;
-  padding-top: 0.1rem;
-}
-
-.review-reveal__body .card-family__row {
-  font-size: 0.9375rem;
-  line-height: 1.35;
 }
 
 .discover-card__meaning {
@@ -1668,43 +1623,14 @@ body {
   height: 100%;
 }
 
-.review-reveal__card {
-  display: grid;
-  grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
+.review-reveal__panel {
+  flex: 1 1 0;
   min-height: 0;
-  overflow: hidden;
-  margin: 0.5rem 1rem 0.4rem;
-  border-radius: 1.1rem;
-  background: var(--card);
-  box-shadow: var(--card-shadow);
+  padding: 0.5rem 1rem 0.35rem;
 }
 
-.review-reveal__image {
-  position: relative;
-  min-height: 0;
-  width: 100%;
-  overflow: hidden;
-  background: var(--primary-100);
-}
-
-.review-reveal__body {
-  display: flex;
-  min-height: 0;
-  flex-direction: column;
-  gap: 0.45rem;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  padding: 0.65rem 1rem 0.75rem;
-}
-
-.review-reveal__meaning {
-  margin: 0;
-  font-family: var(--font-display);
-  font-size: 1.25rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  line-height: 1.35;
-  color: var(--primary-700);
+.review-reveal__panel .journey-card-slot {
+  height: 100%;
 }
 
 .review-schedule {
