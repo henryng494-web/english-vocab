@@ -1,5 +1,7 @@
 import { isContractionStem } from "@/data/contraction-stems";
+import { isInvalidVocabWord } from "@/data/invalid-vocab-words";
 import { isLowValueInterjection } from "@/data/low-value-interjections";
+import { isValidTwoLetterWord } from "@/data/valid-two-letter-words";
 import { PROPER_NOUNS } from "@/data/proper-nouns";
 import { isProfaneWord } from "@/lib/safe-image-search";
 
@@ -8,12 +10,16 @@ export function isProperNoun(word: string): boolean {
   return key.length > 0 && PROPER_NOUNS.has(key);
 }
 
-/** Names, titles, fillers, contraction scraps, and profanity — never learnable. */
+/** Names, titles, fillers, contraction scraps, profanity, and broken tokens. */
 export function isExcludedVocabWord(word: string): boolean {
+  const key = word.trim().toLowerCase();
+  if (!key) return true;
+  if (key.length === 2 && !isValidTwoLetterWord(key)) return true;
   return (
-    isProfaneWord(word) ||
-    isProperNoun(word) ||
-    isLowValueInterjection(word) ||
-    isContractionStem(word)
+    isProfaneWord(key) ||
+    isProperNoun(key) ||
+    isLowValueInterjection(key) ||
+    isContractionStem(key) ||
+    isInvalidVocabWord(key)
   );
 }

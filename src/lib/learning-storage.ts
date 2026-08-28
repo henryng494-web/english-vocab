@@ -23,8 +23,17 @@ export function readLocalLearning(): LocalLearningMap {
     if (!raw) return {};
     const parsed = JSON.parse(raw) as LocalLearningMap;
     const normalized: LocalLearningMap = {};
+    let changed = false;
     for (const [key, entry] of Object.entries(parsed)) {
-      normalized[key.trim().toLowerCase()] = entry;
+      const word = key.trim().toLowerCase();
+      if (!word || !isCountableWord(word)) {
+        changed = true;
+        continue;
+      }
+      normalized[word] = entry;
+    }
+    if (changed) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(normalized));
     }
     return normalized;
   } catch {

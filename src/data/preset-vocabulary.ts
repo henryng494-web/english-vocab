@@ -88,9 +88,9 @@ const CURRICULUM_RANK_OVERRIDES: Readonly<Record<string, number>> = {
 const NGSL_MAX_RANK = 2801;
 
 function isLearnableWord(word: string): boolean {
-  return (
-    /^[a-z]+$/.test(word) && word.length > 1 && !isExcludedVocabWord(word)
-  );
+  const key = word.trim().toLowerCase();
+  if (!/^[a-z]+$/.test(key) || key.length < 2) return false;
+  return !isExcludedVocabWord(key);
 }
 
 /** NGSL headword → rank (one word per NGSL slot 1..2801). */
