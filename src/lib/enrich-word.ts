@@ -35,6 +35,8 @@ export type EnrichOptions = {
   rank?: number;
   /** Skip Gemini when a complete standard card already exists. */
   skipGemini?: boolean;
+  /** Bypass curated standard vocab and prefer Gemini (for re-enrich scripts). */
+  forceGemini?: boolean;
 };
 
 function clampFrequencyRank(rank: number): number {
@@ -228,12 +230,14 @@ export async function enrichWord(
     allowGemini: !options?.skipGemini,
   };
 
-  const fromStandard = await standardToEnrichment(
-    normalized,
-    presetRank,
-    !options?.skipGemini,
-  );
-  if (fromStandard) return fromStandard;
+  if (!options?.forceGemini) {
+    const fromStandard = await standardToEnrichment(
+      normalized,
+      presetRank,
+      !options?.skipGemini,
+    );
+    if (fromStandard) return fromStandard;
+  }
 
   if (process.env.GEMINI_API_KEY?.trim()) {
     try {
