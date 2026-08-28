@@ -761,12 +761,7 @@ body {
 }
 
 .card-image-frame {
-  background: linear-gradient(
-    135deg,
-    #f3e8ff 0%,
-    #ecfccb 50%,
-    #ffedd5 100%
-  );
+  background: #ffffff;
 }
 
 .card-image-badge {

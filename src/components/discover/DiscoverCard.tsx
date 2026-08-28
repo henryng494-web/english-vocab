@@ -51,7 +51,9 @@ function CardImage({
   return (
     <div
       className={`relative w-full ${
-        compact ? "card-image-frame h-full min-h-0" : "h-44 shrink-0 bg-gradient-to-br from-primary-100 via-primary to-primary-hover"
+        compact
+          ? "card-image-frame h-full min-h-0"
+          : "card-image-frame h-44 shrink-0"
       }`}
     >
       <WordImage
