@@ -7,7 +7,7 @@ export const REVIEW_INTERVALS = [1, 2, 4, 7, 14, 30] as const;
 export type ReviewIntervalDays = (typeof REVIEW_INTERVALS)[number];
 
 /** Mark word as fully known — no further scheduled reviews. */
-export const REVIEW_MASTERED_LABEL = "Đã nhớ";
+export const REVIEW_MASTERED_LABEL = "Already know";
 
 export type ReviewScheduleEntry = {
   intervalDays: ReviewIntervalDays;
