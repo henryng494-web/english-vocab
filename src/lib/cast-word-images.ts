@@ -1,7 +1,6 @@
 /**
  * Cast mascot word images — Jungle Jokers cast delivery:
  * full-scene bundled JPEGs in /public/word-images/{word}.jpg
- * Jungle Jokers cast (jungle10 bundle — rank 1–150 semantic scenes + teaching props).
  */
 
 import { requiresSafeImageOnly } from "@/lib/safe-image-search";
@@ -10,6 +9,7 @@ import {
   CAST_WORD_IMAGE_TOP_RANK,
 } from "@/data/jungle-cast-image-framework";
 import { JUNGLE_WORD_IMAGE_ENTRIES } from "@/data/jungle-cast-word-image-prompts";
+import { getFamilyHeadword } from "@/lib/word-family";
 
 export {
   buildJungleCastWordImagePrompt as buildCastWordImagePrompt,
@@ -38,18 +38,63 @@ export {
 
 const CAST_WORDS = new Set(Object.keys(JUNGLE_WORD_IMAGE_ENTRIES));
 
+/** British / variant spellings → bundled preset headword with a cast JPEG. */
+const CAST_SPELLING_ALIASES: Readonly<Record<string, string>> = {
+  counsellor: "counsel",
+  counselor: "counsel",
+  counselling: "counsel",
+  counseling: "counsel",
+  labelled: "label",
+  labeled: "label",
+  favourite: "favorite",
+  colour: "color",
+  honour: "honor",
+  behaviour: "behavior",
+  centre: "center",
+  theatre: "theater",
+  metre: "meter",
+  defence: "defense",
+  offence: "offense",
+  licence: "license",
+  practise: "practice",
+};
+
 const STATIC_PATH_RE =
   /^\/word-images\/[a-z]+\.jpg(?:\?v=(?:cast[\w-]+|jungle[\w-]+))?$/;
 
+function normalize(word: string): string {
+  return word.trim().toLowerCase();
+}
+
+/** Resolve the on-disk cast JPEG key for any surface form (inflection, alias). */
+export function resolveCastWordImageKey(word: string): string | null {
+  const key = normalize(word);
+  if (!key || requiresSafeImageOnly(key)) return null;
+
+  const candidates = new Set<string>();
+  candidates.add(key);
+  const alias = CAST_SPELLING_ALIASES[key];
+  if (alias) candidates.add(alias);
+  const head = getFamilyHeadword(key);
+  if (head) {
+    candidates.add(head);
+    const headAlias = CAST_SPELLING_ALIASES[head];
+    if (headAlias) candidates.add(headAlias);
+  }
+
+  for (const candidate of candidates) {
+    if (CAST_WORDS.has(candidate)) return candidate;
+  }
+  return null;
+}
+
 export function isCastWordImageWord(word: string): boolean {
-  const normalized = word.trim().toLowerCase();
-  if (!normalized || requiresSafeImageOnly(normalized)) return false;
-  return CAST_WORDS.has(normalized);
+  return resolveCastWordImageKey(word) !== null;
 }
 
 export function getStaticCastWordImagePath(word: string): string | null {
-  const key = word.trim().toLowerCase();
-  if (!CAST_WORDS.has(key)) return null;
+  const key = resolveCastWordImageKey(word);
+  if (!key) return null;
   return `/word-images/${key}.jpg?v=${CAST_WORD_IMAGE_BUNDLE}`;
 }
 

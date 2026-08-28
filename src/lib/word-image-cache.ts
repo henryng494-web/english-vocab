@@ -1,7 +1,7 @@
 import { hasAcceptableWordImage, shouldRefreshImageUrl } from "@/lib/unsplash";
 
 /** Bump when function-word fw=1 validation rules change. */
-const STORAGE_KEY = "word-image-url-cache-v21";
+const STORAGE_KEY = "word-image-url-cache-v22";
 const MAX_ENTRIES = 500;
 
 const cache = new Map<string, string>();
