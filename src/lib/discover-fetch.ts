@@ -1,4 +1,5 @@
 import type { DiscoverWordData } from "@/components/discover/DiscoverCard";
+import { resolveWordRegister } from "@/lib/word-meanings";
 import { DISCOVER_WORD_CACHE_VERSION, stubFromListItem } from "@/lib/discover-word-cache";
 import { getLocallyTakenWords } from "@/lib/learning-storage";
 
@@ -76,6 +77,10 @@ export function mapApiWordToDiscoverData(
     examples: apiWord.examples as string | null | undefined,
     image_url: (apiWord.image_url as string | null | undefined) ?? null,
     collocations: apiWord.collocations as string | null | undefined,
+    register: resolveWordRegister({
+      register: apiWord.register as DiscoverWordData["register"],
+      collocations: apiWord.collocations as string | null | undefined,
+    }),
     search_keyword:
       (apiWord.search_keyword as string | null | undefined) ?? item.word,
     word_family: Array.isArray(apiWord.word_family)
