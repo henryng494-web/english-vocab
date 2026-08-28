@@ -6,6 +6,7 @@ import {
   type DailyGoalMinutes,
 } from "@/lib/app-settings";
 import { useAppSettings } from "@/context/AppSettingsContext";
+import { displayFontClass } from "@/lib/fonts";
 import Link from "next/link";
 import { useEffect, useId } from "react";
 import { createPortal } from "react-dom";
@@ -85,11 +86,14 @@ export function AppMenuDrawer({ open, onClose }: AppMenuDrawerProps) {
         onClick={onClose}
       />
       <aside className="app-menu__panel" role="dialog" aria-modal="true" aria-label="Menu">
-        <div className="app-menu__body">
+        <div className="app-menu__header">
+          <h2 className={`app-menu__title ${displayFontClass}`}>Menu</h2>
           <button type="button" className="app-menu__close" onClick={onClose} aria-label="Close">
             ✕
           </button>
+        </div>
 
+        <div className="app-menu__body">
           <section className="app-menu__section">
             <h3 className="app-menu__section-title">Learning</h3>
             <ToggleRow

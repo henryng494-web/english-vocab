@@ -20,23 +20,7 @@ export function AppHeader({
   const { open: menuOpen } = useAppMenu();
 
   if (menuOpen) {
-    return (
-      <header className="app-header app-header--menu-open">
-        <div className="app-header__safe-area">
-          <div className="app-header__inner">
-            <div className="app-header__side app-header__side--left">
-              <span className="app-header__spacer" aria-hidden />
-            </div>
-            <div className="app-header__title-container">
-              <h1 className={`app-header__title ${displayFontClass}`}>Menu</h1>
-            </div>
-            <div className="app-header__side app-header__side--right">
-              <span className="app-header__spacer" aria-hidden />
-            </div>
-          </div>
-        </div>
-      </header>
-    );
+    return null;
   }
 
   return (
