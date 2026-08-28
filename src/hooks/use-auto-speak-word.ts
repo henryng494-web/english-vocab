@@ -21,7 +21,7 @@ export function useAutoSpeakWord(
 
     const timer = window.setTimeout(() => {
       speakEnglishText(trimmed);
-    }, 280);
+    }, 420);
 
     return () => window.clearTimeout(timer);
   }, [text, enabled]);
