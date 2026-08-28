@@ -1,5 +1,6 @@
 "use client";
 
+import { useAutoSpeakWord } from "@/hooks/use-auto-speak-word";
 import { capitalizeFirst } from "@/lib/format-text";
 import { normalizeWordType } from "@/lib/word-type";
 import { SpeakButton } from "./SpeakButton";
@@ -17,6 +18,7 @@ export function WordCardHeader({
   wordType,
   loadingPhonetic,
 }: WordCardHeaderProps) {
+  useAutoSpeakWord(word);
   const wordTypeLabel = normalizeWordType(wordType, word);
 
   return (

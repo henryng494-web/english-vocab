@@ -1,5 +1,6 @@
 "use client";
 
+import { cancelSpeech, speakEnglishText } from "@/lib/speak-word";
 import { useCallback, useEffect, useState } from "react";
 
 type SpeakButtonProps = {
@@ -45,29 +46,17 @@ export function SpeakButton({
   const speak = useCallback(
     (e: React.MouseEvent) => {
       e.stopPropagation();
-      if (!text || typeof window === "undefined") return;
+      if (!text) return;
 
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = "en-US";
-      utterance.rate = 0.9;
-
-      utterance.onstart = () => setSpeaking(true);
-      utterance.onend = () => setSpeaking(false);
-      utterance.onerror = () => setSpeaking(false);
-
-      window.speechSynthesis.speak(utterance);
+      cancelSpeech();
+      speakEnglishText(text, { force: true });
+      setSpeaking(true);
+      window.setTimeout(() => setSpeaking(false), 900);
     },
     [text],
   );
 
-  useEffect(() => {
-    return () => {
-      if (typeof window !== "undefined") {
-        window.speechSynthesis.cancel();
-      }
-    };
-  }, []);
+  useEffect(() => cancelSpeech, []);
 
   const toneClass = iconOnly
     ? variant === "light"

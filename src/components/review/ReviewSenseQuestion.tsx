@@ -1,6 +1,7 @@
 "use client";
 
 import { SpeakButton } from "@/components/flashcard/SpeakButton";
+import { useAutoSpeakWord } from "@/hooks/use-auto-speak-word";
 import { ReviewWordImage } from "@/components/review/ReviewWordImage";
 import { displayFontClass } from "@/lib/fonts";
 import { capitalizeFirst } from "@/lib/format-text";
@@ -27,6 +28,7 @@ export function ReviewSenseQuestion({
   onChoose,
   onUnsure,
 }: ReviewSenseQuestionProps) {
+  useAutoSpeakWord(word);
   const correct = correctWord.trim().toLowerCase();
 
   return (

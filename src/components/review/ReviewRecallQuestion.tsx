@@ -1,5 +1,6 @@
 "use client";
 
+import { useAutoSpeakWord } from "@/hooks/use-auto-speak-word";
 import { ReviewWordImage } from "@/components/review/ReviewWordImage";
 import { displayFontClass } from "@/lib/fonts";
 import { splitSentenceAroundWord } from "@/lib/review-quiz";
@@ -29,6 +30,7 @@ export function ReviewRecallQuestion({
   onLookUp,
   onRemember,
 }: ReviewRecallQuestionProps) {
+  useAutoSpeakWord(word);
   const parts = splitSentenceAroundWord(sentence, word);
 
   return (
