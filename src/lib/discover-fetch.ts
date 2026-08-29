@@ -1,6 +1,7 @@
 import type { DiscoverWordData } from "@/components/discover/DiscoverCard";
 import { resolveWordRegister } from "@/lib/word-meanings";
 import { DISCOVER_WORD_CACHE_VERSION, stubFromListItem } from "@/lib/discover-word-cache";
+import { meaningsNeedRegeneration } from "@/lib/meaning-quality";
 import { examplesNeedRegeneration } from "@/lib/repair-word-examples";
 import { getLocallyTakenWords } from "@/lib/learning-storage";
 
@@ -146,12 +147,19 @@ export async function fetchDiscoverWordDetail(
   const loaded = await fetchOnce(options?.forceRepair ?? false);
   if (
     !options?.forceRepair &&
-    examplesNeedRegeneration(
+    (examplesNeedRegeneration(
       item.word,
       loaded.examples,
       loaded.word_type,
       loaded.vietnamese_meaning,
-    )
+    ) ||
+      meaningsNeedRegeneration(
+        item.word,
+        loaded.vietnamese_meaning,
+        loaded.word_type,
+        loaded.examples,
+        loaded.english_definition,
+      ))
   ) {
     return fetchOnce(true);
   }

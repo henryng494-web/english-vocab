@@ -326,8 +326,11 @@ export async function GET(request: Request) {
         )
       : false;
 
+    const preferCurated = hasQualityStandardVocab(word);
+
     if (
       !forceRepair &&
+      !preferCurated &&
       !examplesStillMisaligned &&
       !meaningsStillBad &&
       isPersistedWordDetailComplete(repairedDbDetail, word)
