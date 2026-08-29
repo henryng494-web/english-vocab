@@ -55,7 +55,9 @@ export function isPosMismatchExample(
   if (!text || !w) return false;
 
   const normalizedPos = normalizeWordType(pos, word);
-  if (!normalizedPos || normalizedPos === "noun") return false;
+  if (!normalizedPos || normalizedPos === "noun" || normalizedPos === "adjective") {
+    return false;
+  }
 
   if (new RegExp(`\\ba ${w}\\b`, "i").test(text)) return true;
   if (new RegExp(`\\bthe ${w} is\\b`, "i").test(text)) return true;

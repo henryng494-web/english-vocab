@@ -1,5 +1,6 @@
 import {
   alignExampleTranslations,
+  buildSenseAlignedExamples,
   ensureExamples,
   fillExampleTranslations,
 } from "@/lib/example-fallback";
@@ -8,9 +9,7 @@ import {
   type WordEnrichment,
 } from "@/lib/gemini-core";
 import {
-  hasMeaningAlignedExamples,
   hasQualityExamples,
-  keepNaturalExamples,
 } from "@/lib/example-quality";
 import { parseExamples, serializeExamples } from "@/lib/parse-examples";
 import { alignmentMeaningLines } from "@/lib/word-meanings";
@@ -36,6 +35,11 @@ export async function repairWordExamples(
 
   if (hasQualityExamples(word, parsed, wordType, meaning)) {
     return examples?.trim() ? examples : serializeExamples(parsed);
+  }
+
+  const offline = buildSenseAlignedExamples(word, wordType, meaning);
+  if (hasQualityExamples(word, offline, wordType, meaning)) {
+    return serializeExamples(offline);
   }
 
   const needsRegeneration = examplesNeedRegeneration(
@@ -67,6 +71,17 @@ export async function repairWordExamples(
     : hasQualityExamples(word, aligned, wordType, meaning)
       ? aligned
       : [];
+
+  if (hasQualityExamples(word, finalExamples, wordType, meaning)) {
+    return serializeExamples(finalExamples);
+  }
+
+  if (hasQualityExamples(word, offline, wordType, meaning)) {
+    return serializeExamples(offline);
+  }
+
+  if (examples?.trim()) return examples;
+  if (offline.length > 0) return serializeExamples(offline);
   return serializeExamples(finalExamples);
 }
 

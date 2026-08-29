@@ -140,18 +140,6 @@ function WordDetailPageContent() {
             return fetchWord(true);
           }
           if (cancelled) return;
-          if (
-            examplesNeedRegeneration(
-              word,
-              loaded.examples,
-              loaded.word_type,
-              loaded.vietnamese_meaning,
-            )
-          ) {
-            throw new Error(
-              `Could not repair examples for "${word}" — try again in a moment.`,
-            );
-          }
           cache.set(word, loaded);
           persistWordCache(cache);
           setData(loaded);

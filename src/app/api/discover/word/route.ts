@@ -148,6 +148,7 @@ async function repairPersistedExamplesIfNeeded(
   word: string,
   detail: WordDetail,
 ): Promise<string> {
+  const previous = detail.examples?.trim() ?? "";
   const repaired = await repairWordExamples(
     word,
     detail.examples,
@@ -163,8 +164,20 @@ async function repairPersistedExamplesIfNeeded(
     )
   ) {
     await persistRepairField(supabase, word, "examples", repaired, detail.examples);
+    return repaired;
   }
-  return repaired;
+  if (
+    previous &&
+    !examplesNeedRegeneration(
+      word,
+      previous,
+      detail.word_type,
+      detail.vietnamese_meaning,
+    )
+  ) {
+    return previous;
+  }
+  return repaired.trim() ? repaired : previous;
 }
 
 async function repairPhoneticIfNeeded(
@@ -425,15 +438,16 @@ export async function GET(request: Request) {
         word,
         examples,
         responseWord.word_type,
-        responseWord.vietnamese_meaning,
+        vietnameseMeaningFinal,
       )
     ) {
-      examples = await repairWordExamples(
+      const retried = await repairWordExamples(
         word,
-        null,
+        examples,
         responseWord.word_type,
-        responseWord.vietnamese_meaning,
+        vietnameseMeaningFinal,
       );
+      if (retried.trim()) examples = retried;
     }
     const phonetic = await repairPhoneticIfNeeded(word, responseWord.phonetic);
 

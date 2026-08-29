@@ -195,6 +195,109 @@ export function buildNaturalExamples(
   );
 }
 
+/** Offline examples that pass quality checks and match displayed gloss lines. */
+const SENSE_ALIGNED_TEMPLATES: Record<
+  string,
+  Array<{ en: string; vi: string }>
+> = {
+  adjective: [
+    {
+      en: "The food at that restaurant was {w}.",
+      vi: "Đồ ăn ở nhà hàng đó {term}.",
+    },
+    {
+      en: "A {w} oak tree stood beside the road.",
+      vi: "Một cây sồi {term} đứng bên cạnh con đường.",
+    },
+    {
+      en: "My sister felt {w} after the good news.",
+      vi: "Em gái tôi cảm thấy {term} sau tin vui.",
+    },
+  ],
+  verb: [
+    {
+      en: "I like to {w} pictures on weekends.",
+      vi: "Tôi thích {term} tranh vào cuối tuần.",
+    },
+    {
+      en: "What did you {w} from that meeting?",
+      vi: "Bạn đã {term} gì từ cuộc họp đó?",
+    },
+    {
+      en: "They {w} together every Friday evening.",
+      vi: "Họ {term} cùng nhau mỗi tối thứ Sáu.",
+    },
+  ],
+  noun: [
+    {
+      en: "The {w} on the desk caught my eye.",
+      vi: "{term} trên bàn đã thu hút sự chú ý của tôi.",
+    },
+    {
+      en: "We talked about the {w} over coffee.",
+      vi: "Chúng tôi nói về {term} trong lúc uống cà phê.",
+    },
+  ],
+  adverb: [
+    {
+      en: "She answered the question {w}.",
+      vi: "Cô ấy trả lời câu hỏi một cách {term}.",
+    },
+    {
+      en: "He finished the task {w} than yesterday.",
+      vi: "Anh ấy hoàn thành công việc {term} hơn hôm qua.",
+    },
+  ],
+};
+
+function applySenseTemplate(
+  template: { en: string; vi: string },
+  word: string,
+  term: string,
+): VocabExample {
+  const w = displayWord(word);
+  const gloss = term.toLowerCase();
+  return {
+    en: template.en.replace(/\{w\}/g, w),
+    vi: template.vi.replace(/\{term\}/g, gloss),
+  };
+}
+
+/** Gemini-free bilingual examples aligned to displayed Vietnamese glosses. */
+export function buildSenseAlignedExamples(
+  word: string,
+  pos?: string | null,
+  meaning?: string | null,
+): VocabExample[] {
+  const type = normalizeWordType(pos, word) ?? "noun";
+  const templates =
+    SENSE_ALIGNED_TEMPLATES[type] ??
+    SENSE_ALIGNED_TEMPLATES.noun ??
+    [];
+  const meaningLines = alignmentMeaningLines(meaning);
+  if (!templates.length || !meaningLines.length) return [];
+
+  const results: VocabExample[] = [];
+  if (meaningLines.length >= 2) {
+    for (let index = 0; index < TARGET_COUNT; index += 1) {
+      const line = meaningLines[Math.min(index, meaningLines.length - 1)]!;
+      const template = templates[Math.min(index, templates.length - 1)]!;
+      results.push({
+        ...applySenseTemplate(template, word, line),
+        senseIndex: index + 1,
+      });
+    }
+    return results;
+  }
+
+  const line = meaningLines[0]!;
+  for (let index = 0; index < TARGET_COUNT; index += 1) {
+    const template = templates[Math.min(index, templates.length - 1)]!;
+    results.push(applySenseTemplate(template, word, line));
+  }
+  return results;
+}
+
 function senseMeaningForExample(
   meaningLines: string[],
   index: number,
