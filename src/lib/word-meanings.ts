@@ -184,6 +184,11 @@ export function glossAlignmentTerms(line: string): string[] {
   return [...terms].sort((a, b) => b.length - a.length);
 }
 
+/** Lowercase gloss text; only the first character of the displayed line should be capitalized. */
+function normalizeGlossCasing(text: string): string {
+  return text.trim().toLocaleLowerCase("vi");
+}
+
 /**
  * Compact one gloss line for card display.
  * When multiple senses are shown, keep one core word per line.
@@ -199,12 +204,19 @@ export function compactMeaningLineForDisplay(
   const parts = splitMeaningSynonyms(line);
 
   if (parts.length === 0) {
-    return capitalizeFirst(stripMeaningClarifiers(stripEmbeddedRegisterHints(line)));
+    const fallback = stripMeaningClarifiers(stripEmbeddedRegisterHints(line));
+    return capitalizeFirst(normalizeGlossCasing(fallback));
   }
 
-  const synonyms = parts.slice(0, maxSynonyms).join(", ");
+  const synonyms = parts
+    .slice(0, maxSynonyms)
+    .map((part) => normalizeGlossCasing(part))
+    .join(", ");
+
   if (context) {
-    return capitalizeFirst(`${context} ${synonyms}`.trim());
+    return capitalizeFirst(
+      `${normalizeGlossCasing(context)} ${synonyms}`.trim(),
+    );
   }
 
   return capitalizeFirst(synonyms);
