@@ -4,7 +4,7 @@
  *
  * DO NOT change without bumping FRAMEWORK_VERSION and CAST_WORD_IMAGE_BUNDLE.
  */
-export const CAST_WORD_IMAGE_BUNDLE = "jungle18";
+export const CAST_WORD_IMAGE_BUNDLE = "jungle19";
 /** Highest preset rank with cast images (ranges may be non-contiguous). */
 export const CAST_WORD_IMAGE_TOP_RANK = 6000;
 
@@ -23,7 +23,7 @@ import {
 } from "@/data/jungle-cast-samples";
 
 /** Bump when framework rules or pipeline change (independent of image bundle). */
-export const JUNGLE_CAST_FRAMEWORK_VERSION = "jungle18-v1";
+export const JUNGLE_CAST_FRAMEWORK_VERSION = "jungle19-v1";
 
 export const JUNGLE_CAST_IMAGE_FRAMEWORK = {
   version: JUNGLE_CAST_FRAMEWORK_VERSION,

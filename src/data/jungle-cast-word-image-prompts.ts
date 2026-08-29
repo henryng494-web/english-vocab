@@ -48499,6 +48499,133 @@ export const JUNGLE_WORD_IMAGE_ENTRIES: Readonly<
     ],
     "scene": "ONLY purple monkey on plain white #FFFFFF — acting out the meaning of \"interpretation\" clearly on white canvas. PROPS (grounded on white): interpreta concept workplace professional scene — simplified flat cartoon props on white floor. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"interpretation\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
     "expressions": "Monkey: expressive face matching word meaning, sitting side profile, exactly two arms two legs."
+  },
+  "modesty": {
+    "cast": [
+      "monkey"
+    ],
+    "scene": "ONLY purple monkey on plain white #FFFFFF — modest purple monkey covers a shiny gold medal with both paws and looks down shyly, while a flashy unused trophy sits ignored. PROPS (grounded on white): gold medal half-hidden, unused trophy to the side. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"modesty\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Monkey: shy humble smile, eyes down, sitting side profile, exactly two arms two legs."
+  },
+  "nightcap": {
+    "cast": [
+      "elephant"
+    ],
+    "scene": "ONLY pink elephant on plain white #FFFFFF — sleepy pink elephant wears a pointed striped sleeping cap and sips a tiny warm mug beside a crescent moon. PROPS (grounded on white): pointed striped nightcap, warm bedtime mug, crescent moon. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"nightcap\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Elephant: sleepy gentle smile, giant circle head + stick body unchanged, BOTH thin stick arms visible holding mug."
+  },
+  "unethical": {
+    "cast": [
+      "crocodile"
+    ],
+    "scene": "ONLY lime-green crocodile on plain white #FFFFFF — lime-green crocodile sneaks a peek at a hidden answer sheet under the desk while a labeled TEST paper sits on top — cheating is wrong. PROPS (grounded on white): test paper, hidden answer sheet, red X mark. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"unethical\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Crocodile: sneaky guilty eyes on horizontal log body low to ground, four stub legs."
+  },
+  "screwy": {
+    "cast": [
+      "elephant",
+      "crocodile"
+    ],
+    "scene": "ONLY pink elephant and lime-green crocodile on plain white #FFFFFF — pink elephant holds a metal screw bent completely crooked while lime-green crocodile looks confused at a wobbly lopsided chair. PROPS (grounded on white): bent crooked screw, wobbly lopsided chair. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"screwy\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Elephant: puzzled frown, giant circle head + stick body unchanged, BOTH thin stick arms visible. Crocodile: confused tilted-head look on horizontal log body low to ground, four stub legs."
+  },
+  "redneck": {
+    "cast": [
+      "elephant",
+      "tiger"
+    ],
+    "scene": "ONLY pink elephant and orange tiger on plain white #FFFFFF — educational farm scene: pink elephant in denim overalls and a straw hat stands by a red pickup truck after sunny fieldwork, back of neck pink from the sun. PROPS (grounded on white): red pickup truck, straw hat, denim overalls, small hay bale. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"redneck\" meaning must be obvious instantly as a rural farm worker. Mascots max 55% frame height, centered, wide margins, no clipping. Kid-safe, respectful, no mockery.",
+    "expressions": "Elephant: friendly farm smile, giant circle head + stick body unchanged, BOTH thin stick arms visible. Tiger: cheerful helper grin, orange sphere body unchanged, two stub arms two stub legs."
+  },
+  "sedan": {
+    "cast": [
+      "crocodile",
+      "tiger"
+    ],
+    "scene": "ONLY lime-green crocodile and orange tiger on plain white #FFFFFF — lime-green crocodile and orange tiger stand beside a compact four-door family sedan car with clearly visible four doors. PROPS (grounded on white): four-door sedan car, small suitcase. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"sedan\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Crocodile: proud showing-off look on horizontal log body low to ground, four stub legs. Tiger: happy excited grin, orange sphere body unchanged, two stub arms two stub legs."
+  },
+  "fascination": {
+    "cast": [
+      "monkey",
+      "elephant"
+    ],
+    "scene": "ONLY purple monkey and pink elephant on plain white #FFFFFF — both lean in wide-eyed, completely absorbed by a glowing glass jar with a sparkling butterfly inside. PROPS (grounded on white): glowing glass jar, sparkling butterfly. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"fascination\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Monkey: wide sparkling eyes, open mouth wonder, sitting side profile, exactly two arms two legs. Elephant: wide sparkling eyes, giant circle head + stick body unchanged, BOTH thin stick arms visible."
+  },
+  "algebra": {
+    "cast": [
+      "monkey",
+      "crocodile"
+    ],
+    "scene": "ONLY purple monkey and lime-green crocodile on plain white #FFFFFF — purple monkey writes x + 2 = 5 on a small chalkboard while lime-green crocodile points at the letter x. PROPS (grounded on white): chalkboard with x + 2 = 5, chalk, small plus and equals tiles. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"algebra\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Monkey: focused teaching face, sitting side profile, exactly two arms two legs. Crocodile: curious thinking look on horizontal log body low to ground, four stub legs."
+  },
+  "parlour": {
+    "cast": [
+      "monkey",
+      "tiger"
+    ],
+    "scene": "ONLY purple monkey and orange tiger on plain white #FFFFFF — both sit in a cozy sitting room with a sofa, tea set, and floor lamp — a parlour. PROPS (grounded on white): sofa, tea set on low table, floor lamp. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"parlour\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Monkey: relaxed polite smile, sitting side profile, exactly two arms two legs. Tiger: cozy content grin, orange sphere body unchanged, two stub arms two stub legs."
+  },
+  "municipal": {
+    "cast": [
+      "elephant",
+      "crocodile"
+    ],
+    "scene": "ONLY pink elephant and lime-green crocodile on plain white #FFFFFF — pink elephant in a tiny mayor sash stands before a city-hall building with a town flag while lime-green crocodile holds a street-sign labeled CITY. PROPS (grounded on white): small city-hall building, town flag, CITY street sign. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"municipal\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Elephant: official proud smile, giant circle head + stick body unchanged, BOTH thin stick arms visible. Crocodile: helpful civic look on horizontal log body low to ground, four stub legs."
+  },
+  "abyss": {
+    "cast": [
+      "elephant",
+      "tiger"
+    ],
+    "scene": "ONLY pink elephant and orange tiger on plain white #FFFFFF — both peek nervously over the rim of a deep dark circular pit going down into blackness — an abyss. PROPS (grounded on white): deep dark circular pit, tiny rope at the edge. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"abyss\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Elephant: nervous wide eyes, giant circle head + stick body unchanged, BOTH thin stick arms visible. Tiger: cautious worried look, orange sphere body unchanged, two stub arms two stub legs."
+  },
+  "charcoal": {
+    "cast": [
+      "crocodile",
+      "tiger"
+    ],
+    "scene": "ONLY lime-green crocodile and orange tiger on plain white #FFFFFF — lime-green crocodile holds black charcoal sticks and tiger sketches with a charcoal stick on paper beside a small BBQ grill of black lumps. PROPS (grounded on white): black charcoal sticks, sketch paper, small BBQ grill with black lumps. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"charcoal\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Crocodile: focused artist look on horizontal log body low to ground, four stub legs. Tiger: smudged-cheek happy grin, orange sphere body unchanged, two stub arms two stub legs."
+  },
+  "dung": {
+    "cast": [
+      "monkey",
+      "elephant"
+    ],
+    "scene": "ONLY purple monkey and pink elephant on plain white #FFFFFF — educational farm compost: pink elephant wheels a cart of brown compost fertilizer toward a vegetable garden while purple monkey holds a small shovel. PROPS (grounded on white): wheelbarrow of brown compost, garden plants, small shovel. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"dung\" meaning must be obvious as farm fertilizer compost. Kid-safe, no graphic mess. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Monkey: helpful farm face, sitting side profile, exactly two arms two legs. Elephant: working smile, giant circle head + stick body unchanged, BOTH thin stick arms visible."
+  },
+  "vulture": {
+    "cast": [
+      "monkey",
+      "tiger"
+    ],
+    "scene": "ONLY purple monkey and orange tiger on plain white #FFFFFF — both look up at a large cartoon vulture bird with a bald head and hooked beak perched on a bare tree branch. PROPS (grounded on white): cartoon vulture bird, bare tree branch. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"vulture\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Monkey: curious pointing face, sitting side profile, exactly two arms two legs. Tiger: watching upward look, orange sphere body unchanged, two stub arms two stub legs."
+  },
+  "gala": {
+    "cast": [
+      "monkey",
+      "crocodile",
+      "tiger"
+    ],
+    "scene": "ONLY purple monkey, lime-green crocodile, and orange tiger on plain white #FFFFFF — fancy party: mascots wear tiny bow ties under hanging balloons and a banner reading GALA. PROPS (grounded on white): balloons, GALA banner, bow ties, small cake. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"gala\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Monkey: festive happy smile, sitting side profile, exactly two arms two legs. Crocodile: cheerful party look on horizontal log body low to ground, four stub legs. Tiger: excited party grin, orange sphere body unchanged, two stub arms two stub legs."
+  },
+  "delete": {
+    "cast": [
+      "elephant",
+      "crocodile",
+      "tiger"
+    ],
+    "scene": "ONLY pink elephant, lime-green crocodile, and orange tiger on plain white #FFFFFF — pink elephant presses a big keyboard key labeled DELETE while lime-green crocodile drops a paper into a trash can and tiger holds an eraser over a crossed-out word. PROPS (grounded on white): DELETE key, trash can, eraser, crossed-out word on paper. Accent doodle: small grass tuft OR swing silhouette OR flower. Word \"delete\" meaning must be obvious instantly. Mascots max 55% frame height, centered, wide margins, no clipping.",
+    "expressions": "Elephant: decisive press, giant circle head + stick body unchanged, BOTH thin stick arms visible. Crocodile: helpful tossing look on horizontal log body low to ground, four stub legs. Tiger: focused erasing look, orange sphere body unchanged, two stub arms two stub legs."
   }
 } as const;
 

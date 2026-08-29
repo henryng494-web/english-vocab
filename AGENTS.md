@@ -56,7 +56,7 @@ src/
 - **Discover API:** `src/app/api/discover/word/route.ts`
 - **Word image API:** `src/app/api/word-image/route.ts` (fast stock lookup, no Gemini)
 - **Stock image pipeline:** `src/lib/unsplash.ts` (`fetchWordImageUrl`, `SEMANTIC_IMAGE_VERSION`)
-- **Client cache:** `src/lib/discover-word-cache.ts` (key `discover-word-cache-v53`)
+- **Client cache:** `src/lib/discover-word-cache.ts` (key `discover-word-cache-v88`)
 
 ## Locked flashcard UI — do not change layout
 
@@ -84,9 +84,9 @@ You may fix bugs inside these files but preserve the layout contract.
 - Only `images.pexels.com` and `images.unsplash.com` URLs are displayed on cards; stale/non-stock DB URLs auto-refresh via `/api/word-image`.
 - Bump `SEMANTIC_IMAGE_VERSION` in `unsplash.ts` and `DISCOVER_WORD_CACHE_VERSION` when image scoring or cache rules change.
 
-## Jungle Jokers cast word images (rank 1–300) — LOCKED FRAMEWORK
+## Jungle Jokers cast word images (rank 1–6000) — LOCKED FRAMEWORK
 
-Bundled mascot scenes for preset rank 1–300. **Do not regress** to Pollinations, lineup refs, or generic prompts.
+Bundled mascot scenes for preset rank 1–6000. **Do not regress** to Pollinations, lineup refs, or generic prompts.
 
 | Item | Location |
 |------|----------|
@@ -95,7 +95,7 @@ Bundled mascot scenes for preset rank 1–300. **Do not regress** to Pollination
 | Word prompts + cast assignments | `src/data/jungle-cast-word-image-prompts.ts` |
 | Shape/style rules | `src/data/jungle-cast-samples.ts` |
 | Character ref PNGs | `public/mascot/jungle-jokers/*.png` |
-| Bundle cache key | `CAST_WORD_IMAGE_BUNDLE` in `src/data/jungle-cast-image-framework.ts` (currently `jungle12`) |
+| Bundle cache key | `CAST_WORD_IMAGE_BUNDLE` in `src/data/jungle-cast-image-framework.ts` (currently `jungle19`) |
 
 **Add rank 101–150 prompts:** `npm run build:jungle-casts-101-150`
 **Add rank 151–160 prompts:** `npm run build:jungle-casts-151-160`
