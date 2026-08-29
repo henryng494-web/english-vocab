@@ -2,7 +2,7 @@
 
 import { useAutoSpeakWord } from "@/hooks/use-auto-speak-word";
 import { capitalizeFirst } from "@/lib/format-text";
-import { normalizeWordType } from "@/lib/word-type";
+import { normalizeWordType, wordTypeLabelVi } from "@/lib/word-type";
 import {
   displayWordRegister,
   formatMeaningsForDisplay,
@@ -31,7 +31,7 @@ export function WordCardHeader({
   compact = false,
 }: WordCardHeaderProps) {
   useAutoSpeakWord(word);
-  const wordTypeLabel = normalizeWordType(wordType, word);
+  const wordTypeLabel = wordTypeLabelVi(wordType, word);
   const meaningLines = meanings ? formatMeaningsForDisplay(meanings) : [];
   const registerLabel = registerLabelVi(displayWordRegister(register));
 
@@ -77,15 +77,17 @@ export function WordCardHeader({
 
           <div className="word-card-header__meta">
             {registerLabel ? (
-              <div className="word-card-header__register">
-                <span className="word-card-header__register-label">Register</span>
-                <span className="word-card-header__register-value">{registerLabel}</span>
-              </div>
+              <span
+                className="word-card-header__register-value"
+                aria-label={`Phong cách: ${registerLabel}`}
+              >
+                {registerLabel}
+              </span>
             ) : null}
 
             {wordTypeLabel ? (
               <span className="word-card-header__pos word-type-badge">
-                {capitalizeFirst(wordTypeLabel)}
+                {wordTypeLabel}
               </span>
             ) : null}
           </div>
