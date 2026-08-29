@@ -134,9 +134,48 @@ export function displayWordRegister(
   return normalizeWordRegister(register ?? "") ?? "formal";
 }
 
+/** Remove parenthetical clarifiers like "(âm thanh)" from a gloss line. */
+function stripMeaningClarifiers(line: string): string {
+  return line
+    .replace(/\([^)]*\)/g, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
+
+/** Split a gloss into comma-separated synonym parts. */
+function splitMeaningSynonyms(line: string): string[] {
+  const cleaned = stripMeaningClarifiers(stripEmbeddedRegisterHints(line));
+  if (!cleaned) return [];
+  return cleaned
+    .split(/[,，;；]/)
+    .map((part) => part.trim())
+    .filter(Boolean);
+}
+
+/**
+ * Compact one gloss line for card display.
+ * When multiple senses are shown, keep one core word per line.
+ * When only one sense is shown, allow up to two descriptive words.
+ */
+export function compactMeaningLineForDisplay(
+  line: string,
+  maxSynonyms: number,
+): string {
+  const parts = splitMeaningSynonyms(line);
+  if (parts.length === 0) {
+    return capitalizeFirst(stripMeaningClarifiers(stripEmbeddedRegisterHints(line)));
+  }
+  return capitalizeFirst(parts.slice(0, maxSynonyms).join(", "));
+}
+
 export function formatMeaningsForDisplay(text: string | null | undefined): string[] {
-  return parseVietnameseMeanings(text)
-    .map((line) => stripEmbeddedRegisterHints(line))
-    .filter(Boolean)
-    .map((line) => capitalizeFirst(line));
+  const meanings = parseVietnameseMeanings(text)
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  const maxSynonymsPerLine = meanings.length >= 2 ? 1 : 2;
+
+  return meanings
+    .slice(0, 2)
+    .map((line) => compactMeaningLineForDisplay(line, maxSynonymsPerLine));
 }
