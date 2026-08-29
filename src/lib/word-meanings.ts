@@ -134,6 +134,15 @@ export function displayWordRegister(
   return normalizeWordRegister(register ?? "") ?? "formal";
 }
 
+/** Extract a short domain hint from parentheses, e.g. "(âm thanh)" → "âm thanh". */
+function extractMeaningContext(line: string): string | null {
+  const match = line.match(/\(([^)]+)\)/);
+  if (!match?.[1]?.trim()) return null;
+  const inner = match[1].trim();
+  const firstPhrase = inner.split(/[,，;；]/)[0]?.trim();
+  return firstPhrase || null;
+}
+
 /** Remove parenthetical clarifiers like "(âm thanh)" from a gloss line. */
 function stripMeaningClarifiers(line: string): string {
   return line
@@ -156,16 +165,26 @@ function splitMeaningSynonyms(line: string): string[] {
  * Compact one gloss line for card display.
  * When multiple senses are shown, keep one core word per line.
  * When only one sense is shown, allow up to two descriptive words.
+ * If a domain hint exists in parentheses, prefix it to avoid ambiguity
+ * (e.g. "To, lớn (âm thanh)" → "Âm thanh to").
  */
 export function compactMeaningLineForDisplay(
   line: string,
   maxSynonyms: number,
 ): string {
+  const context = extractMeaningContext(line);
   const parts = splitMeaningSynonyms(line);
+
   if (parts.length === 0) {
     return capitalizeFirst(stripMeaningClarifiers(stripEmbeddedRegisterHints(line)));
   }
-  return capitalizeFirst(parts.slice(0, maxSynonyms).join(", "));
+
+  const synonyms = parts.slice(0, maxSynonyms).join(", ");
+  if (context) {
+    return capitalizeFirst(`${context} ${synonyms}`.trim());
+  }
+
+  return capitalizeFirst(synonyms);
 }
 
 export function formatMeaningsForDisplay(text: string | null | undefined): string[] {
