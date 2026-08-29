@@ -3,15 +3,43 @@
 export const VALID_POS =
   "noun|verb|adjective|adverb|pronoun|preposition|conjunction|article|number|interjection|determiner";
 
+export const REGISTER_CLASSIFICATION_RULES = `REGISTER — pick ONE value for the PRIMARY sense (first meaning line):
+
+everyday (DEFAULT for most general vocabulary)
+  • Normal speech, news, school, family, health talk anyone can understand
+  • Includes words that CAN appear in medicine/science but are still common English:
+    hereditary, chronic, genetic, infection, symptom, depression, legal (adj.), royal
+  • If a layperson would know the word without specialist training → everyday, NOT technical
+
+formal
+  • Polite official tone: business, announcements, academic essays, ceremonies
+  • Aristocracy, titles, diplomacy: hereditary title, commence, endeavor, nevertheless
+  • Use when the dominant sense is elevated/neutral-official, not casual slang
+
+legal
+  • Contracts, statutes, court filings: hereby, pursuant, aforesaid, herein
+  • JSON may say "legal"; learners still see Formal in the app
+
+technical
+  • ONLY specialist jargon — terms laypeople rarely say unprompted
+  • e.g. mitochondria, pathogen, algorithm, torque, photosynthesis, myocardial
+  • NOT general adjectives/nouns just because an example mentions diabetes or biology
+  • Ask: "Would this word headline a textbook chapter title?" If no → not technical
+
+literary
+  • Rare, poetic, archaic as the PRIMARY sense: betwixt, thou, ere (as primary)
+
+slang
+  • Very casual / in-group only — only if that is the most common sense
+
+Dual meanings (2 lines): register = the FIRST meaning's register (most frequent sense).
+Never tag the whole entry "technical" because sense 2 touches science if sense 1 is general.`;
+
 export const POS_CLASSIFICATION_RULES = `STEP 1 — Classify the word BEFORE translating:
 - pos: one of ${VALID_POS}
 - register: everyday | formal | legal | technical | literary | slang
-  • everyday = common speech, daily life
-  • formal = polite official speech, announcements, business
-  • legal = contracts, laws, official documents (hereby, pursuant, aforesaid) — still set register to "formal" for learner display unless truly slang/technical
-  • technical = science, medicine, engineering jargon
-  • literary = rare literary/archaic usage
-  • slang = informal / very casual (skip unless it is the ONLY common sense)
+
+${REGISTER_CLASSIFICATION_RULES}
 
 Pick the PRIMARY sense learners meet most often for that word's rank — but NEVER force a formal/legal word into casual "bằng cách này" if the real sense is trang trọng/văn bản.`;
 
@@ -39,9 +67,10 @@ interjection → thán từ (e.g. "Ôi!", "Wow")
 
 register tweaks:
 - NEVER write register hints inside meanings — no "(trang trọng)", "(pháp lý)" in the gloss; the register JSON field carries tone
+- register follows the FIRST meaning when there are 2 senses
 - formal/legal → examples may be official sentences
-- technical → keep precise domain term if standard in Vietnamese
-- everyday → natural spoken Vietnamese`;
+- technical → only when the headword itself is jargon; medical TOPICS in examples do not make a general word technical
+- everyday → natural spoken Vietnamese; health/family senses (hereditary, chronic) stay everyday`;
 
 export const EXAMPLE_RULES = (word: string) => `STEP 3 — Examples (EXACTLY 2):
 - English: 5–10 words, MUST contain "${word}"
@@ -71,6 +100,11 @@ Gold standards:
   meanings: ["Theo đây"]
   register: "formal"
   - I hereby accept your job offer. → Tôi theo đây chấp nhận lời mời làm việc của bạn.
+• hereditary (adjective, everyday) — 2 senses:
+  meanings: ["Di truyền", "Nối ngôi, thừa kế"]
+  register: "everyday"
+  - NOT technical — common word even in health/family talk; sense 2 (title) is formal but secondary for register field
+  - example 1: hereditary disease / family trait · example 2: hereditary title / monarchy
 
 ${POS_CLASSIFICATION_RULES}
 
