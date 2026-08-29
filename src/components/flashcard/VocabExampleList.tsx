@@ -32,9 +32,8 @@ export function VocabExampleList({
       ? "vocab-examples__item"
       : "vocab-examples__item bg-[var(--example-bg)] text-[0.9375rem] leading-snug";
 
-  const enClass = "vocab-examples__en italic text-foreground/80";
-  const viClass =
-    "vocab-examples__vi mt-0.5 italic text-[var(--mascot-elephant)]";
+  const enClass = "vocab-examples__en italic";
+  const viClass = "vocab-examples__vi mt-0.5 italic";
 
   return (
     <ul

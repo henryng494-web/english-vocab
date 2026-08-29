@@ -520,12 +520,18 @@ body {
 .vocab-examples__vi {
   -webkit-line-clamp: 2;
   font-size: 0.933em;
-  color: var(--mascot-elephant);
   line-height: 1.4;
 }
 
+.discover-card .vocab-examples__en,
+.journey-card-slot .vocab-examples__en,
+.vocab-examples__en {
+  color: color-mix(in srgb, var(--foreground) 80%, transparent);
+}
+
 .discover-card .vocab-examples__vi,
-.journey-card-slot .vocab-examples__vi {
+.journey-card-slot .vocab-examples__vi,
+.vocab-examples__vi {
   color: var(--mascot-elephant);
 }
 
@@ -539,10 +545,6 @@ body {
   border-radius: 0.625rem;
   background: var(--example-bg);
   padding: 0.55rem 0.75rem;
-}
-
-.journey-card-slot .vocab-examples li p:last-child {
-  color: var(--mascot-elephant);
 }
 
 .journey-card-slot .word-type-badge {
