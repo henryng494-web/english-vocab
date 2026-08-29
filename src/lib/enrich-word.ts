@@ -1,5 +1,8 @@
 import { getPresetRank } from "@/data/preset-word-details";
-import { getStandardVocab } from "@/data/standard-vocab";
+import {
+  getStandardVocab,
+  hasQualityStandardVocab,
+} from "@/data/standard-vocab";
 import {
   ensureExamples,
   fillExampleTranslations,
@@ -267,7 +270,8 @@ export async function enrichWord(
     allowGemini: !options?.skipGemini,
   };
 
-  if (!options?.forceGemini) {
+  // Prefer curated cards even during repair — forceGemini only bypasses incomplete entries.
+  if (!options?.forceGemini || hasQualityStandardVocab(normalized)) {
     const fromStandard = await standardToEnrichment(
       normalized,
       presetRank,

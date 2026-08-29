@@ -21,6 +21,26 @@ const ENCYCLOPEDIC_GLOSS_PATTERNS: readonly RegExp[] = [
 
 const MAX_FLASHCARD_GLOSS_WORDS = 7;
 
+/** English headword → Vietnamese gloss that reads as direction, not the intended sense. */
+const DIRECTIONAL_GLOSS_MISMATCH: Readonly<Record<string, readonly string[]>> = {
+  wrong: ["trái", "trai"],
+  left: ["sai"],
+  right: ["sai"],
+};
+
+function isDirectionalGlossMismatch(
+  word: string,
+  line: string | null | undefined,
+): boolean {
+  const blocked = DIRECTIONAL_GLOSS_MISMATCH[word.trim().toLowerCase()];
+  if (!blocked?.length) return false;
+  const normalized = line?.trim().toLocaleLowerCase("vi") ?? "";
+  if (!normalized) return false;
+  return blocked.some(
+    (term) => normalized === term || normalized.split(/[,/]/).some((part) => part.trim() === term),
+  );
+}
+
 function glossWordCount(line: string): number {
   return line.trim().split(/\s+/).filter(Boolean).length;
 }
@@ -49,6 +69,7 @@ export function hasQualityMeanings(
 
   if (lines.some((line) => looksLikeEnglish(line))) return false;
   if (lines.some((line) => isEncyclopedicGloss(line))) return false;
+  if (lines.some((line) => isDirectionalGlossMismatch(word, line))) return false;
 
   const definition = englishDefinition?.trim().toLowerCase();
   if (definition) {

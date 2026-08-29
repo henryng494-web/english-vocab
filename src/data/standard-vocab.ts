@@ -793,6 +793,23 @@ const CURATED: Record<string, RawEntry> = {
     ],
     keyword: "december",
   },
+  wrong: {
+    pos: "adjective",
+    ipa: "/rɔːŋ/",
+    meaning: "Sai",
+    definition: "Có nghĩa là không đúng.",
+    examples: [
+      {
+        en: "Your calculations for the budget are completely wrong.",
+        vi: "Các tính toán ngân sách của bạn hoàn toàn sai.",
+      },
+      {
+        en: "She took the wrong path through the dark forest.",
+        vi: "Cô ấy đi sai đường qua khu rừng tối.",
+      },
+    ],
+    keyword: "wrong incorrect answer",
+  },
 };
 
 function fromRaw(word: string, raw: RawEntry): StandardVocabEntry {
