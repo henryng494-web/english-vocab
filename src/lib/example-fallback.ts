@@ -3,12 +3,13 @@ import {
   containsUntranslatedHeadword,
   isLikelyVietnameseGloss,
   keepNaturalExamples,
+  viTranslationMatchesGloss,
 } from "@/lib/example-quality";
 import type { VocabExample } from "@/lib/parse-examples";
 import { translateExampleWithGemini } from "@/lib/gemini-core";
 import { fetchMyMemoryTranslation } from "@/lib/translate-vi";
 import { normalizeWordType } from "@/lib/word-type";
-import { primaryVietnameseMeaning } from "@/lib/word-meanings";
+import { parseVietnameseMeanings, primaryVietnameseMeaning } from "@/lib/word-meanings";
 
 const TARGET_COUNT = 2;
 
@@ -191,6 +192,19 @@ export function buildNaturalExamples(
   );
 }
 
+function senseMeaningForExample(
+  meaningLines: string[],
+  index: number,
+  senseIndex?: number,
+): string | null {
+  if (!meaningLines.length) return null;
+  if (meaningLines.length >= 2) {
+    const senseNumber = senseIndex ?? index + 1;
+    return meaningLines[Math.min(Math.max(senseNumber, 1), meaningLines.length) - 1]!;
+  }
+  return meaningLines[0]!;
+}
+
 /** Fill missing or English-leaked Vietnamese lines — Gemini first, MyMemory last. */
 export async function fillExampleTranslations(
   examples: VocabExample[],
@@ -198,26 +212,72 @@ export async function fillExampleTranslations(
   pos?: string | null,
   meaning?: string | null,
 ): Promise<VocabExample[]> {
+  const meaningLines = parseVietnameseMeanings(meaning);
   const filled: VocabExample[] = [];
-  for (const item of examples) {
+  for (const [index, item] of examples.entries()) {
     const en = item.en?.trim() ?? "";
     if (!en) continue;
+    const senseMeaning = senseMeaningForExample(
+      meaningLines,
+      index,
+      item.senseIndex,
+    );
     let vi = item.vi?.trim() ?? "";
     const head = word?.trim() ?? "";
-    if (
+    const needsTranslation =
       !vi ||
-      (head && containsUntranslatedHeadword(vi, head))
-    ) {
+      (head && containsUntranslatedHeadword(vi, head)) ||
+      (senseMeaning && !viTranslationMatchesGloss(vi, senseMeaning));
+    if (needsTranslation) {
       vi =
-        (await translateExampleWithGemini(en, head || en, pos, meaning)) ||
+        (await translateExampleWithGemini(
+          en,
+          head || en,
+          pos,
+          senseMeaning ?? meaning,
+        )) ||
         (await fetchMyMemoryTranslation(en)) ||
         vi;
     }
     if (!vi) continue;
     if (head && containsUntranslatedHeadword(vi, head)) continue;
-    filled.push({ en, vi });
+    filled.push({ en, vi, senseIndex: item.senseIndex });
   }
   return filled;
+}
+
+/** Re-translate examples whose Vietnamese gloss does not match the stored meaning lines. */
+export async function alignExampleTranslations(
+  examples: VocabExample[],
+  word: string,
+  pos?: string | null,
+  meaning?: string | null,
+): Promise<VocabExample[]> {
+  const meaningLines = parseVietnameseMeanings(meaning);
+  if (!meaningLines.length) return examples;
+
+  const aligned: VocabExample[] = [];
+  for (const [index, item] of examples.entries()) {
+    const en = item.en?.trim() ?? "";
+    if (!en) continue;
+    const senseMeaning = senseMeaningForExample(
+      meaningLines,
+      index,
+      item.senseIndex,
+    );
+    let vi = item.vi?.trim() ?? "";
+    if (
+      !vi ||
+      (senseMeaning && !viTranslationMatchesGloss(vi, senseMeaning))
+    ) {
+      vi =
+        (await translateExampleWithGemini(en, word, pos, senseMeaning ?? meaning)) ||
+        vi;
+    }
+    if (!vi) continue;
+    aligned.push({ en, vi, senseIndex: item.senseIndex });
+  }
+  return aligned;
 }
 
 /** Keep natural examples; fill with everyday sentences only — never study-meta templates. */

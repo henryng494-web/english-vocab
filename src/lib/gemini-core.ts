@@ -18,6 +18,7 @@ import type { VocabExample } from "@/lib/parse-examples";
 import {
   encodeRegisterCollocation,
   normalizeWordRegister,
+  parseVietnameseMeanings,
   serializeVietnameseMeanings,
   type WordRegister,
 } from "@/lib/word-meanings";
@@ -114,16 +115,30 @@ function parseExamples(
   const parsed: VocabExample[] = [];
   for (const item of raw) {
     if (typeof item === "string" && item.trim()) {
-      parsed.push({ en: item.trim(), vi: "" });
+      parsed.push({ en: item.trim(), vi: "", senseIndex: parsed.length + 1 });
       continue;
     }
     if (item && typeof item === "object") {
       const en = item.en?.trim() ?? "";
       if (!en) continue;
-      parsed.push({ en, vi: sanitizeVietnameseText(item.vi) });
+      const senseIndexRaw = item.senseIndex ?? item.sense;
+      parsed.push({
+        en,
+        vi: sanitizeVietnameseText(item.vi),
+        senseIndex:
+          typeof senseIndexRaw === "number" && Number.isFinite(senseIndexRaw)
+            ? Math.max(1, Math.round(senseIndexRaw))
+            : undefined,
+      });
     }
   }
-  return parsed.slice(0, 2);
+  return parsed
+    .sort(
+      (a, b) =>
+        (a.senseIndex ?? Number.MAX_SAFE_INTEGER) -
+        (b.senseIndex ?? Number.MAX_SAFE_INTEGER),
+    )
+    .slice(0, 2);
 }
 
 function parseGeminiResponse(text: string, word: string): WordEnrichment {
@@ -260,12 +275,16 @@ export async function generateExamplesWithGemini(
   word: string,
   pos?: string | null,
   meaning?: string | null,
+  meanings?: string[] | null,
 ): Promise<VocabExample[] | null> {
   if (!process.env.GEMINI_API_KEY?.trim()) return null;
 
+  const meaningLines =
+    meanings?.filter(Boolean) ?? parseVietnameseMeanings(meaning);
+
   try {
     const text = await generateGeminiText(
-      buildExamplesPrompt(word, pos, meaning),
+      buildExamplesPrompt(word, pos, meaning, meaningLines),
     );
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (!jsonMatch) return null;

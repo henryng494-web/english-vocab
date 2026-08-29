@@ -152,13 +152,36 @@ function stripMeaningClarifiers(line: string): string {
 }
 
 /** Split a gloss into comma-separated synonym parts. */
-function splitMeaningSynonyms(line: string): string[] {
+export function splitMeaningSynonyms(line: string): string[] {
   const cleaned = stripMeaningClarifiers(stripEmbeddedRegisterHints(line));
   if (!cleaned) return [];
   return cleaned
     .split(/[,，;；]/)
     .map((part) => part.trim())
     .filter(Boolean);
+}
+
+/**
+ * Vietnamese phrases that should appear in an example translation for this gloss.
+ * Longest phrases first so "rút ra" is preferred over "rút".
+ */
+export function glossAlignmentTerms(line: string): string[] {
+  const terms = new Set<string>();
+  const parts = splitMeaningSynonyms(line);
+
+  for (const part of parts) {
+    const lower = part.toLowerCase();
+    if (lower) terms.add(lower);
+    const words = lower.split(/\s+/).filter(Boolean);
+    if (words.length > 1) {
+      terms.add(words[0]!);
+    }
+  }
+
+  const full = stripMeaningClarifiers(stripEmbeddedRegisterHints(line)).toLowerCase();
+  if (full) terms.add(full);
+
+  return [...terms].sort((a, b) => b.length - a.length);
 }
 
 /**

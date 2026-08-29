@@ -6,6 +6,8 @@ const PAIR_DELIMITER = "|||";
 export type VocabExample = {
   en: string;
   vi: string;
+  /** 1-based sense index when the word has multiple meanings. */
+  senseIndex?: number;
 };
 
 function normalizeExample(item: string | VocabExample): VocabExample | null {

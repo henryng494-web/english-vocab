@@ -9,7 +9,7 @@ import {
 } from "@/lib/word-meanings";
 
 /** Bump when Gemini/Unsplash pipeline or image quality rules change. */
-export const DISCOVER_WORD_CACHE_VERSION = 79;
+export const DISCOVER_WORD_CACHE_VERSION = 80;
 
 const STORAGE_KEY = `discover-word-cache-v${DISCOVER_WORD_CACHE_VERSION}`;
 
@@ -89,7 +89,14 @@ export function isWordDetailComplete(
 ): boolean {
   if (!data?.vietnamese_meaning?.trim()) return false;
   if (containsForeignScript(data.vietnamese_meaning)) return false;
-  if (!hasQualityExamples(data.word, parseExamples(data.examples), data.word_type)) {
+  if (
+    !hasQualityExamples(
+      data.word,
+      parseExamples(data.examples),
+      data.word_type,
+      data.vietnamese_meaning,
+    )
+  ) {
     return false;
   }
   if (expectedWord && data.word.toLowerCase() !== expectedWord.toLowerCase()) {

@@ -3,6 +3,7 @@ import { getStandardVocab } from "@/data/standard-vocab";
 import {
   ensureExamples,
   fillExampleTranslations,
+  alignExampleTranslations,
   hasQualityExamples,
   keepNaturalExamples,
 } from "@/lib/example-fallback";
@@ -72,38 +73,44 @@ async function finalizeExamples(
   allowGemini?: boolean,
 ): Promise<VocabExample[]> {
   const existing = keepNaturalExamples(word, examples, pos);
-  if (hasQualityExamples(word, existing, pos)) {
+  if (hasQualityExamples(word, existing, pos, meaning)) {
     return existing.slice(0, 2);
   }
 
   if (allowGemini) {
-    const generated = await generateExamplesWithGemini(word, pos, meaning);
-    if (hasQualityExamples(word, generated ?? undefined, pos)) {
+    const generated = await generateExamplesWithGemini(
+      word,
+      pos,
+      meaning,
+      parseVietnameseMeanings(meaning),
+    );
+    if (hasQualityExamples(word, generated ?? undefined, pos, meaning)) {
       return (generated ?? []).slice(0, 2);
     }
     if (generated?.length) {
       const merged = keepNaturalExamples(word, [...existing, ...generated], pos);
-      if (hasQualityExamples(word, merged, pos)) return merged.slice(0, 2);
+      if (hasQualityExamples(word, merged, pos, meaning)) return merged.slice(0, 2);
     }
   }
 
   const naturalOnly = keepNaturalExamples(word, existing, pos);
   if (naturalOnly.length >= 2) {
     const translated = await fillExampleTranslations(naturalOnly, word, pos, meaning);
-    if (hasQualityExamples(word, translated, pos)) {
+    if (hasQualityExamples(word, translated, pos, meaning)) {
       return translated.slice(0, 2);
     }
   }
 
   const ensured = ensureExamples(word, existing, pos, meaning);
-  if (hasQualityExamples(word, ensured, pos)) return ensured.slice(0, 2);
+  const aligned = await alignExampleTranslations(ensured, word, pos, meaning);
+  if (hasQualityExamples(word, aligned, pos, meaning)) return aligned.slice(0, 2);
 
-  const translatedEnsured = await fillExampleTranslations(ensured, word, pos, meaning);
-  if (hasQualityExamples(word, translatedEnsured, pos)) {
+  const translatedEnsured = await fillExampleTranslations(aligned, word, pos, meaning);
+  if (hasQualityExamples(word, translatedEnsured, pos, meaning)) {
     return translatedEnsured.slice(0, 2);
   }
 
-  return translatedEnsured.length ? translatedEnsured.slice(0, 2) : ensured;
+  return translatedEnsured.length ? translatedEnsured.slice(0, 2) : aligned;
 }
 
 function meaningFields(meaning: string) {

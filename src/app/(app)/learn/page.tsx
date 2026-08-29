@@ -442,6 +442,7 @@ export default function LearnPage() {
       currentWord.word,
       parseExamples(currentWord.examples),
       currentWord.word_type,
+      currentWord.vietnamese_meaning,
     );
     if (!missingImage && !badVi && !missingExamples && !badExamples) return;
 

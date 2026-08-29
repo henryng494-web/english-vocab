@@ -70,6 +70,10 @@ export const EXAMPLE_RULES = (word: string) => `STEP 3 — Examples (EXACTLY 2):
 - English: 5–10 words, MUST contain "${word}"
 - If 2 meanings → example 1 illustrates meaning 1 ONLY, example 2 illustrates meaning 2 ONLY (set senseIndex 1 and 2)
 - If 1 meaning → both examples illustrate that same meaning (senseIndex 1 for both)
+- English MUST match the assigned gloss sense — never a different dictionary sense
+  (e.g. draw + gloss "Vẽ" / "Rút ra" → sketch + draw a conclusion; NOT attract visitors)
+- Vietnamese MUST translate "${word}" using vocabulary from THAT gloss line only
+- Do NOT substitute a different Vietnamese synonym (gloss "Rút ra" → use "rút ra"/"rút", NEVER "thu hút")
 - Match register (formal word → workplace/news tone; informal → casual conversation)
 - Vietnamese: natural, not word-by-word
 - NEVER meta lines ("I learned the word...", "Please use ... in a sentence")`;
@@ -152,11 +156,23 @@ export function buildExamplesPrompt(
   word: string,
   pos?: string | null,
   meaning?: string | null,
+  meanings?: string[] | null,
 ): string {
   const posHint = pos?.trim() ? `Known pos: ${pos.trim()}.` : "Infer pos and register first.";
-  const meaningHint = meaning?.trim()
-    ? `Vietnamese meaning: ${meaning.trim()}.`
-    : "";
+  const meaningLines =
+    meanings?.filter(Boolean) ??
+    (meaning?.trim()
+      ? meaning
+          .split(/\n/)
+          .map((line) => line.trim())
+          .filter(Boolean)
+      : []);
+  const meaningHint = meaningLines.length
+    ? `Vietnamese meanings — each example MUST match its gloss exactly:
+${meaningLines.map((line, index) => `${index + 1}. ${line}`).join("\n")}`
+    : meaning?.trim()
+      ? `Vietnamese meaning: ${meaning.trim()}.`
+      : "";
   return `Write example sentences for "${word}".
 ${posHint} ${meaningHint}
 
@@ -187,6 +203,8 @@ ${posHint} ${meaningHint}
 Rules:
 - Match register (formal English → formal Vietnamese; informal → conversational)
 - Natural idiom, not word-by-word
+- MUST use vocabulary from the provided meaning gloss when translating "${word}"
+- Do NOT substitute a different synonym (if gloss is "Rút ra", use "rút ra"/"rút" — NEVER "thu hút")
 - Function words like hereby → "theo đây" at natural position in Vietnamese
 - Latin Vietnamese only
 

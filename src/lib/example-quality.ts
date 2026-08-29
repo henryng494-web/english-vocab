@@ -1,4 +1,5 @@
 import type { VocabExample } from "@/lib/parse-examples";
+import { glossAlignmentTerms, parseVietnameseMeanings } from "@/lib/word-meanings";
 import { normalizeWordType } from "@/lib/word-type";
 
 const TARGET_COUNT = 2;
@@ -129,13 +130,62 @@ export function keepNaturalExamples(
     .slice(0, TARGET_COUNT);
 }
 
+export function viTranslationMatchesGloss(
+  vi: string | null | undefined,
+  meaningLine: string | null | undefined,
+): boolean {
+  const viText = vi?.trim().toLowerCase();
+  const gloss = meaningLine?.trim();
+  if (!viText || !gloss) return false;
+
+  const terms = glossAlignmentTerms(gloss);
+  if (!terms.length) return true;
+
+  return terms.some((term) => {
+    if (term.includes(" ")) {
+      return viText.includes(term);
+    }
+    const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    return new RegExp(`(^|[\\s,.;:!?()"'])${escaped}([\\s,.;:!?()"']|$)`, "i").test(
+      viText,
+    );
+  });
+}
+
+export function hasMeaningAlignedExamples(
+  examples: VocabExample[] | undefined,
+  vietnameseMeaning?: string | null,
+): boolean {
+  const meaningLines = parseVietnameseMeanings(vietnameseMeaning);
+  if (!meaningLines.length) return true;
+
+  const kept = (examples ?? []).filter((item) => Boolean(item.en?.trim()));
+  if (kept.length < TARGET_COUNT) return false;
+
+  for (let index = 0; index < TARGET_COUNT; index++) {
+    const example = kept[index];
+    if (!example) return false;
+    const senseLine =
+      meaningLines.length >= 2
+        ? meaningLines[Math.min(index, meaningLines.length - 1)]!
+        : meaningLines[0]!;
+    if (!viTranslationMatchesGloss(example.vi, senseLine)) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 export function hasQualityExamples(
   word: string,
   examples: VocabExample[] | undefined,
   pos?: string | null,
+  vietnameseMeaning?: string | null,
 ): boolean {
   const kept = keepNaturalExamples(word, examples, pos).filter((item) =>
     Boolean(item.vi?.trim()),
   );
-  return kept.length >= TARGET_COUNT;
+  if (kept.length < TARGET_COUNT) return false;
+  return hasMeaningAlignedExamples(kept, vietnameseMeaning);
 }
