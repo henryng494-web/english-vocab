@@ -6,6 +6,7 @@ import {
 } from "@/data/preset-word-details";
 import { hasQualityExamples } from "@/lib/example-fallback";
 import { capitalizeFirst } from "@/lib/format-text";
+import type { WordRegister } from "@/lib/word-meanings";
 import {
   buildDefinitionFromVietnameseMeaning,
   looksLikeEnglish,
@@ -25,6 +26,7 @@ export type StandardVocabEntry = {
   definition: string;
   examples: VocabExample[];
   searchKeyword: string;
+  register?: WordRegister;
 };
 
 type RawEntry = {
@@ -34,6 +36,7 @@ type RawEntry = {
   definition: string;
   examples: VocabExample[];
   keyword: string;
+  register?: WordRegister;
 };
 
 /**
@@ -797,6 +800,7 @@ const CURATED: Record<string, RawEntry> = {
     pos: "adjective",
     ipa: "/rɔːŋ/",
     meaning: "Sai",
+    register: "neutral",
     definition: "Có nghĩa là không đúng.",
     examples: [
       {
@@ -821,6 +825,7 @@ function fromRaw(word: string, raw: RawEntry): StandardVocabEntry {
     definition: capitalizeFirst(raw.definition),
     examples: raw.examples?.slice(0, 2) ?? [],
     searchKeyword: raw.keyword.trim().toLowerCase() || word,
+    register: raw.register,
   };
 }
 

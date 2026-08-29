@@ -30,8 +30,10 @@ import { normalizeWordType } from "@/lib/word-type";
 import { getImportanceTier } from "@/lib/word-rank";
 import {
   alignmentMeaningLines,
+  encodeRegisterCollocation,
   parseVietnameseMeanings,
   serializeVietnameseMeanings,
+  type WordRegister,
 } from "@/lib/word-meanings";
 import { hasQualityMeanings } from "@/lib/meaning-quality";
 import { repairWordMeanings } from "@/lib/repair-word-meanings";
@@ -146,13 +148,14 @@ async function finalizeMeanings(
   );
 }
 
-function meaningFields(meaning: string) {
+function meaningFields(meaning: string, register?: WordRegister | null) {
   const meanings = parseVietnameseMeanings(meaning);
+  const normalizedRegister = register ?? null;
   return {
     vietnameseMeaning: serializeVietnameseMeanings(meanings) || meaning,
     vietnameseMeanings: meanings,
-    register: null as WordEnrichment["register"],
-    collocations: null as string | null,
+    register: normalizedRegister,
+    collocations: encodeRegisterCollocation(normalizedRegister),
   };
 }
 
@@ -178,7 +181,7 @@ async function standardToEnrichment(
 
   return {
     englishDefinition: entry.definition,
-    ...meaningFields(entry.meaning),
+    ...meaningFields(entry.meaning, entry.register ?? "neutral"),
     examples,
     phonetic: await finalizePhonetic(word, entry.phonetic),
     wordType,

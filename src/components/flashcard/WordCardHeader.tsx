@@ -34,7 +34,8 @@ export function WordCardHeader({
   useAutoSpeakWord(word, autoSpeak);
   const wordTypeLabel = normalizeWordType(wordType, word);
   const meaningLines = meanings ? formatMeaningsForDisplay(meanings) : [];
-  const registerLabelText = registerLabel(displayWordRegister(register));
+  const displayedRegister = displayWordRegister(register);
+  const registerLabelText = registerLabel(displayedRegister);
 
   return (
     <div className="word-card-header">
@@ -73,7 +74,7 @@ export function WordCardHeader({
           <div className="word-card-header__meta">
             {registerLabelText ? (
               <span
-                className="word-card-header__register-value"
+                className={`word-card-header__register-value word-card-header__register-value--${displayedRegister}`}
                 aria-label={`Register: ${registerLabelText}`}
               >
                 {registerLabelText}

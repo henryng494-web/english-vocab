@@ -1,7 +1,7 @@
 import { capitalizeFirst } from "@/lib/format-text";
 import { sanitizeVietnameseText } from "@/lib/sanitize-vi";
 
-export const WORD_REGISTERS = ["informal", "formal"] as const;
+export const WORD_REGISTERS = ["informal", "neutral", "formal"] as const;
 
 export type WordRegister = (typeof WORD_REGISTERS)[number];
 
@@ -11,19 +11,21 @@ const LEGACY_REGISTER_COLLATION_PREFIX = "__register:";
 
 const REGISTER_LABELS_EN: Record<WordRegister, string> = {
   informal: "Informal",
+  neutral: "Neutral",
   formal: "Formal",
 };
 
 const REGISTER_LABELS_VI: Record<WordRegister, string> = {
   informal: "Không trang trọng",
+  neutral: "Trung tính",
   formal: "Trang trọng",
 };
 
 const EMBEDDED_REGISTER_HINT_RE =
-  /\((trang trọng|pháp lý|học thuật|văn học|lóng|thân mật|informal|formal)\)/i;
+  /\((trang trọng|trung tính|pháp lý|học thuật|văn học|lóng|thân mật|informal|neutral|formal)\)/i;
 
 const EMBEDDED_REGISTER_HINT_STRIP_RE =
-  /\s*\((trang trọng|pháp lý|học thuật|văn học|lóng|thân mật|informal|formal)\)\s*/gi;
+  /\s*\((trang trọng|trung tính|pháp lý|học thuật|văn học|lóng|thân mật|informal|neutral|formal)\)\s*/gi;
 
 /** True when meaning text still carries old inline register hints. */
 export function hasEmbeddedRegisterHints(text: string | null | undefined): boolean {
@@ -42,7 +44,7 @@ export function stripEmbeddedRegisterHints(text: string): string {
 export function normalizeWordRegister(value: unknown): WordRegister | null {
   if (typeof value !== "string") return null;
   const key = value.trim().toLowerCase();
-  if (key === "informal" || key === "formal") return key;
+  if (key === "informal" || key === "neutral" || key === "formal") return key;
   return null;
 }
 
@@ -127,11 +129,11 @@ export function resolveWordRegister(input: {
   return decodeRegisterFromCollocation(input.collocations);
 }
 
-/** UI fallback while cached rows still lack register metadata. */
+/** UI fallback when register metadata is missing on cached rows. */
 export function displayWordRegister(
   register: WordRegister | null | undefined,
 ): WordRegister {
-  return normalizeWordRegister(register ?? "") ?? "formal";
+  return normalizeWordRegister(register ?? "") ?? "neutral";
 }
 
 /** Extract a short domain hint from parentheses, e.g. "(âm thanh)" → "âm thanh". */

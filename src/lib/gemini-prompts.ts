@@ -3,36 +3,38 @@
 export const VALID_POS =
   "noun|verb|adjective|adverb|pronoun|preposition|conjunction|article|number|interjection|determiner";
 
-export const REGISTER_CLASSIFICATION_RULES = `REGISTER — exactly TWO values. Think "Informal vs Formal English" synonym pairs:
+export const REGISTER_CLASSIFICATION_RULES = `REGISTER — exactly THREE values. Think informal ↔ neutral ↔ formal:
 
-formal (DEFAULT — use unless the word is clearly informal)
-  • The polished / professional / written side of a pair, OR standard neutral vocabulary for reports & essays
-  • Pairs (informal → formal): go on→continue, bring up→mention, talk about→discuss, get→obtain, buy→purchase,
-    tell→inform, check→verify, help→assist, start→commence, end→terminate, ask→inquire, find out→discover,
-    give→provide, make sure→ensure, show→demonstrate, go ahead→proceed, call off→cancel, cut down→reduce
-  • Also formal when no casual pair exists but the word is normal educated English: continue, mention, consider,
-    opportunity, important, discuss, require, provide, maintain, establish, announce, hereditary, diabetes
-  • If you'd use it comfortably in a work email or news article without sounding slangy → formal
+neutral (DEFAULT — everyday standard vocabulary)
+  • Common words used comfortably in chat AND work/school without being slang or legalese
+  • Examples: big, happy, water, tree, walk, think, wrong, important
+  • If the word is NOT clearly the casual half of a pair AND NOT clearly stiff/legal → neutral
+  • Examples tone: natural daily English — conversation, school, news all OK
 
-informal (ONLY when clearly the casual / spoken side)
-  • Short everyday verbs & phrasal verbs people use with friends: get, buy, tell, check, help, start, end, ask,
-    go on, bring up, find out, pick up, mess up, talk about, look for, put off, go up, go down, give up, let
-  • Slang or very relaxed chat: gonna, kinda, stuff (casual senses), dude
-  • MUST be the informal half of a pair — if this headword IS obtain/continue/mention/purchase → formal, NOT informal
-  • Do NOT tag neutral standard words informal just because examples use friendly tone
+formal (polished / professional / written register)
+  • The stiff side of informal↔formal pairs: continue, mention, obtain, purchase, assist, verify
+  • Legal/academic/business-only words: hereby, thereby, henceforth, commence, terminate
+  • If you'd ONLY expect it in reports, contracts, ceremonies, or news briefs → formal
+  • Pairs (informal → formal): go on→continue, bring up→mention, get→obtain, buy→purchase
+
+informal (ONLY clearly casual / spoken / slang)
+  • Short chat verbs & phrasal verbs: get, buy, tell, check, go on, bring up, find out, pick up
+  • Slang: gonna, kinda, dude
+  • MUST be the informal half of a pair — obtain/continue/mention → formal, NOT informal
+  • Do NOT tag neutral words informal just because examples sound friendly
 
 Decision checklist:
-1. Is this headword the FORMAL side of a known pair? → formal (continue, mention, obtain…)
-2. Is it a phrasal/casual verb or basic chat verb (get, buy, go on…)? → informal
-3. Otherwise standard single-word vocabulary → formal
+1. Informal half of a known pair or clear slang? → informal
+2. Legal/academic/stiff OR formal half of a pair? → formal
+3. Otherwise everyday standard headword → neutral
 
 Dual meanings: register = FIRST meaning (most frequent).
 
-JSON register MUST be exactly "informal" or "formal".`;
+JSON register MUST be exactly "informal", "neutral", or "formal".`;
 
 export const POS_CLASSIFICATION_RULES = `STEP 1 — Classify the word BEFORE translating:
 - pos: one of ${VALID_POS}
-- register: informal | formal
+- register: informal | neutral | formal
 
 ${REGISTER_CLASSIFICATION_RULES}
 
@@ -65,7 +67,8 @@ interjection → thán từ (e.g. "Ôi!", "Wow")
 register tweaks:
 - NEVER write register hints inside meanings — no "(trang trọng)" in the gloss; the register JSON field carries tone
 - register follows the FIRST meaning when there are 2 senses
-- formal → examples fit reports, meetings, news (continue working, mentioned in the report)
+- neutral → everyday examples (chat, school, daily life — not slang, not legalese)
+- formal → reports, meetings, contracts, news briefs
 - informal → casual chat examples only for truly informal headwords (get, buy, go on…)`;
 
 export const EXAMPLE_RULES = (word: string) => `STEP 3 — Examples (EXACTLY 2):
@@ -76,7 +79,7 @@ export const EXAMPLE_RULES = (word: string) => `STEP 3 — Examples (EXACTLY 2):
   (e.g. draw + gloss "Vẽ" / "Rút ra" → sketch + draw a conclusion; NOT attract visitors)
 - Vietnamese MUST translate "${word}" using vocabulary from THAT gloss line only
 - Do NOT substitute a different Vietnamese synonym (gloss "Rút ra" → use "rút ra"/"rút", NEVER "thu hút")
-- Match register (formal word → workplace/news tone; informal → casual conversation)
+- Match register (informal → conversational; neutral → everyday natural; formal → workplace/news/legal)
 - Vietnamese: natural, not word-by-word
 - NEVER meta lines ("I learned the word...", "Please use ... in a sentence")`;
 
@@ -89,13 +92,15 @@ export function buildEnrichPrompt(word: string): string {
 
 Word: "${word}"
 
-Gold standards (informal vs formal pairs):
+Gold standards (register):
 • get (verb) → informal · obtain (verb) → formal
+• wrong (adjective) → neutral · incorrect (adjective) → formal
 • buy (verb) → informal · purchase (verb) → formal
 • go on (phrasal) → informal · continue (verb) → formal
 • bring up (phrasal) → informal · mention (verb) → formal
 • talk about → informal · discuss (verb) → formal
 • hereby (adverb) → formal · meanings: ["Theo đây"]
+• happy (adjective) → neutral
 • shrimp (noun) → meanings: ["Tôm", "Người nhỏ bé"] — NOT "Động vật giáp xác nhỏ"
 • apple (noun) → meanings: ["Quả táo"] — NOT "Loại quả mọng màu đỏ"
 
@@ -113,7 +118,7 @@ Respond with ONLY valid JSON:
 {
   "word": "${word}",
   "pos": "noun",
-  "register": "formal",
+  "register": "neutral",
   "phonetic": "/ipa/",
   "meanings": ["Nghĩa 1", "Nghĩa 2 hoặc bỏ nếu chỉ 1 nghĩa"],
   "examples": [
@@ -205,7 +210,7 @@ Headword: "${word}"
 ${posHint} ${meaningHint}
 
 Rules:
-- Match register (formal English → formal Vietnamese; informal → conversational)
+- Match register (informal → conversational; neutral → everyday natural; formal → formal Vietnamese)
 - Natural idiom, not word-by-word
 - MUST use vocabulary from the provided meaning gloss when translating "${word}"
 - Do NOT substitute a different synonym (if gloss is "Rút ra", use "rút ra"/"rút" — NEVER "thu hút")

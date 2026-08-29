@@ -906,6 +906,21 @@ body {
   white-space: nowrap;
 }
 
+.word-card-header__register-value--informal {
+  --register-bg: rgba(249, 115, 22, 0.14);
+  --register-text: #c2410c;
+}
+
+.word-card-header__register-value--neutral {
+  --register-bg: rgba(100, 116, 139, 0.14);
+  --register-text: #475569;
+}
+
+.word-card-header__register-value--formal {
+  --register-bg: rgba(99, 102, 241, 0.12);
+  --register-text: #4338ca;
+}
+
 .discover-card .vocab-meaning {
   color: var(--meaning);
 }
