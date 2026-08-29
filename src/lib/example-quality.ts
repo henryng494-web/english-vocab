@@ -44,6 +44,83 @@ export function isPosFallbackTemplate(en: string, word: string): boolean {
   return patterns.some((pattern) => pattern.test(text));
 }
 
+/** Headwords stored as past tense/participle — invalid after "to" / "did you". */
+export const NON_BASE_VERB_FORMS = new Set([
+  "sprung", "sprang", "drawn", "driven", "written", "spoken", "broken",
+  "chosen", "frozen", "stolen", "hidden", "ridden", "risen", "fallen",
+  "gone", "done", "seen", "been", "eaten", "drunk", "strung", "worn",
+  "torn", "born", "borne", "sworn", "blown", "grown", "thrown", "forgotten",
+  "begun", "sung", "hung", "wrung", "stung", "slung", "flung",
+]);
+
+/**
+ * Gemini-free sense templates from buildSenseAlignedExamples — often ungrammatical
+ * when POS or verb form does not match (e.g. "I like to sprung…", "The tonight on the desk").
+ */
+export function isOfflineSenseAlignedTemplateExample(
+  en: string,
+  word: string,
+  pos?: string | null,
+): boolean {
+  const text = en.trim();
+  const w = word.trim().toLowerCase();
+  if (!text || !w) return false;
+
+  const escaped = escapeRegExp(w);
+  const normalizedPos = normalizeWordType(pos, word);
+
+  if (NON_BASE_VERB_FORMS.has(w)) {
+    if (new RegExp(`\\bto ${escaped}\\b`, "i").test(text)) return true;
+    if (new RegExp(`\\bdid you ${escaped}\\b`, "i").test(text)) return true;
+  }
+
+  if (
+    new RegExp(`^I like to ${escaped} pictures on weekends\\.?$`, "i").test(text)
+  ) {
+    return true;
+  }
+  if (
+    new RegExp(`^What did you ${escaped} from that meeting\\??$`, "i").test(text)
+  ) {
+    return true;
+  }
+  if (
+    new RegExp(`^They ${escaped} together every Friday evening\\.?$`, "i").test(
+      text,
+    )
+  ) {
+    return true;
+  }
+
+  if (normalizedPos && normalizedPos !== "noun") {
+    if (
+      new RegExp(`^The ${escaped} on the desk caught my eye\\.?$`, "i").test(
+        text,
+      )
+    ) {
+      return true;
+    }
+    if (
+      new RegExp(`^We talked about the ${escaped} over coffee\\.?$`, "i").test(
+        text,
+      )
+    ) {
+      return true;
+    }
+  }
+
+  if (/^He finished the task \S+ than yesterday\.?$/i.test(text)) return true;
+  if (
+    normalizedPos &&
+    normalizedPos !== "adverb" &&
+    new RegExp(`^She answered the question ${escaped}\\.?$`, "i").test(text)
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
 /** Reject article/subject patterns when POS is not a countable noun. */
 export function isPosMismatchExample(
   en: string,
@@ -164,6 +241,7 @@ export function isNaturalExample(
   const en = example.en?.trim() ?? "";
   if (!en || isGenericExample(en)) return false;
   if (isPosFallbackTemplate(en, word)) return false;
+  if (isOfflineSenseAlignedTemplateExample(en, word, pos)) return false;
   if (isPosMismatchExample(en, word, pos)) return false;
   if (isAdjectiveMisusedAsSubject(en, word)) return false;
   const count = wordCount(en);

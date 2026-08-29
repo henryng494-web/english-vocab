@@ -10,6 +10,8 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { isEncyclopedicGloss } from "../src/lib/meaning-quality";
+import { isOfflineSenseAlignedTemplateExample } from "../src/lib/example-quality";
+import { parseExamples } from "../src/lib/parse-examples";
 import {
   getStaleWordDetailReason,
   type StaleWordDetailReason,
@@ -84,11 +86,28 @@ async function main() {
   };
 
   const encyclopedicSamples: string[] = [];
+  const offlineTemplateSamples: string[] = [];
   let encyclopedicLines = 0;
+  let offlineTemplateExamples = 0;
 
   for (const row of rows) {
     const reason = getStaleWordDetailReason(row);
     if (reason) reasonCounts[reason] += 1;
+
+    for (const example of parseExamples(row.examples)) {
+      if (
+        isOfflineSenseAlignedTemplateExample(
+          example.en,
+          row.word,
+          row.word_type,
+        )
+      ) {
+        offlineTemplateExamples += 1;
+        if (offlineTemplateSamples.length < (limit || 15)) {
+          offlineTemplateSamples.push(`${row.word}: ${example.en}`);
+        }
+      }
+    }
 
     for (const line of parseVietnameseMeanings(row.vietnamese_meaning)) {
       if (isEncyclopedicGloss(line)) {
@@ -120,6 +139,7 @@ async function main() {
         missing_pos: reasonCounts.missing_pos,
         embedded_register_hint: reasonCounts.embedded_register_hint,
         missing_meaning: reasonCounts.missing_meaning,
+        offline_template_examples: offlineTemplateExamples,
         encyclopedic_gloss_lines: encyclopedicLines,
       },
       null,
@@ -130,6 +150,13 @@ async function main() {
   if (sample || encyclopedicSamples.length) {
     console.log("\nEncyclopedic gloss samples:");
     for (const line of encyclopedicSamples) {
+      console.log(`  ${line}`);
+    }
+  }
+
+  if (offlineTemplateSamples.length) {
+    console.log("\nOffline template example samples:");
+    for (const line of offlineTemplateSamples) {
       console.log(`  ${line}`);
     }
   }

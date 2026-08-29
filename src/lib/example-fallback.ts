@@ -3,6 +3,7 @@ import {
   containsUntranslatedHeadword,
   isLikelyVietnameseGloss,
   keepNaturalExamples,
+  NON_BASE_VERB_FORMS,
   viTranslationMatchesGloss,
 } from "@/lib/example-quality";
 import type { VocabExample } from "@/lib/parse-examples";
@@ -314,6 +315,10 @@ export function buildSenseAlignedExamples(
   meaning?: string | null,
 ): VocabExample[] {
   const type = normalizeWordType(pos, word) ?? "noun";
+  const head = word.trim().toLowerCase();
+  if (type === "verb" && NON_BASE_VERB_FORMS.has(head)) {
+    return [];
+  }
   const templates =
     SENSE_ALIGNED_TEMPLATES[type] ??
     SENSE_ALIGNED_TEMPLATES.noun ??

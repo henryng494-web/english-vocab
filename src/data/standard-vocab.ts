@@ -826,6 +826,24 @@ const CURATED: Record<string, RawEntry> = {
     ],
     keyword: "wrong incorrect answer",
   },
+  sprung: {
+    pos: "verb",
+    ipa: "/sprʌŋ/",
+    meaning: "Bật lên\nXuất hiện đột ngột",
+    register: "neutral",
+    definition: "Quá khứ phân từ của spring — bật mở hoặc xuất hiện nhanh.",
+    examples: [
+      {
+        en: "The door has sprung open.",
+        vi: "Cánh cửa đã bật lên mở ra.",
+      },
+      {
+        en: "New cafes have sprung up on this street.",
+        vi: "Các quán cà phê xuất hiện đột ngột trên phố này.",
+      },
+    ],
+    keyword: "door spring open suddenly",
+  },
 };
 
 function fromRaw(word: string, raw: RawEntry): StandardVocabEntry {
