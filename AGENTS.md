@@ -30,10 +30,13 @@ Configure these in **Cursor Dashboard → Cloud Agents → Secrets** (never comm
 |----------|----------|---------|
 | `GEMINI_API_KEY` | Yes | Word meaning, phonetic, POS, bilingual examples |
 | `NEXT_PUBLIC_SUPABASE_URL` | Yes | Supabase project URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Yes | Supabase anon key |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Yes | Supabase anon key (client + read paths) |
+| `SUPABASE_SERVICE_ROLE_KEY` | Batch scripts | DB writes for `npm run re-enrich:all`, `audit:meanings`, backfill scripts |
 | `PEXELS_API_KEY` | No | Primary stock-photo search (curated keywords + alt-text scoring) |
 | `UNSPLASH_ACCESS_KEY` | No | Secondary stock search fallback when Pexels has no match |
 | `GEMINI_MODEL` | No | Defaults to `gemini-3.6-flash` |
+
+After adding or changing secrets in **Cursor Dashboard → Cloud Agents → Secrets**, **Rebuild environment** and start a **new** Cloud Agent task — existing sessions do not pick up new values.
 
 Local dev uses `.env.local` (gitignored). Cloud agents only see dashboard secrets.
 
