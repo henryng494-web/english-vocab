@@ -2,11 +2,11 @@
 
 import { useAutoSpeakWord } from "@/hooks/use-auto-speak-word";
 import { capitalizeFirst } from "@/lib/format-text";
-import { normalizeWordType, wordTypeLabelVi } from "@/lib/word-type";
+import { normalizeWordType } from "@/lib/word-type";
 import {
   displayWordRegister,
   formatMeaningsForDisplay,
-  registerLabelVi,
+  registerLabel,
   type WordRegister,
 } from "@/lib/word-meanings";
 import { SpeakButton } from "./SpeakButton";
@@ -31,9 +31,9 @@ export function WordCardHeader({
   compact = false,
 }: WordCardHeaderProps) {
   useAutoSpeakWord(word);
-  const wordTypeLabel = wordTypeLabelVi(wordType, word);
+  const wordTypeLabel = normalizeWordType(wordType, word);
   const meaningLines = meanings ? formatMeaningsForDisplay(meanings) : [];
-  const registerLabel = registerLabelVi(displayWordRegister(register));
+  const registerLabelText = registerLabel(displayWordRegister(register));
 
   return (
     <div
@@ -61,7 +61,7 @@ export function WordCardHeader({
         </div>
       </div>
 
-      {meaningLines.length > 0 || registerLabel || wordTypeLabel ? (
+      {meaningLines.length > 0 || registerLabelText || wordTypeLabel ? (
         <div className="word-card-header__body">
           {meaningLines.length > 0 ? (
             <div className="word-card-header__meanings" aria-label="Meanings">
@@ -76,18 +76,18 @@ export function WordCardHeader({
           )}
 
           <div className="word-card-header__meta">
-            {registerLabel ? (
+            {registerLabelText ? (
               <span
                 className="word-card-header__register-value"
-                aria-label={`Phong cách: ${registerLabel}`}
+                aria-label={`Register: ${registerLabelText}`}
               >
-                {registerLabel}
+                {registerLabelText}
               </span>
             ) : null}
 
             {wordTypeLabel ? (
               <span className="word-card-header__pos word-type-badge">
-                {wordTypeLabel}
+                {capitalizeFirst(wordTypeLabel)}
               </span>
             ) : null}
           </div>

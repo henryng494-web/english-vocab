@@ -15,6 +15,15 @@ export type WordRegister = (typeof WORD_REGISTERS)[number];
 const MEANING_LINE_DELIMITER = "\n";
 const REGISTER_COLLATION_PREFIX = "__register:";
 
+const REGISTER_LABELS_EN: Record<WordRegister, string> = {
+  everyday: "Everyday",
+  formal: "Formal",
+  legal: "Formal",
+  technical: "Technical",
+  literary: "Literary",
+  slang: "Slang",
+};
+
 const REGISTER_LABELS_VI: Record<WordRegister, string> = {
   everyday: "Đời thường",
   formal: "Trang trọng",
@@ -48,6 +57,14 @@ export function normalizeWordRegister(value: unknown): WordRegister | null {
   if (typeof value !== "string") return null;
   const key = value.trim().toLowerCase() as WordRegister;
   return WORD_REGISTERS.includes(key) ? key : null;
+}
+
+/** English register label for app UI (Formal, Everyday, …). */
+export function registerLabel(
+  register: WordRegister | null | undefined,
+): string | null {
+  if (!register) return null;
+  return REGISTER_LABELS_EN[register] ?? capitalizeFirst(register);
 }
 
 export function registerLabelVi(register: WordRegister | null | undefined): string | null {
