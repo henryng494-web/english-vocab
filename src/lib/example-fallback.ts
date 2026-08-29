@@ -248,18 +248,62 @@ const SENSE_ALIGNED_TEMPLATES: Record<
       vi: "Anh ấy hoàn thành công việc {term} hơn hôm qua.",
     },
   ],
+  preposition: [
+    {
+      en: "We walked {w} the park after lunch.",
+      vi: "Chúng tôi đi dạo {term} công viên sau bữa trưa.",
+    },
+    {
+      en: "It costs {w} fifty dollars.",
+      vi: "Giá {term} năm mươi đô la.",
+    },
+    {
+      en: "There are trees {w} the house.",
+      vi: "Có cây {term} ngôi nhà.",
+    },
+  ],
+  conjunction: [
+    {
+      en: "I like tea {w} coffee in the morning.",
+      vi: "Buổi sáng tôi thích trà {term} cà phê.",
+    },
+    {
+      en: "Stay here {w} wait for me, please.",
+      vi: "Ở đây {term} đợi tôi, làm ơn.",
+    },
+  ],
+  pronoun: [
+    {
+      en: "{W} is waiting outside the office.",
+      vi: "{Term} đang đợi bên ngoài văn phòng.",
+    },
+    {
+      en: "I saw {w} at school today.",
+      vi: "Hôm nay tôi gặp {term} ở trường.",
+    },
+  ],
 };
+
+function viTermForGloss(line: string): string {
+  const normalized = line.trim().toLowerCase();
+  const words = normalized.split(/\s+/).filter(Boolean);
+  if (words.length <= 2) return normalized;
+  return words[words.length - 1] ?? normalized;
+}
 
 function applySenseTemplate(
   template: { en: string; vi: string },
   word: string,
-  term: string,
+  glossLine: string,
 ): VocabExample {
   const w = displayWord(word);
-  const gloss = term.toLowerCase();
+  const term = viTermForGloss(glossLine);
+  const capitalized = capitalizeFirst(w);
   return {
-    en: template.en.replace(/\{w\}/g, w),
-    vi: template.vi.replace(/\{term\}/g, gloss),
+    en: template.en.replace(/\{W\}/g, capitalized).replace(/\{w\}/g, w),
+    vi: template.vi
+      .replace(/\{Term\}/g, capitalizeFirst(term))
+      .replace(/\{term\}/g, term),
   };
 }
 

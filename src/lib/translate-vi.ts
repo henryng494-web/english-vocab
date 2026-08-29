@@ -48,14 +48,21 @@ export async function fetchMyMemoryTranslation(word: string): Promise<string | n
   }
 }
 
-/** Heuristic: text is likely English (no Vietnamese diacritics). */
+/** Heuristic: text is likely English (not a Vietnamese gloss). */
 export function looksLikeEnglish(text: string): boolean {
   const trimmed = text.trim();
   if (!trimmed) return false;
   const vietnameseDiacritics =
     /[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/i;
   if (vietnameseDiacritics.test(trimmed)) return false;
-  return /[a-zA-Z]/.test(trimmed);
+
+  const englishMarkers =
+    /\b(the|and|or|of|to|in|for|with|a|an|is|are|was|were|that|this|which|used|meaning|refer|describe|someone|something|person|people|object|action)\b/i;
+  if (englishMarkers.test(trimmed)) return true;
+
+  // ASCII-only text without English function words is usually a Vietnamese gloss
+  // written without diacritics (e.g. "xung quanh, bao quanh").
+  return false;
 }
 
 /** Build a short Vietnamese definition sentence from meaning text. */

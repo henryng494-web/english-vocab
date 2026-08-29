@@ -157,6 +157,9 @@ export default function DiscoverPage() {
       if (isCacheEntryValid(loaded, item.word)) {
         return loaded;
       }
+      if (loaded.vietnamese_meaning?.trim()) {
+        return loaded;
+      }
       throw new Error(
         `Data for "${item.word}" is incomplete — try again later.`,
       );

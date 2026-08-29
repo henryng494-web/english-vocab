@@ -175,6 +175,17 @@ export function glossAlignmentTerms(line: string): string[] {
     const words = lower.split(/\s+/).filter(Boolean);
     if (words.length > 1) {
       terms.add(words[0]!);
+      terms.add(words[words.length - 1]!);
+    }
+    if (lower.includes("/")) {
+      for (const segment of lower.split("/")) {
+        const trimmed = segment.trim();
+        if (trimmed) terms.add(trimmed);
+        const segmentWords = trimmed.split(/\s+/).filter(Boolean);
+        if (segmentWords.length > 0) {
+          terms.add(segmentWords[segmentWords.length - 1]!);
+        }
+      }
     }
   }
 
