@@ -100,13 +100,13 @@ export function speakEnglishTextAuto(text: string): void {
   if (!trimmed) return;
 
   const requestId = speakRequestId;
-  window.speechSynthesis?.cancel();
 
   if (isAppleWebKit()) {
     speakEnglishTextSync(trimmed);
     return;
   }
 
+  window.speechSynthesis?.cancel();
   void speakWithBestAvailableVoice(trimmed, requestId);
 }
 
