@@ -64,7 +64,6 @@
 
   --meaning: #0f766e;
   --example-bg: var(--pink-50);
-  --example-en: var(--mascot-elephant);
   --example-vi: var(--mascot-elephant);
   --badge-bg: #f1f5f9;
   --badge-text: #334155;
@@ -516,7 +515,6 @@ body {
   -webkit-line-clamp: 2;
   font-size: 1em;
   line-height: 1.4;
-  color: var(--mascot-elephant);
 }
 
 .vocab-examples__vi {
@@ -526,9 +524,7 @@ body {
   line-height: 1.4;
 }
 
-.discover-card .vocab-examples__en,
 .discover-card .vocab-examples__vi,
-.journey-card-slot .vocab-examples__en,
 .journey-card-slot .vocab-examples__vi {
   color: var(--mascot-elephant);
 }
@@ -543,10 +539,8 @@ body {
   border-radius: 0.625rem;
   background: var(--example-bg);
   padding: 0.55rem 0.75rem;
-  color: var(--mascot-elephant);
 }
 
-.journey-card-slot .vocab-examples li p:first-child,
 .journey-card-slot .vocab-examples li p:last-child {
   color: var(--mascot-elephant);
 }
