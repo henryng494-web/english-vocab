@@ -494,8 +494,8 @@ body {
   border-radius: 0.625rem;
   background: var(--example-bg);
   padding: 0.55rem 0.75rem;
-  font-size: 1rem;
-  line-height: 1.45;
+  font-size: 0.9375rem;
+  line-height: 1.4;
 }
 
 .vocab-examples__en,
@@ -508,12 +508,15 @@ body {
 
 .vocab-examples__en {
   -webkit-line-clamp: 2;
+  font-size: 1em;
+  line-height: 1.4;
 }
 
 .vocab-examples__vi {
   -webkit-line-clamp: 2;
+  font-size: 0.933em;
   color: var(--example-vi);
-  line-height: 1.45;
+  line-height: 1.4;
 }
 
 .journey-card-slot .vocab-examples {
@@ -521,8 +524,8 @@ body {
 }
 
 .journey-card-slot .vocab-examples li {
-  font-size: 1rem;
-  line-height: 1.45;
+  font-size: 0.9375rem;
+  line-height: 1.4;
   border-radius: 0.625rem;
   background: var(--example-bg);
   padding: 0.55rem 0.75rem;
@@ -830,14 +833,14 @@ body {
 
 .word-card-header__meaning {
   margin: 0;
-  font-size: 1rem;
+  font-size: 1.125rem;
   font-weight: 600;
   line-height: 1.35;
   color: var(--meaning, var(--primary-700));
 }
 
 .word-card-header--compact .word-card-header__meaning {
-  font-size: 0.9375rem;
+  font-size: 1.0625rem;
 }
 
 .word-card-header__meta {

@@ -36,10 +36,10 @@ export function VocabExampleList({
           key={`${word}-ex-${i}`}
           className={
             boxed
-              ? "rounded-lg bg-primary-50 px-3 py-2.5 text-base text-foreground/80"
+              ? "rounded-lg bg-primary-50 px-3 py-2.5 text-[0.9375rem] leading-snug text-foreground/80"
               : compact
                 ? "vocab-examples__item text-foreground/80"
-                : "text-base text-foreground/80"
+                : "text-[0.9375rem] leading-snug text-foreground/80"
           }
         >
           <p className={compact ? "vocab-examples__en italic" : "italic"}>
