@@ -41,12 +41,14 @@ Pick the PRIMARY sense learners meet most often for that word's rank — but NEV
 export const MEANING_COUNT_RULES = `STEP 2 — Vietnamese meanings (MAX 2 lines):
 - If the word has ONE common sense → "meanings" array with 1 short gloss.
 - If TWO distinct common senses → "meanings" with exactly 2 glosses, most frequent FIRST.
-- Each gloss: short (2–6 words), correct pos + register — never merge unrelated senses with commas on one line.
+- Each gloss: 1–4 everyday words — the translation learners expect in a dictionary, NOT an encyclopedia entry.
+- NEVER write scientific/category descriptions (BAD: "Động vật giáp xác nhỏ", "Loại quả màu đỏ").
+- GOOD: shrimp → "Tôm"; apple → "Quả táo"; river → "Con sông".
 - NEVER return more than 2 meanings.`;
 
 export const POS_MEANING_RULES = `Translate each meaning by pos + register:
 
-noun → danh từ cụ thể/trừu tượng (e.g. "Lỗ, hố", "Hợp đồng")
+noun → everyday Vietnamese noun (e.g. "Tôm", "Quả táo", "Con sông") — NOT "Động vật giáp xác nhỏ"
 verb → động từ, nêu hành động chính (e.g. "Chấp nhận", "Đào, xới")
 adjective → tính từ (e.g. "Quan trọng", "Sạch sẽ")
 adverb → trạng từ — match register:
@@ -94,6 +96,8 @@ Gold standards (informal vs formal pairs):
 • bring up (phrasal) → informal · mention (verb) → formal
 • talk about → informal · discuss (verb) → formal
 • hereby (adverb) → formal · meanings: ["Theo đây"]
+• shrimp (noun) → meanings: ["Tôm", "Người nhỏ bé"] — NOT "Động vật giáp xác nhỏ"
+• apple (noun) → meanings: ["Quả táo"] — NOT "Loại quả mọng màu đỏ"
 
 ${POS_CLASSIFICATION_RULES}
 

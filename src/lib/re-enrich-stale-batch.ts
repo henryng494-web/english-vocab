@@ -10,6 +10,8 @@ import {
   examplesNeedRegeneration,
   repairWordExamples,
 } from "@/lib/repair-word-examples";
+import { meaningsNeedRegeneration } from "@/lib/meaning-quality";
+import { repairWordMeanings } from "@/lib/repair-word-meanings";
 import { sanitizeVietnameseText } from "@/lib/sanitize-vi";
 import { isPersistableWordImageUrl } from "@/lib/unsplash";
 import type { WordDetail } from "@/types/database";
@@ -43,6 +45,7 @@ type WordDetailRow = {
   word: string;
   word_type: string | null;
   vietnamese_meaning: string | null;
+  english_definition: string | null;
   collocations: string | null;
   image_url: string | null;
   examples: string | null;
@@ -68,7 +71,7 @@ async function fetchAllWordDetails(
     const { data, error } = await supabase
       .from("word_details")
       .select(
-        "word, word_type, vietnamese_meaning, collocations, image_url, examples",
+        "word, word_type, vietnamese_meaning, english_definition, collocations, image_url, examples",
       )
       .order("word", { ascending: true })
       .range(pageOffset, pageOffset + DB_PAGE_SIZE - 1);
@@ -92,7 +95,7 @@ async function resolveStaleTargets(
     const { data } = await supabase
       .from("word_details")
       .select(
-        "word, word_type, vietnamese_meaning, collocations, image_url, examples",
+        "word, word_type, vietnamese_meaning, english_definition, collocations, image_url, examples",
       )
       .eq("word", options.word)
       .maybeSingle();
@@ -121,6 +124,43 @@ async function resolveStaleTargets(
     totalCached: rows.length,
     totalStale: stale.length,
   };
+}
+
+async function tryRepairMeaningsOnly(
+  supabase: SupabaseClient,
+  target: StaleTarget,
+  dryRun: boolean,
+): Promise<boolean> {
+  if (target.reason !== "bad_meaning") return false;
+
+  const repaired = await repairWordMeanings(
+    target.word,
+    target.row.vietnamese_meaning,
+    target.row.word_type,
+    target.row.examples,
+    target.row.english_definition,
+  );
+
+  if (
+    meaningsNeedRegeneration(
+      target.word,
+      repaired,
+      target.row.word_type,
+      target.row.examples,
+      target.row.english_definition,
+    )
+  ) {
+    return false;
+  }
+
+  if (dryRun) return true;
+
+  const { error } = await supabase
+    .from("word_details")
+    .update({ vietnamese_meaning: repaired })
+    .eq("word", target.word);
+  if (error) throw error;
+  return true;
 }
 
 async function tryRepairExamplesOnly(
@@ -178,6 +218,7 @@ export async function runStaleReEnrichBatch(
     missing_register: 0,
     legacy_register: 0,
     embedded_register_hint: 0,
+    bad_meaning: 0,
     misaligned_examples: 0,
   };
 
@@ -196,6 +237,18 @@ export async function runStaleReEnrichBatch(
     try {
       if (options.dryRun) {
         skipped += 1;
+        continue;
+      }
+
+      const repairedMeaningsOnly = await tryRepairMeaningsOnly(
+        supabase,
+        target,
+        false,
+      );
+      if (repairedMeaningsOnly) {
+        repairedExamplesOnly += 1;
+        updated += 1;
+        if (index < targets.length - 1) await sleep(delayMs);
         continue;
       }
 

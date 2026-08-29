@@ -10,6 +10,8 @@ import {
   examplesNeedRegeneration,
   repairWordExamples,
 } from "@/lib/repair-word-examples";
+import { meaningsNeedRegeneration } from "@/lib/meaning-quality";
+import { repairWordMeanings } from "@/lib/repair-word-meanings";
 import { getImportanceTier } from "@/lib/word-rank";
 import { withWordFamily } from "@/lib/word-family-display";
 import { resolveImageSearchKeyword } from "@/lib/image-keyword";
@@ -152,7 +154,16 @@ async function repairPersistedExamplesIfNeeded(
     detail.word_type,
     detail.vietnamese_meaning,
   );
-  await persistRepairField(supabase, word, "examples", repaired, detail.examples);
+  if (
+    !examplesNeedRegeneration(
+      word,
+      repaired,
+      detail.word_type,
+      detail.vietnamese_meaning,
+    )
+  ) {
+    await persistRepairField(supabase, word, "examples", repaired, detail.examples);
+  }
   return repaired;
 }
 
@@ -182,7 +193,13 @@ async function repairPersistedMeaningIfNeeded(
   word: string,
   detail: WordDetail,
 ): Promise<string> {
-  const repaired = sanitizeVietnameseText(detail.vietnamese_meaning);
+  const repaired = await repairWordMeanings(
+    word,
+    detail.vietnamese_meaning,
+    detail.word_type,
+    detail.examples,
+    detail.english_definition,
+  );
   if (repaired) {
     await persistRepairField(
       supabase,
@@ -260,20 +277,20 @@ export async function GET(request: Request) {
 
     let repairedDbDetail = dbDetail ?? null;
     if (dbDetail) {
-      const examples = await repairPersistedExamplesIfNeeded(
+      const vietnamese_meaning = await repairPersistedMeaningIfNeeded(
         supabase,
         word,
         dbDetail,
       );
+      const examples = await repairPersistedExamplesIfNeeded(
+        supabase,
+        word,
+        { ...dbDetail, vietnamese_meaning },
+      );
       const phonetic = await repairPersistedPhoneticIfNeeded(
         supabase,
         word,
-        { ...dbDetail, examples },
-      );
-      const vietnamese_meaning = await repairPersistedMeaningIfNeeded(
-        supabase,
-        word,
-        { ...dbDetail, examples, phonetic },
+        { ...dbDetail, examples, vietnamese_meaning },
       );
       repairedDbDetail = { ...dbDetail, examples, phonetic, vietnamese_meaning };
     }
@@ -286,10 +303,20 @@ export async function GET(request: Request) {
           repairedDbDetail.vietnamese_meaning,
         )
       : false;
+    const meaningsStillBad = repairedDbDetail
+      ? meaningsNeedRegeneration(
+          word,
+          repairedDbDetail.vietnamese_meaning,
+          repairedDbDetail.word_type,
+          repairedDbDetail.examples,
+          repairedDbDetail.english_definition,
+        )
+      : false;
 
     if (
       !forceRepair &&
       !examplesStillMisaligned &&
+      !meaningsStillBad &&
       isPersistedWordDetailComplete(repairedDbDetail, word)
     ) {
       const searchKeyword = imageSearchKeyword(
@@ -335,7 +362,7 @@ export async function GET(request: Request) {
       });
     }
 
-    const forceExampleRegen = forceRepair || examplesStillMisaligned;
+    const forceExampleRegen = forceRepair || examplesStillMisaligned || meaningsStillBad;
 
     const enrichment = await enrichWord(word, {
       rank: frequencyRank,
@@ -368,6 +395,31 @@ export async function GET(request: Request) {
       responseWord.word_type,
       responseWord.vietnamese_meaning,
     );
+    let vietnameseMeaningFinal =
+      sanitizeVietnameseText(responseWord.vietnamese_meaning) || word;
+    if (
+      meaningsNeedRegeneration(
+        word,
+        vietnameseMeaningFinal,
+        responseWord.word_type,
+        examples,
+        responseWord.english_definition,
+      )
+    ) {
+      vietnameseMeaningFinal = await repairWordMeanings(
+        word,
+        vietnameseMeaningFinal,
+        responseWord.word_type,
+        examples,
+        responseWord.english_definition,
+      );
+      examples = await repairWordExamples(
+        word,
+        examples,
+        responseWord.word_type,
+        vietnameseMeaningFinal,
+      );
+    }
     if (
       examplesNeedRegeneration(
         word,
@@ -388,8 +440,7 @@ export async function GET(request: Request) {
     const persistPayload = {
       phonetic: phonetic ?? `/${word}/`,
       word_type: responseWord.word_type ?? "unknown",
-      vietnamese_meaning:
-        sanitizeVietnameseText(responseWord.vietnamese_meaning) || word,
+      vietnamese_meaning: vietnameseMeaningFinal,
       english_definition: responseWord.english_definition ?? "",
       examples,
       collocations: responseWord.collocations ?? null,
@@ -401,13 +452,20 @@ export async function GET(request: Request) {
         word,
         examples,
         responseWord.word_type,
-        responseWord.vietnamese_meaning,
+        vietnameseMeaningFinal,
+      ) &&
+      !meaningsNeedRegeneration(
+        word,
+        vietnameseMeaningFinal,
+        responseWord.word_type,
+        examples,
+        responseWord.english_definition,
       )
     ) {
       void persistEnrichedWordDetail(supabase, word, persistPayload);
     } else {
       console.warn(
-        `[discover/word] Gemini examples still misaligned for "${word}" — not persisting bad rows`,
+        `[discover/word] Gemini content still misaligned for "${word}" — not persisting bad rows`,
       );
     }
 
@@ -423,6 +481,7 @@ export async function GET(request: Request) {
     return NextResponse.json({
       word: {
         ...responseWord,
+        vietnamese_meaning: vietnameseMeaningFinal,
         examples,
         phonetic,
         from_cache: hasQualityStandardVocab(word),

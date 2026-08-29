@@ -29,6 +29,8 @@ import {
   parseVietnameseMeanings,
   serializeVietnameseMeanings,
 } from "@/lib/word-meanings";
+import { hasQualityMeanings } from "@/lib/meaning-quality";
+import { repairWordMeanings } from "@/lib/repair-word-meanings";
 
 export type { WordEnrichment } from "@/lib/gemini-core";
 
@@ -115,6 +117,29 @@ async function finalizeExamples(
   }
 
   return [];
+}
+
+async function finalizeMeanings(
+  word: string,
+  meaning: string,
+  wordType: string,
+  examples: VocabExample[],
+  englishDefinition: string,
+  allowGemini?: boolean,
+): Promise<string> {
+  if (
+    hasQualityMeanings(word, meaning, wordType, examples, englishDefinition)
+  ) {
+    return serializeVietnameseMeanings(parseVietnameseMeanings(meaning)) || meaning;
+  }
+  if (!allowGemini) return meaning;
+  return repairWordMeanings(
+    word,
+    meaning,
+    wordType,
+    undefined,
+    englishDefinition,
+  );
 }
 
 function meaningFields(meaning: string) {
@@ -267,6 +292,17 @@ export async function enrichWord(
       if (!geminiResult.searchKeyword) {
         geminiResult.searchKeyword = simpleKeyword(normalized);
       }
+      geminiResult.vietnameseMeaning = await finalizeMeanings(
+        normalized,
+        geminiResult.vietnameseMeaning,
+        geminiResult.wordType,
+        geminiResult.examples,
+        geminiResult.englishDefinition,
+        true,
+      );
+      geminiResult.vietnameseMeanings = parseVietnameseMeanings(
+        geminiResult.vietnameseMeaning,
+      );
       geminiResult.examples = await finalizeExamples(
         normalized,
         geminiResult.examples,

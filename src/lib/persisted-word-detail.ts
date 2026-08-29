@@ -2,6 +2,7 @@ import type { WordDetail } from "@/types/database";
 import {
   hasQualityExamples,
 } from "@/lib/example-quality";
+import { hasQualityMeanings } from "@/lib/meaning-quality";
 import { parseExamples } from "@/lib/parse-examples";
 import { containsForeignScript } from "@/lib/sanitize-vi";
 import {
@@ -15,6 +16,7 @@ export type StaleWordDetailReason =
   | "missing_register"
   | "legacy_register"
   | "embedded_register_hint"
+  | "bad_meaning"
   | "misaligned_examples";
 
 /** Cached row predates register badge / dual-meaning layout. */
@@ -27,6 +29,17 @@ export function getStaleWordDetailReason(
   if (isLegacyRegisterCollocation(detail.collocations)) return "legacy_register";
   if (hasEmbeddedRegisterHints(detail.vietnamese_meaning)) {
     return "embedded_register_hint";
+  }
+  if (
+    !hasQualityMeanings(
+      detail.word,
+      detail.vietnamese_meaning,
+      detail.word_type,
+      parseExamples(detail.examples),
+      detail.english_definition,
+    )
+  ) {
+    return "bad_meaning";
   }
   if (
     !hasQualityExamples(
@@ -56,6 +69,17 @@ export function isPersistedWordDetailComplete(
   if (detail.word.toLowerCase() !== word.toLowerCase()) return false;
   if (!detail.vietnamese_meaning?.trim()) return false;
   if (containsForeignScript(detail.vietnamese_meaning)) return false;
+  if (
+    !hasQualityMeanings(
+      word,
+      detail.vietnamese_meaning,
+      detail.word_type,
+      parseExamples(detail.examples),
+      detail.english_definition,
+    )
+  ) {
+    return false;
+  }
   if (
     !hasQualityExamples(
       word,
