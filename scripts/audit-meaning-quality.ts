@@ -75,6 +75,7 @@ async function main() {
     missing_meaning: 0,
     missing_register: 0,
     legacy_register: 0,
+    outdated_register: 0,
     embedded_register_hint: 0,
     bad_meaning: 0,
     misaligned_examples: 0,

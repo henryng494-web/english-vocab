@@ -80,6 +80,7 @@ async function main() {
       ` misaligned_examples=${result.reasonCounts.misaligned_examples}` +
       ` missing_register=${result.reasonCounts.missing_register}` +
       ` legacy_register=${result.reasonCounts.legacy_register}` +
+      ` outdated_register=${result.reasonCounts.outdated_register}` +
       ` embedded_hint=${result.reasonCounts.embedded_register_hint}` +
       ` missing_meaning=${result.reasonCounts.missing_meaning}`,
   );

@@ -13,6 +13,7 @@ import {
 import { meaningsNeedRegeneration } from "@/lib/meaning-quality";
 import { repairWordMeanings } from "@/lib/repair-word-meanings";
 import { sanitizeVietnameseText } from "@/lib/sanitize-vi";
+import { encodeRegisterCollocation } from "@/lib/word-meanings";
 import { isPersistableWordImageUrl } from "@/lib/unsplash";
 import type { WordDetail } from "@/types/database";
 
@@ -198,6 +199,29 @@ async function tryRepairExamplesOnly(
   return true;
 }
 
+async function tryRepairRegisterOnly(
+  supabase: SupabaseClient,
+  target: StaleTarget,
+  dryRun: boolean,
+): Promise<boolean> {
+  if (target.reason !== "outdated_register") return false;
+
+  const rank = getPresetRank(target.word) ?? 5000;
+  const enrichment = await enrichWord(target.word, { rank, forceGemini: true });
+  const collocations =
+    enrichment.collocations ?? encodeRegisterCollocation(enrichment.register);
+  if (!collocations) return false;
+
+  if (dryRun) return true;
+
+  const { error } = await supabase
+    .from("word_details")
+    .update({ collocations })
+    .eq("word", target.word);
+  if (error) throw error;
+  return true;
+}
+
 /** Process one batch of stale word_details rows (shared by CLI + cron API). */
 export async function runStaleReEnrichBatch(
   supabase: SupabaseClient,
@@ -217,6 +241,7 @@ export async function runStaleReEnrichBatch(
     missing_meaning: 0,
     missing_register: 0,
     legacy_register: 0,
+    outdated_register: 0,
     embedded_register_hint: 0,
     bad_meaning: 0,
     misaligned_examples: 0,
@@ -237,6 +262,18 @@ export async function runStaleReEnrichBatch(
     try {
       if (options.dryRun) {
         skipped += 1;
+        continue;
+      }
+
+      const repairedRegisterOnly = await tryRepairRegisterOnly(
+        supabase,
+        target,
+        false,
+      );
+      if (repairedRegisterOnly) {
+        repairedExamplesOnly += 1;
+        updated += 1;
+        if (index < targets.length - 1) await sleep(delayMs);
         continue;
       }
 

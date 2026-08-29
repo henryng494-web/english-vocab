@@ -9,12 +9,14 @@ import {
   decodeRegisterFromCollocation,
   hasEmbeddedRegisterHints,
   isLegacyRegisterCollocation,
+  isOutdatedRegisterCollocation,
 } from "@/lib/word-meanings";
 
 export type StaleWordDetailReason =
   | "missing_meaning"
   | "missing_register"
   | "legacy_register"
+  | "outdated_register"
   | "embedded_register_hint"
   | "bad_meaning"
   | "misaligned_examples";
@@ -27,6 +29,7 @@ export function getStaleWordDetailReason(
   if (!detail.vietnamese_meaning?.trim()) return "missing_meaning";
   if (!decodeRegisterFromCollocation(detail.collocations)) return "missing_register";
   if (isLegacyRegisterCollocation(detail.collocations)) return "legacy_register";
+  if (isOutdatedRegisterCollocation(detail.collocations)) return "outdated_register";
   if (hasEmbeddedRegisterHints(detail.vietnamese_meaning)) {
     return "embedded_register_hint";
   }

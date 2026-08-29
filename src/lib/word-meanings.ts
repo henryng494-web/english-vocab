@@ -6,7 +6,8 @@ export const WORD_REGISTERS = ["informal", "neutral", "formal"] as const;
 export type WordRegister = (typeof WORD_REGISTERS)[number];
 
 const MEANING_LINE_DELIMITER = "\n";
-const REGISTER_COLLATION_PREFIX = "__register:v2:";
+const REGISTER_V2_PREFIX = "__register:v2:";
+const REGISTER_COLLATION_PREFIX = "__register:v3:";
 const LEGACY_REGISTER_COLLATION_PREFIX = "__register:";
 
 const REGISTER_LABELS_EN: Record<WordRegister, string> = {
@@ -53,7 +54,17 @@ export function isLegacyRegisterCollocation(
   collocations: string | null | undefined,
 ): boolean {
   if (!collocations?.startsWith(LEGACY_REGISTER_COLLATION_PREFIX)) return false;
-  return !collocations.startsWith(REGISTER_COLLATION_PREFIX);
+  return (
+    !collocations.startsWith(REGISTER_V2_PREFIX) &&
+    !collocations.startsWith(REGISTER_COLLATION_PREFIX)
+  );
+}
+
+/** True when register was stored under v2 (informal/formal only) before the neutral tier. */
+export function isOutdatedRegisterCollocation(
+  collocations: string | null | undefined,
+): boolean {
+  return collocations?.startsWith(REGISTER_V2_PREFIX) ?? false;
 }
 
 /** English register label for app UI (Informal, Formal). */
@@ -114,10 +125,20 @@ export function encodeRegisterCollocation(
 export function decodeRegisterFromCollocation(
   collocations: string | null | undefined,
 ): WordRegister | null {
-  if (!collocations?.startsWith(REGISTER_COLLATION_PREFIX)) return null;
-  return normalizeWordRegister(
-    collocations.slice(REGISTER_COLLATION_PREFIX.length),
-  );
+  for (const prefix of [
+    REGISTER_COLLATION_PREFIX,
+    REGISTER_V2_PREFIX,
+  ] as const) {
+    if (collocations?.startsWith(prefix)) {
+      return normalizeWordRegister(collocations.slice(prefix.length));
+    }
+  }
+  if (collocations?.startsWith(LEGACY_REGISTER_COLLATION_PREFIX)) {
+    return normalizeWordRegister(
+      collocations.slice(LEGACY_REGISTER_COLLATION_PREFIX.length),
+    );
+  }
+  return null;
 }
 
 export function resolveWordRegister(input: {

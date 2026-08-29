@@ -1,7 +1,7 @@
 /**
  * Run stale re-enrich in a loop until all rows match the new word card structure:
  * - everyday Vietnamese glosses (not encyclopedic)
- * - register badge (informal/formal)
+ * - register badge (informal / neutral / formal)
  * - aligned bilingual examples
  *
  * NEVER paste API keys in chat — put them in .env.local only.
@@ -100,7 +100,8 @@ async function main() {
     console.log(
       `  bad_meaning=${result.reasonCounts.bad_meaning}` +
         ` misaligned_examples=${result.reasonCounts.misaligned_examples}` +
-        ` missing_register=${result.reasonCounts.missing_register}`,
+        ` missing_register=${result.reasonCounts.missing_register}` +
+        ` outdated_register=${result.reasonCounts.outdated_register}`,
     );
 
     if (result.failures.length) {
