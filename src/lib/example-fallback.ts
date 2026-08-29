@@ -9,7 +9,10 @@ import type { VocabExample } from "@/lib/parse-examples";
 import { translateExampleWithGemini } from "@/lib/gemini-core";
 import { fetchMyMemoryTranslation } from "@/lib/translate-vi";
 import { normalizeWordType } from "@/lib/word-type";
-import { parseVietnameseMeanings, primaryVietnameseMeaning } from "@/lib/word-meanings";
+import {
+  alignmentMeaningLines,
+  primaryVietnameseMeaning,
+} from "@/lib/word-meanings";
 
 const TARGET_COUNT = 2;
 
@@ -212,7 +215,7 @@ export async function fillExampleTranslations(
   pos?: string | null,
   meaning?: string | null,
 ): Promise<VocabExample[]> {
-  const meaningLines = parseVietnameseMeanings(meaning);
+  const meaningLines = alignmentMeaningLines(meaning);
   const filled: VocabExample[] = [];
   for (const [index, item] of examples.entries()) {
     const en = item.en?.trim() ?? "";
@@ -253,7 +256,7 @@ export async function alignExampleTranslations(
   pos?: string | null,
   meaning?: string | null,
 ): Promise<VocabExample[]> {
-  const meaningLines = parseVietnameseMeanings(meaning);
+  const meaningLines = alignmentMeaningLines(meaning);
   if (!meaningLines.length) return examples;
 
   const aligned: VocabExample[] = [];
@@ -287,7 +290,7 @@ export function ensureExamples(
   pos?: string | null,
   meaning?: string | null,
 ): VocabExample[] {
-  const kept = keepNaturalExamples(word, examples, pos);
+  const kept = keepNaturalExamples(word, examples, pos, meaning);
   if (kept.length >= TARGET_COUNT) return kept.slice(0, TARGET_COUNT);
 
   const fallback = buildNaturalExamples(word, pos, meaning);

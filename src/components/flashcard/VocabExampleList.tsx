@@ -17,10 +17,11 @@ export function VocabExampleList({
   word,
   examples,
   wordType,
+  meaning,
   boxed = false,
   compact = false,
 }: VocabExampleListProps) {
-  const filled = keepNaturalExamples(word, examples, wordType);
+  const filled = keepNaturalExamples(word, examples, wordType, meaning);
   const visible = filled.slice(0, 2);
 
   if (visible.length === 0) return null;

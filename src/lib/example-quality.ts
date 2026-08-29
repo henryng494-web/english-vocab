@@ -1,5 +1,8 @@
 import type { VocabExample } from "@/lib/parse-examples";
-import { glossAlignmentTerms, parseVietnameseMeanings } from "@/lib/word-meanings";
+import {
+  alignmentMeaningLines,
+  glossAlignmentTerms,
+} from "@/lib/word-meanings";
 import { normalizeWordType } from "@/lib/word-type";
 
 const TARGET_COUNT = 2;
@@ -183,10 +186,35 @@ export function keepNaturalExamples(
   word: string,
   examples: VocabExample[] | undefined,
   pos?: string | null,
+  meaning?: string | null,
 ): VocabExample[] {
-  return (examples ?? [])
-    .filter((item) => isNaturalExample(item, word, pos))
-    .slice(0, TARGET_COUNT);
+  const natural = (examples ?? []).filter((item) =>
+    isNaturalExample(item, word, pos),
+  );
+  const displayed = alignmentMeaningLines(meaning);
+  if (!displayed.length) return natural.slice(0, TARGET_COUNT);
+
+  if (displayed.length === 1) {
+    return natural
+      .filter((item) => viTranslationMatchesGloss(item.vi, displayed[0]))
+      .slice(0, TARGET_COUNT);
+  }
+
+  const used = new Set<number>();
+  const paired: VocabExample[] = [];
+  for (const [senseOffset, line] of displayed.entries()) {
+    const idx = natural.findIndex(
+      (item, index) =>
+        !used.has(index) && viTranslationMatchesGloss(item.vi, line),
+    );
+    if (idx === -1) continue;
+    used.add(idx);
+    paired.push({
+      ...natural[idx]!,
+      senseIndex: senseOffset + 1,
+    });
+  }
+  return paired.slice(0, TARGET_COUNT);
 }
 
 export function viTranslationMatchesGloss(
@@ -215,7 +243,7 @@ export function hasMeaningAlignedExamples(
   examples: VocabExample[] | undefined,
   vietnameseMeaning?: string | null,
 ): boolean {
-  const meaningLines = parseVietnameseMeanings(vietnameseMeaning);
+  const meaningLines = alignmentMeaningLines(vietnameseMeaning);
   if (!meaningLines.length) return true;
 
   const kept = (examples ?? []).filter((item) => Boolean(item.en?.trim()));
@@ -242,8 +270,8 @@ export function hasQualityExamples(
   pos?: string | null,
   vietnameseMeaning?: string | null,
 ): boolean {
-  const kept = keepNaturalExamples(word, examples, pos).filter((item) =>
-    Boolean(item.vi?.trim()),
+  const kept = keepNaturalExamples(word, examples, pos, vietnameseMeaning).filter(
+    (item) => Boolean(item.vi?.trim()),
   );
   if (kept.length < TARGET_COUNT) return false;
   return hasMeaningAlignedExamples(kept, vietnameseMeaning);

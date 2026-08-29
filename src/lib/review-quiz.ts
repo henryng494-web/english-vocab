@@ -252,9 +252,11 @@ function sentenceHasWord(sentence: string, word: string): boolean {
 export function pickReviewRecallSentence(
   word: string,
   rawExamples: unknown,
+  meaning?: string | null,
+  pos?: string | null,
 ): string {
   const parsed = parseExamples(rawExamples);
-  const natural = keepNaturalExamples(word, parsed);
+  const natural = keepNaturalExamples(word, parsed, pos, meaning);
   const withWord =
     natural.find((item) => sentenceHasWord(item.en, word)) ??
     parsed.find((item) => sentenceHasWord(item.en, word));

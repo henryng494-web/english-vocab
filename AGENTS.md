@@ -59,7 +59,7 @@ src/
 - **Discover API:** `src/app/api/discover/word/route.ts`
 - **Word image API:** `src/app/api/word-image/route.ts` (fast stock lookup, no Gemini)
 - **Stock image pipeline:** `src/lib/unsplash.ts` (`fetchWordImageUrl`, `SEMANTIC_IMAGE_VERSION`)
-- **Client cache:** `src/lib/discover-word-cache.ts` (key `discover-word-cache-v88`)
+- **Client cache:** `src/lib/discover-word-cache.ts` (key `discover-word-cache-v89`)
 
 ## Locked flashcard UI — do not change layout
 

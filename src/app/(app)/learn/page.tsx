@@ -463,7 +463,12 @@ export default function LearnPage() {
         currentWord.english_definition.trim().toLowerCase();
     const missingExamples =
       quizKind === "recall" &&
-      !pickReviewRecallSentence(currentWord.word, currentWord.examples);
+      !pickReviewRecallSentence(
+        currentWord.word,
+        currentWord.examples,
+        currentWord.vietnamese_meaning,
+        currentWord.word_type,
+      );
     const badExamples = !hasQualityExamples(
       currentWord.word,
       parseExamples(currentWord.examples),
@@ -709,6 +714,8 @@ export default function LearnPage() {
           sentence={pickReviewRecallSentence(
             currentWord.word,
             currentWord.examples,
+            currentWord.vietnamese_meaning,
+            currentWord.word_type,
           )}
           locked={locked}
           remembered={

@@ -26,6 +26,7 @@ import type { VocabExample } from "@/lib/parse-examples";
 import { normalizeWordType } from "@/lib/word-type";
 import { getImportanceTier } from "@/lib/word-rank";
 import {
+  alignmentMeaningLines,
   parseVietnameseMeanings,
   serializeVietnameseMeanings,
 } from "@/lib/word-meanings";
@@ -74,7 +75,7 @@ async function finalizeExamples(
   meaning?: string | null,
   allowGemini?: boolean,
 ): Promise<VocabExample[]> {
-  const existing = keepNaturalExamples(word, examples, pos);
+  const existing = keepNaturalExamples(word, examples, pos, meaning);
   if (hasQualityExamples(word, existing, pos, meaning)) {
     return existing.slice(0, 2);
   }
@@ -86,7 +87,7 @@ async function finalizeExamples(
         word,
         pos,
         meaning,
-        parseVietnameseMeanings(meaning),
+        alignmentMeaningLines(meaning),
       );
       lastGenerated = generated;
       if (hasQualityExamples(word, generated ?? undefined, pos, meaning)) {
@@ -94,12 +95,12 @@ async function finalizeExamples(
       }
     }
     if (lastGenerated?.length) {
-      const merged = keepNaturalExamples(word, [...existing, ...lastGenerated], pos);
+      const merged = keepNaturalExamples(word, [...existing, ...lastGenerated], pos, meaning);
       if (hasQualityExamples(word, merged, pos, meaning)) return merged.slice(0, 2);
     }
   }
 
-  const naturalOnly = keepNaturalExamples(word, existing, pos);
+  const naturalOnly = keepNaturalExamples(word, existing, pos, meaning);
   if (naturalOnly.length >= 2) {
     const translated = await fillExampleTranslations(naturalOnly, word, pos, meaning);
     if (hasQualityExamples(word, translated, pos, meaning)) {

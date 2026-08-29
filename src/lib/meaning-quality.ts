@@ -1,7 +1,7 @@
 import type { VocabExample } from "@/lib/parse-examples";
 import { parseExamples } from "@/lib/parse-examples";
 import { looksLikeEnglish } from "@/lib/translate-vi";
-import { parseVietnameseMeanings } from "@/lib/word-meanings";
+import { alignmentMeaningLines, parseVietnameseMeanings } from "@/lib/word-meanings";
 import { viTranslationMatchesGloss } from "@/lib/example-quality";
 import { normalizeWordType } from "@/lib/word-type";
 
@@ -63,10 +63,11 @@ export function hasQualityMeanings(
   if (kept.length > 0) {
     for (let index = 0; index < Math.min(2, kept.length); index++) {
       const example = kept[index]!;
+      const displayed = alignmentMeaningLines(vietnameseMeaning);
       const senseLine =
-        lines.length >= 2
-          ? lines[Math.min(index, lines.length - 1)]!
-          : lines[0]!;
+        displayed.length >= 2
+          ? displayed[Math.min(index, displayed.length - 1)]!
+          : displayed[0] ?? lines[0]!;
       if (!viTranslationMatchesGloss(example.vi, senseLine)) {
         return false;
       }

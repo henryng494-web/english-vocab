@@ -17,6 +17,7 @@ import { fillExampleTranslations, keepNaturalExamples } from "@/lib/example-fall
 import { hasQualityExamples } from "@/lib/example-quality";
 import type { VocabExample } from "@/lib/parse-examples";
 import {
+  alignmentMeaningLines,
   encodeRegisterCollocation,
   normalizeWordRegister,
   parseVietnameseMeanings,
@@ -160,7 +161,12 @@ function parseGeminiResponse(text: string, word: string): WordEnrichment {
     buildDefinitionFromVietnameseMeaning(meaningRaw, wordType) ||
     meaningRaw;
 
-  const examples = keepNaturalExamples(word, parseExamples(parsed.examples));
+  const examples = keepNaturalExamples(
+    word,
+    parseExamples(parsed.examples),
+    wordType,
+    serializeVietnameseMeanings(normalizedMeanings),
+  );
   const frequencyRank = clampFrequencyRank(
     getPresetRank(word) || Number(parsed.rank) || 5000,
   );
@@ -281,7 +287,7 @@ export async function generateExamplesWithGemini(
   if (!process.env.GEMINI_API_KEY?.trim()) return null;
 
   const meaningLines =
-    meanings?.filter(Boolean) ?? parseVietnameseMeanings(meaning);
+    meanings?.filter(Boolean) ?? alignmentMeaningLines(meaning);
 
   try {
     const text = await generateGeminiText(
@@ -294,6 +300,7 @@ export async function generateExamplesWithGemini(
       word,
       parseExamples(parsed.examples),
       pos,
+      meaning,
     );
     if (raw.length < 2) return null;
     const filled = await fillExampleTranslations(raw, word, pos, meaning);

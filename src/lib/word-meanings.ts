@@ -233,3 +233,8 @@ export function formatMeaningsForDisplay(text: string | null | undefined): strin
     .slice(0, 2)
     .map((line) => compactMeaningLineForDisplay(line, maxSynonymsPerLine));
 }
+
+/** Gloss lines shown on the card — examples must follow these, not hidden synonyms. */
+export function alignmentMeaningLines(text: string | null | undefined): string[] {
+  return formatMeaningsForDisplay(text);
+}

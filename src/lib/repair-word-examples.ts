@@ -13,7 +13,7 @@ import {
   keepNaturalExamples,
 } from "@/lib/example-quality";
 import { parseExamples, serializeExamples } from "@/lib/parse-examples";
-import { parseVietnameseMeanings } from "@/lib/word-meanings";
+import { alignmentMeaningLines } from "@/lib/word-meanings";
 
 export function examplesNeedRegeneration(
   word: string,
@@ -32,7 +32,7 @@ export async function repairWordExamples(
   meaning?: string | null,
 ): Promise<string> {
   const parsed = parseExamples(examples);
-  const meaningLines = parseVietnameseMeanings(meaning);
+  const meaningLines = alignmentMeaningLines(meaning);
 
   if (hasQualityExamples(word, parsed, wordType, meaning)) {
     return examples?.trim() ? examples : serializeExamples(parsed);

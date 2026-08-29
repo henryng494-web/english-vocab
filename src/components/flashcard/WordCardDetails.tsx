@@ -24,6 +24,7 @@ type WordCardDetailsProps = {
   word: string;
   examples?: string | null;
   wordType?: string | null;
+  meaning?: string | null;
   family?: WordFamilyMember[] | null;
   loading?: boolean;
 };
@@ -32,6 +33,7 @@ export function WordCardDetails({
   word,
   examples,
   wordType,
+  meaning,
   family,
   loading = false,
 }: WordCardDetailsProps) {
@@ -101,6 +103,7 @@ export function WordCardDetails({
                 word={word}
                 examples={parsed}
                 wordType={wordType}
+                meaning={meaning}
                 compact
               />
             </div>

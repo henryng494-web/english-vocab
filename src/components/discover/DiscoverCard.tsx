@@ -103,6 +103,7 @@ export function DiscoverCard({
           word={data.word}
           examples={data.examples}
           wordType={data.word_type}
+          meaning={data.vietnamese_meaning}
           family={data.word_family}
           loading={detailsLoading}
         />
