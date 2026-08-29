@@ -76,7 +76,8 @@ async function main() {
       (options.dryRun ? " [dry-run]" : ""),
   );
   console.log(
-    `Reasons: misaligned_examples=${result.reasonCounts.misaligned_examples}` +
+    `Reasons: bad_meaning=${result.reasonCounts.bad_meaning}` +
+      ` misaligned_examples=${result.reasonCounts.misaligned_examples}` +
       ` missing_register=${result.reasonCounts.missing_register}` +
       ` legacy_register=${result.reasonCounts.legacy_register}` +
       ` embedded_hint=${result.reasonCounts.embedded_register_hint}` +
