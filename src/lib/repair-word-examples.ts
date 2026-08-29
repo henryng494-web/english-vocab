@@ -21,10 +21,7 @@ export function examplesNeedRegeneration(
   wordType?: string | null,
   meaning?: string | null,
 ): boolean {
-  const parsed = parseExamples(examples);
-  const natural = keepNaturalExamples(word, parsed, wordType);
-  if (natural.length < 2) return true;
-  return !hasMeaningAlignedExamples(natural, meaning);
+  return !hasQualityExamples(word, parseExamples(examples), wordType, meaning);
 }
 
 /** Repair or fully regenerate bilingual examples so each line matches its gloss. */
@@ -67,7 +64,9 @@ export async function repairWordExamples(
   const translated = await fillExampleTranslations(aligned, word, wordType, meaning);
   const finalExamples = hasQualityExamples(word, translated, wordType, meaning)
     ? translated
-    : aligned;
+    : hasQualityExamples(word, aligned, wordType, meaning)
+      ? aligned
+      : [];
   return serializeExamples(finalExamples);
 }
 

@@ -7,6 +7,63 @@ const TARGET_COUNT = 2;
 const GENERIC_EXAMPLE =
   /i learned the word|please use .+ in a(?: short)? sentence|this is a sentence with|use ["“'].+["”'] in a sentence|this is a sentence using/i;
 
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/** Lazy POS templates from buildNaturalExamples — never valid learning cards. */
+export function isPosFallbackTemplate(en: string, word: string): boolean {
+  const text = en.trim();
+  const w = escapeRegExp(word.trim());
+  if (!text || !w) return false;
+
+  const patterns = [
+    new RegExp(`^I saw a ${w} on the table\\.?$`, "i"),
+    new RegExp(`^The ${w} is in the kitchen\\.?$`, "i"),
+    new RegExp(`^She ${w} the door every morning\\.?$`, "i"),
+    new RegExp(`^He ${w} it before he leaves\\.?$`, "i"),
+    new RegExp(`^Good rest is ${w} after a long day\\.?$`, "i"),
+    new RegExp(`^This step is ${w} for success\\.?$`, "i"),
+    new RegExp(`^The room looks ${w} in this light\\.?$`, "i"),
+    new RegExp(`^It feels ${w} outside today\\.?$`, "i"),
+    new RegExp(`^She spoke ${w} to the whole class\\.?$`, "i"),
+    new RegExp(`^He finished the race ${w}\\.?$`, "i"),
+    new RegExp(`^I have ${w} books at home\\.?$`, "i"),
+    new RegExp(`^She is ${w} years old\\.?$`, "i"),
+    new RegExp(`^The keys are ${w} the bag\\.?$`, "i"),
+    new RegExp(`^We sat ${w} the old tree\\.?$`, "i"),
+    new RegExp(`^I like tea ${w} coffee\\.?$`, "i"),
+    new RegExp(`^Stay here ${w} wait for me\\.?$`, "i"),
+    new RegExp(`^I need ${w} new notebook\\.?$`, "i"),
+    new RegExp(`^I like ${w} song a lot\\.?$`, "i"),
+  ];
+
+  return patterns.some((pattern) => pattern.test(text));
+}
+
+/** Reject article/subject patterns when POS is not a countable noun. */
+export function isPosMismatchExample(
+  en: string,
+  word: string,
+  pos?: string | null,
+): boolean {
+  const text = en.trim();
+  const w = escapeRegExp(word.trim());
+  if (!text || !w) return false;
+
+  const normalizedPos = normalizeWordType(pos, word);
+  if (!normalizedPos || normalizedPos === "noun") return false;
+
+  if (new RegExp(`\\ba ${w}\\b`, "i").test(text)) return true;
+  if (new RegExp(`\\bthe ${w} is\\b`, "i").test(text)) return true;
+  if (normalizedPos !== "verb") {
+    if (new RegExp(`\\bshe ${w} the\\b`, "i").test(text)) return true;
+    if (new RegExp(`\\bhe ${w} it\\b`, "i").test(text)) return true;
+  }
+
+  return false;
+}
+
 /** Bare adjectives wrongly used as sentence subjects ("Clean is vital…"). */
 const COMMON_ADJECTIVE_SUBJECTS = new Set([
   "clean", "happy", "sad", "good", "bad", "nice", "kind", "safe", "healthy", "fresh",
@@ -101,6 +158,8 @@ export function isNaturalExample(
 ): boolean {
   const en = example.en?.trim() ?? "";
   if (!en || isGenericExample(en)) return false;
+  if (isPosFallbackTemplate(en, word)) return false;
+  if (isPosMismatchExample(en, word, pos)) return false;
   if (isAdjectiveMisusedAsSubject(en, word)) return false;
   const count = wordCount(en);
   if (count < 4 || count > 14) return false;

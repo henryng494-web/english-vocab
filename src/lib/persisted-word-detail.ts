@@ -1,8 +1,6 @@
 import type { WordDetail } from "@/types/database";
 import {
-  hasMeaningAlignedExamples,
   hasQualityExamples,
-  keepNaturalExamples,
 } from "@/lib/example-quality";
 import { parseExamples } from "@/lib/parse-examples";
 import { containsForeignScript } from "@/lib/sanitize-vi";
@@ -30,14 +28,13 @@ export function getStaleWordDetailReason(
   if (hasEmbeddedRegisterHints(detail.vietnamese_meaning)) {
     return "embedded_register_hint";
   }
-  const natural = keepNaturalExamples(
-    detail.word,
-    parseExamples(detail.examples),
-    detail.word_type,
-  );
   if (
-    natural.length >= 2 &&
-    !hasMeaningAlignedExamples(natural, detail.vietnamese_meaning)
+    !hasQualityExamples(
+      detail.word,
+      parseExamples(detail.examples),
+      detail.word_type,
+      detail.vietnamese_meaning,
+    )
   ) {
     return "misaligned_examples";
   }
