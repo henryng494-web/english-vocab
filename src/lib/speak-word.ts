@@ -2,8 +2,11 @@ import {
   applyNaturalSpeechSettings,
   ensureSpeechVoicesReady,
   getCachedSpeechVoice,
+  getSpeechVoiceSync,
+  isAppleWebKit,
 } from "@/lib/speech-voice";
 import {
+  getCachedWordAudioUrl,
   playWordAudioUrl,
   resolveWordAudioUrl,
   stopWordAudio,
@@ -15,6 +18,7 @@ const DEDUPE_MS = 1800;
 
 function speakWithVoice(text: string, voice: SpeechSynthesisVoice | null): void {
   const synth = window.speechSynthesis;
+  if (!synth) return;
   if (synth.paused) synth.resume();
 
   const utterance = new SpeechSynthesisUtterance(text);
@@ -22,12 +26,37 @@ function speakWithVoice(text: string, voice: SpeechSynthesisVoice | null): void 
   synth.speak(utterance);
 }
 
-async function speakWithBestAvailableVoice(text: string): Promise<void> {
+/**
+ * Safari/iOS requires speechSynthesis.speak() inside the user gesture stack.
+ * Call this synchronously from click/tap handlers before any await.
+ */
+export function speakEnglishTextSync(text: string): void {
+  if (typeof window === "undefined" || !text.trim()) return;
+  const synth = window.speechSynthesis;
+  if (!synth) return;
+
+  synth.cancel();
+  stopWordAudio();
+  speakWithVoice(text.trim(), getSpeechVoiceSync());
+}
+
+async function speakWithBestAvailableVoice(
+  text: string,
+  options?: { skipTtsFallback?: boolean },
+): Promise<void> {
   const key = text.toLowerCase();
+
+  const cachedAudio = getCachedWordAudioUrl(text);
+  if (cachedAudio && !isAppleWebKit()) {
+    if (lastSpoken?.text !== key) return;
+    if (await playWordAudioUrl(cachedAudio)) return;
+  }
 
   const audioUrl = await resolveWordAudioUrl(text);
   if (lastSpoken?.text !== key) return;
-  if (audioUrl && (await playWordAudioUrl(audioUrl))) return;
+  if (audioUrl && !isAppleWebKit() && (await playWordAudioUrl(audioUrl))) return;
+
+  if (options?.skipTtsFallback) return;
 
   const cached = getCachedSpeechVoice();
   if (cached) {
@@ -61,9 +90,15 @@ export function speakEnglishText(
   }
 
   lastSpoken = { text: key, at: now };
-  window.speechSynthesis?.cancel();
   stopWordAudio();
 
+  if (options?.force) {
+    speakEnglishTextSync(trimmed);
+    void speakWithBestAvailableVoice(trimmed, { skipTtsFallback: true });
+    return;
+  }
+
+  window.speechSynthesis?.cancel();
   void speakWithBestAvailableVoice(trimmed);
 }
 

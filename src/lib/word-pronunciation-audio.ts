@@ -42,6 +42,13 @@ export async function resolveWordAudioUrl(word: string): Promise<string | null> 
   return lookup;
 }
 
+/** Cached MP3 URL from a prior lookup — safe to read synchronously on tap. */
+export function getCachedWordAudioUrl(word: string): string | null {
+  const key = cacheKey(word);
+  if (!key || !audioUrlCache.has(key)) return null;
+  return audioUrlCache.get(key) ?? null;
+}
+
 export function preloadWordAudio(word: string): void {
   void resolveWordAudioUrl(word);
 }

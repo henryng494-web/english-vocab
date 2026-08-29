@@ -58,7 +58,7 @@ const AVOID_VOICE_PATTERNS: readonly RegExp[] = [
 let cachedVoice: SpeechSynthesisVoice | null | undefined;
 let voicesReady: Promise<SpeechSynthesisVoice | null> | null = null;
 
-function isAppleWebKit(): boolean {
+export function isAppleWebKit(): boolean {
   if (typeof navigator === "undefined") return false;
   return /iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent) &&
     /AppleWebKit/.test(navigator.userAgent);
@@ -193,6 +193,17 @@ export function ensureSpeechVoicesReady(): Promise<SpeechSynthesisVoice | null> 
 
 export function getCachedSpeechVoice(): SpeechSynthesisVoice | null {
   return cachedVoice ?? null;
+}
+
+/** Best en-US voice without waiting — required for Safari tap-to-speak. */
+export function getSpeechVoiceSync(): SpeechSynthesisVoice | null {
+  if (typeof window === "undefined" || !window.speechSynthesis) return null;
+  if (cachedVoice) return cachedVoice;
+  const voices = window.speechSynthesis.getVoices();
+  if (!voices.length) return null;
+  const picked = resolveVoiceFromList(voices);
+  if (picked) cachedVoice = picked;
+  return picked;
 }
 
 export function applyNaturalSpeechSettings(

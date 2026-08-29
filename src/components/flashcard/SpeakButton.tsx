@@ -1,7 +1,7 @@
 "use client";
 
 import { cancelSpeech, speakEnglishText } from "@/lib/speak-word";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 type SpeakButtonProps = {
   text: string;
@@ -42,13 +42,16 @@ export function SpeakButton({
   className = "",
 }: SpeakButtonProps) {
   const [speaking, setSpeaking] = useState(false);
+  const lastTapRef = useRef(0);
 
   const speak = useCallback(
-    (e: React.MouseEvent) => {
+    (e: React.PointerEvent | React.MouseEvent) => {
       e.stopPropagation();
       if (!text) return;
+      const now = Date.now();
+      if (now - lastTapRef.current < 350) return;
+      lastTapRef.current = now;
 
-      cancelSpeech();
       speakEnglishText(text, { force: true });
       setSpeaking(true);
       window.setTimeout(() => setSpeaking(false), 900);
@@ -56,7 +59,7 @@ export function SpeakButton({
     [text],
   );
 
-  useEffect(() => cancelSpeech, []);
+  useEffect(() => () => cancelSpeech(), []);
 
   const toneClass = iconOnly
     ? variant === "light"
@@ -69,6 +72,7 @@ export function SpeakButton({
   return (
     <button
       type="button"
+      onPointerDown={speak}
       onClick={speak}
       disabled={speaking}
       className={`${toneClass} ${className}`.trim()}
