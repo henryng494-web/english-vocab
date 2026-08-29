@@ -13,6 +13,7 @@ type VocabWordCardProps = {
   /** e.g. "8 / 163" — shown on the image top-right. */
   imageBadge?: string;
   className?: string;
+  autoSpeak?: boolean;
 };
 
 export function vocabWordToDiscoverData(word: VocabWord): DiscoverWordData {
@@ -39,10 +40,16 @@ export function VocabWordCard({
   loading,
   imageBadge,
   className,
+  autoSpeak = true,
 }: VocabWordCardProps) {
   return (
     <div className={`journey-card-slot${className ? ` ${className}` : ""}`}>
-      <DiscoverCard data={data} loading={loading} imageBadge={imageBadge} />
+      <DiscoverCard
+        data={data}
+        loading={loading}
+        imageBadge={imageBadge}
+        autoSpeak={autoSpeak}
+      />
     </div>
   );
 }

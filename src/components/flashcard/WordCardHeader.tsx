@@ -18,6 +18,8 @@ type WordCardHeaderProps = {
   meanings?: string | null;
   register?: WordRegister | null;
   loadingPhonetic?: boolean;
+  /** Auto-pronounce when the word changes (default: true). */
+  autoSpeak?: boolean;
 };
 
 export function WordCardHeader({
@@ -27,8 +29,9 @@ export function WordCardHeader({
   meanings,
   register,
   loadingPhonetic,
+  autoSpeak = true,
 }: WordCardHeaderProps) {
-  useAutoSpeakWord(word);
+  useAutoSpeakWord(word, autoSpeak);
   const wordTypeLabel = normalizeWordType(wordType, word);
   const meaningLines = meanings ? formatMeaningsForDisplay(meanings) : [];
   const registerLabelText = registerLabel(displayWordRegister(register));

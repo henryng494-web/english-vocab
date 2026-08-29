@@ -44,19 +44,32 @@ export function SpeakButton({
   const [speaking, setSpeaking] = useState(false);
   const lastTapRef = useRef(0);
 
-  const speak = useCallback(
-    (e: React.PointerEvent | React.MouseEvent) => {
-      e.stopPropagation();
-      if (!text) return;
-      const now = Date.now();
-      if (now - lastTapRef.current < 350) return;
-      lastTapRef.current = now;
+  const speak = useCallback(() => {
+    if (!text) return;
+    const now = Date.now();
+    if (now - lastTapRef.current < 400) return;
+    lastTapRef.current = now;
 
-      speakEnglishText(text, { force: true });
-      setSpeaking(true);
-      window.setTimeout(() => setSpeaking(false), 900);
+    speakEnglishText(text, { force: true });
+    setSpeaking(true);
+    window.setTimeout(() => setSpeaking(false), 900);
+  }, [text]);
+
+  const handlePointerDown = useCallback(
+    (e: React.PointerEvent<HTMLButtonElement>) => {
+      e.stopPropagation();
+      if (e.pointerType === "touch") speak();
     },
-    [text],
+    [speak],
+  );
+
+  const handleClick = useCallback(
+    (e: React.MouseEvent<HTMLButtonElement>) => {
+      e.stopPropagation();
+      if (window.matchMedia("(pointer: coarse)").matches) return;
+      speak();
+    },
+    [speak],
   );
 
   useEffect(() => () => cancelSpeech(), []);
@@ -72,8 +85,8 @@ export function SpeakButton({
   return (
     <button
       type="button"
-      onPointerDown={speak}
-      onClick={speak}
+      onPointerDown={handlePointerDown}
+      onClick={handleClick}
       disabled={speaking}
       className={`${toneClass} ${className}`.trim()}
       aria-label={speaking ? "Speaking" : "Pronounce"}

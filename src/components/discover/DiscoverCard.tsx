@@ -30,6 +30,7 @@ type DiscoverCardProps = {
   loading?: boolean;
   /** e.g. "2 / 194" — shown on the image top-right. */
   imageBadge?: string;
+  autoSpeak?: boolean;
 };
 
 function CardImage({
@@ -66,7 +67,12 @@ function CardImage({
   );
 }
 
-export function DiscoverCard({ data, loading, imageBadge }: DiscoverCardProps) {
+export function DiscoverCard({
+  data,
+  loading,
+  imageBadge,
+  autoSpeak = true,
+}: DiscoverCardProps) {
   const detailsLoading = loading && !data.vietnamese_meaning?.trim();
   const phonetic = displayPhonetic(data.word, data.phonetic);
   const register = resolveWordRegister(data);
@@ -90,6 +96,7 @@ export function DiscoverCard({ data, loading, imageBadge }: DiscoverCardProps) {
           meanings={data.vietnamese_meaning}
           register={register}
           loadingPhonetic={detailsLoading && !phonetic}
+          autoSpeak={autoSpeak}
         />
 
         <WordCardDetails

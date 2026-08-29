@@ -32,7 +32,7 @@ export function Flashcard({ word, isFlipped, onFlip }: FlashcardProps) {
       >
         <div className="flashcard-face flashcard-front">
           <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-2xl bg-surface">
-            <VocabWordCard data={vocabWordToDiscoverData(word)} />
+            <VocabWordCard data={vocabWordToDiscoverData(word)} autoSpeak />
             <p className="px-5 pb-5 pt-2 text-center text-sm text-foreground/50">
               Tap to flip
             </p>
@@ -41,7 +41,10 @@ export function Flashcard({ word, isFlipped, onFlip }: FlashcardProps) {
 
         <div className="flashcard-face flashcard-back">
           <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-2xl bg-surface">
-            <VocabWordCard data={vocabWordToDiscoverData(word)} />
+            <VocabWordCard
+              data={vocabWordToDiscoverData(word)}
+              autoSpeak={false}
+            />
           </div>
         </div>
       </div>

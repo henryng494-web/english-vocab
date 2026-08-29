@@ -13,6 +13,7 @@ import {
 } from "@/lib/word-pronunciation-audio";
 
 let lastSpoken: { text: string; at: number } | null = null;
+let speakRequestId = 0;
 
 const DEDUPE_MS = 1800;
 
@@ -40,23 +41,47 @@ export function speakEnglishTextSync(text: string): void {
   speakWithVoice(text.trim(), getSpeechVoiceSync());
 }
 
+function claimSpeak(text: string, force: boolean): string | null {
+  const trimmed = text?.trim();
+  if (!trimmed || typeof window === "undefined") return null;
+
+  const key = trimmed.toLowerCase();
+  const now = Date.now();
+  if (
+    !force &&
+    lastSpoken?.text === key &&
+    now - lastSpoken.at < DEDUPE_MS
+  ) {
+    return null;
+  }
+
+  lastSpoken = { text: key, at: now };
+  speakRequestId += 1;
+  stopWordAudio();
+  return trimmed;
+}
+
 async function speakWithBestAvailableVoice(
   text: string,
+  requestId: number,
   options?: { skipTtsFallback?: boolean },
 ): Promise<void> {
   const key = text.toLowerCase();
 
+  const stillCurrent = () =>
+    requestId === speakRequestId && lastSpoken?.text === key;
+
   const cachedAudio = getCachedWordAudioUrl(text);
   if (cachedAudio && !isAppleWebKit()) {
-    if (lastSpoken?.text !== key) return;
+    if (!stillCurrent()) return;
     if (await playWordAudioUrl(cachedAudio)) return;
   }
 
   const audioUrl = await resolveWordAudioUrl(text);
-  if (lastSpoken?.text !== key) return;
+  if (!stillCurrent()) return;
   if (audioUrl && !isAppleWebKit() && (await playWordAudioUrl(audioUrl))) return;
 
-  if (options?.skipTtsFallback) return;
+  if (options?.skipTtsFallback || !stillCurrent()) return;
 
   const cached = getCachedSpeechVoice();
   if (cached) {
@@ -65,8 +90,24 @@ async function speakWithBestAvailableVoice(
   }
 
   const voice = await ensureSpeechVoicesReady();
-  if (lastSpoken?.text !== key) return;
+  if (!stillCurrent()) return;
   speakWithVoice(text, voice);
+}
+
+/** Auto-pronounce a word once — MP3 or TTS, never both. */
+export function speakEnglishTextAuto(text: string): void {
+  const trimmed = claimSpeak(text, false);
+  if (!trimmed) return;
+
+  const requestId = speakRequestId;
+  window.speechSynthesis?.cancel();
+
+  if (isAppleWebKit()) {
+    speakEnglishTextSync(trimmed);
+    return;
+  }
+
+  void speakWithBestAvailableVoice(trimmed, requestId);
 }
 
 /** Speak English text via human audio when possible, else Web Speech API. */
@@ -74,32 +115,28 @@ export function speakEnglishText(
   text: string,
   options?: { force?: boolean },
 ): void {
-  const trimmed = text?.trim();
-  if (!trimmed || typeof window === "undefined") {
-    return;
-  }
+  const trimmed = claimSpeak(text, Boolean(options?.force));
+  if (!trimmed) return;
 
-  const key = trimmed.toLowerCase();
-  const now = Date.now();
-  if (
-    !options?.force &&
-    lastSpoken?.text === key &&
-    now - lastSpoken.at < DEDUPE_MS
-  ) {
-    return;
-  }
-
-  lastSpoken = { text: key, at: now };
-  stopWordAudio();
+  const requestId = speakRequestId;
 
   if (options?.force) {
     speakEnglishTextSync(trimmed);
-    void speakWithBestAvailableVoice(trimmed, { skipTtsFallback: true });
+    if (!isAppleWebKit()) {
+      void speakWithBestAvailableVoice(trimmed, requestId, {
+        skipTtsFallback: true,
+      });
+    }
+    return;
+  }
+
+  if (isAppleWebKit()) {
+    speakEnglishTextSync(trimmed);
     return;
   }
 
   window.speechSynthesis?.cancel();
-  void speakWithBestAvailableVoice(trimmed);
+  void speakWithBestAvailableVoice(trimmed, requestId);
 }
 
 export function cancelSpeech(): void {

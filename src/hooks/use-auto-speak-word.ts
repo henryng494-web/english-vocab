@@ -1,8 +1,52 @@
 "use client";
 
-import { preloadWordPronunciation, speakEnglishText } from "@/lib/speak-word";
+import {
+  preloadWordPronunciation,
+  speakEnglishTextAuto,
+} from "@/lib/speak-word";
 import { useAutoSpeakSetting } from "@/context/AppSettingsContext";
 import { useEffect, useRef } from "react";
+
+const AUTO_SPEAK_DELAY_MS = 420;
+const AUTO_SPEAK_DEDUPE_MS = 2500;
+
+let lastAutoSpeak: { key: string; at: number } | null = null;
+let autoSpeakTimer: number | null = null;
+let autoSpeakPendingKey: string | null = null;
+
+function clearAutoSpeakTimer(): void {
+  if (autoSpeakTimer !== null) {
+    window.clearTimeout(autoSpeakTimer);
+    autoSpeakTimer = null;
+  }
+  autoSpeakPendingKey = null;
+}
+
+function scheduleAutoSpeakWord(text: string): void {
+  const trimmed = text.trim();
+  if (!trimmed) return;
+
+  const key = trimmed.toLowerCase();
+  const now = Date.now();
+  if (
+    lastAutoSpeak?.key === key &&
+    now - lastAutoSpeak.at < AUTO_SPEAK_DEDUPE_MS
+  ) {
+    return;
+  }
+
+  clearAutoSpeakTimer();
+  lastAutoSpeak = { key, at: now };
+  preloadWordPronunciation(trimmed);
+  autoSpeakPendingKey = key;
+
+  autoSpeakTimer = window.setTimeout(() => {
+    autoSpeakTimer = null;
+    if (autoSpeakPendingKey !== key) return;
+    autoSpeakPendingKey = null;
+    speakEnglishTextAuto(trimmed);
+  }, AUTO_SPEAK_DELAY_MS);
+}
 
 /** Auto-pronounce when `text` changes (new word card). Respects menu setting. */
 export function useAutoSpeakWord(
@@ -14,7 +58,13 @@ export function useAutoSpeakWord(
   const active = enabled && autoSpeakEnabled;
 
   useEffect(() => {
-    if (!active) return;
+    if (!active) {
+      if (lastRef.current) {
+        clearAutoSpeakTimer();
+      }
+      return;
+    }
+
     const trimmed = text?.trim() ?? "";
     if (!trimmed) return;
 
@@ -22,12 +72,12 @@ export function useAutoSpeakWord(
     if (key === lastRef.current) return;
     lastRef.current = key;
 
-    preloadWordPronunciation(trimmed);
+    scheduleAutoSpeakWord(trimmed);
 
-    const timer = window.setTimeout(() => {
-      speakEnglishText(trimmed);
-    }, 420);
-
-    return () => window.clearTimeout(timer);
+    return () => {
+      if (autoSpeakPendingKey === key) {
+        clearAutoSpeakTimer();
+      }
+    };
   }, [text, active]);
 }
