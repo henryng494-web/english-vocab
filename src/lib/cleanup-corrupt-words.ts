@@ -3,6 +3,7 @@ import {
   hasCorruptWordSuffix,
   isValidVocabWord,
 } from "@/lib/word-validation";
+import { isExcludedVocabWord } from "@/lib/proper-noun";
 import type { Database } from "@/types/database";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
@@ -50,4 +51,31 @@ export async function cleanupCorruptWords(
   }
 
   return cleaned;
+}
+
+/** Remove learning rows and cached details for words excluded from the inventory. */
+export async function cleanupExcludedVocabWords(
+  supabase: SupabaseClient<Database>,
+): Promise<number> {
+  const { data: learningRows, error: learningError } = await supabase
+    .from("user_learning")
+    .select("word");
+
+  if (learningError) return 0;
+
+  const excluded = new Set(
+    (learningRows ?? [])
+      .map((row) => row.word)
+      .filter((word) => isExcludedVocabWord(word)),
+  );
+
+  if (excluded.size === 0) return 0;
+
+  for (const word of excluded) {
+    await supabase.from("user_learning").delete().eq("word", word);
+    await supabase.from("word_bank").delete().eq("word", word);
+    await supabase.from("word_details").delete().eq("word", word);
+  }
+
+  return excluded.size;
 }

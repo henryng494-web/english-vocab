@@ -1,7 +1,7 @@
 import { getPresetRank } from "@/data/preset-word-details";
 import { resolveImageSearchKeyword } from "@/lib/image-keyword";
 import { createClient } from "@/lib/supabase/server";
-import { cleanupCorruptWords } from "@/lib/cleanup-corrupt-words";
+import { cleanupCorruptWords, cleanupExcludedVocabWords } from "@/lib/cleanup-corrupt-words";
 import { getImportanceTier } from "@/lib/word-rank";
 import { isExcludedVocabWord } from "@/lib/proper-noun";
 import { getFamilyHeadword } from "@/lib/word-family";
@@ -43,6 +43,7 @@ export async function GET(request: Request) {
     // Corrupt-word cleanup belongs in scripts/admin — not on every list read.
     if (searchParams.get("repair") === "true") {
       await cleanupCorruptWords(supabase);
+      await cleanupExcludedVocabWords(supabase);
     }
 
     const { data: bankRows, error: bankError } = await supabase

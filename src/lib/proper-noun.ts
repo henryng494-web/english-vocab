@@ -1,4 +1,5 @@
 import { isContractionStem } from "@/data/contraction-stems";
+import { isForeignSubtitleToken } from "@/data/foreign-subtitle-tokens";
 import { isInvalidVocabWord } from "@/data/invalid-vocab-words";
 import { isLowValueInterjection } from "@/data/low-value-interjections";
 import { isValidTwoLetterWord } from "@/data/valid-two-letter-words";
@@ -10,7 +11,7 @@ export function isProperNoun(word: string): boolean {
   return key.length > 0 && PROPER_NOUNS.has(key);
 }
 
-/** Names, titles, fillers, contraction scraps, profanity, and broken tokens. */
+/** Names, titles, fillers, foreign subtitle tokens, profanity, and broken tokens. */
 export function isExcludedVocabWord(word: string): boolean {
   const key = word.trim().toLowerCase();
   if (!key) return true;
@@ -20,6 +21,7 @@ export function isExcludedVocabWord(word: string): boolean {
     isProperNoun(key) ||
     isLowValueInterjection(key) ||
     isContractionStem(key) ||
-    isInvalidVocabWord(key)
+    isInvalidVocabWord(key) ||
+    isForeignSubtitleToken(key)
   );
 }
