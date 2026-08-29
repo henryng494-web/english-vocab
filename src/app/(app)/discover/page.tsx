@@ -11,7 +11,10 @@ import { AppMenuButton } from "@/components/layout/AppMenuButton";
 import { HeaderSelect } from "@/components/layout/HeaderSelect";
 import { JungleMascot } from "@/components/mascot/JungleMascot";
 import { useAppBootstrap } from "@/context/AppBootstrapContext";
-import { WORD_RANGES } from "@/data/word-ranges";
+import {
+  findNearestRangeWithWords,
+  WORD_RANGES,
+} from "@/data/word-ranges";
 import { DEFAULT_BOOTSTRAP_RANGE } from "@/lib/app-bootstrap";
 import {
   fetchDiscoverRange,
@@ -122,6 +125,31 @@ export default function DiscoverPage() {
   const activeWordRef = useRef<string | null>(null);
   const initializedRangeRef = useRef<string | null>(null);
   const wordCacheHydratedRef = useRef(false);
+  const autoJumpingRef = useRef(false);
+
+  const queueLengthsByRange = useMemo(() => {
+    const lengths: Record<string, number> = {};
+    for (const range of WORD_RANGES) {
+      const cached = bootstrapRanges?.[range.id];
+      if (!cached) {
+        lengths[range.id] = 0;
+        continue;
+      }
+      lengths[range.id] = filterDiscoverQueue(cached.queue).length;
+    }
+    if (bootstrapRanges) {
+      lengths[rangeId] = queue.length;
+    }
+    return lengths;
+  }, [bootstrapRanges, rangeId, queue.length]);
+
+  const allRangesFinished = useMemo(
+    () =>
+      bootstrapRanges
+        ? WORD_RANGES.every((range) => (queueLengthsByRange[range.id] ?? 0) === 0)
+        : false,
+    [bootstrapRanges, queueLengthsByRange],
+  );
 
   const warmRangeImages = useCallback((items: DiscoverListItem[]) => {
     const batch = items.slice(0, IMAGE_WARM_COUNT).map(listItemImageTarget);
@@ -296,6 +324,27 @@ export default function DiscoverPage() {
     if (queue.length === 0) return;
     warmRangeImages(queue);
   }, [queue, warmRangeImages]);
+
+  useEffect(() => {
+    if (!bootstrapRanges || loadingList) return;
+    if (queue.length > 0) {
+      autoJumpingRef.current = false;
+      return;
+    }
+
+    const nextRangeId = findNearestRangeWithWords(rangeId, queueLengthsByRange);
+    if (!nextRangeId || nextRangeId === rangeId || autoJumpingRef.current) return;
+
+    autoJumpingRef.current = true;
+    initializedRangeRef.current = null;
+    setRangeId(nextRangeId);
+  }, [
+    bootstrapRanges,
+    loadingList,
+    queue.length,
+    queueLengthsByRange,
+    rangeId,
+  ]);
 
   useEffect(() => {
     if (initializedRangeRef.current === rangeId) return;
@@ -542,16 +591,19 @@ export default function DiscoverPage() {
             <JungleMascot character="crocodile" size={72} className="mb-3" />
             <div className="w-full">
               <p className="text-foreground/80">
-                You&apos;ve finished this range. Words you learned or marked
-                as known no longer appear here.
+                {allRangesFinished
+                  ? "You've finished every rank. Words you learned or marked as known no longer appear here."
+                  : "You've finished this range. Jumping to the nearest rank with new words…"}
               </p>
-              <button
-                type="button"
-                onClick={() => router.push("/discover")}
-                className="btn-pill-primary mt-4 px-6 py-3"
-              >
-                Back to Home
-              </button>
+              {allRangesFinished && (
+                <button
+                  type="button"
+                  onClick={() => router.push("/discover")}
+                  className="btn-pill-primary mt-4 px-6 py-3"
+                >
+                  Back to Home
+                </button>
+              )}
             </div>
           </div>
         ) : (
