@@ -78,17 +78,21 @@ async function finalizeExamples(
   }
 
   if (allowGemini) {
-    const generated = await generateExamplesWithGemini(
-      word,
-      pos,
-      meaning,
-      parseVietnameseMeanings(meaning),
-    );
-    if (hasQualityExamples(word, generated ?? undefined, pos, meaning)) {
-      return (generated ?? []).slice(0, 2);
+    let lastGenerated: VocabExample[] | null = null;
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      const generated = await generateExamplesWithGemini(
+        word,
+        pos,
+        meaning,
+        parseVietnameseMeanings(meaning),
+      );
+      lastGenerated = generated;
+      if (hasQualityExamples(word, generated ?? undefined, pos, meaning)) {
+        return (generated ?? []).slice(0, 2);
+      }
     }
-    if (generated?.length) {
-      const merged = keepNaturalExamples(word, [...existing, ...generated], pos);
+    if (lastGenerated?.length) {
+      const merged = keepNaturalExamples(word, [...existing, ...lastGenerated], pos);
       if (hasQualityExamples(word, merged, pos, meaning)) return merged.slice(0, 2);
     }
   }

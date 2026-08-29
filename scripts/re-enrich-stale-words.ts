@@ -332,6 +332,7 @@ async function main() {
     missing_register: 0,
     legacy_register: 0,
     embedded_register_hint: 0,
+    misaligned_examples: 0,
   };
   for (const target of targets) {
     reasonCounts[target.reason] += 1;
@@ -340,6 +341,7 @@ async function main() {
     `Stale reasons: missing_register=${reasonCounts.missing_register}` +
       ` legacy_register=${reasonCounts.legacy_register}` +
       ` embedded_hint=${reasonCounts.embedded_register_hint}` +
+      ` misaligned_examples=${reasonCounts.misaligned_examples}` +
       ` missing_meaning=${reasonCounts.missing_meaning}`,
   );
 

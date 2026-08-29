@@ -10,7 +10,9 @@ import {
   loadPersistedWordCache,
   persistWordCache,
 } from "@/lib/discover-word-cache";
+import { hasQualityExamples } from "@/lib/example-quality";
 import { mapApiWordToDiscoverData } from "@/lib/discover-fetch";
+import { parseExamples } from "@/lib/parse-examples";
 import { refreshSingleWordImage } from "@/lib/refresh-stale-word-images";
 import { shouldRefreshImageUrl } from "@/lib/unsplash";
 import { capitalizeFirst } from "@/lib/format-text";
@@ -67,7 +69,16 @@ function WordDetailPageContent() {
 
     const cache = loadPersistedWordCache();
     const cached = cache.get(word);
-    const hadValidCache = Boolean(cached && isCacheEntryValid(cached, word));
+    const hadValidCache = Boolean(
+      cached &&
+        isCacheEntryValid(cached, word) &&
+        hasQualityExamples(
+          word,
+          parseExamples(cached.examples),
+          cached.word_type,
+          cached.vietnamese_meaning,
+        ),
+    );
     if (hadValidCache) {
       setData(cached!);
       setLoading(shouldRefreshImageUrl(cached!.image_url, word));

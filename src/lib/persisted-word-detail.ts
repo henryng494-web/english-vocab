@@ -1,5 +1,9 @@
 import type { WordDetail } from "@/types/database";
-import { hasQualityExamples } from "@/lib/example-quality";
+import {
+  hasMeaningAlignedExamples,
+  hasQualityExamples,
+  keepNaturalExamples,
+} from "@/lib/example-quality";
 import { parseExamples } from "@/lib/parse-examples";
 import { containsForeignScript } from "@/lib/sanitize-vi";
 import {
@@ -12,7 +16,8 @@ export type StaleWordDetailReason =
   | "missing_meaning"
   | "missing_register"
   | "legacy_register"
-  | "embedded_register_hint";
+  | "embedded_register_hint"
+  | "misaligned_examples";
 
 /** Cached row predates register badge / dual-meaning layout. */
 export function getStaleWordDetailReason(
@@ -24,6 +29,17 @@ export function getStaleWordDetailReason(
   if (isLegacyRegisterCollocation(detail.collocations)) return "legacy_register";
   if (hasEmbeddedRegisterHints(detail.vietnamese_meaning)) {
     return "embedded_register_hint";
+  }
+  const natural = keepNaturalExamples(
+    detail.word,
+    parseExamples(detail.examples),
+    detail.word_type,
+  );
+  if (
+    natural.length >= 2 &&
+    !hasMeaningAlignedExamples(natural, detail.vietnamese_meaning)
+  ) {
+    return "misaligned_examples";
   }
   return null;
 }

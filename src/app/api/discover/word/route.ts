@@ -3,17 +3,13 @@ import { getPresetRank } from "@/data/preset-word-details";
 import { createClient } from "@/lib/supabase/server";
 import { enrichmentToDiscoverWord } from "@/lib/enrichment-helpers";
 import { enrichWord } from "@/lib/enrich-word";
-import {
-  alignExampleTranslations,
-  ensureExamples,
-  fillExampleTranslations,
-} from "@/lib/example-fallback";
-import { hasQualityExamples } from "@/lib/example-quality";
-import { generateExamplesWithGemini } from "@/lib/gemini-core";
 import { isPersistedWordDetailComplete } from "@/lib/persisted-word-detail";
 import { generatePhoneticWithGemini } from "@/lib/gemini-core";
 import { isPlaceholderPhonetic, formatIpa } from "@/lib/phonetic";
-import { parseExamples, serializeExamples } from "@/lib/parse-examples";
+import {
+  examplesNeedRegeneration,
+  repairWordExamples,
+} from "@/lib/repair-word-examples";
 import { getImportanceTier } from "@/lib/word-rank";
 import { withWordFamily } from "@/lib/word-family-display";
 import { resolveImageSearchKeyword } from "@/lib/image-keyword";
@@ -25,7 +21,7 @@ import {
 import { isClosedClassWord } from "@/lib/word-image-strategy";
 import { isExcludedVocabWord } from "@/lib/proper-noun";
 import { sanitizeVietnameseText } from "@/lib/sanitize-vi";
-import { parseVietnameseMeanings, resolveWordRegister } from "@/lib/word-meanings";
+import { resolveWordRegister } from "@/lib/word-meanings";
 import { normalizeVocabInput } from "@/lib/word-validation";
 import { getFamilyHeadword } from "@/lib/word-family";
 import type { WordDetail } from "@/types/database";
@@ -145,36 +141,19 @@ async function persistImageUrlIfChanged(
   }
 }
 
-async function repairExamplesIfNeeded(
+async function repairPersistedExamplesIfNeeded(
+  supabase: Awaited<ReturnType<typeof createClient>>,
   word: string,
-  examples: string | null | undefined,
-  wordType?: string | null,
-  meaning?: string | null,
+  detail: WordDetail,
 ): Promise<string> {
-  const parsed = parseExamples(examples);
-  if (hasQualityExamples(word, parsed, wordType, meaning)) {
-    return examples?.trim() ? examples : serializeExamples(parsed);
-  }
-
-  if (process.env.GEMINI_API_KEY?.trim()) {
-    const generated = await generateExamplesWithGemini(
-      word,
-      wordType,
-      meaning,
-      parseVietnameseMeanings(meaning),
-    );
-    if (hasQualityExamples(word, generated ?? undefined, wordType, meaning)) {
-      return serializeExamples(generated!.slice(0, 2));
-    }
-  }
-
-  const ensured = ensureExamples(word, parsed, wordType, meaning);
-  const aligned = await alignExampleTranslations(ensured, word, wordType, meaning);
-  const translated = await fillExampleTranslations(aligned, word, wordType, meaning);
-  const finalExamples = hasQualityExamples(word, translated, wordType, meaning)
-    ? translated
-    : aligned;
-  return serializeExamples(finalExamples);
+  const repaired = await repairWordExamples(
+    word,
+    detail.examples,
+    detail.word_type,
+    detail.vietnamese_meaning,
+  );
+  await persistRepairField(supabase, word, "examples", repaired, detail.examples);
+  return repaired;
 }
 
 async function repairPhoneticIfNeeded(
@@ -195,21 +174,6 @@ async function repairPersistedPhoneticIfNeeded(
 ): Promise<string> {
   const repaired = await repairPhoneticIfNeeded(word, detail.phonetic);
   await persistRepairField(supabase, word, "phonetic", repaired, detail.phonetic);
-  return repaired;
-}
-
-async function repairPersistedExamplesIfNeeded(
-  supabase: Awaited<ReturnType<typeof createClient>>,
-  word: string,
-  detail: WordDetail,
-): Promise<string> {
-  const repaired = await repairExamplesIfNeeded(
-    word,
-    detail.examples,
-    detail.word_type,
-    detail.vietnamese_meaning,
-  );
-  await persistRepairField(supabase, word, "examples", repaired, detail.examples);
   return repaired;
 }
 
@@ -357,7 +321,20 @@ export async function GET(request: Request) {
       });
     }
 
-    const enrichment = await enrichWord(word, { rank: frequencyRank, skipGemini });
+    const forceExampleRegen = repairedDbDetail
+      ? examplesNeedRegeneration(
+          word,
+          repairedDbDetail.examples,
+          repairedDbDetail.word_type,
+          repairedDbDetail.vietnamese_meaning,
+        )
+      : false;
+
+    const enrichment = await enrichWord(word, {
+      rank: frequencyRank,
+      skipGemini,
+      forceGemini: forceExampleRegen,
+    });
     const responseWord = enrichmentToDiscoverWord(word, enrichment, null);
     const searchKeyword = responseWord.search_keyword ?? word;
     const vietnameseMeaning =
@@ -378,7 +355,7 @@ export async function GET(request: Request) {
       responseWord.word_type ?? enrichment.wordType,
     );
     responseWord.image_url = imageUrl;
-    const examples = await repairExamplesIfNeeded(
+    const examples = await repairWordExamples(
       word,
       responseWord.examples,
       responseWord.word_type,
