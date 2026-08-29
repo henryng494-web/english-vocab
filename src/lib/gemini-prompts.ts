@@ -3,28 +3,32 @@
 export const VALID_POS =
   "noun|verb|adjective|adverb|pronoun|preposition|conjunction|article|number|interjection|determiner";
 
-export const REGISTER_CLASSIFICATION_RULES = `REGISTER — exactly TWO values (like Informal vs Formal English):
+export const REGISTER_CLASSIFICATION_RULES = `REGISTER — exactly TWO values. Think "Informal vs Formal English" synonym pairs:
 
-informal (DEFAULT for most vocabulary)
-  • Everyday speech, texting, casual conversation, phrasal verbs
-  • Common verbs/adjectives people use with friends, family, colleagues informally
-  • Examples: get, buy, tell, check, help, start, end, ask, go up, find out, run, table, happy, hereditary
-  • If the word has a more formal synonym pair (get/obtain, buy/purchase) and THIS word is the casual side → informal
-  • General health/family words stay informal even in medical examples (hereditary, chronic, tired)
+formal (DEFAULT — use unless the word is clearly informal)
+  • The polished / professional / written side of a pair, OR standard neutral vocabulary for reports & essays
+  • Pairs (informal → formal): go on→continue, bring up→mention, talk about→discuss, get→obtain, buy→purchase,
+    tell→inform, check→verify, help→assist, start→commence, end→terminate, ask→inquire, find out→discover,
+    give→provide, make sure→ensure, show→demonstrate, go ahead→proceed, call off→cancel, cut down→reduce
+  • Also formal when no casual pair exists but the word is normal educated English: continue, mention, consider,
+    opportunity, important, discuss, require, provide, maintain, establish, announce, hereditary, diabetes
+  • If you'd use it comfortably in a work email or news article without sounding slangy → formal
 
-formal
-  • Professional, academic, official, legal, or ceremonial English
-  • Words you would use in reports, emails to bosses, contracts, news broadcasts, essays
-  • Examples: obtain, purchase, inform, verify, assist, commence, terminate, inquire, hereby, nevertheless
-  • If this word is the formal counterpart in a pair (purchase not buy) → formal
-  • Legal connectives (hereby, pursuant), business verbs (commence, ensure), elevated adverbs (nevertheless)
+informal (ONLY when clearly the casual / spoken side)
+  • Short everyday verbs & phrasal verbs people use with friends: get, buy, tell, check, help, start, end, ask,
+    go on, bring up, find out, pick up, mess up, talk about, look for, put off, go up, go down, give up, let
+  • Slang or very relaxed chat: gonna, kinda, stuff (casual senses), dude
+  • MUST be the informal half of a pair — if this headword IS obtain/continue/mention/purchase → formal, NOT informal
+  • Do NOT tag neutral standard words informal just because examples use friendly tone
 
-How to decide:
-1. Would you say this word casually to a friend? → informal
-2. Would it sound stiff or professional in casual chat? → formal
-3. Dual meanings: register = FIRST meaning (most frequent). Do NOT split register per line.
+Decision checklist:
+1. Is this headword the FORMAL side of a known pair? → formal (continue, mention, obtain…)
+2. Is it a phrasal/casual verb or basic chat verb (get, buy, go on…)? → informal
+3. Otherwise standard single-word vocabulary → formal
 
-JSON register field MUST be exactly "informal" or "formal" — no other values.`;
+Dual meanings: register = FIRST meaning (most frequent).
+
+JSON register MUST be exactly "informal" or "formal".`;
 
 export const POS_CLASSIFICATION_RULES = `STEP 1 — Classify the word BEFORE translating:
 - pos: one of ${VALID_POS}
@@ -59,14 +63,14 @@ interjection → thán từ (e.g. "Ôi!", "Wow")
 register tweaks:
 - NEVER write register hints inside meanings — no "(trang trọng)" in the gloss; the register JSON field carries tone
 - register follows the FIRST meaning when there are 2 senses
-- formal → examples sound professional or official
-- informal → natural spoken Vietnamese and casual English examples`;
+- formal → examples fit reports, meetings, news (continue working, mentioned in the report)
+- informal → casual chat examples only for truly informal headwords (get, buy, go on…)`;
 
 export const EXAMPLE_RULES = (word: string) => `STEP 3 — Examples (EXACTLY 2):
 - English: 5–10 words, MUST contain "${word}"
 - If 2 meanings → example 1 illustrates meaning 1 ONLY, example 2 illustrates meaning 2 ONLY (set senseIndex 1 and 2)
 - If 1 meaning → both examples illustrate that same meaning (senseIndex 1 for both)
-- Match register (formal word → formal sentence; informal → casual natural sentence)
+- Match register (formal word → workplace/news tone; informal → casual conversation)
 - Vietnamese: natural, not word-by-word
 - NEVER meta lines ("I learned the word...", "Please use ... in a sentence")`;
 
@@ -79,13 +83,13 @@ export function buildEnrichPrompt(word: string): string {
 
 Word: "${word}"
 
-Gold standards (informal vs formal):
-• get (verb, informal) — meanings: ["Lấy, nhận"] · register: "informal"
-• obtain (verb, formal) — meanings: ["Có được, đạt được"] · register: "formal"
-• buy (verb, informal) vs purchase (verb, formal)
-• run (verb, informal) — 2 senses: ["Chạy", "Vận hành"]
-• hereby (adverb, formal) — meanings: ["Theo đây"] · register: "formal"
-• hereditary (adjective, informal) — meanings: ["Di truyền", "Nối ngôi, thừa kế"] · register: "informal"
+Gold standards (informal vs formal pairs):
+• get (verb) → informal · obtain (verb) → formal
+• buy (verb) → informal · purchase (verb) → formal
+• go on (phrasal) → informal · continue (verb) → formal
+• bring up (phrasal) → informal · mention (verb) → formal
+• talk about → informal · discuss (verb) → formal
+• hereby (adverb) → formal · meanings: ["Theo đây"]
 
 ${POS_CLASSIFICATION_RULES}
 
@@ -101,7 +105,7 @@ Respond with ONLY valid JSON:
 {
   "word": "${word}",
   "pos": "noun",
-  "register": "informal",
+  "register": "formal",
   "phonetic": "/ipa/",
   "meanings": ["Nghĩa 1", "Nghĩa 2 hoặc bỏ nếu chỉ 1 nghĩa"],
   "examples": [

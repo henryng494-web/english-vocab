@@ -5,22 +5,9 @@ export const WORD_REGISTERS = ["informal", "formal"] as const;
 
 export type WordRegister = (typeof WORD_REGISTERS)[number];
 
-/** Maps deprecated Gemini / DB register values to the binary model. */
-const LEGACY_REGISTER_MAP: Record<string, WordRegister> = {
-  informal: "informal",
-  everyday: "informal",
-  slang: "informal",
-  casual: "informal",
-  formal: "formal",
-  legal: "formal",
-  technical: "formal",
-  literary: "formal",
-  academic: "formal",
-  official: "formal",
-};
-
 const MEANING_LINE_DELIMITER = "\n";
-const REGISTER_COLLATION_PREFIX = "__register:";
+const REGISTER_COLLATION_PREFIX = "__register:v2:";
+const LEGACY_REGISTER_COLLATION_PREFIX = "__register:";
 
 const REGISTER_LABELS_EN: Record<WordRegister, string> = {
   informal: "Informal",
@@ -56,16 +43,15 @@ export function normalizeWordRegister(value: unknown): WordRegister | null {
   if (typeof value !== "string") return null;
   const key = value.trim().toLowerCase();
   if (key === "informal" || key === "formal") return key;
-  return LEGACY_REGISTER_MAP[key] ?? null;
+  return null;
 }
 
-/** True when collocations still store a pre-binary register slug (everyday, technical, …). */
+/** True when collocations use pre-v2 register storage and need re-classification. */
 export function isLegacyRegisterCollocation(
   collocations: string | null | undefined,
 ): boolean {
-  if (!collocations?.startsWith(REGISTER_COLLATION_PREFIX)) return false;
-  const raw = collocations.slice(REGISTER_COLLATION_PREFIX.length).trim().toLowerCase();
-  return raw !== "informal" && raw !== "formal";
+  if (!collocations?.startsWith(LEGACY_REGISTER_COLLATION_PREFIX)) return false;
+  return !collocations.startsWith(REGISTER_COLLATION_PREFIX);
 }
 
 /** English register label for app UI (Informal, Formal). */
@@ -145,7 +131,7 @@ export function resolveWordRegister(input: {
 export function displayWordRegister(
   register: WordRegister | null | undefined,
 ): WordRegister {
-  return normalizeWordRegister(register ?? "") ?? "informal";
+  return normalizeWordRegister(register ?? "") ?? "formal";
 }
 
 export function formatMeaningsForDisplay(text: string | null | undefined): string[] {
