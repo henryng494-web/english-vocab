@@ -56,13 +56,7 @@ const PRELOAD_AHEAD = 10;
 const IMAGE_WARM_COUNT = 12;
 
 function formatJourneyBadge(index: number, total: number): string {
-  const position = index + 1;
-  if (total <= 999) return `${position} / ${total}`;
-  const compact =
-    total >= 10000
-      ? `${Math.round(total / 1000)}k`
-      : `${(total / 1000).toFixed(1).replace(/\.0$/, "")}k`;
-  return `${position} / ${compact}`;
+  return `${index + 1} / ${total}`;
 }
 
 function listItemImageTarget(item: DiscoverListItem): WordImagePrefetchTarget {
