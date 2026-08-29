@@ -233,6 +233,7 @@ export async function GET(request: Request) {
     const skipGemini =
       searchParams.get("skipGemini") === "true" &&
       hasQualityStandardVocab(word ?? "");
+    const forceRepair = searchParams.get("forceRepair") === "true";
 
     if (!word) {
       return NextResponse.json(
@@ -277,7 +278,20 @@ export async function GET(request: Request) {
       repairedDbDetail = { ...dbDetail, examples, phonetic, vietnamese_meaning };
     }
 
-    if (isPersistedWordDetailComplete(repairedDbDetail, word)) {
+    const examplesStillMisaligned = repairedDbDetail
+      ? examplesNeedRegeneration(
+          word,
+          repairedDbDetail.examples,
+          repairedDbDetail.word_type,
+          repairedDbDetail.vietnamese_meaning,
+        )
+      : false;
+
+    if (
+      !forceRepair &&
+      !examplesStillMisaligned &&
+      isPersistedWordDetailComplete(repairedDbDetail, word)
+    ) {
       const searchKeyword = imageSearchKeyword(
         word,
         repairedDbDetail!.word_type,
@@ -321,18 +335,11 @@ export async function GET(request: Request) {
       });
     }
 
-    const forceExampleRegen = repairedDbDetail
-      ? examplesNeedRegeneration(
-          word,
-          repairedDbDetail.examples,
-          repairedDbDetail.word_type,
-          repairedDbDetail.vietnamese_meaning,
-        )
-      : false;
+    const forceExampleRegen = forceRepair || examplesStillMisaligned;
 
     const enrichment = await enrichWord(word, {
       rank: frequencyRank,
-      skipGemini,
+      skipGemini: forceExampleRegen ? false : skipGemini,
       forceGemini: forceExampleRegen,
     });
     const responseWord = enrichmentToDiscoverWord(word, enrichment, null);

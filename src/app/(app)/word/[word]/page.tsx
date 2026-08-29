@@ -10,9 +10,8 @@ import {
   loadPersistedWordCache,
   persistWordCache,
 } from "@/lib/discover-word-cache";
-import { hasQualityExamples } from "@/lib/example-quality";
 import { mapApiWordToDiscoverData } from "@/lib/discover-fetch";
-import { parseExamples } from "@/lib/parse-examples";
+import { examplesNeedRegeneration } from "@/lib/repair-word-examples";
 import { refreshSingleWordImage } from "@/lib/refresh-stale-word-images";
 import { shouldRefreshImageUrl } from "@/lib/unsplash";
 import { capitalizeFirst } from "@/lib/format-text";
@@ -69,15 +68,24 @@ function WordDetailPageContent() {
 
     const cache = loadPersistedWordCache();
     const cached = cache.get(word);
-    const hadValidCache = Boolean(
+    const cachedMisaligned = Boolean(
       cached &&
-        isCacheEntryValid(cached, word) &&
-        hasQualityExamples(
+        examplesNeedRegeneration(
           word,
-          parseExamples(cached.examples),
+          cached.examples,
           cached.word_type,
           cached.vietnamese_meaning,
         ),
+    );
+    if (cachedMisaligned) {
+      cache.delete(word);
+      persistWordCache(cache);
+    }
+
+    const hadValidCache = Boolean(
+      cached &&
+        !cachedMisaligned &&
+        isCacheEntryValid(cached, word),
     );
     if (hadValidCache) {
       setData(cached!);
@@ -90,37 +98,66 @@ function WordDetailPageContent() {
     setError(null);
 
     const rank = getPresetRank(word) ?? 10000;
-    const params = new URLSearchParams({
-      word,
-      rank: String(rank),
-      skipGemini: "false",
-      cacheVersion: String(DISCOVER_WORD_CACHE_VERSION),
-    });
 
-    fetch(`/api/discover/word?${params}`, { cache: "no-store" })
-      .then(async (res) => {
-        const payload = await res.json();
-        if (!res.ok) {
-          throw new Error(payload.details ?? payload.error ?? "Failed to load word");
-        }
-        const apiWord = payload.word as Record<string, unknown>;
-        const loaded = mapApiWordToDiscoverData(
-          {
-            word,
-            rank,
-            importance_tier: getImportanceTier(rank),
-          },
-          apiWord,
-        );
-        if (!loaded.vietnamese_meaning?.trim()) {
-          throw new Error(`Incomplete data for "${word}"`);
-        }
-        if (cancelled) return;
-        cache.set(word, loaded);
-        persistWordCache(cache);
-        setData(loaded);
-      })
-      .catch((err) => {
+    const fetchWord = (forceRepair: boolean): Promise<void> => {
+      const params = new URLSearchParams({
+        word,
+        rank: String(rank),
+        skipGemini: "false",
+        cacheVersion: String(DISCOVER_WORD_CACHE_VERSION),
+      });
+      if (forceRepair) {
+        params.set("forceRepair", "true");
+      }
+
+      return fetch(`/api/discover/word?${params}`, { cache: "no-store" })
+        .then(async (res) => {
+          const payload = await res.json();
+          if (!res.ok) {
+            throw new Error(payload.details ?? payload.error ?? "Failed to load word");
+          }
+          const apiWord = payload.word as Record<string, unknown>;
+          const loaded = mapApiWordToDiscoverData(
+            {
+              word,
+              rank,
+              importance_tier: getImportanceTier(rank),
+            },
+            apiWord,
+          );
+          if (!loaded.vietnamese_meaning?.trim()) {
+            throw new Error(`Incomplete data for "${word}"`);
+          }
+          if (
+            !forceRepair &&
+            examplesNeedRegeneration(
+              word,
+              loaded.examples,
+              loaded.word_type,
+              loaded.vietnamese_meaning,
+            )
+          ) {
+            return fetchWord(true);
+          }
+          if (cancelled) return;
+          if (
+            examplesNeedRegeneration(
+              word,
+              loaded.examples,
+              loaded.word_type,
+              loaded.vietnamese_meaning,
+            )
+          ) {
+            return;
+          }
+          cache.set(word, loaded);
+          persistWordCache(cache);
+          setData(loaded);
+        });
+    };
+
+    void fetchWord(cachedMisaligned)
+      .catch((err: unknown) => {
         if (cancelled) return;
         setError(err instanceof Error ? err.message : "Failed to load word");
         if (!hadValidCache) setData(null);
