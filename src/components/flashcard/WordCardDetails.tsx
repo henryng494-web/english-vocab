@@ -25,10 +25,7 @@ type WordCardDetailsProps = {
   examples?: string | null;
   wordType?: string | null;
   family?: WordFamilyMember[] | null;
-  compact?: boolean;
   loading?: boolean;
-  /** Flow layout: content grows naturally (Review reveal). Default card uses fixed flip height. */
-  layout?: "card" | "flow";
 };
 
 export function WordCardDetails({
@@ -36,9 +33,7 @@ export function WordCardDetails({
   examples,
   wordType,
   family,
-  compact = false,
   loading = false,
-  layout = "card",
 }: WordCardDetailsProps) {
   const parsed = loading ? [] : parseExamples(examples);
   const rows = (family ?? []).filter((item) => item.word.trim());
@@ -67,15 +62,7 @@ export function WordCardDetails({
   }
 
   return (
-    <div
-      className={
-        compact
-          ? "card-details card-details--compact"
-          : layout === "flow"
-            ? "card-details card-details--flow"
-            : "card-details"
-      }
-    >
+    <div className="card-details card-details--compact">
       <div
         className="card-details__scene"
         onClick={() => {
@@ -109,17 +96,12 @@ export function WordCardDetails({
       >
         <div className={`card-details__flip${showFamily ? " is-family" : ""}`}>
           <div className="card-details__face card-details__face--meaning">
-            <div
-              className={
-                compact ? "discover-card__examples min-h-0 flex-1 overflow-hidden" : undefined
-              }
-            >
+            <div className="discover-card__examples min-h-0 flex-1 overflow-hidden">
               <VocabExampleList
                 word={word}
                 examples={parsed}
                 wordType={wordType}
-                compact={compact}
-                boxed={!compact}
+                compact
               />
             </div>
           </div>

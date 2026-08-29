@@ -3,9 +3,9 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
-  DiscoverCard,
-  type DiscoverWordData,
-} from "@/components/discover/DiscoverCard";
+  VocabWordCard,
+  vocabWordToDiscoverData,
+} from "@/components/discover/VocabWordCard";
 import {
   REVIEW_INTERVALS,
   REVIEW_MASTERED_LABEL,
@@ -15,7 +15,6 @@ import {
   type ReviewIntervalDays,
 } from "@/lib/review-schedule";
 import type { VocabWord } from "@/types/database";
-import { resolveWordRegister } from "@/lib/word-meanings";
 
 type ReviewRevealProps = {
   word: VocabWord;
@@ -29,22 +28,8 @@ type ReviewRevealProps = {
   confirming: boolean;
 };
 
-function toDiscoverData(word: VocabWord): DiscoverWordData {
-  return {
-    word: word.word,
-    rank: word.rank,
-    importance_tier: word.importance_tier,
-    phonetic: word.phonetic,
-    word_type: word.word_type,
-    vietnamese_meaning: word.vietnamese_meaning,
-    english_definition: word.english_definition,
-    examples: word.examples,
-    image_url: word.image_url,
-    search_keyword: word.search_keyword,
-    word_family: word.word_family,
-    collocations: word.collocations,
-    register: resolveWordRegister(word),
-  };
+function toDiscoverData(word: VocabWord) {
+  return vocabWordToDiscoverData(word);
 }
 
 export function ReviewReveal({
@@ -113,9 +98,7 @@ export function ReviewReveal({
   return (
     <div className="review-reveal">
       <div className="journey-panel review-reveal__panel">
-        <div className="journey-card-slot">
-          <DiscoverCard data={toDiscoverData(word)} compact />
-        </div>
+        <VocabWordCard data={toDiscoverData(word)} />
       </div>
 
       <div className="review-schedule">

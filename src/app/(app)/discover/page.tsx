@@ -1,9 +1,7 @@
 "use client";
 
-import {
-  DiscoverCard,
-  type DiscoverWordData,
-} from "@/components/discover/DiscoverCard";
+import { VocabWordCard } from "@/components/discover/VocabWordCard";
+import type { DiscoverWordData } from "@/components/discover/DiscoverCard";
 import {
   CoinBadge,
   DiscoverDashboard,
@@ -558,15 +556,12 @@ export default function DiscoverPage() {
           </div>
         ) : (
           <div className="journey-main">
-            <div className="journey-card-slot">
-              <DiscoverCard
-                key={currentItem.word}
-                data={currentWord ?? stubFromListItem(currentItem)}
-                loading={loadingWord}
-                compact
-                imageBadge={formatJourneyBadge(currentIndex, queue.length)}
-              />
-            </div>
+            <VocabWordCard
+              key={currentItem.word}
+              data={currentWord ?? stubFromListItem(currentItem)}
+              loading={loadingWord}
+              imageBadge={formatJourneyBadge(currentIndex, queue.length)}
+            />
 
             <div className="journey-actions">
               <button

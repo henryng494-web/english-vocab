@@ -28,9 +28,7 @@ export type DiscoverWordData = {
 type DiscoverCardProps = {
   data: DiscoverWordData;
   loading?: boolean;
-  /** Fit card in a fixed viewport panel without scrolling. */
-  compact?: boolean;
-  /** e.g. "2 / 194" — shown on the image top-right when compact. */
+  /** e.g. "2 / 194" — shown on the image top-right. */
   imageBadge?: string;
 };
 
@@ -40,7 +38,6 @@ function CardImage({
   searchKeyword,
   wordType,
   meaning,
-  compact = false,
   badge,
 }: {
   word: string;
@@ -48,17 +45,10 @@ function CardImage({
   searchKeyword?: string | null;
   wordType?: string | null;
   meaning?: string | null;
-  compact?: boolean;
   badge?: string;
 }) {
   return (
-    <div
-      className={`relative w-full ${
-        compact
-          ? "card-image-frame h-full min-h-0"
-          : "card-image-frame h-44 shrink-0"
-      }`}
-    >
+    <div className="card-image-frame relative h-full min-h-0 w-full">
       <WordImage
         word={word}
         imageUrl={imageUrl}
@@ -67,7 +57,7 @@ function CardImage({
         meaning={meaning}
         priority
       />
-      {compact && badge ? (
+      {badge ? (
         <span className="card-image-badge" aria-label={`Word ${badge}`}>
           {badge}
         </span>
@@ -76,39 +66,23 @@ function CardImage({
   );
 }
 
-export function DiscoverCard({
-  data,
-  loading,
-  compact = false,
-  imageBadge,
-}: DiscoverCardProps) {
+export function DiscoverCard({ data, loading, imageBadge }: DiscoverCardProps) {
   const detailsLoading = loading && !data.vietnamese_meaning?.trim();
   const phonetic = displayPhonetic(data.word, data.phonetic);
   const register = resolveWordRegister(data);
 
   return (
-    <div
-      className={`discover-card w-full overflow-hidden rounded-2xl border-2 shadow-lg${
-        compact ? " discover-card--compact grid h-full min-h-0" : " border-primary-200 bg-surface"
-      }`}
-    >
+    <div className="discover-card discover-card--compact grid h-full min-h-0 w-full overflow-hidden rounded-2xl border-2 shadow-lg">
       <CardImage
         word={data.word}
         imageUrl={data.image_url}
         searchKeyword={data.search_keyword}
         wordType={data.word_type}
         meaning={data.vietnamese_meaning}
-        compact={compact}
         badge={imageBadge}
       />
 
-      <div
-        className={
-          compact
-            ? "discover-card__body discover-card__body--compact flex min-h-0 flex-col overflow-hidden p-3"
-            : "space-y-4 p-6"
-        }
-      >
+      <div className="discover-card__body discover-card__body--compact flex min-h-0 flex-col overflow-hidden p-3">
         <WordCardHeader
           word={data.word}
           phonetic={phonetic}
@@ -116,7 +90,6 @@ export function DiscoverCard({
           meanings={data.vietnamese_meaning}
           register={register}
           loadingPhonetic={detailsLoading && !phonetic}
-          compact={compact}
         />
 
         <WordCardDetails
@@ -124,7 +97,6 @@ export function DiscoverCard({
           examples={data.examples}
           wordType={data.word_type}
           family={data.word_family}
-          compact={compact}
           loading={detailsLoading}
         />
       </div>

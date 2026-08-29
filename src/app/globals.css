@@ -469,6 +469,11 @@ body {
   grid-template-rows: minmax(0, 0.8fr) minmax(0, 1.2fr);
 }
 
+.discover-card__body--compact {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
 .discover-card__examples {
   display: flex;
   min-height: 0;
@@ -833,14 +838,10 @@ body {
 
 .word-card-header__meaning {
   margin: 0;
-  font-size: 1.125rem;
+  font-size: 1.0625rem;
   font-weight: 600;
   line-height: 1.35;
   color: var(--meaning, var(--primary-700));
-}
-
-.word-card-header--compact .word-card-header__meaning {
-  font-size: 1.0625rem;
 }
 
 .word-card-header__meta {
@@ -1742,7 +1743,9 @@ body {
 }
 
 .review-reveal__panel .journey-card-slot {
+  flex: 1 1 0;
   height: 100%;
+  min-height: 0;
 }
 
 .review-schedule {

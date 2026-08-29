@@ -18,7 +18,6 @@ type WordCardHeaderProps = {
   meanings?: string | null;
   register?: WordRegister | null;
   loadingPhonetic?: boolean;
-  compact?: boolean;
 };
 
 export function WordCardHeader({
@@ -28,7 +27,6 @@ export function WordCardHeader({
   meanings,
   register,
   loadingPhonetic,
-  compact = false,
 }: WordCardHeaderProps) {
   useAutoSpeakWord(word);
   const wordTypeLabel = normalizeWordType(wordType, word);
@@ -36,15 +34,9 @@ export function WordCardHeader({
   const registerLabelText = registerLabel(displayWordRegister(register));
 
   return (
-    <div
-      className={`word-card-header${compact ? " word-card-header--compact" : ""}`}
-    >
+    <div className="word-card-header">
       <div className="word-card-header__top">
-        <h2
-          className={`word-card-header__word ${
-            compact ? "text-3xl" : "text-4xl"
-          }`}
-        >
+        <h2 className="word-card-header__word text-3xl">
           {capitalizeFirst(word)}
         </h2>
 

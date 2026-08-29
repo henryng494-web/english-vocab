@@ -1,9 +1,7 @@
 "use client";
 
-import {
-  DiscoverCard,
-  type DiscoverWordData,
-} from "@/components/discover/DiscoverCard";
+import { VocabWordCard } from "@/components/discover/VocabWordCard";
+import type { DiscoverWordData } from "@/components/discover/DiscoverCard";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { JungleMascot } from "@/components/mascot/JungleMascot";
 import {
@@ -182,7 +180,7 @@ function WordDetailPageContent() {
         }
       />
 
-      <div className="word-detail px-4">
+      <div className="journey-panel px-4">
         {statusText ? (
           <p className="word-detail__status">{statusText}</p>
         ) : null}
@@ -193,29 +191,24 @@ function WordDetailPageContent() {
             <p className="text-sm text-foreground/70">{error}</p>
           </div>
         ) : (
-          <>
-            <div className="word-detail__card">
-              <div className="journey-card-slot">
-                <DiscoverCard
-                  data={
-                    data ?? {
-                      word,
-                      rank: getPresetRank(word) ?? 10000,
-                      importance_tier: getImportanceTier(getPresetRank(word) ?? 10000),
-                    }
-                  }
-                  loading={loading}
-                  compact
-                />
-              </div>
-            </div>
+          <div className="journey-main">
+            <VocabWordCard
+              data={
+                data ?? {
+                  word,
+                  rank: getPresetRank(word) ?? 10000,
+                  importance_tier: getImportanceTier(getPresetRank(word) ?? 10000),
+                }
+              }
+              loading={loading}
+            />
             {libraryContext && libraryNeighbors ? (
               <WordLibraryPager
                 context={libraryContext}
                 neighbors={libraryNeighbors}
               />
             ) : null}
-          </>
+          </div>
         )}
       </div>
     </div>
