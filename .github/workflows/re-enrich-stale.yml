@@ -3,18 +3,29 @@ name: Re-enrich stale words
 on:
   workflow_dispatch:
     inputs:
-      limit:
-        description: Batch size per run
+      run_all:
+        description: Loop until all stale rows are fixed (recommended)
         required: false
-        default: "25"
+        default: "true"
+        type: choice
+        options:
+          - "true"
+          - "false"
+      limit:
+        description: Batch size per loop (when run_all=true) or single batch
+        required: false
+        default: "20"
       offset:
-        description: Stale-row offset
+        description: Start offset (only when run_all=false)
         required: false
         default: "0"
       word:
-        description: Optional single word (e.g. draw)
+        description: Optional single word (e.g. draw) — overrides run_all
         required: false
         default: ""
+
+permissions:
+  contents: read
 
 jobs:
   re-enrich:
@@ -30,15 +41,17 @@ jobs:
 
       - run: npm ci
 
-      - name: Run stale re-enrich batch
+      - name: Re-enrich stale word_details (examples + meanings + register)
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
-          ARGS="--limit=${{ inputs.limit }} --offset=${{ inputs.offset }}"
           if [ -n "${{ inputs.word }}" ]; then
-            ARGS="--word=${{ inputs.word }}"
+            npm run re-enrich:stale -- --word=${{ inputs.word }}
+          elif [ "${{ inputs.run_all }}" = "true" ]; then
+            npm run re-enrich:all -- --limit=${{ inputs.limit }}
+          else
+            npm run re-enrich:stale -- --limit=${{ inputs.limit }} --offset=${{ inputs.offset }}
           fi
-          npm run re-enrich:stale -- $ARGS
