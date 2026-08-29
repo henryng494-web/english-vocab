@@ -3,45 +3,36 @@
 export const VALID_POS =
   "noun|verb|adjective|adverb|pronoun|preposition|conjunction|article|number|interjection|determiner";
 
-export const REGISTER_CLASSIFICATION_RULES = `REGISTER — pick ONE value for the PRIMARY sense (first meaning line):
+export const REGISTER_CLASSIFICATION_RULES = `REGISTER — exactly TWO values (like Informal vs Formal English):
 
-everyday (DEFAULT for most general vocabulary)
-  • Normal speech, news, school, family, health talk anyone can understand
-  • Includes words that CAN appear in medicine/science but are still common English:
-    hereditary, chronic, genetic, infection, symptom, depression, legal (adj.), royal
-  • If a layperson would know the word without specialist training → everyday, NOT technical
+informal (DEFAULT for most vocabulary)
+  • Everyday speech, texting, casual conversation, phrasal verbs
+  • Common verbs/adjectives people use with friends, family, colleagues informally
+  • Examples: get, buy, tell, check, help, start, end, ask, go up, find out, run, table, happy, hereditary
+  • If the word has a more formal synonym pair (get/obtain, buy/purchase) and THIS word is the casual side → informal
+  • General health/family words stay informal even in medical examples (hereditary, chronic, tired)
 
 formal
-  • Polite official tone: business, announcements, academic essays, ceremonies
-  • Aristocracy, titles, diplomacy: hereditary title, commence, endeavor, nevertheless
-  • Use when the dominant sense is elevated/neutral-official, not casual slang
+  • Professional, academic, official, legal, or ceremonial English
+  • Words you would use in reports, emails to bosses, contracts, news broadcasts, essays
+  • Examples: obtain, purchase, inform, verify, assist, commence, terminate, inquire, hereby, nevertheless
+  • If this word is the formal counterpart in a pair (purchase not buy) → formal
+  • Legal connectives (hereby, pursuant), business verbs (commence, ensure), elevated adverbs (nevertheless)
 
-legal
-  • Contracts, statutes, court filings: hereby, pursuant, aforesaid, herein
-  • JSON may say "legal"; learners still see Formal in the app
+How to decide:
+1. Would you say this word casually to a friend? → informal
+2. Would it sound stiff or professional in casual chat? → formal
+3. Dual meanings: register = FIRST meaning (most frequent). Do NOT split register per line.
 
-technical
-  • ONLY specialist jargon — terms laypeople rarely say unprompted
-  • e.g. mitochondria, pathogen, algorithm, torque, photosynthesis, myocardial
-  • NOT general adjectives/nouns just because an example mentions diabetes or biology
-  • Ask: "Would this word headline a textbook chapter title?" If no → not technical
-
-literary
-  • Rare, poetic, archaic as the PRIMARY sense: betwixt, thou, ere (as primary)
-
-slang
-  • Very casual / in-group only — only if that is the most common sense
-
-Dual meanings (2 lines): register = the FIRST meaning's register (most frequent sense).
-Never tag the whole entry "technical" because sense 2 touches science if sense 1 is general.`;
+JSON register field MUST be exactly "informal" or "formal" — no other values.`;
 
 export const POS_CLASSIFICATION_RULES = `STEP 1 — Classify the word BEFORE translating:
 - pos: one of ${VALID_POS}
-- register: everyday | formal | legal | technical | literary | slang
+- register: informal | formal
 
 ${REGISTER_CLASSIFICATION_RULES}
 
-Pick the PRIMARY sense learners meet most often for that word's rank — but NEVER force a formal/legal word into casual "bằng cách này" if the real sense is trang trọng/văn bản.`;
+Pick the PRIMARY sense learners meet most often for that word's rank — but NEVER force a formal word into casual "bằng cách này" if the real sense is trang trọng/văn bản.`;
 
 export const MEANING_COUNT_RULES = `STEP 2 — Vietnamese meanings (MAX 2 lines):
 - If the word has ONE common sense → "meanings" array with 1 short gloss.
@@ -56,27 +47,26 @@ verb → động từ, nêu hành động chính (e.g. "Chấp nhận", "Đào, 
 adjective → tính từ (e.g. "Quan trọng", "Sạch sẽ")
 adverb → trạng từ — match register:
   • manner (quickly → nhanh chóng)
-  • formal/legal (hereby → theo đây; thereby → do đó/nhờ đó; henceforth → kể từ nay)
-  • NEVER use "bằng cách này" for legal hereby/herein/hereof
+  • formal (hereby → theo đây; thereby → do đó/nhờ đó; henceforth → kể từ nay)
+  • NEVER use "bằng cách này" for formal hereby/herein/hereof
 preposition → giới từ (e.g. "Trong, ở", "Về, liên quan đến")
 conjunction → liên từ (e.g. "Nhưng", "Mặc dù")
 pronoun → đại từ (e.g. "Anh ấy", "Cái đó")
-number → số đếm (twenty → Hai mươi) — NEVER money/slang
+number → số đếm (twenty → Hai mươi)
 article/determiner → mạo từ/hạn định (e.g. "Một", "Các")
 interjection → thán từ (e.g. "Ôi!", "Wow")
 
 register tweaks:
-- NEVER write register hints inside meanings — no "(trang trọng)", "(pháp lý)" in the gloss; the register JSON field carries tone
+- NEVER write register hints inside meanings — no "(trang trọng)" in the gloss; the register JSON field carries tone
 - register follows the FIRST meaning when there are 2 senses
-- formal/legal → examples may be official sentences
-- technical → only when the headword itself is jargon; medical TOPICS in examples do not make a general word technical
-- everyday → natural spoken Vietnamese; health/family senses (hereditary, chronic) stay everyday`;
+- formal → examples sound professional or official
+- informal → natural spoken Vietnamese and casual English examples`;
 
 export const EXAMPLE_RULES = (word: string) => `STEP 3 — Examples (EXACTLY 2):
 - English: 5–10 words, MUST contain "${word}"
 - If 2 meanings → example 1 illustrates meaning 1 ONLY, example 2 illustrates meaning 2 ONLY (set senseIndex 1 and 2)
 - If 1 meaning → both examples illustrate that same meaning (senseIndex 1 for both)
-- Match register (formal word → formal sentence, not casual chat)
+- Match register (formal word → formal sentence; informal → casual natural sentence)
 - Vietnamese: natural, not word-by-word
 - NEVER meta lines ("I learned the word...", "Please use ... in a sentence")`;
 
@@ -89,22 +79,13 @@ export function buildEnrichPrompt(word: string): string {
 
 Word: "${word}"
 
-Gold standards:
-• run (verb, everyday) — 2 senses:
-  meanings: ["Chạy", "Vận hành"]
-  examples: sense 1 "I run every morning." / sense 2 "She runs a small cafe."
-• hole (noun, everyday) — 1 sense:
-  meanings: ["Lỗ, hố"]
-  examples: both about a physical hole
-• hereby (adverb, formal) — 1 sense:
-  meanings: ["Theo đây"]
-  register: "formal"
-  - I hereby accept your job offer. → Tôi theo đây chấp nhận lời mời làm việc của bạn.
-• hereditary (adjective, everyday) — 2 senses:
-  meanings: ["Di truyền", "Nối ngôi, thừa kế"]
-  register: "everyday"
-  - NOT technical — common word even in health/family talk; sense 2 (title) is formal but secondary for register field
-  - example 1: hereditary disease / family trait · example 2: hereditary title / monarchy
+Gold standards (informal vs formal):
+• get (verb, informal) — meanings: ["Lấy, nhận"] · register: "informal"
+• obtain (verb, formal) — meanings: ["Có được, đạt được"] · register: "formal"
+• buy (verb, informal) vs purchase (verb, formal)
+• run (verb, informal) — 2 senses: ["Chạy", "Vận hành"]
+• hereby (adverb, formal) — meanings: ["Theo đây"] · register: "formal"
+• hereditary (adjective, informal) — meanings: ["Di truyền", "Nối ngôi, thừa kế"] · register: "informal"
 
 ${POS_CLASSIFICATION_RULES}
 
@@ -120,7 +101,7 @@ Respond with ONLY valid JSON:
 {
   "word": "${word}",
   "pos": "noun",
-  "register": "everyday",
+  "register": "informal",
   "phonetic": "/ipa/",
   "meanings": ["Nghĩa 1", "Nghĩa 2 hoặc bỏ nếu chỉ 1 nghĩa"],
   "examples": [
@@ -200,7 +181,7 @@ Headword: "${word}"
 ${posHint} ${meaningHint}
 
 Rules:
-- Match register (formal English → formal Vietnamese)
+- Match register (formal English → formal Vietnamese; informal → conversational)
 - Natural idiom, not word-by-word
 - Function words like hereby → "theo đây" at natural position in Vietnamese
 - Latin Vietnamese only

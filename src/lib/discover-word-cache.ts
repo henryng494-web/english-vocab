@@ -4,11 +4,12 @@ import { parseExamples } from "@/lib/parse-examples";
 import { containsForeignScript } from "@/lib/sanitize-vi";
 import {
   hasEmbeddedRegisterHints,
+  isLegacyRegisterCollocation,
   resolveWordRegister,
 } from "@/lib/word-meanings";
 
 /** Bump when Gemini/Unsplash pipeline or image quality rules change. */
-export const DISCOVER_WORD_CACHE_VERSION = 77;
+export const DISCOVER_WORD_CACHE_VERSION = 78;
 
 const STORAGE_KEY = `discover-word-cache-v${DISCOVER_WORD_CACHE_VERSION}`;
 
@@ -76,6 +77,7 @@ const LEGACY_STORAGE_KEYS = [
   "discover-word-cache-v74",
   "discover-word-cache-v75",
   "discover-word-cache-v76",
+  "discover-word-cache-v77",
 ];
 
 const MAX_ENTRIES = 250;
@@ -93,6 +95,7 @@ export function isWordDetailComplete(
     return false;
   }
   if (!resolveWordRegister(data)) return false;
+  if (isLegacyRegisterCollocation(data.collocations)) return false;
   if (hasEmbeddedRegisterHints(data.vietnamese_meaning)) return false;
   return true;
 }

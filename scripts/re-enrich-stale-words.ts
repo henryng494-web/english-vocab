@@ -330,6 +330,7 @@ async function main() {
   const reasonCounts: Record<StaleWordDetailReason, number> = {
     missing_meaning: 0,
     missing_register: 0,
+    legacy_register: 0,
     embedded_register_hint: 0,
   };
   for (const target of targets) {
@@ -337,6 +338,7 @@ async function main() {
   }
   console.log(
     `Stale reasons: missing_register=${reasonCounts.missing_register}` +
+      ` legacy_register=${reasonCounts.legacy_register}` +
       ` embedded_hint=${reasonCounts.embedded_register_hint}` +
       ` missing_meaning=${reasonCounts.missing_meaning}`,
   );

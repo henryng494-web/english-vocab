@@ -1,43 +1,42 @@
 import { capitalizeFirst } from "@/lib/format-text";
 import { sanitizeVietnameseText } from "@/lib/sanitize-vi";
 
-export const WORD_REGISTERS = [
-  "everyday",
-  "formal",
-  "legal",
-  "technical",
-  "literary",
-  "slang",
-] as const;
+export const WORD_REGISTERS = ["informal", "formal"] as const;
 
 export type WordRegister = (typeof WORD_REGISTERS)[number];
+
+/** Maps deprecated Gemini / DB register values to the binary model. */
+const LEGACY_REGISTER_MAP: Record<string, WordRegister> = {
+  informal: "informal",
+  everyday: "informal",
+  slang: "informal",
+  casual: "informal",
+  formal: "formal",
+  legal: "formal",
+  technical: "formal",
+  literary: "formal",
+  academic: "formal",
+  official: "formal",
+};
 
 const MEANING_LINE_DELIMITER = "\n";
 const REGISTER_COLLATION_PREFIX = "__register:";
 
 const REGISTER_LABELS_EN: Record<WordRegister, string> = {
-  everyday: "Everyday",
+  informal: "Informal",
   formal: "Formal",
-  legal: "Formal",
-  technical: "Technical",
-  literary: "Literary",
-  slang: "Slang",
 };
 
 const REGISTER_LABELS_VI: Record<WordRegister, string> = {
-  everyday: "Đời thường",
+  informal: "Không trang trọng",
   formal: "Trang trọng",
-  legal: "Trang trọng",
-  technical: "Chuyên ngành",
-  literary: "Văn học",
-  slang: "Lóng",
 };
 
 const EMBEDDED_REGISTER_HINT_RE =
-  /\((trang trọng|pháp lý|học thuật|văn học|lóng|thân mật)\)/i;
+  /\((trang trọng|pháp lý|học thuật|văn học|lóng|thân mật|informal|formal)\)/i;
 
 const EMBEDDED_REGISTER_HINT_STRIP_RE =
-  /\s*\((trang trọng|pháp lý|học thuật|văn học|lóng|thân mật)\)\s*/gi;
+  /\s*\((trang trọng|pháp lý|học thuật|văn học|lóng|thân mật|informal|formal)\)\s*/gi;
 
 /** True when meaning text still carries old inline register hints. */
 export function hasEmbeddedRegisterHints(text: string | null | undefined): boolean {
@@ -55,11 +54,21 @@ export function stripEmbeddedRegisterHints(text: string): string {
 
 export function normalizeWordRegister(value: unknown): WordRegister | null {
   if (typeof value !== "string") return null;
-  const key = value.trim().toLowerCase() as WordRegister;
-  return WORD_REGISTERS.includes(key) ? key : null;
+  const key = value.trim().toLowerCase();
+  if (key === "informal" || key === "formal") return key;
+  return LEGACY_REGISTER_MAP[key] ?? null;
 }
 
-/** English register label for app UI (Formal, Everyday, …). */
+/** True when collocations still store a pre-binary register slug (everyday, technical, …). */
+export function isLegacyRegisterCollocation(
+  collocations: string | null | undefined,
+): boolean {
+  if (!collocations?.startsWith(REGISTER_COLLATION_PREFIX)) return false;
+  const raw = collocations.slice(REGISTER_COLLATION_PREFIX.length).trim().toLowerCase();
+  return raw !== "informal" && raw !== "formal";
+}
+
+/** English register label for app UI (Informal, Formal). */
 export function registerLabel(
   register: WordRegister | null | undefined,
 ): string | null {
@@ -127,14 +136,16 @@ export function resolveWordRegister(input: {
   register?: WordRegister | null;
   collocations?: string | null;
 }): WordRegister | null {
-  return input.register ?? decodeRegisterFromCollocation(input.collocations);
+  const fromField = input.register ? normalizeWordRegister(input.register) : null;
+  if (fromField) return fromField;
+  return decodeRegisterFromCollocation(input.collocations);
 }
 
 /** UI fallback while cached rows still lack register metadata. */
 export function displayWordRegister(
   register: WordRegister | null | undefined,
 ): WordRegister {
-  return register ?? "everyday";
+  return normalizeWordRegister(register ?? "") ?? "informal";
 }
 
 export function formatMeaningsForDisplay(text: string | null | undefined): string[] {
