@@ -14,6 +14,8 @@ import {
   buildReviewQuestionPlan,
   pickReviewRecallSentence,
   reviewClue,
+  reviewSenseCacheKey,
+  senseChoicesIncludeCorrectWord,
   type ReviewChoice,
   type ReviewQuizKind,
 } from "@/lib/review-quiz";
@@ -123,7 +125,7 @@ export default function LearnPage() {
   const indexRef = useRef(0);
   const queueRef = useRef<VocabWord[]>([]);
   const allWordsRef = useRef<VocabWord[]>([]);
-  const prefetchedChoicesRef = useRef<Map<number, ReviewChoice[]>>(new Map());
+  const prefetchedChoicesRef = useRef<Map<string, ReviewChoice[]>>(new Map());
   const prefetchInflightRef = useRef<Map<number, Promise<void>>>(new Map());
 
   const currentWord = queue[index];
@@ -135,8 +137,15 @@ export default function LearnPage() {
 
   const mergePrefetchedSenseChoices = useCallback(
     (senseChoices: Map<number, ReviewChoice[]>) => {
+      const q = queueRef.current;
       for (const [questionIndex, cachedChoices] of senseChoices.entries()) {
-        prefetchedChoicesRef.current.set(questionIndex, cachedChoices);
+        const word = q[questionIndex];
+        if (!word) continue;
+        if (!senseChoicesIncludeCorrectWord(cachedChoices, word.word)) continue;
+        prefetchedChoicesRef.current.set(
+          reviewSenseCacheKey(questionIndex, word.word),
+          cachedChoices,
+        );
       }
     },
     [],
@@ -166,8 +175,15 @@ export default function LearnPage() {
         if (!word) return;
 
         const plan = collectReviewQuestionImageTargets(word, pool, questionIndex);
-        if (plan.kind === "sense" && plan.choices.length === 3) {
-          prefetchedChoicesRef.current.set(questionIndex, plan.choices);
+        if (
+          plan.kind === "sense" &&
+          plan.choices.length === 3 &&
+          senseChoicesIncludeCorrectWord(plan.choices, word.word)
+        ) {
+          prefetchedChoicesRef.current.set(
+            reviewSenseCacheKey(questionIndex, word.word),
+            plan.choices,
+          );
         }
 
         preloadReviewImageBatch(plan.targets);
@@ -175,10 +191,11 @@ export default function LearnPage() {
         applyImageUpdatesToState(updates, setAllWords, setQueue, setChoices);
 
         if (plan.kind === "sense" && Object.keys(updates).length > 0) {
+          const cacheKey = reviewSenseCacheKey(questionIndex, word.word);
           const cached =
-            prefetchedChoicesRef.current.get(questionIndex) ?? plan.choices;
+            prefetchedChoicesRef.current.get(cacheKey) ?? plan.choices;
           prefetchedChoicesRef.current.set(
-            questionIndex,
+            cacheKey,
             cached.map((choice) => {
               const key = choice.word.trim().toLowerCase();
               return updates[key] ? { ...choice, imageUrl: updates[key] } : choice;
@@ -205,15 +222,23 @@ export default function LearnPage() {
 
   const startQuestion = useCallback((word: VocabWord, pool: VocabWord[], questionIndex = 0) => {
     const schedule = getReviewSchedule(word.word);
-    const cachedSenseChoices = prefetchedChoicesRef.current.get(questionIndex);
+    const cacheKey = reviewSenseCacheKey(questionIndex, word.word);
+    const cachedSenseChoices = prefetchedChoicesRef.current.get(cacheKey);
     const planned = buildReviewQuestionPlan(word, pool, questionIndex);
     let kind = planned.kind;
     let nextChoices = planned.choices;
 
-    if (cachedSenseChoices && planned.kind === "sense") {
+    const cacheUsable =
+      cachedSenseChoices &&
+      planned.kind === "sense" &&
+      senseChoicesIncludeCorrectWord(cachedSenseChoices, word.word);
+
+    if (cacheUsable) {
       kind = "sense";
       nextChoices = cachedSenseChoices;
-      prefetchedChoicesRef.current.delete(questionIndex);
+      prefetchedChoicesRef.current.delete(cacheKey);
+    } else if (cachedSenseChoices) {
+      prefetchedChoicesRef.current.delete(cacheKey);
     }
 
     setPhase("question");
@@ -228,7 +253,7 @@ export default function LearnPage() {
     setTimesReviewed(schedule.timesReviewed);
 
     const { targets } = collectReviewQuestionImageTargets(word, pool, questionIndex);
-    if (cachedSenseChoices) {
+    if (cacheUsable && cachedSenseChoices) {
       preloadReviewImageBatch(
         cachedSenseChoices.map((choice) => ({
           word: choice.word,
@@ -353,6 +378,7 @@ export default function LearnPage() {
         updateReviewCache({ allWords: all, dueQueue: sessionDue });
         if (options?.silent) {
           setAllWords(all);
+          prefetchedChoicesRef.current.clear();
           setQueue((prev) => {
             if (prev.length === 0) return sessionDue;
             return applyReviewSessionSnapshot(mergeQueueWordData(prev, all), snapshot);
@@ -558,7 +584,12 @@ export default function LearnPage() {
 
   function handleChoose(choice: ReviewChoice) {
     const isCorrect =
-      choice.word.trim().toLowerCase() === currentWord?.word.trim().toLowerCase();
+      quizKind === "sense"
+        ? choice.isCorrect === true ||
+          choice.word.trim().toLowerCase() ===
+            currentWord?.word.trim().toLowerCase()
+        : choice.word.trim().toLowerCase() ===
+          currentWord?.word.trim().toLowerCase();
     lockAnswer(isCorrect, choice.key, false);
   }
 

@@ -31,6 +31,8 @@ export type ReviewChoice = {
   imageUrl?: string | null;
   searchKeyword?: string | null;
   wordType?: string | null;
+  /** Sense quiz: this gloss belongs to the prompt word. */
+  isCorrect?: boolean;
 };
 
 export type ReviewQuizKind = "word" | "sense" | "recall";
@@ -96,6 +98,24 @@ function pickSameRankDistractors<T extends { word: string; rank?: number }>(
   return [...picked, ...nearest].slice(0, count);
 }
 
+export function reviewSenseCacheKey(questionIndex: number, word: string): string {
+  return `${questionIndex}:${word.trim().toLowerCase()}`;
+}
+
+/** True when a cached sense-quiz set includes the prompt word as an option. */
+export function senseChoicesIncludeCorrectWord(
+  choices: ReviewChoice[],
+  correctWord: string,
+): boolean {
+  const correct = correctWord.trim().toLowerCase();
+  if (!correct) return false;
+  return choices.some(
+    (choice) =>
+      choice.isCorrect === true ||
+      choice.word.trim().toLowerCase() === correct,
+  );
+}
+
 /** Compact Vietnamese gloss for review sense choices (matches WordCard rules). */
 export function reviewSenseText(word: {
   vietnamese_meaning?: string | null;
@@ -142,16 +162,31 @@ export function buildReviewSenseChoices(
     }
   }
 
-  const options = shuffle([correctItem ?? { word: correct, vietnamese_meaning: correctMeaning }, ...distractors]);
-  return options.slice(0, 3).map((item, index) => ({
-    key: `${item.word.trim().toLowerCase()}-${index}`,
-    letter: SENSE_LETTERS[index] ?? String(index + 1),
-    word: capitalizeFirst(item.word),
-    meaning: reviewSenseText(item) || correctMeaning,
-    imageUrl: item.image_url ?? null,
-    searchKeyword: item.search_keyword ?? null,
-    wordType: item.word_type ?? null,
-  }));
+  const correctOption =
+    correctItem ?? { word: correct, vietnamese_meaning: correctMeaning };
+  let options = shuffle([correctOption, ...distractors.slice(0, 2)]);
+  if (
+    !options.some((item) => item.word.trim().toLowerCase() === correct)
+  ) {
+    options = shuffle([correctOption, ...distractors.slice(0, 2)]);
+  }
+
+  return options.slice(0, 3).map((item, index) => {
+    const itemWord = item.word.trim().toLowerCase();
+    const isCorrect = itemWord === correct;
+    return {
+      key: `${itemWord}-${index}`,
+      letter: SENSE_LETTERS[index] ?? String(index + 1),
+      word: capitalizeFirst(item.word),
+      meaning: isCorrect
+        ? correctMeaning
+        : reviewSenseText(item) || correctMeaning,
+      imageUrl: item.image_url ?? null,
+      searchKeyword: item.search_keyword ?? null,
+      wordType: item.word_type ?? null,
+      isCorrect,
+    };
+  });
 }
 
 export function reviewQuizKindForIndex(index: number): ReviewQuizKind {
@@ -177,7 +212,10 @@ export function buildReviewQuestionPlan(
 
   if (wanted === "sense") {
     const senseChoices = buildReviewSenseChoices(word.word, pool);
-    if (senseChoices.length === 3) {
+    if (
+      senseChoices.length === 3 &&
+      senseChoicesIncludeCorrectWord(senseChoices, word.word)
+    ) {
       kind = "sense";
       choices = senseChoices;
     }
