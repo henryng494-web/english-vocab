@@ -13,7 +13,8 @@ import { buildDefinitionFromVietnameseMeaning } from "@/lib/translate-vi";
 import { normalizeWordType } from "@/lib/word-type";
 import { getImportanceTier } from "@/lib/word-rank";
 import { formatIpa, isPlaceholderPhonetic } from "@/lib/phonetic";
-import { keepNaturalExamples } from "@/lib/example-fallback";
+import { fillExampleTranslations, keepNaturalExamples } from "@/lib/example-fallback";
+import { hasQualityExamples } from "@/lib/example-quality";
 import type { VocabExample } from "@/lib/parse-examples";
 import {
   encodeRegisterCollocation,
@@ -289,9 +290,15 @@ export async function generateExamplesWithGemini(
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (!jsonMatch) return null;
     const parsed = JSON.parse(jsonMatch[0]) as GeminiJsonShape;
-    const examples = keepNaturalExamples(word, parseExamples(parsed.examples));
-    if (examples.length < 2) return null;
-    return examples.slice(0, 2);
+    const raw = keepNaturalExamples(
+      word,
+      parseExamples(parsed.examples),
+      pos,
+    );
+    if (raw.length < 2) return null;
+    const filled = await fillExampleTranslations(raw, word, pos, meaning);
+    if (!hasQualityExamples(word, filled, pos, meaning)) return null;
+    return filled.slice(0, 2);
   } catch (error) {
     console.warn(`Gemini examples failed for "${word}":`, error);
     return null;

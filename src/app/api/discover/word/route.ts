@@ -362,15 +362,30 @@ export async function GET(request: Request) {
       responseWord.word_type ?? enrichment.wordType,
     );
     responseWord.image_url = imageUrl;
-    const examples = await repairWordExamples(
+    let examples = await repairWordExamples(
       word,
       responseWord.examples,
       responseWord.word_type,
       responseWord.vietnamese_meaning,
     );
+    if (
+      examplesNeedRegeneration(
+        word,
+        examples,
+        responseWord.word_type,
+        responseWord.vietnamese_meaning,
+      )
+    ) {
+      examples = await repairWordExamples(
+        word,
+        null,
+        responseWord.word_type,
+        responseWord.vietnamese_meaning,
+      );
+    }
     const phonetic = await repairPhoneticIfNeeded(word, responseWord.phonetic);
 
-    void persistEnrichedWordDetail(supabase, word, {
+    const persistPayload = {
       phonetic: phonetic ?? `/${word}/`,
       word_type: responseWord.word_type ?? "unknown",
       vietnamese_meaning:
@@ -379,7 +394,22 @@ export async function GET(request: Request) {
       examples,
       collocations: responseWord.collocations ?? null,
       image_url: isPersistableWordImageUrl(imageUrl, word) ? imageUrl : null,
-    });
+    };
+
+    if (
+      !examplesNeedRegeneration(
+        word,
+        examples,
+        responseWord.word_type,
+        responseWord.vietnamese_meaning,
+      )
+    ) {
+      void persistEnrichedWordDetail(supabase, word, persistPayload);
+    } else {
+      console.warn(
+        `[discover/word] Gemini examples still misaligned for "${word}" — not persisting bad rows`,
+      );
+    }
 
     if (dbDetail) {
       await persistImageUrlIfChanged(

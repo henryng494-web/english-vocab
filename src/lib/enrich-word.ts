@@ -114,7 +114,7 @@ async function finalizeExamples(
     return translatedEnsured.slice(0, 2);
   }
 
-  return translatedEnsured.length ? translatedEnsured.slice(0, 2) : aligned;
+  return [];
 }
 
 function meaningFields(meaning: string) {

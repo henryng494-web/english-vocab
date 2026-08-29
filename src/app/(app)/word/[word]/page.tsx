@@ -148,7 +148,9 @@ function WordDetailPageContent() {
               loaded.vietnamese_meaning,
             )
           ) {
-            return;
+            throw new Error(
+              `Could not repair examples for "${word}" — try again in a moment.`,
+            );
           }
           cache.set(word, loaded);
           persistWordCache(cache);
