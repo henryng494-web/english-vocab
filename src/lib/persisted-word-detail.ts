@@ -3,8 +3,10 @@ import {
   hasQualityExamples,
 } from "@/lib/example-quality";
 import { hasQualityMeanings } from "@/lib/meaning-quality";
+import { isPlaceholderPhonetic } from "@/lib/phonetic";
 import { parseExamples } from "@/lib/parse-examples";
 import { containsForeignScript } from "@/lib/sanitize-vi";
+import { normalizeWordType } from "@/lib/word-type";
 import {
   decodeRegisterFromCollocation,
   hasEmbeddedRegisterHints,
@@ -18,6 +20,8 @@ export type StaleWordDetailReason =
   | "legacy_register"
   | "outdated_register"
   | "embedded_register_hint"
+  | "bad_phonetic"
+  | "missing_pos"
   | "bad_meaning"
   | "misaligned_examples";
 
@@ -33,6 +37,8 @@ export function getStaleWordDetailReason(
   if (hasEmbeddedRegisterHints(detail.vietnamese_meaning)) {
     return "embedded_register_hint";
   }
+  if (isPlaceholderPhonetic(detail.word, detail.phonetic)) return "bad_phonetic";
+  if (!normalizeWordType(detail.word_type, detail.word)) return "missing_pos";
   if (
     !hasQualityMeanings(
       detail.word,

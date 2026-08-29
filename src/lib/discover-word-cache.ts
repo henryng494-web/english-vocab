@@ -10,7 +10,7 @@ import {
 } from "@/lib/word-meanings";
 
 /** Bump when Gemini/Unsplash pipeline or image quality rules change. */
-export const DISCOVER_WORD_CACHE_VERSION = 92;
+export const DISCOVER_WORD_CACHE_VERSION = 93;
 
 const STORAGE_KEY = `discover-word-cache-v${DISCOVER_WORD_CACHE_VERSION}`;
 
@@ -86,6 +86,7 @@ const LEGACY_STORAGE_KEYS = [
   "discover-word-cache-v89",
   "discover-word-cache-v90",
   "discover-word-cache-v91",
+  "discover-word-cache-v92",
 ];
 
 const MAX_ENTRIES = 250;

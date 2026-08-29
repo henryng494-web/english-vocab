@@ -77,6 +77,8 @@ async function main() {
     legacy_register: 0,
     outdated_register: 0,
     embedded_register_hint: 0,
+    bad_phonetic: 0,
+    missing_pos: 0,
     bad_meaning: 0,
     misaligned_examples: 0,
   };
@@ -113,6 +115,9 @@ async function main() {
         misaligned_examples: reasonCounts.misaligned_examples,
         missing_register: reasonCounts.missing_register,
         legacy_register: reasonCounts.legacy_register,
+        outdated_register: reasonCounts.outdated_register,
+        bad_phonetic: reasonCounts.bad_phonetic,
+        missing_pos: reasonCounts.missing_pos,
         embedded_register_hint: reasonCounts.embedded_register_hint,
         missing_meaning: reasonCounts.missing_meaning,
         encyclopedic_gloss_lines: encyclopedicLines,

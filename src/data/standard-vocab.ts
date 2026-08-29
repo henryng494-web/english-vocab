@@ -796,6 +796,18 @@ const CURATED: Record<string, RawEntry> = {
     ],
     keyword: "december",
   },
+  tonight: {
+    pos: "adverb",
+    ipa: "/təˈnaɪt/",
+    meaning: "Tối nay",
+    register: "neutral",
+    definition: "Vào buổi tối của ngày hôm nay.",
+    examples: [
+      { en: "Are you free tonight?", vi: "Tối nay bạn rảnh không?" },
+      { en: "We will watch the stars tonight.", vi: "Tối nay chúng ta sẽ ngắm sao." },
+    ],
+    keyword: "moon over city night skyline",
+  },
   wrong: {
     pos: "adjective",
     ipa: "/rɔːŋ/",
