@@ -3,6 +3,7 @@ import {
   type ReviewChoice,
   type ReviewQuizKind,
 } from "@/lib/review-quiz";
+import { resolveCastPreferredImagePath } from "@/lib/cast-word-images";
 import {
   prefetchWordImages,
   preloadWordImagesFromCache,
@@ -51,6 +52,11 @@ function collectUpdates(
   const updates: Record<string, string> = {};
   for (const target of targets) {
     const word = target.word.trim().toLowerCase();
+    const castPath = resolveCastPreferredImagePath(word);
+    if (castPath) {
+      updates[word] = castPath;
+      continue;
+    }
     const known = peekCachedWordImageUrl(word, target.imageUrl);
     if (known) updates[word] = known;
   }
@@ -104,7 +110,9 @@ export async function prefetchReviewQuestionRange(
       questionIndex,
       choices.map((choice) => {
         const key = choice.word.trim().toLowerCase();
-        return updates[key] ? { ...choice, imageUrl: updates[key] } : choice;
+        const castPath = resolveCastPreferredImagePath(choice.word);
+        const imageUrl = castPath ?? updates[key] ?? choice.imageUrl;
+        return imageUrl ? { ...choice, imageUrl } : choice;
       }),
     );
   }

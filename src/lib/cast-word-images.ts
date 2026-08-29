@@ -116,3 +116,10 @@ export function isLegacyMascotPipelineUrl(
     /[?&]v=cast\d/.test(trimmed)
   );
 }
+
+/**
+ * Bundled cast JPEG for review quizzes — always prefer mascot art over stale stock.
+ */
+export function resolveCastPreferredImagePath(word: string): string | null {
+  return getStaticCastWordImagePath(word);
+}

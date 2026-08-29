@@ -10,6 +10,7 @@ import {
   resolveWordImageUrl,
   shouldRefreshImageUrl,
 } from "@/lib/unsplash";
+import { resolveCastPreferredImagePath } from "@/lib/cast-word-images";
 import { peekCachedWordImageUrl } from "@/lib/word-image-cache";
 import { resolveWordImageForCard } from "@/lib/image-preload";
 
@@ -24,11 +25,22 @@ function pickQuizSrc(
   searchKeyword?: string | null,
   wordType?: string | null,
 ): string {
+  const castPath = resolveCastPreferredImagePath(word);
+  if (castPath) return castPath;
+
   const cached = peekCachedWordImageUrl(word, imageUrl);
   if (cached) return cached;
   const trimmed = imageUrl?.trim();
-  if (trimmed && isRealCardImageUrl(trimmed, word)) return trimmed;
-  if (trimmed && isDisplayableHttpImageUrl(trimmed, word)) return trimmed;
+  if (
+    trimmed &&
+    isRealCardImageUrl(trimmed, word) &&
+    !shouldRefreshImageUrl(trimmed, word, wordType)
+  ) {
+    return trimmed;
+  }
+  if (trimmed && isDisplayableHttpImageUrl(trimmed, word, wordType)) {
+    return trimmed;
+  }
   const resolved = resolveWordImageUrl(word, imageUrl, searchKeyword, wordType);
   if (isRealCardImageUrl(resolved, word)) return resolved;
   return "";

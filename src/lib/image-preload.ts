@@ -3,6 +3,7 @@ import {
   fetchWordImagesBatchFromApi,
   type WordImagePrefetchTarget,
 } from "@/lib/word-image-client";
+import { resolveCastPreferredImagePath } from "@/lib/cast-word-images";
 import {
   peekCachedWordImageUrl,
   setCachedWordImageUrl,
@@ -109,6 +110,12 @@ async function fetchWordImagesBatch(
   for (const target of targets) {
     const word = target.word.trim().toLowerCase();
     if (!word) continue;
+    const castPath = resolveCastPreferredImagePath(word);
+    if (castPath) {
+      updates[word] = castPath;
+      preloadImageUrlDeduped(castPath);
+      continue;
+    }
     const cached = peekCachedWordImageUrl(word, target.imageUrl);
     if (cached) {
       updates[word] = cached;
@@ -132,6 +139,13 @@ async function fetchWordImageFast(
 ): Promise<string | null> {
   const word = target.word.trim().toLowerCase();
   if (!word) return null;
+
+  const castPath = resolveCastPreferredImagePath(word);
+  if (castPath) {
+    cacheResolvedUrl(word, castPath);
+    preloadImageUrlDeduped(castPath);
+    return castPath;
+  }
 
   const cached = peekCachedWordImageUrl(word, target.imageUrl);
   if (cached) {
@@ -206,6 +220,7 @@ export async function prefetchWordImages(
 
   for (const target of unique) {
     const word = target.word.trim().toLowerCase();
+    if (resolveCastPreferredImagePath(word)) continue;
     const known = peekCachedWordImageUrl(word, target.imageUrl);
     if (known) updates[word] = known;
   }
