@@ -26,6 +26,17 @@ export function VocabExampleList({
 
   if (visible.length === 0) return null;
 
+  const itemClass = boxed
+    ? "vocab-examples__item rounded-lg bg-[var(--example-bg)] px-3 py-2.5 text-[0.9375rem] leading-snug"
+    : compact
+      ? "vocab-examples__item"
+      : "vocab-examples__item bg-[var(--example-bg)] text-[0.9375rem] leading-snug";
+
+  const enClass =
+    "vocab-examples__en italic text-[var(--mascot-elephant)]";
+  const viClass =
+    "vocab-examples__vi mt-0.5 italic text-[var(--mascot-elephant)]";
+
   return (
     <ul
       className={
@@ -33,30 +44,9 @@ export function VocabExampleList({
       }
     >
       {visible.map((ex, i) => (
-        <li
-          key={`${word}-ex-${i}`}
-          className={
-            boxed
-              ? "rounded-lg px-3 py-2.5 text-[0.9375rem] leading-snug"
-              : compact
-                ? "vocab-examples__item"
-                : "vocab-examples__item text-[0.9375rem] leading-snug"
-          }
-        >
-          <p className={compact ? "vocab-examples__en italic" : "vocab-examples__en italic"}>
-            {ex.en}
-          </p>
-          {ex.vi ? (
-            <p
-              className={
-                compact
-                  ? "vocab-examples__vi mt-0.5 italic"
-                  : "vocab-examples__vi mt-0.5 italic"
-              }
-            >
-              {ex.vi}
-            </p>
-          ) : null}
+        <li key={`${word}-ex-${i}`} className={itemClass}>
+          <p className={enClass}>{ex.en}</p>
+          {ex.vi ? <p className={viClass}>{ex.vi}</p> : null}
         </li>
       ))}
     </ul>
