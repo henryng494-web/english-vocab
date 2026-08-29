@@ -157,13 +157,6 @@ export default function DiscoverPage() {
       if (isCacheEntryValid(loaded, item.word)) {
         return loaded;
       }
-      // Text is usable even when the photo still needs a background refresh.
-      if (
-        loaded.vietnamese_meaning?.trim() &&
-        loaded.word.toLowerCase() === item.word.toLowerCase()
-      ) {
-        return loaded;
-      }
       throw new Error(
         `Data for "${item.word}" is incomplete — try again later.`,
       );

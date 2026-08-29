@@ -1,6 +1,7 @@
 import type { DiscoverWordData } from "@/components/discover/DiscoverCard";
 import { resolveWordRegister } from "@/lib/word-meanings";
 import { DISCOVER_WORD_CACHE_VERSION, stubFromListItem } from "@/lib/discover-word-cache";
+import { examplesNeedRegeneration } from "@/lib/repair-word-examples";
 import { getLocallyTakenWords } from "@/lib/learning-storage";
 
 export type DiscoverListPreview = {
@@ -120,19 +121,39 @@ export async function fetchDiscoverRange(
 
 export async function fetchDiscoverWordDetail(
   item: DiscoverListItem,
+  options?: { forceRepair?: boolean },
 ): Promise<DiscoverWordData> {
-  const params = new URLSearchParams({
-    word: item.word,
-    rank: String(item.rank),
-    skipGemini: item.from_static ? "true" : "false",
-    cacheVersion: String(DISCOVER_WORD_CACHE_VERSION),
-  });
-  const res = await fetch(`/api/discover/word?${params}`, {
-    cache: "no-store",
-  });
-  const data = await res.json();
-  if (!res.ok) {
-    throw new Error(data.details ?? data.error ?? "Failed to load word");
+  const fetchOnce = async (forceRepair: boolean): Promise<DiscoverWordData> => {
+    const params = new URLSearchParams({
+      word: item.word,
+      rank: String(item.rank),
+      skipGemini: item.from_static && !forceRepair ? "true" : "false",
+      cacheVersion: String(DISCOVER_WORD_CACHE_VERSION),
+    });
+    if (forceRepair) {
+      params.set("forceRepair", "true");
+    }
+    const res = await fetch(`/api/discover/word?${params}`, {
+      cache: "no-store",
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.details ?? data.error ?? "Failed to load word");
+    }
+    return mapApiWordToDiscoverData(item, data.word);
+  };
+
+  const loaded = await fetchOnce(options?.forceRepair ?? false);
+  if (
+    !options?.forceRepair &&
+    examplesNeedRegeneration(
+      item.word,
+      loaded.examples,
+      loaded.word_type,
+      loaded.vietnamese_meaning,
+    )
+  ) {
+    return fetchOnce(true);
   }
-  return mapApiWordToDiscoverData(item, data.word);
+  return loaded;
 }
