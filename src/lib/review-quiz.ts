@@ -1,7 +1,7 @@
 import { keepNaturalExamples } from "@/lib/example-quality";
 import { capitalizeFirst } from "@/lib/format-text";
-import { formatVietnameseMeaning } from "@/lib/sanitize-vi";
 import { parseExamples } from "@/lib/parse-examples";
+import { formatMeaningsForDisplay } from "@/lib/word-meanings";
 import { isSameRankBand } from "@/data/word-ranges";
 
 const FALLBACK_DISTRACTORS = [
@@ -96,12 +96,15 @@ function pickSameRankDistractors<T extends { word: string; rank?: number }>(
   return [...picked, ...nearest].slice(0, count);
 }
 
+/** Compact Vietnamese gloss for review sense choices (matches WordCard rules). */
 export function reviewSenseText(word: {
   vietnamese_meaning?: string | null;
   english_definition?: string | null;
 }): string {
-  const meaning = formatVietnameseMeaning(word.vietnamese_meaning);
-  if (meaning) return meaning;
+  const lines = formatMeaningsForDisplay(word.vietnamese_meaning);
+  if (lines.length > 0) {
+    return lines.join(" · ");
+  }
   const definition = word.english_definition?.trim();
   if (definition) return capitalizeFirst(definition);
   return "";
@@ -290,7 +293,7 @@ export function reviewClue(word: {
 }): string {
   const definition = word.english_definition?.trim();
   if (definition) return capitalizeFirst(definition);
-  const meaning = formatVietnameseMeaning(word.vietnamese_meaning);
+  const meaning = reviewSenseText(word);
   if (meaning) return meaning;
   return "Choose the matching word.";
 }
