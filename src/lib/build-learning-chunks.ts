@@ -67,7 +67,11 @@ function extractCollocationPhrase(
       end = idx + 1;
     }
   } else if (pos === "adjective") {
-    end = Math.min(words.length, idx + 2);
+    start = Math.max(0, idx - 1);
+    while (start > 0 && LEADING_DETERMINERS.test(words[start - 1] ?? "")) {
+      start--;
+    }
+    end = idx + 1;
   } else {
     while (start > 0 && LEADING_DETERMINERS.test(words[start - 1] ?? "")) {
       start--;
@@ -96,6 +100,77 @@ function extractCollocationPhrase(
     phrase = trimDanglingTail(words.slice(start, end).join(" ").trim());
   }
   return phrase || null;
+}
+
+function extractCollocationPhrases(
+  sentence: string,
+  headword: string,
+  wordType?: string | null,
+): string[] {
+  const seen = new Set<string>();
+  const results: string[] = [];
+
+  const add = (phrase: string | null) => {
+    if (!phrase || !isValidCollocationEn(phrase, headword)) return;
+    const key = phraseKey(phrase);
+    if (seen.has(key)) return;
+    seen.add(key);
+    results.push(phrase);
+  };
+
+  add(extractCollocationPhrase(sentence, headword, wordType));
+
+  const text = normalizePhrase(sentence);
+  const words = text.split(" ");
+  if (words.length <= 3) return results;
+
+  const idx = findHeadwordIndex(words, headword);
+  if (idx < 0) return results;
+
+  const pos = normalizeWordType(wordType, headword);
+
+  if (pos === "adjective") {
+    if (idx > 0) {
+      let start = idx - 1;
+      while (start > 0 && LEADING_DETERMINERS.test(words[start - 1] ?? "")) {
+        start--;
+      }
+      add(trimDanglingTail(words.slice(start, idx + 1).join(" ")));
+    }
+    for (let back = 2; back <= Math.min(4, idx + 1); back++) {
+      const start = idx - back + 1;
+      if (start < 0) continue;
+      add(trimDanglingTail(words.slice(start, idx + 1).join(" ")));
+    }
+  } else if (pos === "verb") {
+    if (idx > 0) {
+      add(trimDanglingTail(words.slice(Math.max(0, idx - 1), idx + 1).join(" ")));
+    }
+    if (idx >= 2) {
+      add(trimDanglingTail(words.slice(idx - 2, idx + 1).join(" ")));
+    }
+  } else {
+    if (idx > 0) {
+      const prev = words[idx - 1]?.toLowerCase().replace(/[^a-z']/g, "") ?? "";
+      const skipBeforeNoun = new Set([
+        "is", "are", "was", "were", "be", "been", "being", "am",
+        "has", "have", "had", "does", "do", "did",
+      ]);
+      if (prev && !skipBeforeNoun.has(prev)) {
+        add(trimDanglingTail(words.slice(idx - 1, idx + 1).join(" ")));
+      }
+    }
+    if (idx + 1 < words.length) {
+      const next = words[idx + 1]?.toLowerCase();
+      if (next === "of" || next === "in" || next === "on") {
+        add(trimDanglingTail(words.slice(idx, idx + 3).join(" ")));
+      } else {
+        add(trimDanglingTail(words.slice(idx, idx + 2).join(" ")));
+      }
+    }
+  }
+
+  return results;
 }
 
 const DANGLING_TAIL =
@@ -190,12 +265,8 @@ export function buildLearningChunksFromExamples(
 
     if (isFullSentence(en)) {
       chunkCandidates.push(item);
-      const extracted = extractCollocationPhrase(en, word, wordType);
-      if (
-        extracted &&
-        phraseKey(extracted) !== phraseKey(en) &&
-        isValidCollocationEn(extracted, word)
-      ) {
+      for (const extracted of extractCollocationPhrases(en, word, wordType)) {
+        if (phraseKey(extracted) === phraseKey(en)) continue;
         collocationCandidates.push({
           en: extracted,
           vi: collocationTranslation(extracted, en, ex.vi),
@@ -217,20 +288,18 @@ export function buildLearningChunksFromExamples(
     .filter((item) => !chunkKeys.has(phraseKey(item.en)))
     .sort((a, b) => collocationScore(a.en) - collocationScore(b.en));
 
-  if (!collocations.length && chunks[0]) {
-    const extracted = extractCollocationPhrase(chunks[0].en, word, wordType);
-    if (
-      extracted &&
-      phraseKey(extracted) !== phraseKey(chunks[0].en) &&
-      isValidCollocationEn(extracted, word)
-    ) {
-      collocations = [
-        {
-          en: extracted,
-          vi: collocationTranslation(extracted, chunks[0].en, chunks[0].vi),
-          sense: chunks[0].sense,
-        },
-      ];
+  if (collocations.length < MAX_LEARNING_COLLOCATIONS && chunks[0]) {
+    for (const extracted of extractCollocationPhrases(chunks[0].en, word, wordType)) {
+      if (phraseKey(extracted) === phraseKey(chunks[0].en)) continue;
+      if (collocations.some((item) => phraseKey(item.en) === phraseKey(extracted))) {
+        continue;
+      }
+      collocations.push({
+        en: extracted,
+        vi: collocationTranslation(extracted, chunks[0].en, chunks[0].vi),
+        sense: chunks[0].sense,
+      });
+      if (collocations.length >= MAX_LEARNING_COLLOCATIONS) break;
     }
   }
 

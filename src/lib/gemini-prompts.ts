@@ -286,3 +286,50 @@ Rules:
 Reply with ONLY JSON, same order as input:
 {"translations":["...","..."]}`;
 }
+
+export function buildSupplementCollocationsPrompt(
+  word: string,
+  count: number,
+  pos: string | null | undefined,
+  meaning: string | null | undefined,
+  existing: string[],
+  usefulPhrase?: { en: string; vi: string } | null,
+  options?: {
+    register?: string | null;
+    englishDefinition?: string | null;
+  },
+): string {
+  const posHint = pos?.trim() ? `Part of speech: ${pos}.` : "";
+  const meaningHint = meaning?.trim()
+    ? `Vietnamese meaning on the card: ${meaning}.`
+    : "";
+  const registerHint = options?.register?.trim()
+    ? `Register: ${options.register.trim()}.`
+    : "";
+  const definitionHint = options?.englishDefinition?.trim()
+    ? `English definition: ${options.englishDefinition.trim()}.`
+    : "";
+  const existingHint = existing.length
+    ? `Already shown (do NOT repeat): ${existing.map((item) => `"${item}"`).join(", ")}`
+    : "";
+  const phraseHint = usefulPhrase?.en?.trim()
+    ? `Useful phrase for context: "${usefulPhrase.en.trim()}" → "${usefulPhrase.vi.trim()}"`
+    : "";
+
+  return `Create "Goes with" collocation phrases for an English–Vietnamese vocabulary flashcard.
+
+Headword: "${word}"
+${posHint} ${meaningHint} ${registerHint} ${definitionHint}
+${existingHint}
+${phraseHint}
+
+Generate exactly ${count} NEW short English collocation phrase(s) (2–4 words each):
+- EVERY phrase MUST contain "${word}"
+- At least one phrase should show the base/literal meaning clearly
+- Natural pairings learners actually say or read — not dictionary definitions
+- Do NOT duplicate the existing phrases or the useful phrase
+- Match register in Vietnamese translations
+
+Reply with ONLY JSON:
+{"collocations":[{"en":"...","vi":"..."}]}`;
+}

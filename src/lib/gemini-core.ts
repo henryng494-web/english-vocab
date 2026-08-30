@@ -4,6 +4,7 @@ import {
   buildDefinitionPrompt,
   buildEnrichPrompt,
   buildCollocationTranslationsPrompt,
+  buildSupplementCollocationsPrompt,
   buildExampleTranslationPrompt,
   buildExamplesPrompt,
   buildMeaningPrompt,
@@ -294,6 +295,55 @@ export async function translateCollocationsWithGemini(
     return out.length === items.length ? out : null;
   } catch (error) {
     console.warn(`Gemini collocation VI failed for "${word}":`, error);
+    return null;
+  }
+}
+
+/** Gemini — generate missing Goes-with collocation EN+VI pairs. */
+export async function supplementCollocationsWithGemini(
+  word: string,
+  count: number,
+  pos?: string | null,
+  meaning?: string | null,
+  existing: string[] = [],
+  usefulPhrase?: { en: string; vi: string } | null,
+  options?: {
+    register?: string | null;
+    englishDefinition?: string | null;
+  },
+): Promise<Array<{ en: string; vi: string }> | null> {
+  if (!process.env.GEMINI_API_KEY?.trim() || count < 1) return null;
+
+  try {
+    const text = await generateGeminiText(
+      buildSupplementCollocationsPrompt(
+        word,
+        count,
+        pos,
+        meaning,
+        existing,
+        usefulPhrase,
+        options,
+      ),
+    );
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) return null;
+    const parsed = JSON.parse(jsonMatch[0]) as {
+      collocations?: Array<{ en?: string; vi?: string }>;
+    };
+    if (!Array.isArray(parsed.collocations)) return null;
+    const out = parsed.collocations
+      .map((item) => ({
+        en: String(item.en ?? "").trim(),
+        vi: sanitizeVietnameseText(String(item.vi ?? "").trim()).replace(
+          /^["']|["']$/g,
+          "",
+        ),
+      }))
+      .filter((item) => item.en && item.vi);
+    return out.length ? out.slice(0, count) : null;
+  } catch (error) {
+    console.warn(`Gemini supplement collocations failed for "${word}":`, error);
     return null;
   }
 }
