@@ -1,6 +1,6 @@
 import { MsEdgeTTS, OUTPUT_FORMAT } from "msedge-tts";
 
-/** Natural US neural voice — youthful, consistent when dictionary has no clip. */
+/** Natural US neural voice — single voice for all words. */
 export const PRONOUNCE_NEURAL_VOICE = "en-US-JennyNeural";
 
 let edgeTtsReady: Promise<MsEdgeTTS> | null = null;
