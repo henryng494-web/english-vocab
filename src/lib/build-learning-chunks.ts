@@ -13,10 +13,20 @@ const MAX_COLLOCATION_WORDS = 3;
 const MAX_COLLOCATION_WORDS_WITH_PREP = 4;
 
 const LEADING_DETERMINERS =
-  /^(a|an|the|my|your|his|her|its|our|their|some|any|this|that|these|those|every|each|no|another|one|two|three|four|five|six|seven|eight|nine|ten|\d+)$/i;
+  /^(a|an|the|my|your|his|her|its|our|their|some|any|this|that|these|those|every|each|no|another|one|two|three|four|five|six|seven|eight|nine|ten|several|many|few|multiple|numerous|various|\d+)$/i;
+
+const PREP_TOKENS = new Set(["of", "in", "on", "at", "for", "with"]);
+
+const TRAILING_PREPS = new Set([
+  "into", "onto", "upon", "from", "by", "as", "up", "down", "out", "off", "over",
+  "under", "through", "to", "at", "for", "with", "in", "on", "of", "about",
+  "against", "between", "among", "within", "without", "during", "before", "after",
+]);
+
+const ALLOWED_MID_PREPS = new Set(["of", "in", "on"]);
 
 const FRAGMENT_START =
-  /^(i|we|you|they|he|she|it|which|that|when|where|if|but|and|or|so|then|there|here|was|were|is|are|am|had|has|have|met|not|she|her|his|my|our|their)$/i;
+  /^(i|we|you|they|he|she|it|which|that|when|where|if|but|and|or|so|then|there|here|was|were|is|are|am|had|has|have|met|not|she|her|his|my|our|their|several|many|few|multiple|numerous|various|launched|launch|launches)$/i;
 
 const INLINE_VERBS = new Set([
   "was", "were", "is", "are", "am", "be", "been", "being",
@@ -25,9 +35,8 @@ const INLINE_VERBS = new Set([
   "got", "get", "went", "go", "come", "came", "said", "say",
   "make", "made", "take", "took", "give", "gave", "feel", "feels", "felt",
   "look", "looks", "looked", "seem", "seems", "seemed", "not",
+  "launch", "launched", "launches", "fire", "fired", "fires",
 ]);
-
-const PREP_TOKENS = new Set(["of", "in", "on", "at", "for", "with"]);
 
 function normalizePhrase(text: string): string {
   return text.trim().replace(/[.!?…]+$/, "").replace(/\s+/g, " ");
@@ -112,14 +121,24 @@ function extractCollocationPhrase(
       end = idx + 1;
     }
   } else {
-    if (idx > 0) {
-      start = idx - 1;
-    }
+    const prev = normalizeToken(words[idx - 1] ?? "");
     const next = normalizeToken(words[idx + 1] ?? "");
-    if (next === "of" || next === "in" || next === "on") {
-      end = Math.min(words.length, idx + 3);
-    } else if (idx + 1 < words.length) {
+
+    if (
+      ALLOWED_MID_PREPS.has(next) &&
+      idx + 2 < words.length &&
+      !TRAILING_PREPS.has(normalizeToken(words[idx + 2] ?? ""))
+    ) {
+      start = idx > 0 && LEADING_DETERMINERS.test(prev) ? idx - 1 : idx;
+      end = idx + 3;
+    } else if (next && !TRAILING_PREPS.has(next)) {
+      if (idx > 0 && !INLINE_VERBS.has(prev) && !FRAGMENT_START.test(prev)) {
+        start = idx - 1;
+      }
       end = idx + 2;
+    } else if (idx > 0) {
+      start = idx - 1;
+      end = idx + 1;
     }
   }
 
@@ -141,11 +160,11 @@ function extractCollocationPhrases(
 }
 
 const DANGLING_TAIL =
-  /^(at|to|in|on|for|with|the|a|an|of|that|you|was|were|is|are|my|your|his|her|its|our|their)$/i;
+  /^(at|to|into|onto|in|on|for|with|the|a|an|of|that|you|was|were|is|are|my|your|his|her|its|our|their|from|by|up|off|out|over|under|through|about|against|between|among|within|without|during|before|after)$/i;
 
 function trimDanglingTail(phrase: string): string {
   const words = phrase.split(" ");
-  while (words.length >= 2 && DANGLING_TAIL.test(words[words.length - 1] ?? "")) {
+  while (words.length >= 2 && DANGLING_TAIL.test(normalizeToken(words[words.length - 1] ?? ""))) {
     words.pop();
   }
   return words.join(" ").trim();
@@ -155,7 +174,18 @@ function endsWithDanglingToken(phrase: string): boolean {
   const words = normalizePhrase(phrase).split(/\s+/).filter(Boolean);
   if (words.length < 2) return true;
   const last = normalizeToken(words[words.length - 1] ?? "");
-  return DANGLING_TAIL.test(last);
+  return DANGLING_TAIL.test(last) || TRAILING_PREPS.has(last);
+}
+
+function hasStrayPreposition(phrase: string): boolean {
+  const words = normalizePhrase(phrase).split(/\s+/).filter(Boolean);
+  for (let i = 0; i < words.length; i++) {
+    const token = normalizeToken(words[i] ?? "");
+    if (!TRAILING_PREPS.has(token) && !ALLOWED_MID_PREPS.has(token)) continue;
+    if (!ALLOWED_MID_PREPS.has(token)) return true;
+    if (i === 0 || i === words.length - 1) return true;
+  }
+  return false;
 }
 
 function isValidCollocationEn(extracted: string, headword: string): boolean {
@@ -166,6 +196,7 @@ function isValidCollocationEn(extracted: string, headword: string): boolean {
   if (isWeakCollocation(extracted, headword)) return false;
   if (isSentenceFragment(extracted)) return false;
   if (endsWithDanglingToken(extracted)) return false;
+  if (hasStrayPreposition(extracted)) return false;
   return true;
 }
 
