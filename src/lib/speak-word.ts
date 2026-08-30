@@ -8,7 +8,7 @@ import {
   speakUtteranceInGesture,
 } from "@/lib/speech-voice";
 import {
-  playPreloadedWordAudioSync,
+  playWordAudioInUserGesture,
   playWordAudioUrl,
   preloadWordAudioElement,
   resolveWordAudioUrl,
@@ -28,13 +28,11 @@ function readSpeechUnlockedFromStorage(): boolean {
   return sessionStorage.getItem(SPEECH_UNLOCK_KEY) === "1";
 }
 
-/** iOS/Safari block auto-play until the user has tapped once this session. */
 export function isSpeechUnlocked(): boolean {
   if (!isAppleWebKit()) return true;
   return speechUnlocked || readSpeechUnlockedFromStorage();
 }
 
-/** Call from tap/click handlers before speaking or enabling auto-speak. */
 export function unlockSpeechFromUserGesture(): void {
   if (typeof window === "undefined") return;
   speechUnlocked = true;
@@ -57,10 +55,6 @@ function speakWithVoice(text: string, voice: SpeechSynthesisVoice | null): void 
   speakUtteranceInGesture(utterance);
 }
 
-/**
- * Safari/iOS requires speechSynthesis.speak() inside the user gesture stack.
- * Call this synchronously from click/tap handlers before any await.
- */
 export function speakEnglishTextSync(text: string): void {
   if (typeof window === "undefined" || !text.trim()) return;
   if (!window.speechSynthesis) return;
@@ -72,9 +66,13 @@ export function speakEnglishTextSync(text: string): void {
   speakWithVoice(text.trim(), getSpeechVoiceSync());
 }
 
+/** iOS Safari + Add-to-Home-Screen: MP3 via same-origin proxy, TTS as backup. */
 function speakAppleWebKitInGesture(text: string): void {
-  if (playPreloadedWordAudioSync(text)) return;
-  speakEnglishTextSync(text);
+  preloadWordAudioElement(text);
+  const audioStarted = playWordAudioInUserGesture(text);
+  if (!audioStarted) {
+    speakEnglishTextSync(text);
+  }
 }
 
 function claimSpeak(text: string, force: boolean): string | null {
@@ -106,13 +104,12 @@ async function speakWithBestAvailableVoice(
   const stillCurrent = () =>
     requestId === speakRequestId && lastSpoken?.text === key;
 
-  if (playPreloadedWordAudioSync(text)) return;
+  if (playWordAudioInUserGesture(text)) return;
 
   const audioUrl = await resolveWordAudioUrl(text);
   if (!stillCurrent()) return;
   if (audioUrl) {
     preloadWordAudioElement(text, audioUrl);
-    if (playPreloadedWordAudioSync(text)) return;
     if (await playWordAudioUrl(audioUrl)) return;
   }
 
@@ -129,7 +126,6 @@ async function speakWithBestAvailableVoice(
   speakWithVoice(text, voice);
 }
 
-/** Auto-pronounce a word once — MP3 or TTS, never both. */
 export function speakEnglishTextAuto(text: string): void {
   const trimmed = claimSpeak(text, false);
   if (!trimmed) return;
@@ -148,7 +144,6 @@ export function speakEnglishTextAuto(text: string): void {
   void speakWithBestAvailableVoice(trimmed, requestId);
 }
 
-/** Speak English text via human audio when possible, else Web Speech API. */
 export function speakEnglishText(
   text: string,
   options?: { force?: boolean },
@@ -162,9 +157,6 @@ export function speakEnglishText(
 
   if (isAppleWebKit()) {
     speakAppleWebKitInGesture(trimmed);
-    void resolveWordAudioUrl(trimmed).then((url) => {
-      if (url) preloadWordAudioElement(trimmed, url);
-    });
     return;
   }
 

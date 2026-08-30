@@ -1,6 +1,7 @@
 "use client";
 
 import { MobileShell } from "@/components/layout/MobileShell";
+import { PronounceAudio } from "@/components/layout/PronounceAudio";
 import { SpeechVoiceWarmup } from "@/components/layout/SpeechVoiceWarmup";
 
 export default function AppLayout({
@@ -10,6 +11,7 @@ export default function AppLayout({
 }>) {
   return (
     <>
+      <PronounceAudio />
       <SpeechVoiceWarmup />
       <MobileShell>{children}</MobileShell>
     </>

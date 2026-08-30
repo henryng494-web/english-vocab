@@ -63,8 +63,14 @@ let activeUtterance: SpeechSynthesisUtterance | null = null;
 
 export function isAppleWebKit(): boolean {
   if (typeof navigator === "undefined") return false;
-  return /iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent) &&
-    /AppleWebKit/.test(navigator.userAgent);
+  const ua = navigator.userAgent;
+  const isAppleDevice = /iPad|iPhone|iPod|Macintosh/.test(ua);
+  const isWebKit = /AppleWebKit/.test(ua);
+  const isStandalonePwa =
+    typeof window !== "undefined" &&
+    (window.navigator as Navigator & { standalone?: boolean }).standalone ===
+      true;
+  return (isAppleDevice && isWebKit) || isStandalonePwa;
 }
 
 function scoreVoice(voice: SpeechSynthesisVoice): number {
