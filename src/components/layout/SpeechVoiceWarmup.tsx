@@ -1,19 +1,18 @@
 "use client";
 
-import { unlockSpeechFromUserGesture, preloadWordPronunciation } from "@/lib/speak-word";
-import { primeWordAudioInUserGesture } from "@/lib/word-pronunciation-audio";
+import { unlockSpeechFromUserGesture } from "@/lib/speak-word";
+import { primeAudioPipelineInUserGesture } from "@/lib/word-pronunciation-audio";
 import { ensureSpeechVoicesReady } from "@/lib/speech-voice";
 import { useEffect } from "react";
 
-/** Warm voices + unlock pronunciation on first user touch (iOS Safari/PWA). */
+/** Unlock speech + audio pipeline on first user touch (iOS Safari/PWA). No audible warmup word. */
 export function SpeechVoiceWarmup() {
   useEffect(() => {
-    preloadWordPronunciation("hello");
     void ensureSpeechVoicesReady();
 
     const onFirstTouch = () => {
       unlockSpeechFromUserGesture();
-      primeWordAudioInUserGesture("hello");
+      primeAudioPipelineInUserGesture();
     };
 
     document.addEventListener("touchend", onFirstTouch, {
