@@ -11,6 +11,7 @@ import {
   type WordImagePrefetchTarget,
 } from "@/lib/image-preload";
 import { peekCachedWordImageUrl } from "@/lib/word-image-cache";
+import { preloadWordPronunciations } from "@/lib/pronunciation-preload";
 import type { VocabWord } from "@/types/database";
 
 export type ReviewImageTarget = WordImagePrefetchTarget;
@@ -77,6 +78,7 @@ export async function prefetchReviewImages(
 
 export function preloadReviewImageBatch(targets: ReviewImageTarget[]): void {
   preloadWordImagesFromCache(targets);
+  preloadWordPronunciations(targets.map((target) => target.word));
 }
 
 /** Warm images for the next N review slots (includes sense-quiz distractors). */

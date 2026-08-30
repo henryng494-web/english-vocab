@@ -36,6 +36,7 @@ import {
   preloadWordImagesFromCache,
   type WordImagePrefetchTarget,
 } from "@/lib/image-preload";
+import { preloadWordPronunciations } from "@/lib/pronunciation-preload";
 import { getTodayStudySeconds } from "@/lib/study-time";
 import { useAppSettings } from "@/context/AppSettingsContext";
 import {
@@ -277,10 +278,12 @@ export default function DiscoverPage() {
   const preloadWords = useCallback(
     (startIndex: number, items: DiscoverListItem[]) => {
       const imageTargets: WordImagePrefetchTarget[] = [];
+      const pronunciationWords: string[] = [];
       for (let offset = 0; offset <= PRELOAD_AHEAD; offset++) {
         const item = items[startIndex + offset];
         if (!item) break;
         imageTargets.push(listItemImageTarget(item));
+        pronunciationWords.push(item.word);
 
         const cached = wordCache.current.get(item.word);
         if (isWordDetailComplete(cached, item.word)) {
@@ -290,6 +293,7 @@ export default function DiscoverPage() {
         ensureWordFetched(item).catch(() => {});
       }
       preloadWordImagesFromCache(imageTargets);
+      preloadWordPronunciations(pronunciationWords);
       void prefetchWordImages(imageTargets, 4);
     },
     [ensureWordFetched],
