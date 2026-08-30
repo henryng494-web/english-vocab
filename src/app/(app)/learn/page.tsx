@@ -11,11 +11,13 @@ import {
   writeLocalLearning,
 } from "@/lib/learning-storage";
 import {
+  buildReviewChoices,
   buildReviewQuestionPlan,
   pickReviewRecallSentence,
   reviewClue,
   reviewSenseCacheKey,
-  senseChoicesIncludeCorrectWord,
+  resolveReviewSenseChoices,
+  senseChoicesAreValidForPrompt,
   type ReviewChoice,
   type ReviewQuizKind,
 } from "@/lib/review-quiz";
@@ -143,6 +145,7 @@ export default function LearnPage() {
   const allWordsRef = useRef<VocabWord[]>([]);
   const prefetchedChoicesRef = useRef<Map<string, ReviewChoice[]>>(new Map());
   const prefetchInflightRef = useRef<Map<number, Promise<void>>>(new Map());
+  const activeQuestionRef = useRef<{ word: string; index: number } | null>(null);
 
   const currentWord = queue[index];
   phaseRef.current = phase;
@@ -189,10 +192,13 @@ export default function LearnPage() {
   const mergePrefetchedSenseChoices = useCallback(
     (senseChoices: Map<number, ReviewChoice[]>) => {
       const q = queueRef.current;
+      const pool = allWordsRef.current.length > 0 ? allWordsRef.current : q;
       for (const [questionIndex, cachedChoices] of senseChoices.entries()) {
         const word = q[questionIndex];
         if (!word) continue;
-        if (!senseChoicesIncludeCorrectWord(cachedChoices, word.word)) continue;
+        if (!senseChoicesAreValidForPrompt(cachedChoices, word.word, pool)) {
+          continue;
+        }
         prefetchedChoicesRef.current.set(
           reviewSenseCacheKey(questionIndex, word.word),
           cachedChoices,
@@ -228,8 +234,7 @@ export default function LearnPage() {
         const plan = collectReviewQuestionImageTargets(word, pool, questionIndex);
         if (
           plan.kind === "sense" &&
-          plan.choices.length === 3 &&
-          senseChoicesIncludeCorrectWord(plan.choices, word.word)
+          senseChoicesAreValidForPrompt(plan.choices, word.word, pool)
         ) {
           prefetchedChoicesRef.current.set(
             reviewSenseCacheKey(questionIndex, word.word),
@@ -279,14 +284,27 @@ export default function LearnPage() {
     let kind = planned.kind;
     let nextChoices = planned.choices;
 
-    const cacheUsable =
-      cachedSenseChoices &&
-      planned.kind === "sense" &&
-      senseChoicesIncludeCorrectWord(cachedSenseChoices, word.word);
-
-    if (cacheUsable) {
-      kind = "sense";
-      nextChoices = cachedSenseChoices;
+    if (planned.kind === "sense") {
+      nextChoices = resolveReviewSenseChoices(
+        word.word,
+        pool,
+        cachedSenseChoices,
+      );
+      if (!senseChoicesAreValidForPrompt(nextChoices, word.word, pool)) {
+        kind = "word";
+        nextChoices = buildReviewChoices(
+          word.word,
+          pool.filter(
+            (item) =>
+              /^[a-z]+$/i.test(item.word) &&
+              item.word.length >= 3 &&
+              Boolean(item.english_definition?.trim()),
+          ),
+          word.rank,
+        );
+      } else {
+        kind = "sense";
+      }
       prefetchedChoicesRef.current.delete(cacheKey);
     } else if (cachedSenseChoices) {
       prefetchedChoicesRef.current.delete(cacheKey);
@@ -302,22 +320,21 @@ export default function LearnPage() {
     setIntervalDays(schedule.intervalDays);
     setMarkMastered(false);
     setTimesReviewed(schedule.timesReviewed);
+    activeQuestionRef.current = { word: word.word, index: questionIndex };
 
     const { targets } = collectReviewQuestionImageTargets(word, pool, questionIndex);
-    if (cacheUsable && cachedSenseChoices) {
-      preloadReviewImageBatch(
-        cachedSenseChoices.map((choice) => ({
-          word: choice.word,
-          imageUrl: choice.imageUrl,
-          searchKeyword: choice.searchKeyword,
-          wordType: choice.wordType,
-        })),
-      );
-    } else {
-      preloadReviewImageBatch(targets);
-      void prefetchReviewImages(targets).then((updates) => {
+    if (kind === "sense") {
+      const senseTargets = nextChoices.map((choice) => ({
+        word: choice.word,
+        imageUrl: choice.imageUrl,
+        searchKeyword: choice.searchKeyword,
+        wordType: choice.wordType,
+        meaning: choice.meaning,
+      }));
+      preloadReviewImageBatch(senseTargets);
+      void prefetchReviewImages(senseTargets).then((updates) => {
         applyImageUpdatesToState(updates, setAllWords, setQueue, setChoices);
-        if (kind === "sense" && Object.keys(updates).length > 0) {
+        if (Object.keys(updates).length > 0) {
           setChoices((prev) =>
             prev.map((choice) => {
               const key = choice.word.trim().toLowerCase();
@@ -326,10 +343,59 @@ export default function LearnPage() {
           );
         }
       });
+    } else {
+      preloadReviewImageBatch(targets);
+      void prefetchReviewImages(targets).then((updates) => {
+        applyImageUpdatesToState(updates, setAllWords, setQueue, setChoices);
+      });
     }
 
     prefetchQuestionsAhead(questionIndex);
   }, [prefetchQuestionsAhead]);
+
+  useEffect(() => {
+    if (phase !== "question" || quizKind !== "sense" || !currentWord || locked) {
+      return;
+    }
+    if (senseChoicesAreValidForPrompt(choices, currentWord.word, allWords)) {
+      return;
+    }
+    const rebuilt = resolveReviewSenseChoices(currentWord.word, allWords);
+    if (senseChoicesAreValidForPrompt(rebuilt, currentWord.word, allWords)) {
+      setChoices(rebuilt);
+      return;
+    }
+    setQuizKind("word");
+    setChoices(
+      buildReviewChoices(
+        currentWord.word,
+        allWords.filter(
+          (item) =>
+            /^[a-z]+$/i.test(item.word) &&
+            item.word.length >= 3 &&
+            Boolean(item.english_definition?.trim()),
+        ),
+        currentWord.rank,
+      ),
+    );
+  }, [phase, quizKind, currentWord, locked, choices, allWords]);
+
+  useEffect(() => {
+    if (phase !== "question" || locked) return;
+    const active = activeQuestionRef.current;
+    if (!active) return;
+
+    const promptKey = active.word.trim().toLowerCase();
+    const atIndexKey = queue[index]?.word.trim().toLowerCase();
+    if (atIndexKey === promptKey) return;
+
+    const newIndex = queue.findIndex(
+      (item) => item.word.trim().toLowerCase() === promptKey,
+    );
+    if (newIndex < 0) return;
+    setIndex(newIndex);
+    startQuestion(queue[newIndex]!, allWords, newIndex);
+  }, [queue, index, phase, locked, allWords, startQuestion]);
 
   const applyReviewSession = useCallback(
     (fetched: VocabWord[], due: VocabWord[], startFirst = true) => {
@@ -639,13 +705,12 @@ export default function LearnPage() {
   }
 
   function handleChoose(choice: ReviewChoice) {
+    const promptWord = currentWord?.word.trim().toLowerCase() ?? "";
     const isCorrect =
       quizKind === "sense"
-        ? choice.isCorrect === true ||
-          choice.word.trim().toLowerCase() ===
-            currentWord?.word.trim().toLowerCase()
-        : choice.word.trim().toLowerCase() ===
-          currentWord?.word.trim().toLowerCase();
+        ? choice.isCorrect === true &&
+          choice.word.trim().toLowerCase() === promptWord
+        : choice.word.trim().toLowerCase() === promptWord;
     lockAnswer(isCorrect, choice.key, false);
   }
 
