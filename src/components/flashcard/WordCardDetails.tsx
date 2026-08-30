@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { VocabExampleList } from "@/components/flashcard/VocabExampleList";
 import { WordLearningChunks } from "@/components/flashcard/WordLearningChunks";
 import { capitalizeFirst } from "@/lib/format-text";
+import { hasLearningChunks } from "@/lib/learning-chunks";
 import { parseExamples } from "@/lib/parse-examples";
 import type { WordFamilyMember } from "@/types/database";
 
@@ -39,6 +40,7 @@ export function WordCardDetails({
   loading = false,
 }: WordCardDetailsProps) {
   const parsed = loading ? [] : parseExamples(examples);
+  const chunksOnly = hasLearningChunks(word);
   const rows = (family ?? []).filter((item) => item.word.trim());
   const canFlip = rows.length > 1;
   const [showFamily, setShowFamily] = useState(false);
@@ -99,15 +101,19 @@ export function WordCardDetails({
       >
         <div className={`card-details__flip${showFamily ? " is-family" : ""}`}>
           <div className="card-details__face card-details__face--meaning">
-            <div className="discover-card__examples min-h-0 flex-1 overflow-hidden">
+            <div
+              className={`discover-card__examples min-h-0 flex-1 overflow-hidden${chunksOnly ? " discover-card__examples--chunks-only" : ""}`}
+            >
               <WordLearningChunks word={word} compact />
-              <VocabExampleList
-                word={word}
-                examples={parsed}
-                wordType={wordType}
-                meaning={meaning}
-                compact
-              />
+              {!chunksOnly ? (
+                <VocabExampleList
+                  word={word}
+                  examples={parsed}
+                  wordType={wordType}
+                  meaning={meaning}
+                  compact
+                />
+              ) : null}
             </div>
           </div>
 

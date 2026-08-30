@@ -478,30 +478,39 @@ body {
   display: flex;
   min-height: 0;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: 0.4rem;
   align-items: stretch;
 }
 
+.discover-card__examples--chunks-only {
+  justify-content: center;
+}
+
 .word-learning-chunks {
-  flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: 0.4rem;
 }
 
 .word-learning-chunks--compact {
-  gap: 0.3rem;
-  margin-bottom: 0.1rem;
+  gap: 0.4rem;
+}
+
+.word-learning-chunks--solo {
+  flex: 1;
+  min-height: 0;
+  justify-content: center;
 }
 
 .word-learning-chunks__section {
   display: flex;
   flex-direction: column;
-  gap: 0.2rem;
+  gap: 0.25rem;
 }
 
 .word-learning-chunks__label {
   margin: 0;
+  padding: 0 0.15rem;
   font-size: 0.6875rem;
   font-weight: 700;
   letter-spacing: 0.04em;
@@ -509,34 +518,12 @@ body {
   color: var(--primary-700);
 }
 
-.word-learning-chunks__list {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
+.word-learning-chunks__examples {
+  flex: 0 0 auto;
 }
 
-.word-learning-chunks__item {
-  display: flex;
-  flex-direction: column;
-  gap: 0.05rem;
-  border-radius: 0.5rem;
-  background: color-mix(in srgb, var(--primary-50) 70%, white);
-  padding: 0.35rem 0.5rem;
-}
-
-.word-learning-chunks__en {
-  font-size: 0.8125rem;
-  line-height: 1.35;
-  color: color-mix(in srgb, var(--foreground) 82%, transparent);
-}
-
-.word-learning-chunks__vi {
-  font-size: 0.75rem;
-  line-height: 1.35;
-  color: var(--meaning);
+.word-learning-chunks--solo .word-learning-chunks__examples {
+  flex: 0 0 auto;
 }
 
 .vocab-examples--compact {
