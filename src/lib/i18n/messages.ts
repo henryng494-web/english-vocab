@@ -142,6 +142,8 @@ export const messages: Record<AppLocale, MessageTree> = {
 
     "speak.pronounce": "Phát âm",
     "speak.aria": "Phát âm",
+    "chunks.collocations": "Hay dùng với",
+    "chunks.phrases": "Cụm câu",
 
     "account.title": "Tài khoản",
     "account.backHome": "Về trang chủ",
@@ -312,6 +314,8 @@ export const messages: Record<AppLocale, MessageTree> = {
 
     "speak.pronounce": "Pronounce",
     "speak.aria": "Pronounce",
+    "chunks.collocations": "Goes with",
+    "chunks.phrases": "Useful phrase",
 
     "account.title": "Account",
     "account.backHome": "Back to home",

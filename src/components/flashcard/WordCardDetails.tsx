@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { VocabExampleList } from "@/components/flashcard/VocabExampleList";
+import { WordLearningChunks } from "@/components/flashcard/WordLearningChunks";
 import { capitalizeFirst } from "@/lib/format-text";
 import { parseExamples } from "@/lib/parse-examples";
 import type { WordFamilyMember } from "@/types/database";
@@ -99,6 +100,7 @@ export function WordCardDetails({
         <div className={`card-details__flip${showFamily ? " is-family" : ""}`}>
           <div className="card-details__face card-details__face--meaning">
             <div className="discover-card__examples min-h-0 flex-1 overflow-hidden">
+              <WordLearningChunks word={word} compact />
               <VocabExampleList
                 word={word}
                 examples={parsed}
