@@ -97,7 +97,7 @@ export function ReviewReveal({
   return (
     <div className="review-reveal">
       <div className="journey-panel review-reveal__panel">
-        <VocabWordCard data={toDiscoverData(word)} autoSpeak={false} />
+        <VocabWordCard data={toDiscoverData(word)} />
       </div>
 
       <div className="review-schedule">
