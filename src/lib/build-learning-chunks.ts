@@ -5,14 +5,40 @@ import {
   type LearningChunkPhrase,
 } from "@/data/demo-learning-chunks";
 import { isNaturalExample, keepNaturalExamples, viTranslationMatchesGloss } from "@/lib/example-quality";
+import { capitalizeFirst } from "@/lib/format-text";
 import type { VocabExample } from "@/lib/parse-examples";
 import { normalizeWordType } from "@/lib/word-type";
-import { alignmentMeaningLines, glossAlignmentTerms } from "@/lib/word-meanings";
+import { alignmentMeaningLines } from "@/lib/word-meanings";
 
 const MIN_CHUNK_WORDS = 5;
 
 const LEADING_DETERMINERS =
   /^(a|an|the|my|your|his|her|its|our|their|some|any|this|that|these|those|every|each|no|another|one|two|three|four|five|six|seven|eight|nine|ten|\d+)$/i;
+
+const EN_MODIFIER_VI: Record<string, string> = {
+  every: "Mỗi",
+  each: "Mỗi",
+  the: "",
+  a: "Một",
+  an: "Một",
+  beautiful: "đẹp",
+  amazing: "kinh ngạc",
+  great: "tuyệt vời",
+  truly: "thật",
+  difficult: "khó",
+  wild: "hoang dã",
+  business: "kinh doanh",
+  dont: "Đừng",
+  will: "Sẽ",
+  can: "Có thể",
+  not: "không",
+  good: "tốt",
+  human: "con người",
+  open: "mở",
+  turn: "rẽ",
+  walk: "đi bộ",
+  take: "đi",
+};
 
 function normalizePhrase(text: string): string {
   return text.trim().replace(/[.!?…]+$/, "").replace(/\s+/g, " ");
@@ -20,6 +46,10 @@ function normalizePhrase(text: string): string {
 
 function phraseKey(en: string): string {
   return normalizePhrase(en).toLowerCase();
+}
+
+function normalizeEnToken(token: string): string {
+  return token.toLowerCase().replace(/[^a-z']/g, "");
 }
 
 function findHeadwordIndex(words: string[], headword: string): number {
@@ -60,9 +90,9 @@ function extractCollocationPhrase(
       "to", "will", "can", "could", "should", "would", "may", "might", "must",
       "please", "not", "you", "we", "they", "he", "she", "it", "i", "do", "did",
     ]);
-    if (auxBefore.has(prev)) {
+    if (auxBefore.has(prev) || prev === "don't") {
       start = Math.max(0, idx - 1);
-      end = Math.min(words.length, idx + 2);
+      end = Math.min(words.length, idx + 1);
     } else {
       start = Math.max(0, idx - 1);
       end = idx + 1;
@@ -110,6 +140,13 @@ function trimDanglingTail(phrase: string): string {
   return words.join(" ").trim();
 }
 
+function isValidCollocationEn(extracted: string, headword: string): boolean {
+  const words = normalizePhrase(extracted).split(/\s+/);
+  if (words.length < 2) return false;
+  if (words.some((word) => word.includes("?"))) return false;
+  return findHeadwordIndex(words, headword) >= 0;
+}
+
 function isFullSentence(en: string): boolean {
   const text = normalizePhrase(en);
   const words = text.split(/\s+/);
@@ -148,16 +185,6 @@ function selectExamplesForChunks(
   return examples.filter((item) => item.en?.trim()).slice(0, 2);
 }
 
-const VI_NOUN_PREFIX =
-  /^(một|lời|con|cái|chiếc|bức|tờ|người|những|các|quả|viên|cuốn)$/i;
-
-const VI_TRAILING_STOP =
-  /^(hôm|nay|rồi|đã|đang|sẽ|và|nhưng|mà|để|khi|nếu|vì|bởi|trong|ngoài|trên|dưới|tại|ở|với|cho|của|về|quanh|ra|vào|đi|bộ|thấy|là)$/i;
-
-function cleanViToken(token: string): string {
-  return token.replace(/[,;.!?…]+$/g, "");
-}
-
 function resolveSenseLine(
   sourceVi: string,
   meaning?: string | null,
@@ -169,158 +196,73 @@ function resolveSenseLine(
   return lines.find((line) => viTranslationMatchesGloss(sourceVi, line)) ?? lines[0]!;
 }
 
-function collocationGlossTerms(senseLine: string): string[] {
-  const terms = new Set<string>();
-  for (const term of glossAlignmentTerms(senseLine)) {
-    if (!term.includes(" ") && term.length < 4) continue;
-    terms.add(term);
-    if (term.startsWith("sự ")) {
-      terms.add(term.slice(3));
-    }
-  }
-  return [...terms].sort((a, b) => b.length - a.length);
-}
-
-function findTermSpan(
-  viWords: string[],
-  matchTerm: string,
-): { start: number; end: number } | null {
-  const termWords = matchTerm.split(/\s+/).filter(Boolean);
-  if (!termWords.length) return null;
-
-  for (let i = 0; i <= viWords.length - termWords.length; i++) {
-    let matched = true;
-    for (let j = 0; j < termWords.length; j++) {
-      const token = cleanViToken(viWords[i + j] ?? "").toLowerCase();
-      if (token !== termWords[j]!.toLowerCase()) {
-        matched = false;
-        break;
-      }
-    }
-    if (matched) return { start: i, end: i + termWords.length };
-  }
-
-  if (termWords.length === 1 && termWords[0]!.length >= 4) {
-    const idx = viWords.findIndex((word) =>
-      cleanViToken(word).toLowerCase().includes(termWords[0]!.toLowerCase()),
-    );
-    if (idx >= 0) return { start: idx, end: idx + 1 };
-  }
-
-  return null;
-}
-
-function isWeakViPhrase(phrase: string): boolean {
-  const words = phrase.split(/\s+/).filter(Boolean);
-  if (!words.length) return true;
-  if (words.length === 1 && cleanViToken(words[0] ?? "").length < 4) return true;
-  return false;
-}
-
-function findGlossSpanInVi(
-  viWords: string[],
-  senseLine: string,
-): { start: number; end: number; matchTerm: string } | null {
-  const viText = viWords.join(" ").toLowerCase();
-
-  for (const term of collocationGlossTerms(senseLine)) {
-    if (!viText.includes(term.toLowerCase())) continue;
-    const span = findTermSpan(viWords, term);
-    if (span) return { ...span, matchTerm: term };
-  }
-
-  for (const term of glossAlignmentTerms(senseLine)) {
-    const head = term.split(/\s+/)[0];
-    if (!head || head.length < 2) continue;
-    for (let i = 0; i < viWords.length - 1; i++) {
-      if (cleanViToken(viWords[i] ?? "").toLowerCase() !== head.toLowerCase()) {
-        continue;
-      }
-      return {
-        start: i,
-        end: i + 2,
-        matchTerm: `${head} ${cleanViToken(viWords[i + 1] ?? "")}`,
-      };
-    }
-  }
-
-  return null;
-}
-
-function extractViCollocationPhrase(
-  sourceVi: string,
-  meaning?: string | null,
-  senseIndex?: number,
-): string {
-  const vi = sourceVi.trim();
-  if (!vi) return "";
-
-  const senseLine = resolveSenseLine(vi, meaning, senseIndex);
-  if (!senseLine) return "";
-
-  const viWords = vi.split(/\s+/);
-  const located = findGlossSpanInVi(viWords, senseLine);
-  if (!located) return "";
-
-  let start = located.start;
-  if (
-    start > 0 &&
-    VI_NOUN_PREFIX.test(cleanViToken(viWords[start - 1] ?? ""))
-  ) {
-    start--;
-  }
-  if (start > 0 && cleanViToken(viWords[start - 1] ?? "").toLowerCase() === "sự") {
-    start--;
-  }
-  if (
-    start > 0 &&
-    !VI_TRAILING_STOP.test(cleanViToken(viWords[start - 1] ?? "")) &&
-    located.start - start < 2
-  ) {
-    const prev = cleanViToken(viWords[start - 1] ?? "").toLowerCase();
-    if (prev.length >= 3 && !VI_NOUN_PREFIX.test(prev)) {
-      start--;
-    }
-  }
-
-  let end = located.end;
-  while (end < viWords.length && end - start < 6) {
-    const next = cleanViToken(viWords[end] ?? "");
-    if (!next || VI_TRAILING_STOP.test(next)) break;
-    end++;
-  }
-
-  const phrase = viWords
-    .slice(start, end)
-    .map(cleanViToken)
-    .join(" ")
-    .trim();
-  if (!phrase || phrase.split(/\s+/).length > 6) return "";
-  if (phraseKey(phrase) === phraseKey(vi)) return "";
-  if (isWeakViPhrase(phrase)) return "";
-  return phrase;
-}
-
-function isBareDeterminerPhrase(collocationEn: string): boolean {
-  const words = normalizePhrase(collocationEn).split(/\s+/);
-  return (
-    words.length === 2 &&
-    LEADING_DETERMINERS.test(words[0] ?? "") &&
-    Boolean(words[1])
-  );
-}
-
 function compactSenseLine(senseLine: string): string {
-  return senseLine
-    .split(",")[0]
-    ?.replace(/^\s*sự\s+/i, "")
-    .trim() ?? senseLine.trim();
+  const first = senseLine.split(",")[0]?.split("...")[0]?.trim() ?? senseLine.trim();
+  return first.replace(/^\s*sự\s+/i, "").trim();
+}
+
+function lowerGloss(gloss: string): string {
+  if (!gloss) return gloss;
+  return gloss.charAt(0).toLowerCase() + gloss.slice(1);
+}
+
+function modifierVi(token: string): string {
+  const key = normalizeEnToken(token);
+  if (key === "don't" || key === "dont") return "Đừng";
+  return EN_MODIFIER_VI[key] ?? "";
+}
+
+function composeCollocationVi(
+  collocationEn: string,
+  word: string,
+  senseLine: string,
+  wordType?: string | null,
+): string {
+  const colWords = normalizePhrase(collocationEn).split(/\s+/);
+  const headIdx = findHeadwordIndex(colWords, word);
+  if (headIdx < 0) return compactSenseLine(senseLine);
+
+  const gloss = compactSenseLine(senseLine);
+  const before = colWords.slice(0, headIdx);
+  const pos = normalizeWordType(wordType, word);
+
+  const viBefore = before
+    .map((token) => modifierVi(token))
+    .filter(Boolean);
+
+  if (pos === "noun" || !pos) {
+    const adj = before
+      .map((token) => modifierVi(token))
+      .find((value) => value && value !== "Mỗi" && value !== "Một");
+    if (adj) {
+      return `${gloss} ${adj}`.trim();
+    }
+    if (viBefore.length) {
+      return `${viBefore.join(" ")} ${lowerGloss(gloss)}`.trim();
+    }
+    return gloss;
+  }
+
+  if (pos === "verb" || pos === "conjunction") {
+    if (viBefore.length) {
+      return `${viBefore.join(" ")} ${lowerGloss(gloss)}`.trim();
+    }
+    return lowerGloss(gloss);
+  }
+
+  if (pos === "adjective" && viBefore.length) {
+    return `${viBefore.join(" ")} ${lowerGloss(gloss)}`.trim();
+  }
+
+  return gloss;
 }
 
 function collocationTranslation(
   collocationEn: string,
   sourceEn: string,
   sourceVi: string,
+  word: string,
+  wordType?: string | null,
   meaning?: string | null,
   senseIndex?: number,
 ): string {
@@ -329,21 +271,15 @@ function collocationTranslation(
   }
 
   const senseLine = resolveSenseLine(sourceVi, meaning, senseIndex);
-  if (isBareDeterminerPhrase(collocationEn) && senseLine) {
-    return compactSenseLine(senseLine);
-  }
+  if (!senseLine) return "";
 
-  const derived = extractViCollocationPhrase(sourceVi, meaning, senseIndex);
-  if (derived) return derived;
-
-  if (
-    senseLine &&
-    normalizePhrase(collocationEn).split(/\s+/).length <= 3
-  ) {
-    return compactSenseLine(senseLine);
-  }
-
-  return "";
+  const composed = composeCollocationVi(
+    collocationEn,
+    word,
+    senseLine,
+    wordType,
+  );
+  return composed ? capitalizeFirst(composed) : "";
 }
 
 export function buildLearningChunksFromExamples(
@@ -371,13 +307,19 @@ export function buildLearningChunksFromExamples(
     if (isFullSentence(en)) {
       chunkCandidates.push(item);
       const extracted = extractCollocationPhrase(en, word, wordType);
-      if (extracted && phraseKey(extracted) !== phraseKey(en)) {
+      if (
+        extracted &&
+        phraseKey(extracted) !== phraseKey(en) &&
+        isValidCollocationEn(extracted, word)
+      ) {
         collocationCandidates.push({
           en: extracted,
           vi: collocationTranslation(
             extracted,
             en,
             ex.vi,
+            word,
+            wordType,
             meaning,
             ex.senseIndex,
           ),
@@ -401,7 +343,11 @@ export function buildLearningChunksFromExamples(
 
   if (!collocations.length && chunks[0]) {
     const extracted = extractCollocationPhrase(chunks[0].en, word, wordType);
-    if (extracted && phraseKey(extracted) !== phraseKey(chunks[0].en)) {
+    if (
+      extracted &&
+      phraseKey(extracted) !== phraseKey(chunks[0].en) &&
+      isValidCollocationEn(extracted, word)
+    ) {
       collocations = [
         {
           en: extracted,
@@ -409,6 +355,8 @@ export function buildLearningChunksFromExamples(
             extracted,
             chunks[0].en,
             chunks[0].vi,
+            word,
+            wordType,
             meaning,
             chunks[0].sense,
           ),
