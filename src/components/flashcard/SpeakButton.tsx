@@ -108,7 +108,6 @@ export function SpeakButton({
       onTouchStart={handleTouchStart}
       onPointerDown={handlePointerDown}
       onClick={handleClick}
-      disabled={speaking}
       className={`${toneClass} ${className}`.trim()}
       aria-label={speaking ? "Speaking" : "Pronounce"}
     >

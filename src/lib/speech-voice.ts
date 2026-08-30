@@ -225,8 +225,15 @@ export function applyNaturalSpeechSettings(
   voice: SpeechSynthesisVoice | null,
 ): void {
   utterance.lang = voice?.lang ?? "en-US";
-  utterance.rate = isAppleWebKit() ? 1.06 : 1.02;
-  utterance.pitch = isAppleWebKit() ? 1.12 : 1.08;
+  if (isAppleWebKit()) {
+    // Non-default rate/pitch and explicit voice often silence iOS Safari TTS.
+    utterance.rate = 1;
+    utterance.pitch = 1;
+    utterance.volume = 1;
+    return;
+  }
+  utterance.rate = 1.02;
+  utterance.pitch = 1.08;
   utterance.volume = 1;
   if (voice) utterance.voice = voice;
 }
@@ -245,5 +252,6 @@ export function speakUtteranceInGesture(
     if (activeUtterance === utterance) activeUtterance = null;
   };
 
+  synth.resume();
   synth.speak(utterance);
 }
