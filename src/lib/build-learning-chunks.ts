@@ -197,7 +197,7 @@ function extractViCollocationPhrase(
 
   const viWords = vi.split(/\s+/);
   const termStart = matchTerm.split(/\s+/)[0]!.toLowerCase();
-  let termWordIdx = viWords.findIndex((word) =>
+  const termWordIdx = viWords.findIndex((word) =>
     cleanViToken(word).toLowerCase().includes(termStart),
   );
   if (termWordIdx < 0) return "";
