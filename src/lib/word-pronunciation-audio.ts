@@ -276,18 +276,17 @@ export async function playWordAudioWhenReady(
 ): Promise<boolean> {
   if (typeof window === "undefined") return false;
   const key = cacheKey(word);
-  if (!key) return false;
+  const audio = getAudioElement();
+  if (!key || !audio) return false;
 
   preloadWordAudioElement(word);
 
   if (!isWordAudioElementReady(word)) {
-    playWordAudioInUserGesture(word);
     const ready = await waitForAudioElementReady(word, timeoutMs);
     if (!ready) return false;
   }
 
-  const audio = getAudioElement();
-  if (!audio || audio.dataset.wordKey !== key) return false;
+  if (audio.dataset.wordKey !== key) return false;
 
   try {
     audio.currentTime = 0;

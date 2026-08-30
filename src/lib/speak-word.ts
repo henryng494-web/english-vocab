@@ -1,12 +1,9 @@
-import { proxyPronounceAudioPath } from "@/lib/dictionary-pronunciation";
 import { isAppleWebKit } from "@/lib/speech-voice";
 import {
-  getCachedWordAudioUrl,
-  isWordAudioElementReady,
   playWordAudioInUserGesture,
-  playWordAudioUrl,
   playWordAudioWhenReady,
   preloadWordAudioElement,
+  primeAudioPipelineInUserGesture,
   stopWordAudio,
   warmWordAudioBytes,
 } from "@/lib/word-pronunciation-audio";
@@ -16,9 +13,8 @@ let speakRequestId = 0;
 
 const DEDUPE_MS = 1800;
 const SPEECH_UNLOCK_KEY = "ev-speech-unlocked";
-const AUTO_MP3_WAIT_MS = 1600;
-const MANUAL_MP3_WAIT_MS = 1200;
-const MP3_RETRY_WAIT_MS = 2200;
+const AUTO_MP3_WAIT_MS = 2200;
+const AUTO_MP3_RETRY_MS = 3000;
 
 let speechUnlocked = false;
 
@@ -41,13 +37,6 @@ export function unlockSpeechFromUserGesture(): void {
   } catch {
     /* private mode */
   }
-}
-
-function playableWordAudioUrl(word: string): string {
-  if (typeof window === "undefined") return "";
-  const cached = getCachedWordAudioUrl(word);
-  const path = cached ?? proxyPronounceAudioPath(word);
-  return new URL(path, window.location.origin).href;
 }
 
 function claimSpeak(text: string, force: boolean): string | null {
@@ -73,49 +62,34 @@ function stillCurrentRequest(requestId: number, key: string): boolean {
   return requestId === speakRequestId && lastSpoken?.text === key;
 }
 
-function primeMp3Playback(text: string): void {
-  preloadWordAudioElement(text);
-  warmWordAudioBytes(text);
-  if (isAppleWebKit()) {
-    playWordAudioInUserGesture(text);
-  }
-}
-
-/** MP3-only playback — dictionary recording or Edge neural voice from server. */
-async function speakMp3Only(
+async function speakMp3Auto(
   text: string,
   requestId: number,
-  mp3WaitMs: number,
 ): Promise<void> {
   const key = text.toLowerCase();
-  primeMp3Playback(text);
+  preloadWordAudioElement(text);
+  await warmWordAudioBytes(text);
+  if (!stillCurrentRequest(requestId, key)) return;
 
-  if (isWordAudioElementReady(text)) {
-    if (await playWordAudioUrl(playableWordAudioUrl(text))) return;
-  }
-
-  if (await playWordAudioWhenReady(text, mp3WaitMs)) {
-    if (stillCurrentRequest(requestId, key)) return;
-  }
+  if (await playWordAudioWhenReady(text, AUTO_MP3_WAIT_MS)) return;
   if (!stillCurrentRequest(requestId, key)) return;
 
   await warmWordAudioBytes(text, { bustCache: true });
   preloadWordAudioElement(text);
-  if (isAppleWebKit()) {
-    playWordAudioInUserGesture(text);
-  }
-  await playWordAudioWhenReady(text, MP3_RETRY_WAIT_MS);
+  await playWordAudioWhenReady(text, AUTO_MP3_RETRY_MS);
 }
 
+/** Auto-pronounce after preload (no user gesture — requires prior audio unlock on iOS). */
 export function speakEnglishTextAuto(text: string): void {
   const trimmed = claimSpeak(text, false);
   if (!trimmed) return;
 
   if (isAppleWebKit() && !isSpeechUnlocked()) return;
 
-  void speakMp3Only(trimmed, speakRequestId, AUTO_MP3_WAIT_MS);
+  void speakMp3Auto(trimmed, speakRequestId);
 }
 
+/** Manual tap — must start play synchronously inside the user gesture. */
 export function speakEnglishText(
   text: string,
   _options?: { force?: boolean },
@@ -124,7 +98,10 @@ export function speakEnglishText(
   if (!trimmed) return;
 
   unlockSpeechFromUserGesture();
-  void speakMp3Only(trimmed, speakRequestId, MANUAL_MP3_WAIT_MS);
+  primeAudioPipelineInUserGesture();
+  preloadWordAudioElement(trimmed);
+  void warmWordAudioBytes(trimmed);
+  playWordAudioInUserGesture(trimmed);
 }
 
 export function cancelSpeech(): void {
@@ -133,5 +110,13 @@ export function cancelSpeech(): void {
 
 export function preloadWordPronunciation(word: string): void {
   preloadWordAudioElement(word);
-  warmWordAudioBytes(word);
+  void warmWordAudioBytes(word);
 }
+
+/** @deprecated MP3-only app — kept for any legacy imports. */
+export function speakEnglishTextSync(text: string): void {
+  speakEnglishText(text, { force: true });
+}
+
+/** @deprecated MP3-only app — no browser voices to preload. */
+export function preloadSpeechVoices(): void {}
