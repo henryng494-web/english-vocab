@@ -67,10 +67,10 @@ async function main() {
   const { limit, maxBatches, dryRun, delayMs } = parseArgs();
   const supabase = createServiceSupabase();
 
-  let offset = 0;
   let batch = 0;
   let totalUpdated = 0;
   let totalFailed = 0;
+  let previousStale = Number.POSITIVE_INFINITY;
 
   console.log(
     `Re-enrich all stale rows${dryRun ? " [dry-run]" : ""} — batch size ${limit}`,
@@ -85,7 +85,7 @@ async function main() {
 
     const result = await runStaleReEnrichBatch(supabase, {
       limit,
-      offset,
+      offset: 0,
       dryRun,
       delayMs,
     });
@@ -93,9 +93,11 @@ async function main() {
     totalUpdated += result.updated;
     totalFailed += result.failed;
 
+    const remaining = Math.max(0, result.totalStale - result.processed);
+
     console.log(
       `[batch ${batch}] processed=${result.processed} updated=${result.updated}` +
-        ` failed=${result.failed} stale=${result.totalStale} remaining=${result.remaining}`,
+        ` failed=${result.failed} stale=${result.totalStale} remaining=${remaining}`,
     );
     console.log(
       `  bad_meaning=${result.reasonCounts.bad_meaning}` +
@@ -110,11 +112,18 @@ async function main() {
       }
     }
 
-    if (dryRun || result.remaining <= 0 || result.nextOffset === null) {
+    if (dryRun || result.totalStale === 0 || result.processed === 0) {
       break;
     }
 
-    offset = result.nextOffset;
+    if (result.totalStale >= previousStale) {
+      console.log(
+        `Stale count unchanged at ${result.totalStale} — stopping to avoid a retry loop.`,
+      );
+      break;
+    }
+
+    previousStale = result.totalStale;
   }
 
   console.log(
