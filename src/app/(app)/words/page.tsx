@@ -3,6 +3,7 @@
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AppHeader } from "@/components/layout/AppHeader";
+import { AppMenuButton } from "@/components/layout/AppMenuButton";
 import { WordLibrarySortBar } from "@/components/words/WordLibrarySortBar";
 import { WordList } from "@/components/words/WordList";
 import {
@@ -12,18 +13,17 @@ import {
 } from "@/lib/learning-storage";
 import { getStaticVietnamese } from "@/lib/static-vietnamese";
 import type { LearningStatus } from "@/types/database";
-import Link from "next/link";
 
 function statusBadge(status: LearningStatus): string {
   switch (status) {
     case "mastered":
-      return "Known";
+      return "Đã biết";
     case "new":
-      return "New";
+      return "Mới";
     case "learning":
-      return "Learning";
+      return "Đang học";
     case "need_review":
-      return "Due";
+      return "Đến hạn";
     default:
       return status;
   }
@@ -32,15 +32,15 @@ function statusBadge(status: LearningStatus): string {
 function filterMeta(filter: WordLibraryFilter) {
   if (filter === "known") {
     return {
-      title: "You know",
-      emptyTitle: "No words marked as known yet",
-      emptyHint: "Tap Already know on Journey when a word is familiar.",
+      title: "Thư viện · Đã biết",
+      emptyTitle: "Chưa có từ nào được đánh dấu đã biết",
+      emptyHint: 'Nhấn "Đã biết rồi" trên Hành trình khi bạn thuộc từ đó.',
     };
   }
   return {
-    title: "In review",
-    emptyTitle: "No words in review yet",
-    emptyHint: "Tap Learn this on Journey to add words to your review queue.",
+    title: "Thư viện · Đang ôn",
+    emptyTitle: "Chưa có từ đang ôn",
+    emptyHint: 'Nhấn "Học từ này" trên Hành trình để thêm từ vào lịch ôn.',
   };
 }
 
@@ -52,6 +52,37 @@ function parseSort(value: string | null): WordLibrarySort {
   return value === "rank" ? "rank" : "recent";
 }
 
+function WordLibraryFilterTabs({
+  filter,
+  onFilterChange,
+}: {
+  filter: WordLibraryFilter;
+  onFilterChange: (next: WordLibraryFilter) => void;
+}) {
+  return (
+    <div className="word-library__filters" role="tablist" aria-label="Lọc thư viện">
+      <button
+        type="button"
+        role="tab"
+        aria-selected={filter === "known"}
+        className={`word-library__filter${filter === "known" ? " is-active" : ""}`}
+        onClick={() => onFilterChange("known")}
+      >
+        Đã biết
+      </button>
+      <button
+        type="button"
+        role="tab"
+        aria-selected={filter === "review"}
+        className={`word-library__filter${filter === "review" ? " is-active" : ""}`}
+        onClick={() => onFilterChange("review")}
+      >
+        Đang ôn
+      </button>
+    </div>
+  );
+}
+
 function WordsPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -59,6 +90,15 @@ function WordsPageContent() {
   const sort = parseSort(searchParams.get("sort"));
   const meta = filterMeta(filter);
   const [tick, setTick] = useState(0);
+
+  const setFilter = useCallback(
+    (next: WordLibraryFilter) => {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("filter", next);
+      router.replace(`/words?${params.toString()}`);
+    },
+    [router, searchParams],
+  );
 
   const setSort = useCallback(
     (next: WordLibrarySort) => {
@@ -85,22 +125,16 @@ function WordsPageContent() {
     return getLocalWordsByFilter(filter, sort).map((entry) => ({
       word: entry.word,
       subtitle: getStaticVietnamese(entry.word) ?? null,
-      badge: filter === "review" ? statusBadge(entry.status) : "Known",
+      badge: filter === "review" ? statusBadge(entry.status) : "Đã biết",
     }));
   }, [filter, sort, tick]);
 
   return (
     <>
-      <AppHeader
-        title={meta.title}
-        leading={
-          <Link href="/discover" className="app-header__icon-btn" aria-label="Back">
-            ←
-          </Link>
-        }
-      />
+      <AppHeader title={meta.title} leading={<AppMenuButton />} />
 
       <div className="word-library page-scroll px-4">
+        <WordLibraryFilterTabs filter={filter} onFilterChange={setFilter} />
         <WordLibrarySortBar
           count={rows.length}
           sort={sort}

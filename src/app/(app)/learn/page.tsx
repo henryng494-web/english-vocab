@@ -685,7 +685,7 @@ export default function LearnPage() {
   return (
     <div className={`app-screen${inSession ? " app-screen--journey" : " app-screen--home"}`}>
       <AppHeader
-        title={inSession ? `Review ${index + 1}/${queue.length}` : "Review"}
+        title={inSession ? `Ôn tập ${index + 1}/${queue.length}` : "Ôn tập"}
         leading={<AppMenuButton />}
       />
 
