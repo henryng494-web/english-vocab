@@ -753,47 +753,50 @@ export default function LearnPage() {
   async function confirmReview() {
     if (!currentWord || confirming) return;
     setConfirming(true);
-    if (markMastered) {
-      writeLocalLearning(currentWord.word, "mastered");
-      try {
-        await fetch("/api/words/status", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ word: currentWord.word, status: "mastered" }),
-        });
-      } catch {
-        /* local status already saved */
+    try {
+      if (markMastered) {
+        writeLocalLearning(currentWord.word, "mastered");
+        try {
+          await fetch("/api/words/status", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ word: currentWord.word, status: "mastered" }),
+          });
+        } catch {
+          /* local status already saved */
+        }
+      } else {
+        writeReviewSchedule(currentWord.word, intervalDays, timesReviewed);
+        const status: LearningStatus = correct ? "learning" : "need_review";
+        writeLocalLearning(currentWord.word, status);
+        try {
+          await fetch("/api/words/status", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ word: currentWord.word, status }),
+          });
+        } catch {
+          /* local schedule already saved */
+        }
       }
-    } else {
-      writeReviewSchedule(currentWord.word, intervalDays, timesReviewed);
-      const status: LearningStatus = correct ? "learning" : "need_review";
-      writeLocalLearning(currentWord.word, status);
-      try {
-        await fetch("/api/words/status", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ word: currentWord.word, status }),
-        });
-      } catch {
-        /* local schedule already saved */
+
+      const nextIndex = index + 1;
+      const remaining = queue.slice(nextIndex);
+      markReviewSessionCompleted(currentWord.word, remaining);
+      updateReviewCache({ allWords, dueQueue: remaining });
+
+      if (nextIndex >= queue.length) {
+        setSessionDone(true);
+        setQueue([]);
+        setIndex(0);
+        clearReviewSessionSnapshot();
+        return;
       }
+      setIndex(nextIndex);
+      startQuestion(queue[nextIndex], allWords, nextIndex);
+    } finally {
+      setConfirming(false);
     }
-
-    const nextIndex = index + 1;
-    const remaining = queue.slice(nextIndex);
-    markReviewSessionCompleted(currentWord.word, remaining);
-    updateReviewCache({ allWords, dueQueue: remaining });
-
-    setConfirming(false);
-    if (nextIndex >= queue.length) {
-      setSessionDone(true);
-      setQueue([]);
-      setIndex(0);
-      clearReviewSessionSnapshot();
-      return;
-    }
-    setIndex(nextIndex);
-    startQuestion(queue[nextIndex], allWords, nextIndex);
   }
 
   const inSession = Boolean(currentWord) && !sessionDone;

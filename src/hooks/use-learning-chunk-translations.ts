@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   LEARNING_CHUNK_OVERRIDES,
   MAX_LEARNING_COLLOCATIONS,
@@ -61,6 +61,13 @@ function dedupeCollocations(items: LearningChunkPhrase[]): LearningChunkPhrase[]
   });
 }
 
+function entrySeedKey(word: string, entry: LearningChunkEntry | null): string {
+  if (!entry) return `${word.trim().toLowerCase()}::empty`;
+  const col = entry.collocations.map((item) => item.en.trim().toLowerCase()).join("|");
+  const chunks = entry.chunks.map((item) => item.en.trim().toLowerCase()).join("|");
+  return `${word.trim().toLowerCase()}::${col}::${chunks}`;
+}
+
 export function useLearningChunkTranslations({
   word,
   wordType,
@@ -70,120 +77,101 @@ export function useLearningChunkTranslations({
   entry,
   contextExamples = [],
 }: UseLearningChunkTranslationsArgs): LearningChunkEntry | null {
+  const seedKey = useMemo(() => entrySeedKey(word, entry), [word, entry]);
   const [collocations, setCollocations] = useState<LearningChunkPhrase[]>(
     entry?.collocations ?? [],
   );
+  const hydratedKeyRef = useRef<string | null>(null);
 
   const isOverride = useMemo(() => {
     const key = word.trim().toLowerCase();
     return Boolean(key && LEARNING_CHUNK_OVERRIDES[key]);
   }, [word]);
 
-  const needsSupplement = useMemo(() => {
-    if (!entry || isOverride) return false;
-    return entry.collocations.length < MAX_LEARNING_COLLOCATIONS;
-  }, [entry, isOverride]);
-
-  const needsTranslation = useMemo(() => {
-    if (!collocations.length || isOverride) return false;
-    return collocations.some((item) => !item.vi.trim());
-  }, [collocations, isOverride]);
-
   useEffect(() => {
     setCollocations(entry?.collocations ?? []);
-  }, [entry]);
+    hydratedKeyRef.current = null;
+  }, [seedKey, entry]);
 
   useEffect(() => {
-    if (!entry || !needsSupplement) return;
-
-    const existing = entry.collocations.map((item) => item.en);
-    const needed = MAX_LEARNING_COLLOCATIONS - existing.length;
-    if (needed < 1) return;
-
-    const cached = getCachedSupplementCollocations(word, existing);
-    if (cached?.length) {
-      setCollocations(
-        dedupeCollocations([...entry.collocations, ...cached]).slice(
-          0,
-          MAX_LEARNING_COLLOCATIONS,
-        ),
-      );
-      return;
-    }
+    if (!entry || isOverride) return;
+    if (hydratedKeyRef.current === seedKey) return;
 
     let cancelled = false;
 
     (async () => {
-      try {
-        const usefulPhrase = entry.chunks[0] ?? contextExamples[0] ?? null;
-        const response = await fetch("/api/learning-chunks/supplement", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            word,
-            wordType,
-            meaning,
-            register,
-            englishDefinition,
-            existing,
-            usefulPhrase,
-            count: needed,
-          }),
-        });
+      let current = dedupeCollocations([...entry.collocations]).slice(
+        0,
+        MAX_LEARNING_COLLOCATIONS,
+      );
 
-        if (!response.ok || cancelled) return;
+      if (current.length < MAX_LEARNING_COLLOCATIONS) {
+        const existing = current.map((item) => item.en);
+        const needed = MAX_LEARNING_COLLOCATIONS - existing.length;
+        const cached = getCachedSupplementCollocations(word, existing);
+        let generated = cached ?? null;
 
-        const data = (await response.json()) as {
-          collocations?: LearningChunkPhrase[];
-        };
-        const generated = data.collocations?.filter(
-          (item) => item.en?.trim() && item.vi?.trim(),
-        );
-        if (!generated?.length || cancelled) return;
+        if (!generated?.length) {
+          try {
+            const usefulPhrase = entry.chunks[0] ?? contextExamples[0] ?? null;
+            const response = await fetch("/api/learning-chunks/supplement", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                word,
+                wordType,
+                meaning,
+                register,
+                englishDefinition,
+                existing,
+                usefulPhrase,
+                count: needed,
+              }),
+            });
+            if (response.ok) {
+              const data = (await response.json()) as {
+                collocations?: LearningChunkPhrase[];
+              };
+              generated =
+                data.collocations?.filter(
+                  (item) => item.en?.trim() && item.vi?.trim(),
+                ) ?? null;
+              if (generated?.length) {
+                setCachedSupplementCollocations(word, existing, generated);
+              }
+            }
+          } catch {
+            // keep extracted collocations only
+          }
+        }
 
-        setCachedSupplementCollocations(word, existing, generated);
-        setCollocations(
-          dedupeCollocations([...entry.collocations, ...generated]).slice(
+        if (generated?.length) {
+          current = dedupeCollocations([...current, ...generated]).slice(
             0,
             MAX_LEARNING_COLLOCATIONS,
-          ),
-        );
-      } catch {
-        // keep extracted collocations only
+          );
+        }
       }
-    })();
 
-    return () => {
-      cancelled = true;
-    };
-  }, [
-    word,
-    wordType,
-    meaning,
-    register,
-    englishDefinition,
-    entry,
-    needsSupplement,
-    contextExamples,
-  ]);
+      if (cancelled) return;
+      setCollocations(current);
 
-  useEffect(() => {
-    if (!collocations.length || !needsTranslation) return;
+      const pending = current.filter((item) => !item.vi.trim());
+      if (!pending.length) {
+        hydratedKeyRef.current = seedKey;
+        return;
+      }
 
-    const pending = collocations.filter((item) => !item.vi.trim());
-    if (!pending.length) return;
+      const cachedTranslations = getCachedCollocationTranslations(word, pending);
+      if (cachedTranslations?.length) {
+        if (cancelled) return;
+        setCollocations((prev) => mergeCollocationVi(prev, cachedTranslations));
+        hydratedKeyRef.current = seedKey;
+        return;
+      }
 
-    const cached = getCachedCollocationTranslations(word, pending);
-    if (cached) {
-      setCollocations((current) => mergeCollocationVi(current, cached));
-      return;
-    }
-
-    let cancelled = false;
-
-    (async () => {
       try {
-        const contextPool = [...contextExamples, ...(entry?.chunks ?? [])];
+        const contextPool = [...contextExamples, ...entry.chunks];
         const response = await fetch("/api/learning-chunks/translate", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -214,7 +202,8 @@ export function useLearningChunkTranslations({
         if (!translated?.length || cancelled) return;
 
         setCachedCollocationTranslations(word, pending, translated);
-        setCollocations((current) => mergeCollocationVi(current, translated));
+        setCollocations((prev) => mergeCollocationVi(prev, translated));
+        hydratedKeyRef.current = seedKey;
       } catch {
         // keep EN-only collocations on failure
       }
@@ -229,10 +218,10 @@ export function useLearningChunkTranslations({
     meaning,
     register,
     englishDefinition,
-    collocations,
-    needsTranslation,
+    entry,
+    seedKey,
+    isOverride,
     contextExamples,
-    entry?.chunks,
   ]);
 
   if (!entry) return null;

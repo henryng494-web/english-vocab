@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import { useI18n } from "@/hooks/use-i18n";
 import { useLearningChunkTranslations } from "@/hooks/use-learning-chunk-translations";
 import {
@@ -47,7 +48,10 @@ export function WordLearningChunks({
   compact = false,
 }: WordLearningChunksProps) {
   const { t } = useI18n();
-  const baseEntry = resolveLearningChunks(word, { examples, wordType, meaning });
+  const baseEntry = useMemo(
+    () => resolveLearningChunks(word, { examples, wordType, meaning }),
+    [word, examples, wordType, meaning],
+  );
   const entry = useLearningChunkTranslations({
     word,
     wordType,
