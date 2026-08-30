@@ -115,6 +115,47 @@ export function stopWordAudio(): void {
 }
 
 /**
+ * Unlock iOS MP3 playback in a user gesture without audible output.
+ * Safari/PWA requires play() during tap; volume 0 avoids speaking on first touch.
+ */
+export function primeWordAudioInUserGesture(word: string): void {
+  if (typeof window === "undefined") return;
+  const key = cacheKey(word);
+  const audio = getAudioElement();
+  if (!key || !audio) return;
+
+  const src = absoluteAudioUrl(resolvePlayableUrl(key));
+  if (!src) return;
+
+  const savedVolume = audio.volume;
+  audio.volume = 0;
+  window.speechSynthesis?.cancel();
+
+  if (audio.dataset.wordKey !== key || audio.src !== src) {
+    audio.dataset.wordKey = key;
+    audio.src = src;
+    audio.load();
+  }
+
+  audio.currentTime = 0;
+  currentAudio = audio;
+
+  const finish = () => {
+    audio.pause();
+    audio.currentTime = 0;
+    audio.volume = savedVolume;
+    if (currentAudio === audio) currentAudio = null;
+  };
+
+  const playPromise = audio.play();
+  if (playPromise && typeof playPromise.then === "function") {
+    playPromise.then(finish).catch(finish);
+  } else {
+    finish();
+  }
+}
+
+/**
  * Start pronunciation inside tap/click — must not await or gate on readyState.
  * iOS Safari/PWA only unlocks playback when play() runs during the user gesture.
  */

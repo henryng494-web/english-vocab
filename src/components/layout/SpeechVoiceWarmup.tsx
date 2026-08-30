@@ -1,10 +1,7 @@
 "use client";
 
-import {
-  preloadWordPronunciation,
-  unlockSpeechFromUserGesture,
-} from "@/lib/speak-word";
-import { playWordAudioInUserGesture } from "@/lib/word-pronunciation-audio";
+import { unlockSpeechFromUserGesture, preloadWordPronunciation } from "@/lib/speak-word";
+import { primeWordAudioInUserGesture } from "@/lib/word-pronunciation-audio";
 import { ensureSpeechVoicesReady } from "@/lib/speech-voice";
 import { useEffect } from "react";
 
@@ -16,7 +13,7 @@ export function SpeechVoiceWarmup() {
 
     const onFirstTouch = () => {
       unlockSpeechFromUserGesture();
-      playWordAudioInUserGesture("hello");
+      primeWordAudioInUserGesture("hello");
     };
 
     document.addEventListener("touchend", onFirstTouch, {
