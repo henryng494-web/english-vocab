@@ -75,37 +75,3 @@ export async function lookupDictionaryAudioUrl(word: string): Promise<string | n
 export function proxyPronounceAudioPath(word: string): string {
   return `/api/pronounce/audio?word=${encodeURIComponent(word.trim().toLowerCase())}`;
 }
-
-/** Google Translate TTS fallback when dictionary CDN is unavailable. */
-export async function lookupFallbackTtsAudio(word: string): Promise<ArrayBuffer | null> {
-  const key = word.trim().toLowerCase();
-  if (!key) return null;
-
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 4500);
-
-  try {
-    const url = new URL("https://translate.google.com/translate_tts");
-    url.searchParams.set("ie", "UTF-8");
-    url.searchParams.set("client", "tw-ob");
-    url.searchParams.set("q", key);
-    url.searchParams.set("tl", "en-US");
-
-    const response = await fetch(url.toString(), {
-      signal: controller.signal,
-      headers: {
-        "User-Agent":
-          "Mozilla/5.0 (compatible; EnglishVocab/1.0; +https://english-vocab-omega.vercel.app)",
-      },
-      next: { revalidate: 60 * 60 * 24 * 7 },
-    });
-
-    if (!response.ok) return null;
-    const bytes = await response.arrayBuffer();
-    return bytes.byteLength > 0 ? bytes : null;
-  } catch {
-    return null;
-  } finally {
-    clearTimeout(timeout);
-  }
-}

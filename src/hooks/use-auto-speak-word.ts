@@ -8,7 +8,7 @@ import { isAppleWebKit } from "@/lib/speech-voice";
 import { useAutoSpeakSetting } from "@/context/AppSettingsContext";
 import { useEffect } from "react";
 
-const AUTO_SPEAK_DELAY_MS = isAppleWebKit() ? 380 : 240;
+const AUTO_SPEAK_DELAY_MS = isAppleWebKit() ? 260 : 140;
 
 let autoSpeakTimer: number | null = null;
 
