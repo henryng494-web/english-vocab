@@ -53,6 +53,34 @@ export const NON_BASE_VERB_FORMS = new Set([
   "begun", "sung", "hung", "wrung", "stung", "slung", "flung",
 ]);
 
+/** Gemini-free sense templates from buildSenseAlignedExamples — ungrammatical filler. */
+const SENSE_ALIGNED_TEMPLATE_SHELLS = [
+  /^The food at that restaurant was \S+\.?$/i,
+  /^A \S+ oak tree stood beside the road\.?$/i,
+  /^My sister felt \S+ after the good news\.?$/i,
+  /^I like to \S+ pictures on weekends\.?$/i,
+  /^What did you \S+ from that meeting\??$/i,
+  /^They \S+ together every Friday evening\.?$/i,
+  /^The \S+ on the desk caught my eye\.?$/i,
+  /^We talked about the \S+ over coffee\.?$/i,
+  /^She answered the question \S+\.?$/i,
+  /^He finished the task \S+ than yesterday\.?$/i,
+  /^We walked \S+ the park after lunch\.?$/i,
+  /^It costs \S+ fifty dollars\.?$/i,
+  /^There are trees \S+ the house\.?$/i,
+  /^I like tea \S+ coffee in the morning\.?$/i,
+  /^Stay here \S+ wait for me, please\.?$/i,
+  /^I saw \S+ at school today\.?$/i,
+  /^[A-Za-z][a-z']* is waiting outside the office\.?$/i,
+];
+
+/** Detect lazy POS/sense templates regardless of headword. */
+export function isSenseAlignedTemplateExample(en: string): boolean {
+  const text = en.trim();
+  if (!text) return false;
+  return SENSE_ALIGNED_TEMPLATE_SHELLS.some((pattern) => pattern.test(text));
+}
+
 /**
  * Gemini-free sense templates from buildSenseAlignedExamples — often ungrammatical
  * when POS or verb form does not match (e.g. "I like to sprung…", "The tonight on the desk").
@@ -62,6 +90,8 @@ export function isOfflineSenseAlignedTemplateExample(
   word: string,
   pos?: string | null,
 ): boolean {
+  if (isSenseAlignedTemplateExample(en)) return true;
+
   const text = en.trim();
   const w = word.trim().toLowerCase();
   if (!text || !w) return false;

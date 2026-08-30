@@ -1,6 +1,5 @@
 import {
   alignExampleTranslations,
-  buildSenseAlignedExamples,
   ensureExamples,
   fillExampleTranslations,
 } from "@/lib/example-fallback";
@@ -37,11 +36,6 @@ export async function repairWordExamples(
     return examples?.trim() ? examples : serializeExamples(parsed);
   }
 
-  const offline = buildSenseAlignedExamples(word, wordType, meaning);
-  if (hasQualityExamples(word, offline, wordType, meaning)) {
-    return serializeExamples(offline);
-  }
-
   const needsRegeneration = examplesNeedRegeneration(
     word,
     examples,
@@ -76,12 +70,7 @@ export async function repairWordExamples(
     return serializeExamples(finalExamples);
   }
 
-  if (hasQualityExamples(word, offline, wordType, meaning)) {
-    return serializeExamples(offline);
-  }
-
   if (examples?.trim()) return examples;
-  if (offline.length > 0) return serializeExamples(offline);
   return serializeExamples(finalExamples);
 }
 
