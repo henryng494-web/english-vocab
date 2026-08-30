@@ -4,10 +4,11 @@ import {
   preloadWordPronunciation,
   speakEnglishTextAuto,
 } from "@/lib/speak-word";
+import { isAppleWebKit } from "@/lib/speech-voice";
 import { useAutoSpeakSetting } from "@/context/AppSettingsContext";
 import { useEffect } from "react";
 
-const AUTO_SPEAK_DELAY_MS = 420;
+const AUTO_SPEAK_DELAY_MS = isAppleWebKit() ? 700 : 420;
 
 let autoSpeakTimer: number | null = null;
 
