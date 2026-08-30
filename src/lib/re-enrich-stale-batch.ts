@@ -44,6 +44,7 @@ export type ReEnrichBatchResult = {
 
 type WordDetailRow = {
   word: string;
+  phonetic: string | null;
   word_type: string | null;
   vietnamese_meaning: string | null;
   english_definition: string | null;
@@ -72,7 +73,7 @@ async function fetchAllWordDetails(
     const { data, error } = await supabase
       .from("word_details")
       .select(
-        "word, word_type, vietnamese_meaning, english_definition, collocations, image_url, examples",
+        "word, phonetic, word_type, vietnamese_meaning, english_definition, collocations, image_url, examples",
       )
       .order("word", { ascending: true })
       .range(pageOffset, pageOffset + DB_PAGE_SIZE - 1);
@@ -96,7 +97,7 @@ async function resolveStaleTargets(
     const { data } = await supabase
       .from("word_details")
       .select(
-        "word, word_type, vietnamese_meaning, english_definition, collocations, image_url, examples",
+        "word, phonetic, word_type, vietnamese_meaning, english_definition, collocations, image_url, examples",
       )
       .eq("word", options.word)
       .maybeSingle();
