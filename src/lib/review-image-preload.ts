@@ -1,5 +1,6 @@
 import {
   buildReviewQuestionPlan,
+  senseChoicesAreValidForPrompt,
   type ReviewChoice,
   type ReviewQuizKind,
 } from "@/lib/review-quiz";
@@ -96,7 +97,10 @@ export async function prefetchReviewQuestionRange(
     const word = queue[questionIndex];
     if (!word) break;
     const plan = collectReviewQuestionImageTargets(word, pool, questionIndex);
-    if (plan.kind === "sense" && plan.choices.length === 3) {
+    if (
+      plan.kind === "sense" &&
+      senseChoicesAreValidForPrompt(plan.choices, word.word, pool)
+    ) {
       senseChoices.set(questionIndex, plan.choices);
     }
     batches.push(...plan.targets);

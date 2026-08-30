@@ -102,18 +102,80 @@ export function reviewSenseCacheKey(questionIndex: number, word: string): string
   return `${questionIndex}:${word.trim().toLowerCase()}`;
 }
 
-/** True when a cached sense-quiz set includes the prompt word as an option. */
+/** True when choices include the prompt word marked correct with a gloss. */
 export function senseChoicesIncludeCorrectWord(
   choices: ReviewChoice[],
   correctWord: string,
 ): boolean {
   const correct = correctWord.trim().toLowerCase();
-  if (!correct) return false;
-  return choices.some(
-    (choice) =>
-      choice.isCorrect === true ||
-      choice.word.trim().toLowerCase() === correct,
+  if (!correct || choices.length !== 3) return false;
+
+  const match = choices.find(
+    (choice) => choice.word.trim().toLowerCase() === correct,
   );
+  if (!match || match.isCorrect !== true) return false;
+  return Boolean(match.meaning?.trim());
+}
+
+/** Stricter check: prompt gloss present, unique meanings, matches pool data. */
+export function senseChoicesAreValidForPrompt(
+  choices: ReviewChoice[],
+  promptWord: string,
+  pool: SenseSource[],
+): boolean {
+  const correct = promptWord.trim().toLowerCase();
+  if (!correct || choices.length !== 3) return false;
+  if (!senseChoicesIncludeCorrectWord(choices, promptWord)) return false;
+
+  const poolItem = pool.find((item) => item.word.trim().toLowerCase() === correct);
+  const expectedMeaning = reviewSenseText(poolItem ?? {});
+  if (!expectedMeaning) return false;
+
+  const correctChoice = choices.find(
+    (choice) => choice.word.trim().toLowerCase() === correct,
+  );
+  if (!correctChoice || correctChoice.meaning !== expectedMeaning) return false;
+
+  const meanings = choices
+    .map((choice) => choice.meaning?.trim())
+    .filter(Boolean);
+  return new Set(meanings).size === 3;
+}
+
+function mergeChoiceImages(
+  choices: ReviewChoice[],
+  cached: ReviewChoice[],
+): ReviewChoice[] {
+  const imageByWord = new Map(
+    cached.map((choice) => [
+      choice.word.trim().toLowerCase(),
+      choice.imageUrl ?? null,
+    ]),
+  );
+  return choices.map((choice) => {
+    const key = choice.word.trim().toLowerCase();
+    const imageUrl = imageByWord.get(key) ?? choice.imageUrl ?? null;
+    return imageUrl ? { ...choice, imageUrl } : choice;
+  });
+}
+
+/** Prefer a fresh build; fall back to cached only when it passes validation. */
+export function resolveReviewSenseChoices(
+  promptWord: string,
+  pool: SenseSource[],
+  cached?: ReviewChoice[] | null,
+): ReviewChoice[] {
+  const fresh = buildReviewSenseChoices(promptWord, pool);
+  if (senseChoicesAreValidForPrompt(fresh, promptWord, pool)) {
+    return cached ? mergeChoiceImages(fresh, cached) : fresh;
+  }
+  if (
+    cached &&
+    senseChoicesAreValidForPrompt(cached, promptWord, pool)
+  ) {
+    return cached;
+  }
+  return fresh;
 }
 
 /** Compact Vietnamese gloss for review sense choices (matches WordCard rules). */
@@ -212,10 +274,7 @@ export function buildReviewQuestionPlan(
 
   if (wanted === "sense") {
     const senseChoices = buildReviewSenseChoices(word.word, pool);
-    if (
-      senseChoices.length === 3 &&
-      senseChoicesIncludeCorrectWord(senseChoices, word.word)
-    ) {
+    if (senseChoicesAreValidForPrompt(senseChoices, word.word, pool)) {
       kind = "sense";
       choices = senseChoices;
     }
