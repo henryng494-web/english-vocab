@@ -522,6 +522,19 @@ body {
   flex: 0 0 auto;
 }
 
+.word-learning-chunks__examples .vocab-examples__item {
+  background: color-mix(in srgb, var(--mascot-elephant) 14%, white);
+}
+
+.word-learning-chunks__sense {
+  display: block;
+  margin-bottom: 0.1rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--meaning);
+}
+
 .word-learning-chunks--solo .word-learning-chunks__examples {
   flex: 0 0 auto;
 }
