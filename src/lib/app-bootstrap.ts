@@ -11,6 +11,7 @@ import {
 import {
   fetchDiscoverRange,
   fetchDiscoverWordDetail,
+  listItemToDiscoverData,
   type DiscoverListItem,
   type DiscoverRangeStats,
 } from "@/lib/discover-fetch";
@@ -22,7 +23,6 @@ import {
 import { loadReviewSession, type ReviewSessionData } from "@/lib/review-fetch";
 import { refreshAllStaleWordImages } from "@/lib/refresh-stale-word-images";
 import { seedWordImageCacheFromEntries } from "@/lib/word-image-cache";
-import { warmWordPronunciationsBatch } from "@/lib/pronunciation-preload";
 
 export const DEFAULT_BOOTSTRAP_RANGE = "1-100";
 /** First band — enough for home + journey preload-ahead. */
@@ -31,6 +31,9 @@ export const BOOTSTRAP_PRELOAD_DEFAULT = 8;
 export const BOOTSTRAP_PRELOAD_OTHER = 5;
 export const BOOTSTRAP_WORD_CONCURRENCY = 6;
 export const MIN_WELCOME_MS = 1600;
+/** Per-word detail fetch during splash — avoid blocking on Gemini repair. */
+export const BOOTSTRAP_WORD_TIMEOUT_MS = 8000;
+export const BOOTSTRAP_REVIEW_TIMEOUT_MS = 6000;
 
 export type BootstrapProgress = {
   progress: number;
@@ -103,6 +106,46 @@ function collectPreloadTargets(
   return targets;
 }
 
+function raceTimeout<T>(promise: Promise<T>, ms: number): Promise<T | null> {
+  return Promise.race([
+    promise,
+    new Promise<null>((resolve) => {
+      setTimeout(() => resolve(null), ms);
+    }),
+  ]);
+}
+
+async function loadBootstrapWordDetail(
+  item: DiscoverListItem,
+  wordCache: Map<string, DiscoverWordData>,
+): Promise<void> {
+  const cached = wordCache.get(item.word);
+  if (isWordDetailComplete(cached, item.word)) {
+    preloadImageUrl(cached!.image_url);
+    return;
+  }
+
+  try {
+    const loaded = await raceTimeout(
+      fetchDiscoverWordDetail(item, { bootstrap: true }),
+      BOOTSTRAP_WORD_TIMEOUT_MS,
+    );
+    if (loaded && isCacheEntryValid(loaded, item.word)) {
+      wordCache.set(item.word, loaded);
+      preloadImageUrl(loaded.image_url);
+      return;
+    }
+  } catch {
+    /* use list preview below */
+  }
+
+  const preview = listItemToDiscoverData(item);
+  if (preview.vietnamese_meaning?.trim()) {
+    wordCache.set(item.word, preview);
+    preloadImageUrl(preview.image_url);
+  }
+}
+
 /** Warm caches and fetch all discover bands before the main UI mounts. */
 export async function runAppBootstrap(
   onProgress: (progress: BootstrapProgress) => void,
@@ -150,8 +193,9 @@ export async function runAppBootstrap(
     }),
   );
   preloadWordImagesFromCache(imageWarmTargets);
-  const imageWarmPromise = prefetchWordImages(imageWarmTargets, BOOTSTRAP_WORD_CONCURRENCY);
-  void warmWordPronunciationsBatch(preloadTargets.map((item) => item.word));
+  void prefetchWordImages(imageWarmTargets, BOOTSTRAP_WORD_CONCURRENCY).catch(
+    () => {},
+  );
 
   let wordsDone = 0;
 
@@ -159,24 +203,11 @@ export async function runAppBootstrap(
     preloadTargets,
     BOOTSTRAP_WORD_CONCURRENCY,
     async (item) => {
-      const cached = wordCache.get(item.word);
-      if (isWordDetailComplete(cached, item.word)) {
-        preloadImageUrl(cached!.image_url);
-      } else {
-        try {
-          const loaded = await fetchDiscoverWordDetail(item);
-          if (isCacheEntryValid(loaded, item.word)) {
-            wordCache.set(item.word, loaded);
-            preloadImageUrl(loaded.image_url);
-          }
-        } catch {
-          /* home/journey can fetch later */
-        }
-      }
+      await loadBootstrapWordDetail(item, wordCache);
       wordsDone += 1;
       report(
         onProgress,
-        62 + Math.round((wordsDone / Math.max(preloadTargets.length, 1)) * 34),
+        62 + Math.round((wordsDone / Math.max(preloadTargets.length, 1)) * 30),
         "",
       );
     },
@@ -184,10 +215,9 @@ export async function runAppBootstrap(
 
   persistWordCache(wordCache);
   seedWordImageCacheFromEntries(wordCache.entries());
-  await imageWarmPromise.catch(() => {});
 
-  report(onProgress, 96, "");
-  const review = await reviewPromise;
+  report(onProgress, 94, "");
+  const review = await raceTimeout(reviewPromise, BOOTSTRAP_REVIEW_TIMEOUT_MS);
   if (review?.allWords?.length) {
     void refreshAllStaleWordImages(
       review.allWords.map((word) => ({

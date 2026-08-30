@@ -122,7 +122,7 @@ export async function fetchDiscoverRange(
 
 export async function fetchDiscoverWordDetail(
   item: DiscoverListItem,
-  options?: { forceRepair?: boolean },
+  options?: { forceRepair?: boolean; bootstrap?: boolean },
 ): Promise<DiscoverWordData> {
   const fetchOnce = async (forceRepair: boolean): Promise<DiscoverWordData> => {
     const params = new URLSearchParams({
@@ -146,6 +146,7 @@ export async function fetchDiscoverWordDetail(
 
   const loaded = await fetchOnce(options?.forceRepair ?? false);
   if (
+    !options?.bootstrap &&
     !options?.forceRepair &&
     (examplesNeedRegeneration(
       item.word,

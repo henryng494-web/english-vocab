@@ -12,10 +12,13 @@ import {
 import {
   runAppBootstrap,
   waitForWelcomeMinimum,
+  DEFAULT_BOOTSTRAP_RANGE,
+  BOOTSTRAP_PRELOAD_DEFAULT,
   type AppBootstrapSnapshot,
   type BootstrapProgress,
   type RangeBootstrapData,
 } from "@/lib/app-bootstrap";
+import { warmWordPronunciationsBatch } from "@/lib/pronunciation-preload";
 import type { DiscoverWordData } from "@/components/discover/DiscoverCard";
 import type { ReviewSessionData } from "@/lib/review-fetch";
 
@@ -62,6 +65,10 @@ export function AppBootstrapProvider({ children }: { children: ReactNode }) {
         if (cancelled) return;
         setSnapshot(loaded);
         setReady(true);
+        const defaultQueue = loaded.ranges[DEFAULT_BOOTSTRAP_RANGE]?.queue ?? [];
+        void warmWordPronunciationsBatch(
+          defaultQueue.slice(0, BOOTSTRAP_PRELOAD_DEFAULT).map((item) => item.word),
+        );
       } catch {
         await waitForWelcomeMinimum(startedAt);
         if (cancelled) return;
