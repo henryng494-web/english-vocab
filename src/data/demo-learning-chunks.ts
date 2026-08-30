@@ -1,4 +1,5 @@
-/** Pilot: collocation + chunk hints for a handful of words (Van review). */
+/** Pilot: collocation + chunk hints for a handful of words (Van review).
+ *  Collocation rule: include at least one phrase where the headword’s base meaning is obvious. */
 
 export type LearningChunkPhrase = {
   en: string;
@@ -66,8 +67,8 @@ export const DEMO_LEARNING_CHUNKS: Record<string, LearningChunkEntry> = {
   },
   piece: {
     collocations: [
+      { en: "a piece of paper", vi: "một mảnh giấy" },
       { en: "a piece of cake", vi: "dễ như ăn bánh" },
-      { en: "a piece of advice", vi: "một lời khuyên" },
     ],
     chunks: [
       {
@@ -117,13 +118,13 @@ export const DEMO_LEARNING_CHUNKS: Record<string, LearningChunkEntry> = {
   },
   right: {
     collocations: [
-      { en: "the right answer", vi: "câu trả lời đúng", sense: 1 },
+      { en: "human rights", vi: "quyền con người", sense: 1 },
       { en: "turn right", vi: "rẽ phải", sense: 2 },
     ],
     chunks: [
       {
-        en: "You are absolutely right.",
-        vi: "Bạn hoàn toàn đúng.",
+        en: "Everyone has the right to speak.",
+        vi: "Mọi người đều có quyền nói.",
         sense: 1,
       },
     ],
