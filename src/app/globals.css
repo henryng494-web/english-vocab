@@ -475,9 +475,7 @@ body {
 }
 
 .card-details--compact .card-details__face--meaning {
-  overflow-x: hidden;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
+  overflow: hidden;
 }
 
 .discover-card__examples {
@@ -485,15 +483,14 @@ body {
   min-height: 0;
   flex: 1 1 auto;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: 0.35rem;
   align-items: stretch;
+  overflow: hidden;
 }
 
 .discover-card__examples--chunks-only {
   justify-content: flex-start;
-  overflow-x: hidden;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
+  overflow: hidden;
 }
 
 .word-learning-chunks {
@@ -503,7 +500,7 @@ body {
 }
 
 .word-learning-chunks--compact {
-  gap: 0.4rem;
+  gap: 0.3rem;
 }
 
 .word-learning-chunks--solo {
@@ -515,7 +512,7 @@ body {
 .word-learning-chunks__section {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0.2rem;
 }
 
 .word-learning-chunks__label {
@@ -536,6 +533,34 @@ body {
   background: color-mix(in srgb, var(--mascot-elephant) 14%, white);
 }
 
+.word-learning-chunks__item--inline {
+  padding: 0.38rem 0.65rem;
+}
+
+.word-learning-chunks__line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.12rem 0.35rem;
+  margin: 0;
+  line-height: 1.35;
+}
+
+.word-learning-chunks__sep {
+  flex: 0 0 auto;
+  color: color-mix(in srgb, var(--foreground) 35%, transparent);
+  font-style: normal;
+  font-weight: 700;
+}
+
+.word-learning-chunks__item--inline .vocab-examples__en,
+.word-learning-chunks__item--inline .vocab-examples__vi {
+  display: inline;
+  overflow: visible;
+  -webkit-line-clamp: unset;
+  line-clamp: unset;
+}
+
 .word-learning-chunks--solo .word-learning-chunks__examples {
   flex: 0 0 auto;
 }
@@ -548,6 +573,12 @@ body {
   flex: 1;
   justify-content: center;
   gap: 0.4rem;
+}
+
+.vocab-examples--compact.word-learning-chunks__examples {
+  flex: 0 0 auto;
+  justify-content: flex-start;
+  gap: 0.3rem;
 }
 
 .vocab-examples--compact .vocab-examples__item {

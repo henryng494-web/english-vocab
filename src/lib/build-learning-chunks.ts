@@ -145,10 +145,17 @@ const DANGLING_TAIL =
 
 function trimDanglingTail(phrase: string): string {
   const words = phrase.split(" ");
-  while (words.length > 2 && DANGLING_TAIL.test(words[words.length - 1] ?? "")) {
+  while (words.length >= 2 && DANGLING_TAIL.test(words[words.length - 1] ?? "")) {
     words.pop();
   }
   return words.join(" ").trim();
+}
+
+function endsWithDanglingToken(phrase: string): boolean {
+  const words = normalizePhrase(phrase).split(/\s+/).filter(Boolean);
+  if (words.length < 2) return true;
+  const last = normalizeToken(words[words.length - 1] ?? "");
+  return DANGLING_TAIL.test(last);
 }
 
 function isValidCollocationEn(extracted: string, headword: string): boolean {
@@ -158,6 +165,7 @@ function isValidCollocationEn(extracted: string, headword: string): boolean {
   if (findHeadwordIndex(words, headword) < 0) return false;
   if (isWeakCollocation(extracted, headword)) return false;
   if (isSentenceFragment(extracted)) return false;
+  if (endsWithDanglingToken(extracted)) return false;
   return true;
 }
 

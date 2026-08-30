@@ -21,17 +21,50 @@ type WordLearningChunksProps = {
   compact?: boolean;
 };
 
-function PhraseList({ items }: { items: LearningChunkPhrase[] }) {
+function PhraseList({
+  items,
+  inline = false,
+}: {
+  items: LearningChunkPhrase[];
+  inline?: boolean;
+}) {
   return (
     <ul className="vocab-examples vocab-examples--compact word-learning-chunks__examples">
       {items.map((item) => (
-        <li key={`${item.sense ?? 0}-${item.en}`} className="vocab-examples__item">
-          <p className="vocab-examples__en italic">{capitalizeFirst(item.en)}</p>
-          {item.vi ? (
-            <p className="vocab-examples__vi mt-0.5 italic">
-              {capitalizeFirst(item.vi)}
+        <li
+          key={`${item.sense ?? 0}-${item.en}`}
+          className={
+            inline
+              ? "vocab-examples__item word-learning-chunks__item--inline"
+              : "vocab-examples__item"
+          }
+        >
+          {inline ? (
+            <p className="word-learning-chunks__line">
+              <span className="vocab-examples__en italic">
+                {capitalizeFirst(item.en)}
+              </span>
+              {item.vi ? (
+                <>
+                  <span className="word-learning-chunks__sep" aria-hidden="true">
+                    ·
+                  </span>
+                  <span className="vocab-examples__vi italic">
+                    {capitalizeFirst(item.vi)}
+                  </span>
+                </>
+              ) : null}
             </p>
-          ) : null}
+          ) : (
+            <>
+              <p className="vocab-examples__en italic">{capitalizeFirst(item.en)}</p>
+              {item.vi ? (
+                <p className="vocab-examples__vi mt-0.5 italic">
+                  {capitalizeFirst(item.vi)}
+                </p>
+              ) : null}
+            </>
+          )}
         </li>
       ))}
     </ul>
@@ -78,7 +111,7 @@ export function WordLearningChunks({
       {collocationItems.length > 0 ? (
         <section className="word-learning-chunks__section">
           <h3 className="word-learning-chunks__label">{t("chunks.collocations")}</h3>
-          <PhraseList items={collocationItems} />
+          <PhraseList items={collocationItems} inline />
         </section>
       ) : null}
 
