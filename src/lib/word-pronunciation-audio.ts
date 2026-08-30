@@ -114,45 +114,54 @@ export function stopWordAudio(): void {
   if (currentAudio === audio) currentAudio = null;
 }
 
+/** ~0.01s silent WAV — unlocks iOS audio in a gesture without audible speech. */
+const SILENT_WAV_DATA_URI =
+  "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA==";
+
 /**
- * Unlock iOS MP3 playback in a user gesture without audible output.
- * Safari/PWA requires play() during tap; volume 0 avoids speaking on first touch.
+ * Unlock iOS/HTML audio playback during a user gesture with inaudible media.
+ * Do not use a real word (e.g. "hello") — iOS ignores volume=0 on MP3.
  */
-export function primeWordAudioInUserGesture(word: string): void {
+export function primeAudioPipelineInUserGesture(): void {
   if (typeof window === "undefined") return;
-  const key = cacheKey(word);
   const audio = getAudioElement();
-  if (!key || !audio) return;
+  if (!audio) return;
 
-  const src = absoluteAudioUrl(resolvePlayableUrl(key));
-  if (!src) return;
-
-  const savedVolume = audio.volume;
-  audio.volume = 0;
+  const prevKey = audio.dataset.wordKey ?? "";
+  const prevSrc = audio.src;
   window.speechSynthesis?.cancel();
 
-  if (audio.dataset.wordKey !== key || audio.src !== src) {
-    audio.dataset.wordKey = key;
-    audio.src = src;
-    audio.load();
-  }
-
+  audio.src = SILENT_WAV_DATA_URI;
+  audio.dataset.wordKey = "__silent__";
   audio.currentTime = 0;
   currentAudio = audio;
 
-  const finish = () => {
+  const restore = () => {
     audio.pause();
     audio.currentTime = 0;
-    audio.volume = savedVolume;
     if (currentAudio === audio) currentAudio = null;
+    if (prevSrc) {
+      audio.src = prevSrc;
+      audio.dataset.wordKey = prevKey;
+    } else {
+      audio.removeAttribute("src");
+      delete audio.dataset.wordKey;
+    }
   };
 
   const playPromise = audio.play();
   if (playPromise && typeof playPromise.then === "function") {
-    playPromise.then(finish).catch(finish);
+    playPromise.then(restore).catch(restore);
   } else {
-    finish();
+    restore();
   }
+}
+
+/**
+ * @deprecated Use primeAudioPipelineInUserGesture — word-based priming spoke "hello" on iOS.
+ */
+export function primeWordAudioInUserGesture(_word: string): void {
+  primeAudioPipelineInUserGesture();
 }
 
 /**
