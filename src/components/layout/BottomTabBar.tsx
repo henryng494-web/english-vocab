@@ -63,7 +63,7 @@ function LearnIcon({ active }: { active: boolean }) {
   );
 }
 
-function AccountIcon({ active }: { active: boolean }) {
+function LibraryIcon({ active }: { active: boolean }) {
   return (
     <svg
       aria-hidden
@@ -73,11 +73,12 @@ function AccountIcon({ active }: { active: boolean }) {
       stroke="currentColor"
       strokeWidth="1.8"
     >
-      <circle cx="12" cy="8" r="4" />
-      <path d="M5 20c1.5-3.5 4.5-5 7-5s5.5 1.5 7 5" strokeLinecap="round" />
+      <path d="M5 4h5v16H6a1 1 0 01-1-1V4zM14 4h5v16h-4a1 1 0 01-1-1V4z" strokeLinejoin="round" />
+      <path d="M5 4h14" strokeLinecap="round" />
     </svg>
   );
 }
+
 
 export function BottomTabBar() {
   const pathname = usePathname();
@@ -116,32 +117,31 @@ export function BottomTabBar() {
   const tabs: TabItem[] = [
     {
       href: "/discover",
-      label: "Home",
+      label: "Trang chủ",
       match: (path) =>
         path.startsWith("/discover") ||
-        path.startsWith("/words") ||
         path.startsWith("/search") ||
         path.startsWith("/word/"),
       icon: (active) => <DiscoverIcon active={active} />,
     },
     {
       href: "/journey",
-      label: "Journey",
+      label: "Hành trình",
       match: (path) => path.startsWith("/journey"),
       icon: (active) => <JourneyIcon active={active} />,
     },
     {
       href: "/learn",
-      label: "Review",
+      label: "Ôn tập",
       match: (path) => path.startsWith("/learn"),
       icon: (active) => <LearnIcon active={active} />,
       showBadge: true,
     },
     {
-      href: "/account",
-      label: "Account",
-      match: (path) => path.startsWith("/account") || path.startsWith("/auth"),
-      icon: (active) => <AccountIcon active={active} />,
+      href: "/words",
+      label: "Thư viện",
+      match: (path) => path.startsWith("/words"),
+      icon: (active) => <LibraryIcon active={active} />,
     },
   ];
 
@@ -161,7 +161,7 @@ export function BottomTabBar() {
               ? "text-accent-700"
               : tab.href.startsWith("/learn")
                 ? "text-secondary"
-                : tab.href.startsWith("/account")
+                : tab.href.startsWith("/words")
                   ? "text-pink"
                   : "text-primary";
           const activeBgClass =
@@ -169,7 +169,7 @@ export function BottomTabBar() {
               ? "bg-accent-50"
               : tab.href.startsWith("/learn")
                 ? "bg-secondary-50"
-                : tab.href.startsWith("/account")
+                : tab.href.startsWith("/words")
                   ? "bg-pink-50"
                   : "bg-primary-50";
 
@@ -187,7 +187,7 @@ export function BottomTabBar() {
                   {tab.showBadge && dueCount > 0 ? (
                     <span
                       className="tab-bar-badge"
-                      aria-label={`${dueCount} words due today`}
+                      aria-label={`${dueCount} từ cần ôn hôm nay`}
                     >
                       {dueCount > 99 ? "99+" : dueCount}
                     </span>

@@ -158,19 +158,28 @@ export function AppMenuDrawer({ open, onClose }: AppMenuDrawerProps) {
           </section>
 
           <section className="app-menu__section">
-            <h3 className="app-menu__section-title">Support</h3>
+            <h3 className="app-menu__section-title">Tài khoản</h3>
+            <nav className="app-menu__links">
+              <Link href="/account" className="app-menu__link" onClick={onClose}>
+                Tài khoản & đăng nhập
+              </Link>
+            </nav>
+          </section>
+
+          <section className="app-menu__section">
+            <h3 className="app-menu__section-title">Hỗ trợ</h3>
             <nav className="app-menu__links">
               <Link href="/settings/bug-report" className="app-menu__link" onClick={onClose}>
-                Report a bug
+                Báo lỗi
               </Link>
               <Link href="/about" className="app-menu__link" onClick={onClose}>
-                About us
+                Giới thiệu
               </Link>
               <Link href="/privacy" className="app-menu__link" onClick={onClose}>
-                Privacy policy
+                Chính sách bảo mật
               </Link>
               <Link href="/terms" className="app-menu__link" onClick={onClose}>
-                Terms of service
+                Điều khoản sử dụng
               </Link>
             </nav>
           </section>

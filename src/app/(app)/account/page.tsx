@@ -13,7 +13,7 @@ export default function AccountPage() {
       <AppHeader
         title="Account"
         leading={
-          <Link href="/discover" className="app-header__icon-btn" aria-label="Back home">
+          <Link href="/discover" className="app-header__icon-btn" aria-label="Về trang chủ">
             ←
           </Link>
         }

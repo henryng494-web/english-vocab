@@ -48,6 +48,9 @@ import {
   writeLocalLearning,
 } from "@/lib/learning-storage";
 import { seedWordImageCacheFromEntries } from "@/lib/word-image-cache";
+import { readOnboarding, shouldShowOnboarding } from "@/lib/onboarding";
+import { countDueReviewWords } from "@/lib/review-schedule";
+import { OnboardingModal } from "@/components/onboarding/OnboardingModal";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -87,9 +90,50 @@ export default function DiscoverPage() {
   const [todayLearned, setTodayLearned] = useState(0);
   const { dailyGoalMinutes } = useAppSettings();
   const [todayStudySeconds, setTodayStudySeconds] = useState(0);
+  const [dueReviewCount, setDueReviewCount] = useState(0);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const inflightSaves = useRef(new Set<string>());
+  const onboardingChecked = useRef(false);
 
   const todayGoalMinutes = dailyGoalMinutes;
+
+  useEffect(() => {
+    if (onboardingChecked.current) return;
+    onboardingChecked.current = true;
+    const state = readOnboarding();
+    setShowOnboarding(shouldShowOnboarding());
+    if (state.completed) setRangeId(state.preferredRangeId);
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    const refreshDue = async () => {
+      const local = countDueReviewWords();
+      if (!cancelled) setDueReviewCount(local);
+      try {
+        const res = await fetch("/api/words?summary=learning", { cache: "no-store" });
+        const data = (await res.json()) as {
+          words?: Array<{
+            word: string;
+            status?: string;
+            last_reviewed_at?: string | null;
+          }>;
+        };
+        if (cancelled) return;
+        setDueReviewCount(countDueReviewWords(data.words ?? []));
+      } catch {
+        /* keep local count */
+      }
+    };
+    void refreshDue();
+    window.addEventListener("vocab-learning-changed", refreshDue);
+    window.addEventListener("storage", refreshDue);
+    return () => {
+      cancelled = true;
+      window.removeEventListener("vocab-learning-changed", refreshDue);
+      window.removeEventListener("storage", refreshDue);
+    };
+  }, []);
 
   useEffect(() => {
     const refreshStudyTime = () => setTodayStudySeconds(getTodayStudySeconds());
@@ -496,18 +540,27 @@ export default function DiscoverPage() {
     return (
       <div className="app-screen app-screen--home">
         <AppHeader
-          title="Home"
+          title="Trang chủ"
           hideTitle
           leading={
             <div className="app-header__actions">
               <AppMenuButton />
-              <Link href="/search" className="app-header__icon-btn" aria-label="Search words">
+              <Link href="/search" className="app-header__icon-btn" aria-label="Tìm từ">
                 🔍
               </Link>
               <CoinBadge value={wordsKnown + wordsReviewing} />
             </div>
           }
         />
+
+        {showOnboarding ? (
+          <OnboardingModal
+            onComplete={(preferredRangeId) => {
+              setShowOnboarding(false);
+              setRangeId(preferredRangeId);
+            }}
+          />
+        ) : null}
 
         {loadingList ? (
           <div className="flex flex-1 items-center justify-center">
@@ -518,15 +571,20 @@ export default function DiscoverPage() {
             rangeLabel={rangeLabel}
             queueLength={queue.length}
             currentIndex={currentIndex}
+            dueReviewCount={dueReviewCount}
             wordsKnown={wordsKnown}
             wordsReviewing={wordsReviewing}
             streakDays={todayStudySeconds >= todayGoalMinutes * 60 ? 1 : 0}
             todayStudySeconds={todayStudySeconds}
             todayGoalMinutes={todayGoalMinutes}
             todayWordsLearned={todayLearned}
-            onStartLearning={() => router.push("/journey")}
-            onOpenKnown={() => router.push("/words?filter=known")}
-            onOpenReview={() => router.push("/words?filter=review")}
+            onStartToday={() => {
+              if (dueReviewCount > 0) router.push("/learn");
+              else router.push("/journey");
+            }}
+            onStartJourney={() => router.push("/journey")}
+            onStartReview={() => router.push("/learn")}
+            onOpenLibrary={() => router.push("/words")}
           />
         )}
       </div>
@@ -536,12 +594,12 @@ export default function DiscoverPage() {
   return (
     <div className="app-screen app-screen--journey">
       <AppHeader
-        title="Vocab Journey"
+        title="Hành trình"
         leading={
           <button
             type="button"
             className="app-header__icon-btn"
-            aria-label="Back to home"
+            aria-label="Về trang chủ"
             onClick={() => router.push("/discover")}
           >
             ←
@@ -551,7 +609,7 @@ export default function DiscoverPage() {
           <HeaderSelect
             value={rangeId}
             onChange={setRangeId}
-            aria-label="Select word range"
+            aria-label="Chọn cấp từ"
             options={WORD_RANGES.map((range) => ({
               id: range.id,
               label: range.compactLabel,
@@ -562,8 +620,7 @@ export default function DiscoverPage() {
 
       <div className="journey-panel px-4">
         <p className="journey-note">
-          {stats.hidden} {stats.hidden === 1 ? "word" : "words"} known or in
-          review in this rank ({rangeCompact})
+          {stats.hidden} từ đã biết hoặc đang ôn trong cấp {rangeCompact}
         </p>
 
         {error && (
@@ -582,8 +639,8 @@ export default function DiscoverPage() {
             <div className="w-full">
               <p className="text-foreground/80">
                 {allRangesFinished
-                  ? "You've finished every rank. Words you learned or marked as known no longer appear here."
-                  : "You've finished this range. Jumping to the nearest rank with new words…"}
+                  ? "Bạn đã hoàn thành mọi cấp từ. Từ đã học hoặc đánh dấu đã biết sẽ không hiện lại ở đây."
+                  : "Bạn đã xong cấp này. Đang chuyển sang cấp gần nhất còn từ mới…"}
               </p>
               {allRangesFinished && (
                 <button
@@ -591,7 +648,7 @@ export default function DiscoverPage() {
                   onClick={() => router.push("/discover")}
                   className="btn-pill-primary mt-4 px-6 py-3"
                 >
-                  Back to Home
+                  Về trang chủ
                 </button>
               )}
             </div>
@@ -611,14 +668,14 @@ export default function DiscoverPage() {
                 onClick={() => updateStatus("new")}
                 className="btn-pill-primary w-full"
               >
-                Learn this
+                Học từ này
               </button>
               <button
                 type="button"
                 onClick={() => updateStatus("mastered")}
                 className="btn-pill-outline-secondary w-full"
               >
-                Already know
+                Đã biết rồi
               </button>
             </div>
           </div>
