@@ -104,7 +104,7 @@ export function WordCardDetails({
             <div
               className={`discover-card__examples min-h-0 flex-1 overflow-hidden${chunksOnly ? " discover-card__examples--chunks-only" : ""}`}
             >
-              <WordLearningChunks word={word} meaning={meaning} compact />
+              <WordLearningChunks word={word} compact />
               {!chunksOnly ? (
                 <VocabExampleList
                   word={word}
