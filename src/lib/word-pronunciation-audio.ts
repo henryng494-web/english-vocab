@@ -211,6 +211,7 @@ export function primeAudioPipelineInUserGesture(): void {
   currentAudio = audio;
 
   const restore = () => {
+    if (audio.dataset.wordKey !== "__silent__") return;
     audio.pause();
     audio.currentTime = 0;
     if (currentAudio === audio) currentAudio = null;

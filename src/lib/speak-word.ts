@@ -3,7 +3,6 @@ import {
   playWordAudioInUserGesture,
   playWordAudioWhenReady,
   preloadWordAudioElement,
-  primeAudioPipelineInUserGesture,
   stopWordAudio,
   warmWordAudioBytes,
 } from "@/lib/word-pronunciation-audio";
@@ -98,7 +97,6 @@ export function speakEnglishText(
   if (!trimmed) return;
 
   unlockSpeechFromUserGesture();
-  primeAudioPipelineInUserGesture();
   preloadWordAudioElement(trimmed);
   void warmWordAudioBytes(trimmed);
   playWordAudioInUserGesture(trimmed);
