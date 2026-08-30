@@ -70,6 +70,7 @@ async function main() {
   let batch = 0;
   let totalUpdated = 0;
   let totalFailed = 0;
+  let previousStale = Number.POSITIVE_INFINITY;
 
   console.log(
     `Re-enrich all stale rows${dryRun ? " [dry-run]" : ""} — batch size ${limit}`,
@@ -114,6 +115,15 @@ async function main() {
     if (dryRun || result.totalStale === 0 || result.processed === 0) {
       break;
     }
+
+    if (result.totalStale >= previousStale) {
+      console.log(
+        `Stale count unchanged at ${result.totalStale} — stopping to avoid a retry loop.`,
+      );
+      break;
+    }
+
+    previousStale = result.totalStale;
   }
 
   console.log(

@@ -844,6 +844,132 @@ const CURATED: Record<string, RawEntry> = {
     ],
     keyword: "door spring open suddenly",
   },
+  aspirin: {
+    pos: "noun",
+    ipa: "/ˈæspərɪn/",
+    meaning: "Thuốc giảm đau",
+    register: "neutral",
+    definition: "Thuốc hạ sốt giảm đau thông thường.",
+    examples: [
+      {
+        en: "Take one aspirin with water after meals.",
+        vi: "Uống một viên thuốc giảm đau với nước sau bữa ăn.",
+      },
+      {
+        en: "She bought aspirin for her headache.",
+        vi: "Cô ấy mua thuốc giảm đau cho cơn đau đầu.",
+      },
+    ],
+    keyword: "aspirin painkiller pills",
+  },
+  cynthia: {
+    pos: "noun",
+    ipa: "/ˈsɪnθiə/",
+    meaning: "Tên riêng nữ",
+    register: "neutral",
+    definition: "Tên riêng nữ tiếng Anh.",
+    examples: [
+      { en: "Cynthia called me this morning.", vi: "Một tên riêng nữ gọi cho tôi sáng nay." },
+      { en: "We met Cynthia at the coffee shop.", vi: "Chúng tôi gặp tên riêng nữ đó ở quán cà phê." },
+    ],
+    keyword: "woman name portrait",
+  },
+  fax: {
+    pos: "noun",
+    ipa: "/fæks/",
+    meaning: "Máy fax",
+    register: "neutral",
+    definition: "Thiết bị gửi bản sao tài liệu qua đường truyền.",
+    examples: [
+      { en: "Please send the fax before noon.", vi: "Hãy gửi bản sao trước trưa bằng máy này." },
+      { en: "The office fax is next to the printer.", vi: "Máy gửi bản sao ở cạnh máy in." },
+    ],
+    keyword: "office fax machine",
+  },
+  internet: {
+    pos: "noun",
+    ipa: "/ˈɪntərnet/",
+    meaning: "Mạng internet",
+    register: "neutral",
+    definition: "Hệ thống mạng máy tính toàn cầu.",
+    examples: [
+      { en: "The internet connection is very slow today.", vi: "Kết nối mạng hôm nay rất chậm." },
+      { en: "She found the recipe on the internet.", vi: "Cô ấy tìm công thức trên mạng." },
+    ],
+    keyword: "internet wifi laptop",
+  },
+  madison: {
+    pos: "noun",
+    ipa: "/ˈmædɪsən/",
+    meaning: "Tên riêng",
+    register: "neutral",
+    definition: "Tên người hoặc tên thành phố.",
+    examples: [
+      { en: "Madison works at the downtown clinic.", vi: "Tên riêng đó làm ở phòng khám trung tâm." },
+      { en: "We booked a hotel in Madison.", vi: "Chúng tôi đặt khách sạn ở thành phố tên riêng." },
+    ],
+    keyword: "city skyline",
+  },
+  mambo: {
+    pos: "noun",
+    ipa: "/ˈmæmboʊ/",
+    meaning: "Điệu nhảy mambo\nNhạc mambo",
+    register: "neutral",
+    definition: "Điệu nhảy Latin hoặc nhạc theo nhịp mambo.",
+    examples: [
+      { en: "They learned the mambo for the wedding.", vi: "Họ học điệu nhảy cho đám cưới." },
+      { en: "The band played lively mambo all night.", vi: "Ban nhạc chơi nhạc sôi động suốt đêm." },
+    ],
+    keyword: "latin dance mambo",
+  },
+  martini: {
+    pos: "noun",
+    ipa: "/mɑːrˈtiːni/",
+    meaning: "Cocktail rượu",
+    register: "informal",
+    definition: "Cocktail pha gin hoặc vodka với vermouth.",
+    examples: [
+      { en: "He ordered a dry martini at the bar.", vi: "Anh ấy gọi một ly cocktail khô ở quầy bar." },
+      { en: "She stirred the martini slowly with a spoon.", vi: "Cô ấy khuấy ly rượu từ từ bằng thìa." },
+    ],
+    keyword: "martini cocktail glass",
+  },
+  paris: {
+    pos: "noun",
+    ipa: "/ˈpærɪs/",
+    meaning: "Thủ đô Paris",
+    register: "neutral",
+    definition: "Thủ đô nước Pháp.",
+    examples: [
+      { en: "We flew to Paris for our vacation.", vi: "Chúng tôi bay đến thủ đô Pháp nghỉ hè." },
+      { en: "Paris looks beautiful at night.", vi: "Thủ đô này đẹp vào ban đêm." },
+    ],
+    keyword: "paris eiffel tower city",
+  },
+  saunders: {
+    pos: "noun",
+    ipa: "/ˈsɔːndərz/",
+    meaning: "Họ Saunders",
+    register: "neutral",
+    definition: "Họ tiếng Anh.",
+    examples: [
+      { en: "Mr. Saunders joined the meeting late.", vi: "Ông họ đó đến họp muộn." },
+      { en: "The Saunders family lives next door.", vi: "Gia đình mang họ đó sống cạnh nhà." },
+    ],
+    keyword: "family surname",
+  },
+  video: {
+    pos: "noun",
+    ipa: "/ˈvɪdiˌoʊ/",
+    meaning: "Đoạn phim",
+    register: "neutral",
+    definition: "Hình ảnh động ghi lại hoặc một đoạn phim ngắn.",
+    examples: [
+      { en: "She posted a funny video online.", vi: "Cô ấy đăng một đoạn phim vui lên mạng." },
+      { en: "We watched a short video after dinner.", vi: "Chúng tôi xem một đoạn phim ngắn sau bữa tối." },
+    ],
+    keyword: "video play button screen",
+  },
 };
 
 function fromRaw(word: string, raw: RawEntry): StandardVocabEntry {
