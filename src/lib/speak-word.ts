@@ -1,13 +1,5 @@
 import { proxyPronounceAudioPath } from "@/lib/dictionary-pronunciation";
-import {
-  applyNaturalSpeechSettings,
-  ensureSpeechVoicesReady,
-  getCachedSpeechVoice,
-  getSpeechVoiceSync,
-  isAppleWebKit,
-  primeSpeechSynthesisInGesture,
-  speakUtteranceInGesture,
-} from "@/lib/speech-voice";
+import { isAppleWebKit } from "@/lib/speech-voice";
 import {
   getCachedWordAudioUrl,
   isWordAudioElementReady,
@@ -15,7 +7,6 @@ import {
   playWordAudioUrl,
   playWordAudioWhenReady,
   preloadWordAudioElement,
-  resolveWordAudioUrl,
   stopWordAudio,
   warmWordAudioBytes,
 } from "@/lib/word-pronunciation-audio";
@@ -25,9 +16,9 @@ let speakRequestId = 0;
 
 const DEDUPE_MS = 1800;
 const SPEECH_UNLOCK_KEY = "ev-speech-unlocked";
-/** Wait for preloaded MP3 before falling back to browser TTS. */
-const AUTO_MP3_WAIT_MS = 1000;
-const MANUAL_MP3_WAIT_MS = 750;
+const AUTO_MP3_WAIT_MS = 1600;
+const MANUAL_MP3_WAIT_MS = 1200;
+const MP3_RETRY_WAIT_MS = 2200;
 
 let speechUnlocked = false;
 
@@ -41,6 +32,7 @@ export function isSpeechUnlocked(): boolean {
   return speechUnlocked || readSpeechUnlockedFromStorage();
 }
 
+/** Unlock HTML audio on iOS/PWA (first user gesture). */
 export function unlockSpeechFromUserGesture(): void {
   if (typeof window === "undefined") return;
   speechUnlocked = true;
@@ -49,19 +41,6 @@ export function unlockSpeechFromUserGesture(): void {
   } catch {
     /* private mode */
   }
-  primeSpeechSynthesisInGesture();
-}
-
-function speakWithVoice(text: string, voice: SpeechSynthesisVoice | null): void {
-  const synth = window.speechSynthesis;
-  if (!synth) return;
-
-  stopWordAudio();
-  primeSpeechSynthesisInGesture();
-
-  const utterance = new SpeechSynthesisUtterance(text);
-  applyNaturalSpeechSettings(utterance, voice ?? getSpeechVoiceSync());
-  speakUtteranceInGesture(utterance);
 }
 
 function playableWordAudioUrl(word: string): string {
@@ -94,40 +73,25 @@ function stillCurrentRequest(requestId: number, key: string): boolean {
   return requestId === speakRequestId && lastSpoken?.text === key;
 }
 
-async function speakTtsFallback(text: string, requestId: number): Promise<void> {
-  const key = text.toLowerCase();
-  if (!stillCurrentRequest(requestId, key)) return;
-
-  const cached = getCachedSpeechVoice();
-  if (cached) {
-    speakWithVoice(text, cached);
-    return;
-  }
-
-  const voice = await ensureSpeechVoicesReady();
-  if (!stillCurrentRequest(requestId, key)) return;
-  speakWithVoice(text, voice);
-}
-
-/** One voice path: same-origin MP3 first, browser TTS only if MP3 fails. */
-async function speakMp3Preferred(
-  text: string,
-  requestId: number,
-  options?: { mp3WaitMs?: number; allowTtsFallback?: boolean },
-): Promise<void> {
-  const key = text.toLowerCase();
-  const mp3WaitMs = options?.mp3WaitMs ?? MANUAL_MP3_WAIT_MS;
-  const allowTtsFallback = options?.allowTtsFallback ?? true;
-
+function primeMp3Playback(text: string): void {
   preloadWordAudioElement(text);
   warmWordAudioBytes(text);
+  if (isAppleWebKit()) {
+    playWordAudioInUserGesture(text);
+  }
+}
+
+/** MP3-only playback — dictionary recording or Edge neural voice from server. */
+async function speakMp3Only(
+  text: string,
+  requestId: number,
+  mp3WaitMs: number,
+): Promise<void> {
+  const key = text.toLowerCase();
+  primeMp3Playback(text);
 
   if (isWordAudioElementReady(text)) {
     if (await playWordAudioUrl(playableWordAudioUrl(text))) return;
-  }
-
-  if (isAppleWebKit()) {
-    playWordAudioInUserGesture(text);
   }
 
   if (await playWordAudioWhenReady(text, mp3WaitMs)) {
@@ -135,25 +99,12 @@ async function speakMp3Preferred(
   }
   if (!stillCurrentRequest(requestId, key)) return;
 
-  const audioUrl = await resolveWordAudioUrl(text);
-  if (!stillCurrentRequest(requestId, key)) return;
-  if (audioUrl) {
-    preloadWordAudioElement(text, audioUrl);
-    if (await playWordAudioUrl(audioUrl)) return;
+  await warmWordAudioBytes(text, { bustCache: true });
+  preloadWordAudioElement(text);
+  if (isAppleWebKit()) {
+    playWordAudioInUserGesture(text);
   }
-
-  if (!allowTtsFallback || !stillCurrentRequest(requestId, key)) return;
-  await speakTtsFallback(text, requestId);
-}
-
-export function speakEnglishTextSync(text: string): void {
-  if (typeof window === "undefined" || !text.trim()) return;
-  if (!window.speechSynthesis) return;
-
-  if (!isAppleWebKit()) {
-    window.speechSynthesis.cancel();
-  }
-  speakWithVoice(text.trim(), getSpeechVoiceSync());
+  await playWordAudioWhenReady(text, MP3_RETRY_WAIT_MS);
 }
 
 export function speakEnglishTextAuto(text: string): void {
@@ -162,56 +113,25 @@ export function speakEnglishTextAuto(text: string): void {
 
   if (isAppleWebKit() && !isSpeechUnlocked()) return;
 
-  const requestId = speakRequestId;
-
-  if (!isAppleWebKit()) {
-    stopWordAudio();
-    window.speechSynthesis?.cancel();
-  }
-
-  void speakMp3Preferred(trimmed, requestId, {
-    mp3WaitMs: AUTO_MP3_WAIT_MS,
-    allowTtsFallback: true,
-  });
+  void speakMp3Only(trimmed, speakRequestId, AUTO_MP3_WAIT_MS);
 }
 
 export function speakEnglishText(
   text: string,
-  options?: { force?: boolean },
+  _options?: { force?: boolean },
 ): void {
-  const trimmed = claimSpeak(text, Boolean(options?.force));
+  const trimmed = claimSpeak(text, Boolean(_options?.force));
   if (!trimmed) return;
 
   unlockSpeechFromUserGesture();
-
-  const requestId = speakRequestId;
-
-  if (!isAppleWebKit()) {
-    stopWordAudio();
-    window.speechSynthesis?.cancel();
-  }
-
-  void speakMp3Preferred(trimmed, requestId, {
-    mp3WaitMs: MANUAL_MP3_WAIT_MS,
-    allowTtsFallback: true,
-  });
+  void speakMp3Only(trimmed, speakRequestId, MANUAL_MP3_WAIT_MS);
 }
 
 export function cancelSpeech(): void {
   stopWordAudio();
-  if (typeof window !== "undefined") {
-    window.speechSynthesis.cancel();
-  }
-}
-
-export function preloadSpeechVoices(): void {
-  void ensureSpeechVoicesReady();
 }
 
 export function preloadWordPronunciation(word: string): void {
   preloadWordAudioElement(word);
   warmWordAudioBytes(word);
-  void resolveWordAudioUrl(word).then((url) => {
-    if (url) preloadWordAudioElement(word, url);
-  });
 }

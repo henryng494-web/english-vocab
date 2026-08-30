@@ -2,14 +2,11 @@
 
 import { unlockSpeechFromUserGesture } from "@/lib/speak-word";
 import { primeAudioPipelineInUserGesture } from "@/lib/word-pronunciation-audio";
-import { ensureSpeechVoicesReady } from "@/lib/speech-voice";
 import { useEffect } from "react";
 
-/** Unlock speech + audio pipeline on first user touch (iOS Safari/PWA). No audible warmup word. */
+/** Unlock MP3 playback on first user touch (iOS Safari/PWA). */
 export function SpeechVoiceWarmup() {
   useEffect(() => {
-    void ensureSpeechVoicesReady();
-
     const onFirstTouch = () => {
       unlockSpeechFromUserGesture();
       primeAudioPipelineInUserGesture();

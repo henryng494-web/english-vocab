@@ -108,16 +108,26 @@ export function preloadWordAudio(word: string): void {
 }
 
 /** Fetch MP3 bytes into the HTTP cache (no play — safe before user gesture). */
-export function warmWordAudioBytes(word: string): void {
-  if (typeof window === "undefined") return;
+export function warmWordAudioBytes(
+  word: string,
+  options?: { bustCache?: boolean },
+): Promise<void> {
+  if (typeof window === "undefined") return Promise.resolve();
   const key = cacheKey(word);
-  if (!key || warmedAudioBytes.has(key)) return;
+  if (!key) return Promise.resolve();
+
+  if (!options?.bustCache && warmedAudioBytes.has(key)) {
+    return Promise.resolve();
+  }
+
   warmedAudioBytes.add(key);
 
   const src = absoluteAudioUrl(resolvePlayableUrl(key));
-  if (!src) return;
+  if (!src) return Promise.resolve();
 
-  void fetch(src, { cache: "force-cache" })
+  const url = options?.bustCache ? `${src}${src.includes("?") ? "&" : "?"}_=${Date.now()}` : src;
+
+  return fetch(url, { cache: options?.bustCache ? "no-store" : "force-cache" })
     .then((response) => {
       if (!response.ok) {
         warmedAudioBytes.delete(key);
@@ -194,7 +204,6 @@ export function primeAudioPipelineInUserGesture(): void {
 
   const prevKey = audio.dataset.wordKey ?? "";
   const prevSrc = audio.src;
-  window.speechSynthesis?.cancel();
 
   audio.src = SILENT_WAV_DATA_URI;
   audio.dataset.wordKey = "__silent__";
@@ -241,8 +250,6 @@ export function playWordAudioInUserGesture(word: string): boolean {
 
   const src = absoluteAudioUrl(resolvePlayableUrl(key));
   if (!src) return false;
-
-  window.speechSynthesis?.cancel();
 
   if (audio.dataset.wordKey !== key || audio.src !== src) {
     audio.dataset.wordKey = key;

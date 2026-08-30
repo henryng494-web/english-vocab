@@ -1,15 +1,15 @@
-import {
-  lookupDictionaryAudioUrl,
-  lookupFallbackTtsAudio,
-} from "@/lib/dictionary-pronunciation";
+import { lookupDictionaryAudioUrl } from "@/lib/dictionary-pronunciation";
+import { lookupNeuralTtsAudio } from "@/lib/neural-pronunciation";
 import { NextRequest, NextResponse } from "next/server";
+
+const DICTIONARY_TIMEOUT_MS = 2200;
 
 async function fetchDictionaryBytes(word: string): Promise<ArrayBuffer | null> {
   const upstreamUrl = await lookupDictionaryAudioUrl(word);
   if (!upstreamUrl) return null;
 
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 4500);
+  const timeout = setTimeout(() => controller.abort(), DICTIONARY_TIMEOUT_MS);
 
   try {
     const upstream = await fetch(upstreamUrl, {
@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
   }
 
   const bytes =
-    (await fetchDictionaryBytes(word)) ?? (await lookupFallbackTtsAudio(word));
+    (await fetchDictionaryBytes(word)) ?? (await lookupNeuralTtsAudio(word));
 
   if (!bytes) {
     return NextResponse.json({ error: "No audio" }, { status: 404 });

@@ -4,7 +4,7 @@ import {
   warmWordAudioBytes,
 } from "@/lib/word-pronunciation-audio";
 
-const PRONUNCIATION_WARM_CONCURRENCY = 3;
+const PRONUNCIATION_WARM_CONCURRENCY = 4;
 
 function preloadWordPronunciation(word: string): void {
   preloadWordAudioElement(word);
