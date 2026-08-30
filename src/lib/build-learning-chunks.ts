@@ -4,9 +4,10 @@ import {
   type LearningChunkEntry,
   type LearningChunkPhrase,
 } from "@/data/demo-learning-chunks";
-import { isNaturalExample, keepNaturalExamples } from "@/lib/example-quality";
+import { isNaturalExample, keepNaturalExamples, viTranslationMatchesGloss } from "@/lib/example-quality";
 import type { VocabExample } from "@/lib/parse-examples";
 import { normalizeWordType } from "@/lib/word-type";
+import { alignmentMeaningLines, glossAlignmentTerms } from "@/lib/word-meanings";
 
 const MIN_CHUNK_WORDS = 5;
 
@@ -147,14 +148,120 @@ function selectExamplesForChunks(
   return examples.filter((item) => item.en?.trim()).slice(0, 2);
 }
 
+const VI_NOUN_PREFIX =
+  /^(một|lời|con|cái|chiếc|bức|tờ|người|những|các|quả|viên|cuốn)$/i;
+
+const VI_TRAILING_STOP =
+  /^(hôm|nay|rồi|đã|đang|sẽ|và|nhưng|mà|để|khi|nếu|vì|bởi|trong|ngoài|trên|dưới|tại|ở|với|cho|của|về|quanh|ra|vào|đi|bộ|thấy|là)$/i;
+
+function cleanViToken(token: string): string {
+  return token.replace(/[,;.!?…]+$/g, "");
+}
+
+function resolveSenseLine(
+  sourceVi: string,
+  meaning?: string | null,
+  senseIndex?: number,
+): string | null {
+  const lines = alignmentMeaningLines(meaning);
+  if (!lines.length) return null;
+  if (senseIndex && lines[senseIndex - 1]) return lines[senseIndex - 1]!;
+  return lines.find((line) => viTranslationMatchesGloss(sourceVi, line)) ?? lines[0]!;
+}
+
+function extractViCollocationPhrase(
+  sourceVi: string,
+  meaning?: string | null,
+  senseIndex?: number,
+): string {
+  const vi = sourceVi.trim();
+  if (!vi) return "";
+
+  const senseLine = resolveSenseLine(vi, meaning, senseIndex);
+  if (!senseLine) return "";
+
+  const terms = [...glossAlignmentTerms(senseLine)].sort(
+    (a, b) => b.length - a.length,
+  );
+  const viLower = vi.toLowerCase();
+
+  let matchTerm = "";
+  for (const term of terms) {
+    if (term.length < 2) continue;
+    if (viLower.includes(term.toLowerCase())) {
+      matchTerm = term;
+      break;
+    }
+  }
+  if (!matchTerm) return "";
+
+  const viWords = vi.split(/\s+/);
+  const termStart = matchTerm.split(/\s+/)[0]!.toLowerCase();
+  let termWordIdx = viWords.findIndex((word) =>
+    cleanViToken(word).toLowerCase().includes(termStart),
+  );
+  if (termWordIdx < 0) return "";
+
+  let start = termWordIdx;
+  if (
+    start > 0 &&
+    VI_NOUN_PREFIX.test(cleanViToken(viWords[start - 1] ?? ""))
+  ) {
+    start--;
+  }
+
+  let end = termWordIdx + matchTerm.split(/\s+/).filter(Boolean).length;
+  while (end < viWords.length && end - start < 6) {
+    const next = cleanViToken(viWords[end] ?? "");
+    if (!next || VI_TRAILING_STOP.test(next)) break;
+    end++;
+  }
+
+  const phrase = viWords
+    .slice(start, end)
+    .map(cleanViToken)
+    .join(" ")
+    .trim();
+  if (!phrase || phrase.split(/\s+/).length > 6) return "";
+  if (phraseKey(phrase) === phraseKey(vi)) return "";
+  return phrase;
+}
+
+function isBareDeterminerPhrase(collocationEn: string): boolean {
+  const words = normalizePhrase(collocationEn).split(/\s+/);
+  return (
+    words.length === 2 &&
+    LEADING_DETERMINERS.test(words[0] ?? "") &&
+    Boolean(words[1])
+  );
+}
+
 function collocationTranslation(
   collocationEn: string,
   sourceEn: string,
   sourceVi: string,
+  meaning?: string | null,
+  senseIndex?: number,
 ): string {
   if (phraseKey(collocationEn) === phraseKey(sourceEn)) {
     return sourceVi.trim();
   }
+
+  const senseLine = resolveSenseLine(sourceVi, meaning, senseIndex);
+  if (isBareDeterminerPhrase(collocationEn) && senseLine) {
+    return senseLine.trim();
+  }
+
+  const derived = extractViCollocationPhrase(sourceVi, meaning, senseIndex);
+  if (derived) return derived;
+
+  if (
+    senseLine &&
+    normalizePhrase(collocationEn).split(/\s+/).length <= 3
+  ) {
+    return senseLine.trim();
+  }
+
   return "";
 }
 
@@ -186,7 +293,13 @@ export function buildLearningChunksFromExamples(
       if (extracted && phraseKey(extracted) !== phraseKey(en)) {
         collocationCandidates.push({
           en: extracted,
-          vi: collocationTranslation(extracted, en, ex.vi),
+          vi: collocationTranslation(
+            extracted,
+            en,
+            ex.vi,
+            meaning,
+            ex.senseIndex,
+          ),
           sense: ex.senseIndex,
         });
       }
@@ -211,7 +324,13 @@ export function buildLearningChunksFromExamples(
       collocations = [
         {
           en: extracted,
-          vi: collocationTranslation(extracted, chunks[0].en, chunks[0].vi),
+          vi: collocationTranslation(
+            extracted,
+            chunks[0].en,
+            chunks[0].vi,
+            meaning,
+            chunks[0].sense,
+          ),
           sense: chunks[0].sense,
         },
       ];
