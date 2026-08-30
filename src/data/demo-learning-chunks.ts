@@ -1,4 +1,4 @@
-/** Pilot: collocation + chunk hints for a handful of words (Van review).
+/** Curated chunk overrides for words that need hand-tuned collocations.
  *  Collocation rule: include at least one phrase where the headword’s base meaning is obvious. */
 
 export type LearningChunkPhrase = {
@@ -15,7 +15,7 @@ export type LearningChunkEntry = {
   chunks: LearningChunkPhrase[];
 };
 
-export const DEMO_LEARNING_CHUNKS: Record<string, LearningChunkEntry> = {
+export const LEARNING_CHUNK_OVERRIDES: Record<string, LearningChunkEntry> = {
   hole: {
     collocations: [
       { en: "a hole in my pocket", vi: "lỗ trong túi quần" },
@@ -131,5 +131,12 @@ export const DEMO_LEARNING_CHUNKS: Record<string, LearningChunkEntry> = {
   },
 };
 
-export const MAX_DEMO_COLLOCATIONS = 2;
-export const MAX_DEMO_CHUNKS = 1;
+export const MAX_LEARNING_COLLOCATIONS = 2;
+export const MAX_LEARNING_CHUNKS = 1;
+
+/** @deprecated Use LEARNING_CHUNK_OVERRIDES */
+export const DEMO_LEARNING_CHUNKS = LEARNING_CHUNK_OVERRIDES;
+/** @deprecated Use MAX_LEARNING_COLLOCATIONS */
+export const MAX_DEMO_COLLOCATIONS = MAX_LEARNING_COLLOCATIONS;
+/** @deprecated Use MAX_LEARNING_CHUNKS */
+export const MAX_DEMO_CHUNKS = MAX_LEARNING_CHUNKS;
