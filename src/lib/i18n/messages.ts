@@ -51,6 +51,7 @@ export const messages: Record<AppLocale, MessageTree> = {
     "home.todayGoalLeft": "Còn {minutes} phút đến mục tiêu · {learned} từ mới hôm nay",
     "home.todayGoalDone": "Đã đạt mục tiêu · {learned} từ mới hôm nay",
     "home.minutesProgress": "{current} / {goal} phút",
+    "home.startSession": "Bắt đầu buổi học",
     "home.startReview": "Bắt đầu ôn tập",
     "home.startLearn": "Bắt đầu học mới",
     "home.doneToday": "Hoàn thành hôm nay",
@@ -167,6 +168,16 @@ export const messages: Record<AppLocale, MessageTree> = {
     "onboarding.bandHint":
       "Thấy quá dễ hoặc quá khó? Vào Hành trình và đổi nhóm từ ở góc phải trên.",
     "onboarding.start": "Bắt đầu học",
+
+    "session.bannerPrefix": "Buổi học",
+    "session.bannerReview": "Ôn {current}/{total}",
+    "session.bannerNew": "Từ mới {current}/{total}",
+    "session.summaryTitle": "Xong buổi học hôm nay!",
+    "session.summaryBody": "Ôn trước, học từ mới sau — bạn đã hoàn thành lượt học hôm nay.",
+    "session.reviewed": "Đã ôn",
+    "session.newWords": "Từ mới",
+    "session.done": "Về trang chủ",
+    "session.endEarly": "Kết thúc buổi học",
   },
   en: {
     "tab.home": "Home",
@@ -210,6 +221,7 @@ export const messages: Record<AppLocale, MessageTree> = {
     "home.todayGoalLeft": "{minutes} min left to goal · {learned} new words today",
     "home.todayGoalDone": "Goal reached · {learned} new words today",
     "home.minutesProgress": "{current} / {goal} min",
+    "home.startSession": "Start today's session",
     "home.startReview": "Start review",
     "home.startLearn": "Learn new words",
     "home.doneToday": "All done for today",
@@ -326,6 +338,16 @@ export const messages: Record<AppLocale, MessageTree> = {
     "onboarding.bandHint":
       "Too easy or too hard? Open Journey and change the word group from the top-right menu.",
     "onboarding.start": "Start learning",
+
+    "session.bannerPrefix": "Today's session",
+    "session.bannerReview": "Review {current}/{total}",
+    "session.bannerNew": "New words {current}/{total}",
+    "session.summaryTitle": "Session complete!",
+    "session.summaryBody": "Review first, then new words — nice work today.",
+    "session.reviewed": "Reviewed",
+    "session.newWords": "New words",
+    "session.done": "Back to home",
+    "session.endEarly": "Finish session",
   },
 };
 

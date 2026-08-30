@@ -1951,6 +1951,27 @@ body {
   color: var(--header-muted);
 }
 
+.daily-session-banner {
+  margin-bottom: 0.5rem;
+  border-radius: 9999px;
+  background: var(--secondary-50);
+  padding: 0.5rem 0.875rem;
+  text-align: center;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--secondary-800);
+}
+
+.daily-session-end {
+  margin-top: 0.75rem;
+  width: 100%;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--header-muted);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 .word-library__filters {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
