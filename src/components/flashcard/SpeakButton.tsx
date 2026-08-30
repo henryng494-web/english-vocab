@@ -9,7 +9,6 @@ type SpeakButtonProps = {
   variant?: "dark" | "light";
   iconOnly?: boolean;
   className?: string;
-  ariaLabel?: string;
 };
 
 function SpeakerIcon({ className }: { className?: string }) {
@@ -41,7 +40,6 @@ export function SpeakButton({
   variant = "dark",
   iconOnly = false,
   className = "",
-  ariaLabel,
 }: SpeakButtonProps) {
   const { t } = useI18n();
   const touchHandledRef = useRef(false);
@@ -89,7 +87,7 @@ export function SpeakButton({
       onTouchEnd={handleTouchEnd}
       onClick={handleClick}
       className={`${toneClass} ${className}`.trim()}
-      aria-label={ariaLabel ?? t("speak.aria")}
+      aria-label={t("speak.aria")}
     >
       <SpeakerIcon className={iconOnly ? "h-4 w-4" : "h-5 w-5"} />
       {!iconOnly && t("speak.pronounce")}
