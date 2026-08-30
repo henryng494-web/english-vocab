@@ -613,9 +613,7 @@ export default function DiscoverPage() {
             todayStudySeconds={todayStudySeconds}
             todayGoalMinutes={todayGoalMinutes}
             todayWordsLearned={todayLearned}
-            sessionInProgress={
-              dailySession != null && dailySession.phase !== "summary"
-            }
+            sessionInProgress={dailySession != null}
             onStartToday={() => {
               const session = resumeOrStartDailySession(dueReviewCount);
               router.push(`${dailySessionRoute(session)}${dailySessionQuery(session)}`);
