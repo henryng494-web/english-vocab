@@ -35,9 +35,6 @@ function PhraseList({
             </span>
           ) : null}
           <p className="vocab-examples__en italic">{capitalizeFirst(item.en)}</p>
-          <p className="vocab-examples__vi mt-0.5 italic">
-            {capitalizeFirst(item.vi)}
-          </p>
         </li>
       ))}
     </ul>
