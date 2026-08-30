@@ -22,6 +22,7 @@ import {
 import { loadReviewSession, type ReviewSessionData } from "@/lib/review-fetch";
 import { refreshAllStaleWordImages } from "@/lib/refresh-stale-word-images";
 import { seedWordImageCacheFromEntries } from "@/lib/word-image-cache";
+import { warmWordPronunciationsBatch } from "@/lib/pronunciation-preload";
 
 export const DEFAULT_BOOTSTRAP_RANGE = "1-100";
 /** First band — enough for home + journey preload-ahead. */
@@ -150,6 +151,7 @@ export async function runAppBootstrap(
   );
   preloadWordImagesFromCache(imageWarmTargets);
   const imageWarmPromise = prefetchWordImages(imageWarmTargets, BOOTSTRAP_WORD_CONCURRENCY);
+  void warmWordPronunciationsBatch(preloadTargets.map((item) => item.word));
 
   let wordsDone = 0;
 

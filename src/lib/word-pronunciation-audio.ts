@@ -2,6 +2,7 @@ import { proxyPronounceAudioPath } from "@/lib/dictionary-pronunciation";
 
 const audioUrlCache = new Map<string, string | null>();
 const pendingLookups = new Map<string, Promise<string | null>>();
+const warmedAudioBytes = new Set<string>();
 
 let pronounceAudioElement: HTMLAudioElement | null = null;
 let currentAudio: HTMLAudioElement | null = null;
@@ -106,6 +107,70 @@ export function preloadWordAudio(word: string): void {
   });
 }
 
+/** Fetch MP3 bytes into the HTTP cache (no play — safe before user gesture). */
+export function warmWordAudioBytes(word: string): void {
+  if (typeof window === "undefined") return;
+  const key = cacheKey(word);
+  if (!key || warmedAudioBytes.has(key)) return;
+  warmedAudioBytes.add(key);
+
+  const src = absoluteAudioUrl(resolvePlayableUrl(key));
+  if (!src) return;
+
+  void fetch(src, { cache: "force-cache" })
+    .then((response) => {
+      if (!response.ok) {
+        warmedAudioBytes.delete(key);
+        return;
+      }
+      preloadWordAudioElement(word);
+    })
+    .catch(() => {
+      warmedAudioBytes.delete(key);
+    });
+}
+
+/** True when the shared `<audio>` element has buffered enough to play soon. */
+export function isWordAudioElementReady(word: string): boolean {
+  const key = cacheKey(word);
+  const audio = getAudioElement();
+  if (!key || !audio) return false;
+  if (audio.dataset.wordKey !== key) return false;
+  return audio.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA;
+}
+
+function waitForAudioElementReady(
+  word: string,
+  timeoutMs: number,
+): Promise<boolean> {
+  const key = cacheKey(word);
+  const audio = getAudioElement();
+  if (!key || !audio) return Promise.resolve(false);
+  if (isWordAudioElementReady(word)) return Promise.resolve(true);
+
+  return new Promise((resolve) => {
+    let settled = false;
+    const finish = (ready: boolean) => {
+      if (settled) return;
+      settled = true;
+      audio.removeEventListener("canplay", onReady);
+      audio.removeEventListener("canplaythrough", onReady);
+      audio.removeEventListener("playing", onReady);
+      window.clearTimeout(timer);
+      resolve(ready);
+    };
+    const onReady = () => {
+      if (audio.dataset.wordKey === key && audio.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
+        finish(true);
+      }
+    };
+    const timer = window.setTimeout(() => finish(false), timeoutMs);
+    audio.addEventListener("canplay", onReady);
+    audio.addEventListener("canplaythrough", onReady);
+    audio.addEventListener("playing", onReady);
+  });
+}
+
 export function stopWordAudio(): void {
   const audio = getAudioElement();
   if (!audio) return;
@@ -195,6 +260,37 @@ export function playWordAudioInUserGesture(word: string): boolean {
     });
   }
   return true;
+}
+
+/** Start playback when buffered; returns false if nothing plays within timeout. */
+export async function playWordAudioWhenReady(
+  word: string,
+  timeoutMs = 450,
+): Promise<boolean> {
+  if (typeof window === "undefined") return false;
+  const key = cacheKey(word);
+  if (!key) return false;
+
+  preloadWordAudioElement(word);
+
+  if (!isWordAudioElementReady(word)) {
+    playWordAudioInUserGesture(word);
+    const ready = await waitForAudioElementReady(word, timeoutMs);
+    if (!ready) return false;
+  }
+
+  const audio = getAudioElement();
+  if (!audio || audio.dataset.wordKey !== key) return false;
+
+  try {
+    audio.currentTime = 0;
+    currentAudio = audio;
+    await audio.play();
+    return true;
+  } catch {
+    if (currentAudio === audio) currentAudio = null;
+    return false;
+  }
 }
 
 /** @deprecated Use playWordAudioInUserGesture inside tap handlers. */

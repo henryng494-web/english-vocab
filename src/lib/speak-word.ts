@@ -1,3 +1,4 @@
+import { proxyPronounceAudioPath } from "@/lib/dictionary-pronunciation";
 import {
   applyNaturalSpeechSettings,
   ensureSpeechVoicesReady,
@@ -8,11 +9,15 @@ import {
   speakUtteranceInGesture,
 } from "@/lib/speech-voice";
 import {
+  getCachedWordAudioUrl,
+  isWordAudioElementReady,
   playWordAudioInUserGesture,
   playWordAudioUrl,
+  playWordAudioWhenReady,
   preloadWordAudioElement,
   resolveWordAudioUrl,
   stopWordAudio,
+  warmWordAudioBytes,
 } from "@/lib/word-pronunciation-audio";
 
 let lastSpoken: { text: string; at: number } | null = null;
@@ -69,10 +74,23 @@ export function speakEnglishTextSync(text: string): void {
 /** iOS Safari + Add-to-Home-Screen: MP3 via same-origin proxy, TTS as backup. */
 function speakAppleWebKitInGesture(text: string): void {
   preloadWordAudioElement(text);
-  const audioStarted = playWordAudioInUserGesture(text);
-  if (!audioStarted) {
-    speakEnglishTextSync(text);
+  if (isWordAudioElementReady(text)) {
+    playWordAudioInUserGesture(text);
+    return;
   }
+  speakEnglishTextSync(text);
+  warmWordAudioBytes(text);
+}
+
+/** Auto-speak on iOS: instant TTS when MP3 is not buffered yet. */
+function speakAppleWebKitAuto(text: string): void {
+  preloadWordAudioElement(text);
+  if (isWordAudioElementReady(text)) {
+    playWordAudioInUserGesture(text);
+    return;
+  }
+  speakEnglishTextSync(text);
+  warmWordAudioBytes(text);
 }
 
 function claimSpeak(text: string, force: boolean): string | null {
@@ -97,14 +115,23 @@ function claimSpeak(text: string, force: boolean): string | null {
 async function speakWithBestAvailableVoice(
   text: string,
   requestId: number,
-  options?: { skipTtsFallback?: boolean },
+  options?: { skipTtsFallback?: boolean; mp3WaitMs?: number },
 ): Promise<void> {
   const key = text.toLowerCase();
 
   const stillCurrent = () =>
     requestId === speakRequestId && lastSpoken?.text === key;
 
-  if (playWordAudioInUserGesture(text)) return;
+  preloadWordAudioElement(text);
+
+  if (isWordAudioElementReady(text)) {
+    if (await playWordAudioUrl(playableWordAudioUrl(text))) return;
+  }
+
+  if (await playWordAudioWhenReady(text, options?.mp3WaitMs ?? 500)) {
+    if (stillCurrent()) return;
+  }
+  if (!stillCurrent()) return;
 
   const audioUrl = await resolveWordAudioUrl(text);
   if (!stillCurrent()) return;
@@ -126,6 +153,43 @@ async function speakWithBestAvailableVoice(
   speakWithVoice(text, voice);
 }
 
+async function speakAutoNonApple(text: string, requestId: number): Promise<void> {
+  const key = text.toLowerCase();
+  const stillCurrent = () =>
+    requestId === speakRequestId && lastSpoken?.text === key;
+
+  preloadWordAudioElement(text);
+
+  if (isWordAudioElementReady(text)) {
+    if (await playWordAudioUrl(playableWordAudioUrl(text))) return;
+  }
+
+  if (await playWordAudioWhenReady(text, 280)) {
+    if (stillCurrent()) return;
+  }
+  if (!stillCurrent()) return;
+
+  const cached = getCachedSpeechVoice();
+  if (cached) {
+    speakWithVoice(text, cached);
+  } else {
+    void ensureSpeechVoicesReady().then((voice) => {
+      if (stillCurrent()) speakWithVoice(text, voice);
+    });
+  }
+
+  void resolveWordAudioUrl(text).then((url) => {
+    if (url) preloadWordAudioElement(text, url);
+  });
+}
+
+function playableWordAudioUrl(word: string): string {
+  if (typeof window === "undefined") return "";
+  const cached = getCachedWordAudioUrl(word);
+  const path = cached ?? proxyPronounceAudioPath(word);
+  return new URL(path, window.location.origin).href;
+}
+
 export function speakEnglishTextAuto(text: string): void {
   const trimmed = claimSpeak(text, false);
   if (!trimmed) return;
@@ -135,13 +199,13 @@ export function speakEnglishTextAuto(text: string): void {
   const requestId = speakRequestId;
 
   if (isAppleWebKit()) {
-    speakAppleWebKitInGesture(trimmed);
+    speakAppleWebKitAuto(trimmed);
     return;
   }
 
   stopWordAudio();
   window.speechSynthesis?.cancel();
-  void speakWithBestAvailableVoice(trimmed, requestId);
+  void speakAutoNonApple(trimmed, requestId);
 }
 
 export function speakEnglishText(
@@ -186,6 +250,7 @@ export function preloadSpeechVoices(): void {
 
 export function preloadWordPronunciation(word: string): void {
   preloadWordAudioElement(word);
+  warmWordAudioBytes(word);
   void resolveWordAudioUrl(word).then((url) => {
     if (url) preloadWordAudioElement(word, url);
   });
