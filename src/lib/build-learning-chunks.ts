@@ -147,6 +147,17 @@ function selectExamplesForChunks(
   return examples.filter((item) => item.en?.trim()).slice(0, 2);
 }
 
+function collocationTranslation(
+  collocationEn: string,
+  sourceEn: string,
+  sourceVi: string,
+): string {
+  if (phraseKey(collocationEn) === phraseKey(sourceEn)) {
+    return sourceVi.trim();
+  }
+  return "";
+}
+
 export function buildLearningChunksFromExamples(
   word: string,
   examples: VocabExample[],
@@ -173,7 +184,11 @@ export function buildLearningChunksFromExamples(
       chunkCandidates.push(item);
       const extracted = extractCollocationPhrase(en, word, wordType);
       if (extracted && phraseKey(extracted) !== phraseKey(en)) {
-        collocationCandidates.push({ ...item, en: extracted });
+        collocationCandidates.push({
+          en: extracted,
+          vi: collocationTranslation(extracted, en, ex.vi),
+          sense: ex.senseIndex,
+        });
       }
     } else {
       collocationCandidates.push(item);
@@ -193,7 +208,13 @@ export function buildLearningChunksFromExamples(
   if (!collocations.length && chunks[0]) {
     const extracted = extractCollocationPhrase(chunks[0].en, word, wordType);
     if (extracted && phraseKey(extracted) !== phraseKey(chunks[0].en)) {
-      collocations = [{ ...chunks[0], en: extracted }];
+      collocations = [
+        {
+          en: extracted,
+          vi: collocationTranslation(extracted, chunks[0].en, chunks[0].vi),
+          sense: chunks[0].sense,
+        },
+      ];
     }
   }
 
