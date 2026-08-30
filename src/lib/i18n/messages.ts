@@ -149,9 +149,9 @@ export const messages: Record<AppLocale, MessageTree> = {
     "account.signInBtn": "Đến trang đăng nhập",
 
     "onboarding.aria": "Giới thiệu app",
-    "onboarding.pickBand": "Chọn cấp từ bạn muốn học",
-    "onboarding.pickBandDesc":
-      "Bắt đầu từ từ phổ biến nhất (Rank 1–100) hoặc chọn band phù hợp trình độ.",
+    "onboarding.welcomeTitle": "Chào bạn đến với Jungle Jokers!",
+    "onboarding.welcomeDesc":
+      "App giúp bạn học từ tiếng Anh thông dụng nhất — có hình minh hoạ, ví dụ và lịch ôn tập. Mình sẽ bắt đầu từ những từ gặp hàng ngày, phù hợp cho người mới.",
     "onboarding.next": "Tiếp theo",
     "onboarding.back": "Quay lại",
     "onboarding.dailyGoal": "Mục tiêu học mỗi ngày",
@@ -164,6 +164,8 @@ export const messages: Record<AppLocale, MessageTree> = {
     "onboarding.alreadyKnow": "Đã biết rồi",
     "onboarding.alreadyKnowDesc":
       "Bỏ qua từ bạn đã thuộc — lưu vào Đã biết, không cần ôn lại.",
+    "onboarding.bandHint":
+      "Thấy quá dễ hoặc quá khó? Vào Hành trình và đổi nhóm từ ở góc phải trên.",
     "onboarding.start": "Bắt đầu học",
   },
   en: {
@@ -306,9 +308,9 @@ export const messages: Record<AppLocale, MessageTree> = {
     "account.signInBtn": "Go to sign in",
 
     "onboarding.aria": "App introduction",
-    "onboarding.pickBand": "Choose your word rank band",
-    "onboarding.pickBandDesc":
-      "Start with the most common words (Rank 1–100) or pick a band that fits your level.",
+    "onboarding.welcomeTitle": "Welcome to Jungle Jokers!",
+    "onboarding.welcomeDesc":
+      "Learn the most useful English words with pictures, examples, and spaced review. We start with everyday words — great if you're new or getting back into it.",
     "onboarding.next": "Next",
     "onboarding.back": "Back",
     "onboarding.dailyGoal": "Daily study goal",
@@ -321,6 +323,8 @@ export const messages: Record<AppLocale, MessageTree> = {
     "onboarding.alreadyKnow": "Already know",
     "onboarding.alreadyKnowDesc":
       "Skip words you already know — saved under Known, no review needed.",
+    "onboarding.bandHint":
+      "Too easy or too hard? Open Journey and change the word group from the top-right menu.",
     "onboarding.start": "Start learning",
   },
 };

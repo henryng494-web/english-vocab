@@ -6,28 +6,26 @@ import { DAILY_GOAL_OPTIONS, type DailyGoalMinutes } from "@/lib/app-settings";
 import { useI18n } from "@/hooks/use-i18n";
 import { displayFontClass } from "@/lib/fonts";
 import { completeOnboarding } from "@/lib/onboarding";
-import { WORD_RANGES } from "@/data/word-ranges";
 import { useCallback, useState } from "react";
 
 type OnboardingModalProps = {
   onComplete: (preferredRangeId: string) => void;
 };
 
-const STEPS = ["band", "goal", "how"] as const;
+const STEPS = ["welcome", "goal", "how"] as const;
 type Step = (typeof STEPS)[number];
 
 export function OnboardingModal({ onComplete }: OnboardingModalProps) {
   const { t, dailyGoalLabel } = useI18n();
-  const [step, setStep] = useState<Step>("band");
-  const [rangeId, setRangeId] = useState(DEFAULT_BOOTSTRAP_RANGE);
+  const [step, setStep] = useState<Step>("welcome");
   const [dailyGoalMinutes, setDailyGoalMinutes] = useState<DailyGoalMinutes>(20);
 
   const stepIndex = STEPS.indexOf(step);
 
   const finish = useCallback(() => {
-    completeOnboarding(rangeId, dailyGoalMinutes);
-    onComplete(rangeId);
-  }, [dailyGoalMinutes, onComplete, rangeId]);
+    completeOnboarding(DEFAULT_BOOTSTRAP_RANGE, dailyGoalMinutes);
+    onComplete(DEFAULT_BOOTSTRAP_RANGE);
+  }, [dailyGoalMinutes, onComplete]);
 
   return (
     <div className="onboarding" role="dialog" aria-modal="true" aria-label={t("onboarding.aria")}>
@@ -41,29 +39,21 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
           ))}
         </div>
 
-        {step === "band" ? (
+        {step === "welcome" ? (
           <>
             <div className="onboarding__hero">
               <JungleCastPill size={28} />
               <JungleMascot character="tiger" size={80} className="mt-3" />
             </div>
             <h2 className={`onboarding__title ${displayFontClass}`}>
-              {t("onboarding.pickBand")}
+              {t("onboarding.welcomeTitle")}
             </h2>
-            <p className="onboarding__body">{t("onboarding.pickBandDesc")}</p>
-            <div className="onboarding__chips">
-              {WORD_RANGES.map((range) => (
-                <button
-                  key={range.id}
-                  type="button"
-                  className={`onboarding__chip${rangeId === range.id ? " is-active" : ""}`}
-                  onClick={() => setRangeId(range.id)}
-                >
-                  {range.compactLabel}
-                </button>
-              ))}
-            </div>
-            <button type="button" className="btn-pill-primary onboarding__cta" onClick={() => setStep("goal")}>
+            <p className="onboarding__body">{t("onboarding.welcomeDesc")}</p>
+            <button
+              type="button"
+              className="btn-pill-primary onboarding__cta"
+              onClick={() => setStep("goal")}
+            >
               {t("onboarding.next")}
             </button>
           </>
@@ -93,10 +83,18 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
               ))}
             </div>
             <div className="onboarding__nav">
-              <button type="button" className="btn-pill-outline-secondary onboarding__back" onClick={() => setStep("band")}>
+              <button
+                type="button"
+                className="btn-pill-outline-secondary onboarding__back"
+                onClick={() => setStep("welcome")}
+              >
                 {t("onboarding.back")}
               </button>
-              <button type="button" className="btn-pill-primary onboarding__cta" onClick={() => setStep("how")}>
+              <button
+                type="button"
+                className="btn-pill-primary onboarding__cta"
+                onClick={() => setStep("how")}
+              >
                 {t("onboarding.next")}
               </button>
             </div>
@@ -121,8 +119,13 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
                 <p className="onboarding__body mt-1">{t("onboarding.alreadyKnowDesc")}</p>
               </div>
             </div>
+            <p className="onboarding__body mt-3 text-sm">{t("onboarding.bandHint")}</p>
             <div className="onboarding__nav">
-              <button type="button" className="btn-pill-outline-secondary onboarding__back" onClick={() => setStep("goal")}>
+              <button
+                type="button"
+                className="btn-pill-outline-secondary onboarding__back"
+                onClick={() => setStep("goal")}
+              >
                 {t("onboarding.back")}
               </button>
               <button type="button" className="btn-pill-primary onboarding__cta" onClick={finish}>
