@@ -2,34 +2,35 @@ import { proxyPronounceAudioPath } from "@/lib/dictionary-pronunciation";
 
 const audioUrlCache = new Map<string, string | null>();
 const pendingLookups = new Map<string, Promise<string | null>>();
-const preloadedElements = new Map<string, HTMLAudioElement>();
 
-let sharedAudio: HTMLAudioElement | null = null;
+let pronounceAudioElement: HTMLAudioElement | null = null;
 let currentAudio: HTMLAudioElement | null = null;
 
 function cacheKey(word: string): string {
   return word.trim().toLowerCase();
 }
 
-function ensureSharedAudio(): HTMLAudioElement | null {
-  if (typeof document === "undefined") return null;
-  if (sharedAudio) return sharedAudio;
-
-  const audio = document.createElement("audio");
-  audio.preload = "auto";
-  audio.setAttribute("playsinline", "");
-  audio.setAttribute("webkit-playsinline", "true");
-  audio.style.display = "none";
-  document.body.appendChild(audio);
-  sharedAudio = audio;
-  return audio;
+function absoluteAudioUrl(relativePath: string): string {
+  if (typeof window === "undefined") return relativePath;
+  return new URL(relativePath, window.location.origin).href;
 }
 
 function configureAudioElement(audio: HTMLAudioElement): void {
   audio.preload = "auto";
   audio.setAttribute("playsinline", "");
   audio.setAttribute("webkit-playsinline", "true");
-  audio.playbackRate = 1.04;
+  audio.playbackRate = 1;
+}
+
+/** Register the layout `<audio>` element (required for iOS Safari + PWA). */
+export function registerPronounceAudioElement(element: HTMLAudioElement): void {
+  pronounceAudioElement = element;
+  configureAudioElement(element);
+}
+
+function getAudioElement(): HTMLAudioElement | null {
+  if (typeof document === "undefined") return null;
+  return pronounceAudioElement;
 }
 
 /** Resolve a same-origin pronunciation MP3 URL (cached). */
@@ -66,7 +67,6 @@ export async function resolveWordAudioUrl(word: string): Promise<string | null> 
   return lookup;
 }
 
-/** Cached same-origin MP3 URL from a prior lookup. */
 export function getCachedWordAudioUrl(word: string): string | null {
   const key = cacheKey(word);
   if (!key || !audioUrlCache.has(key)) return null;
@@ -80,23 +80,19 @@ function resolvePlayableUrl(word: string, url?: string | null): string {
   return "";
 }
 
-/** Warm `<audio>` for a word so iOS can play inside the next tap. */
+/** Warm audio src while the card is visible (no play — iOS blocks that). */
 export function preloadWordAudioElement(word: string, url?: string | null): void {
   if (typeof window === "undefined") return;
   const key = cacheKey(word);
   if (!key) return;
 
-  const src = resolvePlayableUrl(key, url ?? getCachedWordAudioUrl(key));
+  const audio = getAudioElement();
+  if (!audio) return;
+
+  const src = absoluteAudioUrl(resolvePlayableUrl(key, url ?? getCachedWordAudioUrl(key)));
   if (!src) return;
 
-  let audio = preloadedElements.get(key);
-  if (!audio) {
-    audio = ensureSharedAudio() ?? new Audio();
-    configureAudioElement(audio);
-    preloadedElements.set(key, audio);
-  }
-
-  if (audio.dataset.wordKey !== key || !audio.src) {
+  if (audio.dataset.wordKey !== key || audio.src !== src) {
     audio.dataset.wordKey = key;
     audio.src = src;
     audio.load();
@@ -104,50 +100,41 @@ export function preloadWordAudioElement(word: string, url?: string | null): void
 }
 
 export function preloadWordAudio(word: string): void {
+  preloadWordAudioElement(word);
   void resolveWordAudioUrl(word).then((url) => {
     if (url) preloadWordAudioElement(word, url);
   });
 }
 
 export function stopWordAudio(): void {
-  if (sharedAudio) {
-    sharedAudio.pause();
-    sharedAudio.currentTime = 0;
-  }
-  for (const audio of preloadedElements.values()) {
-    audio.pause();
-    audio.currentTime = 0;
-  }
+  const audio = getAudioElement();
+  if (!audio) return;
+  audio.pause();
+  audio.currentTime = 0;
+  if (currentAudio === audio) currentAudio = null;
 }
 
 /**
- * Play preloaded same-origin audio synchronously inside a tap (iOS Safari).
- * Returns true only when audio is buffered enough to start immediately.
+ * Start pronunciation inside tap/click — must not await or gate on readyState.
+ * iOS Safari/PWA only unlocks playback when play() runs during the user gesture.
  */
-export function playPreloadedWordAudioSync(word: string): boolean {
+export function playWordAudioInUserGesture(word: string): boolean {
   if (typeof window === "undefined") return false;
   const key = cacheKey(word);
-  if (!key) return false;
+  const audio = getAudioElement();
+  if (!key || !audio) return false;
 
-  let audio = preloadedElements.get(key);
-  const src = resolvePlayableUrl(key);
+  const src = absoluteAudioUrl(resolvePlayableUrl(key));
   if (!src) return false;
 
-  if (!audio) {
-    const created = ensureSharedAudio();
-    if (!created) return false;
-    audio = created;
-    configureAudioElement(audio);
+  window.speechSynthesis?.cancel();
+
+  if (audio.dataset.wordKey !== key || audio.src !== src) {
+    audio.dataset.wordKey = key;
     audio.src = src;
     audio.load();
-    preloadedElements.set(key, audio);
   }
 
-  if (audio.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) {
-    return false;
-  }
-
-  stopWordAudio();
   audio.currentTime = 0;
   currentAudio = audio;
 
@@ -160,15 +147,19 @@ export function playPreloadedWordAudioSync(word: string): boolean {
   return true;
 }
 
-/** Play human dictionary audio when available. */
+/** @deprecated Use playWordAudioInUserGesture inside tap handlers. */
+export function playPreloadedWordAudioSync(word: string): boolean {
+  return playWordAudioInUserGesture(word);
+}
+
 export async function playWordAudioUrl(url: string): Promise<boolean> {
   if (typeof window === "undefined" || !url.trim()) return false;
 
-  stopWordAudio();
+  const audio = getAudioElement();
+  if (!audio) return false;
 
-  const audio = ensureSharedAudio() ?? new Audio();
-  configureAudioElement(audio);
-  audio.src = url;
+  stopWordAudio();
+  audio.src = absoluteAudioUrl(url);
   currentAudio = audio;
 
   try {
@@ -180,19 +171,16 @@ export async function playWordAudioUrl(url: string): Promise<boolean> {
   }
 }
 
-/** @deprecated Prefer playPreloadedWordAudioSync inside tap handlers. */
 export function playWordAudioUrlSync(url: string): boolean {
   if (typeof window === "undefined" || !url.trim()) return false;
+  const audio = getAudioElement();
+  if (!audio) return false;
+
   stopWordAudio();
-  const audio = ensureSharedAudio() ?? new Audio();
-  configureAudioElement(audio);
-  audio.src = url;
+  audio.src = absoluteAudioUrl(url);
   currentAudio = audio;
-  const playPromise = audio.play();
-  if (playPromise && typeof playPromise.catch === "function") {
-    playPromise.catch(() => {
-      if (currentAudio === audio) currentAudio = null;
-    });
-  }
-  return audio.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA;
+  void audio.play().catch(() => {
+    if (currentAudio === audio) currentAudio = null;
+  });
+  return true;
 }

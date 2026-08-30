@@ -1,12 +1,11 @@
 "use client";
 
 import { speakEnglishText, unlockSpeechFromUserGesture } from "@/lib/speak-word";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useRef } from "react";
 
 type SpeakButtonProps = {
   text: string;
   variant?: "dark" | "light";
-  /** Icon-only round button (no "Phát âm" label). */
   iconOnly?: boolean;
   className?: string;
 };
@@ -41,52 +40,30 @@ export function SpeakButton({
   iconOnly = false,
   className = "",
 }: SpeakButtonProps) {
-  const [speaking, setSpeaking] = useState(false);
-  const lastTapRef = useRef(0);
-  const pointerHandledRef = useRef(false);
   const touchHandledRef = useRef(false);
 
   const speak = useCallback(() => {
     if (!text) return;
-    const now = Date.now();
-    if (now - lastTapRef.current < 400) return;
-    lastTapRef.current = now;
-
     unlockSpeechFromUserGesture();
     speakEnglishText(text, { force: true });
-    setSpeaking(true);
-    window.setTimeout(() => setSpeaking(false), 900);
   }, [text]);
 
-  const handleTouchStart = useCallback(
-    (e: React.TouchEvent<HTMLButtonElement>) => {
-      e.stopPropagation();
+  const handleTouchEnd = useCallback(
+    (event: React.TouchEvent<HTMLButtonElement>) => {
+      event.preventDefault();
+      event.stopPropagation();
       touchHandledRef.current = true;
       speak();
     },
     [speak],
   );
 
-  const handlePointerDown = useCallback(
-    (e: React.PointerEvent<HTMLButtonElement>) => {
-      e.stopPropagation();
-      if (e.pointerType === "touch") return;
-      if (e.pointerType === "mouse" && e.button !== 0) return;
-      pointerHandledRef.current = true;
-      speak();
-    },
-    [speak],
-  );
-
   const handleClick = useCallback(
-    (e: React.MouseEvent<HTMLButtonElement>) => {
-      e.stopPropagation();
+    (event: React.MouseEvent<HTMLButtonElement>) => {
+      event.preventDefault();
+      event.stopPropagation();
       if (touchHandledRef.current) {
         touchHandledRef.current = false;
-        return;
-      }
-      if (pointerHandledRef.current) {
-        pointerHandledRef.current = false;
         return;
       }
       speak();
@@ -96,23 +73,22 @@ export function SpeakButton({
 
   const toneClass = iconOnly
     ? variant === "light"
-      ? "inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-primary-200 bg-primary-50 text-primary-800 transition hover:bg-primary hover:text-foreground disabled:opacity-60"
-      : "inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/40 bg-primary text-foreground shadow-sm transition hover:bg-primary-hover disabled:opacity-60"
+      ? "inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-primary-200 bg-primary-50 text-primary-800 transition hover:bg-primary hover:text-foreground"
+      : "inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/40 bg-primary text-foreground shadow-sm transition hover:bg-primary-hover"
     : variant === "light"
-      ? "inline-flex items-center gap-2 rounded-full border border-primary-200 bg-primary-50 px-4 py-2 text-sm font-medium text-primary-800 transition hover:bg-primary hover:text-foreground disabled:opacity-60"
-      : "inline-flex items-center gap-2 rounded-full border border-white/40 bg-primary px-4 py-2 text-sm font-medium text-foreground shadow-sm transition hover:bg-primary-hover disabled:opacity-60";
+      ? "inline-flex items-center gap-2 rounded-full border border-primary-200 bg-primary-50 px-4 py-2 text-sm font-medium text-primary-800 transition hover:bg-primary hover:text-foreground"
+      : "inline-flex items-center gap-2 rounded-full border border-white/40 bg-primary px-4 py-2 text-sm font-medium text-foreground shadow-sm transition hover:bg-primary-hover";
 
   return (
     <button
       type="button"
-      onTouchStart={handleTouchStart}
-      onPointerDown={handlePointerDown}
+      onTouchEnd={handleTouchEnd}
       onClick={handleClick}
       className={`${toneClass} ${className}`.trim()}
-      aria-label={speaking ? "Speaking" : "Pronounce"}
+      aria-label="Pronounce"
     >
       <SpeakerIcon className={iconOnly ? "h-4 w-4" : "h-5 w-5"} />
-      {!iconOnly && (speaking ? "Speaking..." : "Pronounce")}
+      {!iconOnly && "Pronounce"}
     </button>
   );
 }

@@ -1,27 +1,27 @@
 "use client";
 
 import {
-  preloadSpeechVoices,
   preloadWordPronunciation,
   unlockSpeechFromUserGesture,
 } from "@/lib/speak-word";
+import { playWordAudioInUserGesture } from "@/lib/word-pronunciation-audio";
 import { ensureSpeechVoicesReady } from "@/lib/speech-voice";
 import { useEffect } from "react";
 
-/** Warm up voices + MP3 cache; unlock speech on first user touch (iOS Safari). */
+/** Warm voices + unlock pronunciation on first user touch (iOS Safari/PWA). */
 export function SpeechVoiceWarmup() {
   useEffect(() => {
-    preloadSpeechVoices();
     preloadWordPronunciation("hello");
     void ensureSpeechVoicesReady();
 
     const onFirstTouch = () => {
       unlockSpeechFromUserGesture();
+      playWordAudioInUserGesture("hello");
     };
 
-    document.addEventListener("touchstart", onFirstTouch, {
+    document.addEventListener("touchend", onFirstTouch, {
       capture: true,
-      passive: true,
+      passive: false,
       once: true,
     });
     document.addEventListener("click", onFirstTouch, {
@@ -30,7 +30,7 @@ export function SpeechVoiceWarmup() {
     });
 
     return () => {
-      document.removeEventListener("touchstart", onFirstTouch, { capture: true });
+      document.removeEventListener("touchend", onFirstTouch, { capture: true });
       document.removeEventListener("click", onFirstTouch, { capture: true });
     };
   }, []);
