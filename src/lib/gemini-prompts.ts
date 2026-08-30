@@ -233,36 +233,54 @@ export function buildCollocationTranslationsPrompt(
   pos: string | null | undefined,
   meaning: string | null | undefined,
   phrases: CollocationTranslationInput[],
+  options?: {
+    register?: string | null;
+    englishDefinition?: string | null;
+  },
 ): string {
   const posHint = pos?.trim() ? `Part of speech: ${pos}.` : "";
-  const meaningHint = meaning?.trim() ? `Primary meaning gloss: ${meaning}.` : "";
+  const meaningHint = meaning?.trim()
+    ? `Vietnamese meaning on the card: ${meaning}.`
+    : "";
+  const registerHint = options?.register?.trim()
+    ? `Register: ${options.register.trim()} (match this tone in Vietnamese).`
+    : "";
+  const definitionHint = options?.englishDefinition?.trim()
+    ? `English definition: ${options.englishDefinition.trim()}.`
+    : "";
   const lines = phrases
     .map((item, index) => {
-      const context =
+      const example =
         item.contextEn?.trim() && item.contextVi?.trim()
-          ? `\n   Context: "${item.contextEn.trim()}" → "${item.contextVi.trim()}"`
+          ? `\n   Useful phrase (full sentence for context): "${item.contextEn.trim()}" → "${item.contextVi.trim()}"`
           : "";
       const sense = item.senseMeaning?.trim()
-        ? `\n   Gloss for this phrase: ${item.senseMeaning.trim()}`
+        ? `\n   Sense gloss for "${word}" in this phrase: ${item.senseMeaning.trim()}`
         : "";
-      return `${index + 1}. "${item.en.trim()}"${sense}${context}`;
+      return `${index + 1}. Goes-with of "${word}": "${item.en.trim()}"${sense}${example}`;
     })
     .join("\n");
 
-  return `You translate short English collocation phrases to natural Vietnamese for a vocabulary flashcard "Goes with" section.
+  return `You translate "Goes with" collocation phrases for an English–Vietnamese vocabulary flashcard.
 
-Headword: "${word}"
-${posHint} ${meaningHint}
+What "Goes with" means:
+- Short English phrases (usually 2–4 words) showing words that naturally pair with the headword
+- NOT full sentences — output a short Vietnamese phrase only
+- Learners see English on top and Vietnamese below each collocation
 
-Phrases (translate EACH fully — include adjectives, subjects, objects, and verbs; do NOT return only the headword gloss):
+Headword being studied: "${word}"
+${posHint} ${meaningHint} ${registerHint} ${definitionHint}
+
+Translate each "Goes-with of \\"${word}\\"" phrase below:
 ${lines}
 
 Rules:
+- Each translation MUST reflect the ENTIRE English collocation (e.g. "Big ram" → include "lớn", "Store hay" → include "lưu/cất", "Leaves drift" → include "lá")
+- Use the useful phrase and sense gloss to pick the correct sense of "${word}"
+- When translating "${word}", use vocabulary from the sense gloss — do NOT substitute a different synonym
 - Natural Vietnamese learners expect — not word-by-word machine translation
-- Each translation MUST reflect the ENTIRE English phrase (e.g. "Big ram" → include "lớn", "Store hay" → include "lưu/cất", "Leaves drift" → include "lá")
 - Match register (informal → conversational; neutral → everyday; formal/legal → formal Vietnamese)
-- When translating "${word}", use vocabulary from the gloss line for that phrase
-- Short phrases only — no full sentences unless the English phrase is a sentence
+- Short phrase only — never a full sentence unless the English collocation is already a sentence
 - Latin Vietnamese only
 
 Reply with ONLY JSON, same order as input:

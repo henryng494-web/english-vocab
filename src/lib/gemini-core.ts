@@ -259,6 +259,10 @@ export async function translateCollocationsWithGemini(
   phrases: CollocationTranslationInput[],
   pos?: string | null,
   meaning?: string | null,
+  options?: {
+    register?: string | null;
+    englishDefinition?: string | null;
+  },
 ): Promise<string[] | null> {
   if (!process.env.GEMINI_API_KEY?.trim()) return null;
   const items = phrases
@@ -273,7 +277,7 @@ export async function translateCollocationsWithGemini(
 
   try {
     const text = await generateGeminiText(
-      buildCollocationTranslationsPrompt(word, pos, meaning, items),
+      buildCollocationTranslationsPrompt(word, pos, meaning, items, options),
     );
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (!jsonMatch) return null;

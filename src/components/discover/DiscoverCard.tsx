@@ -104,6 +104,8 @@ export function DiscoverCard({
           examples={data.examples}
           wordType={data.word_type}
           meaning={data.vietnamese_meaning}
+          register={register}
+          englishDefinition={data.english_definition}
           family={data.word_family}
           loading={detailsLoading}
         />

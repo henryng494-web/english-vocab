@@ -1,6 +1,6 @@
 import type { LearningChunkPhrase } from "@/data/demo-learning-chunks";
 
-const STORAGE_KEY = "learning-chunk-vi-cache-v1";
+const STORAGE_KEY = "learning-chunk-vi-cache-v2";
 
 type CacheEntry = {
   collocations: LearningChunkPhrase[];

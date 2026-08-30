@@ -23,6 +23,8 @@ export async function POST(request: Request) {
       word?: string;
       wordType?: string | null;
       meaning?: string | null;
+      register?: string | null;
+      englishDefinition?: string | null;
       phrases?: PhraseInput[];
     };
 
@@ -63,6 +65,10 @@ export async function POST(request: Request) {
       geminiInput,
       body.wordType,
       body.meaning,
+      {
+        register: body.register,
+        englishDefinition: body.englishDefinition,
+      },
     );
 
     if (!translations?.length) {

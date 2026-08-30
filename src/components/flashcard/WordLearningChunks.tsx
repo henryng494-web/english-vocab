@@ -15,6 +15,8 @@ type WordLearningChunksProps = {
   examples?: string | null;
   wordType?: string | null;
   meaning?: string | null;
+  register?: string | null;
+  englishDefinition?: string | null;
   compact?: boolean;
 };
 
@@ -40,6 +42,8 @@ export function WordLearningChunks({
   examples,
   wordType,
   meaning,
+  register,
+  englishDefinition,
   compact = false,
 }: WordLearningChunksProps) {
   const { t } = useI18n();
@@ -48,6 +52,8 @@ export function WordLearningChunks({
     word,
     wordType,
     meaning,
+    register,
+    englishDefinition,
     entry: baseEntry,
     contextExamples: baseEntry?.chunks,
   });

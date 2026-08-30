@@ -12,6 +12,8 @@ type UseLearningChunkTranslationsArgs = {
   word: string;
   wordType?: string | null;
   meaning?: string | null;
+  register?: string | null;
+  englishDefinition?: string | null;
   entry: LearningChunkEntry | null;
   /** Full example sentences for context when translating collocations. */
   contextExamples?: LearningChunkPhrase[];
@@ -45,6 +47,8 @@ export function useLearningChunkTranslations({
   word,
   wordType,
   meaning,
+  register,
+  englishDefinition,
   entry,
   contextExamples = [],
 }: UseLearningChunkTranslationsArgs): LearningChunkEntry | null {
@@ -89,6 +93,8 @@ export function useLearningChunkTranslations({
             word,
             wordType,
             meaning,
+            register,
+            englishDefinition,
             phrases: pending.map((item) => {
               const context = findContextForCollocation(item.en, [
                 ...contextExamples,
@@ -122,7 +128,7 @@ export function useLearningChunkTranslations({
     return () => {
       cancelled = true;
     };
-  }, [word, wordType, meaning, entry, needsTranslation, contextExamples]);
+  }, [word, wordType, meaning, register, englishDefinition, entry, needsTranslation, contextExamples]);
 
   if (!entry) return null;
 

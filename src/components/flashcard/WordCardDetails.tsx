@@ -7,6 +7,7 @@ import { capitalizeFirst } from "@/lib/format-text";
 import { hasLearningChunks } from "@/lib/learning-chunks";
 import { parseExamples } from "@/lib/parse-examples";
 import type { WordFamilyMember } from "@/types/database";
+import type { WordRegister } from "@/lib/word-meanings";
 
 const POS_ABBREV: Record<string, string> = {
   noun: "n.",
@@ -27,6 +28,8 @@ type WordCardDetailsProps = {
   examples?: string | null;
   wordType?: string | null;
   meaning?: string | null;
+  register?: WordRegister | null;
+  englishDefinition?: string | null;
   family?: WordFamilyMember[] | null;
   loading?: boolean;
 };
@@ -36,6 +39,8 @@ export function WordCardDetails({
   examples,
   wordType,
   meaning,
+  register,
+  englishDefinition,
   family,
   loading = false,
 }: WordCardDetailsProps) {
@@ -109,6 +114,8 @@ export function WordCardDetails({
                 examples={examples}
                 wordType={wordType}
                 meaning={meaning}
+                register={register}
+                englishDefinition={englishDefinition}
                 compact
               />
               {!chunksOnly ? (
