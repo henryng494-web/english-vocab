@@ -3,9 +3,11 @@ import { capitalizeFirst } from "@/lib/format-text";
 import {
   buildDefinitionPrompt,
   buildEnrichPrompt,
+  buildCollocationTranslationsPrompt,
   buildExampleTranslationPrompt,
   buildExamplesPrompt,
   buildMeaningPrompt,
+  type CollocationTranslationInput,
 } from "@/lib/gemini-prompts";
 import { sanitizeVietnameseText } from "@/lib/sanitize-vi";
 import { getPresetRank } from "@/data/preset-word-details";
@@ -247,6 +249,47 @@ export async function translateDefinitionWithGemini(
       `Gemini VI definition "${primaryModelName()}" failed for "${word}":`,
       error,
     );
+    return null;
+  }
+}
+
+/** Gemini — natural Vietnamese for short collocation phrases (batch). */
+export async function translateCollocationsWithGemini(
+  word: string,
+  phrases: CollocationTranslationInput[],
+  pos?: string | null,
+  meaning?: string | null,
+): Promise<string[] | null> {
+  if (!process.env.GEMINI_API_KEY?.trim()) return null;
+  const items = phrases
+    .map((item) => ({
+      en: item.en?.trim() ?? "",
+      contextEn: item.contextEn?.trim() || null,
+      contextVi: item.contextVi?.trim() || null,
+      senseMeaning: item.senseMeaning?.trim() || null,
+    }))
+    .filter((item) => item.en);
+  if (!items.length) return null;
+
+  try {
+    const text = await generateGeminiText(
+      buildCollocationTranslationsPrompt(word, pos, meaning, items),
+    );
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) return null;
+    const parsed = JSON.parse(jsonMatch[0]) as { translations?: unknown };
+    if (!Array.isArray(parsed.translations)) return null;
+    const out = parsed.translations
+      .map((item) =>
+        sanitizeVietnameseText(String(item ?? "").trim()).replace(
+          /^["']|["']$/g,
+          "",
+        ),
+      )
+      .filter(Boolean);
+    return out.length === items.length ? out : null;
+  } catch (error) {
+    console.warn(`Gemini collocation VI failed for "${word}":`, error);
     return null;
   }
 }

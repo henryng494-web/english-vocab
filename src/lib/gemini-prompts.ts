@@ -219,3 +219,52 @@ Rules:
 
 Reply with ONLY the Vietnamese sentence. No quotes, no explanation.`;
 }
+
+export type CollocationTranslationInput = {
+  en: string;
+  /** Full example sentence for context (optional). */
+  contextEn?: string | null;
+  contextVi?: string | null;
+  senseMeaning?: string | null;
+};
+
+export function buildCollocationTranslationsPrompt(
+  word: string,
+  pos: string | null | undefined,
+  meaning: string | null | undefined,
+  phrases: CollocationTranslationInput[],
+): string {
+  const posHint = pos?.trim() ? `Part of speech: ${pos}.` : "";
+  const meaningHint = meaning?.trim() ? `Primary meaning gloss: ${meaning}.` : "";
+  const lines = phrases
+    .map((item, index) => {
+      const context =
+        item.contextEn?.trim() && item.contextVi?.trim()
+          ? `\n   Context: "${item.contextEn.trim()}" → "${item.contextVi.trim()}"`
+          : "";
+      const sense = item.senseMeaning?.trim()
+        ? `\n   Gloss for this phrase: ${item.senseMeaning.trim()}`
+        : "";
+      return `${index + 1}. "${item.en.trim()}"${sense}${context}`;
+    })
+    .join("\n");
+
+  return `You translate short English collocation phrases to natural Vietnamese for a vocabulary flashcard "Goes with" section.
+
+Headword: "${word}"
+${posHint} ${meaningHint}
+
+Phrases (translate EACH fully — include adjectives, subjects, objects, and verbs; do NOT return only the headword gloss):
+${lines}
+
+Rules:
+- Natural Vietnamese learners expect — not word-by-word machine translation
+- Each translation MUST reflect the ENTIRE English phrase (e.g. "Big ram" → include "lớn", "Store hay" → include "lưu/cất", "Leaves drift" → include "lá")
+- Match register (informal → conversational; neutral → everyday; formal/legal → formal Vietnamese)
+- When translating "${word}", use vocabulary from the gloss line for that phrase
+- Short phrases only — no full sentences unless the English phrase is a sentence
+- Latin Vietnamese only
+
+Reply with ONLY JSON, same order as input:
+{"translations":["...","..."]}`;
+}

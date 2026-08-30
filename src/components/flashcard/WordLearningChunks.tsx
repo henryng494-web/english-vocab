@@ -1,6 +1,7 @@
 "use client";
 
 import { useI18n } from "@/hooks/use-i18n";
+import { useLearningChunkTranslations } from "@/hooks/use-learning-chunk-translations";
 import {
   MAX_LEARNING_CHUNKS,
   MAX_LEARNING_COLLOCATIONS,
@@ -42,7 +43,14 @@ export function WordLearningChunks({
   compact = false,
 }: WordLearningChunksProps) {
   const { t } = useI18n();
-  const entry = resolveLearningChunks(word, { examples, wordType, meaning });
+  const baseEntry = resolveLearningChunks(word, { examples, wordType, meaning });
+  const entry = useLearningChunkTranslations({
+    word,
+    wordType,
+    meaning,
+    entry: baseEntry,
+    contextExamples: baseEntry?.chunks,
+  });
   if (!entry) return null;
 
   const collocationItems = entry.collocations.slice(0, MAX_LEARNING_COLLOCATIONS);
