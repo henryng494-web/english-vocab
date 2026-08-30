@@ -61,6 +61,7 @@ export function DiscoverDashboard({
   todayStudySeconds,
   todayGoalMinutes,
   todayWordsLearned,
+  sessionInProgress = false,
   onStartToday,
   onStartJourney,
   onStartReview,
@@ -71,7 +72,7 @@ export function DiscoverDashboard({
     queueLength > 0 ? Math.round((currentIndex / queueLength) * 100) : 0;
   const todayStudyMinutes = Math.floor(todayStudySeconds / 60);
   const minutesLeft = Math.max(0, todayGoalMinutes - todayStudyMinutes);
-  const canStartToday = dueReviewCount > 0 || queueLength > 0;
+  const canStartToday = dueReviewCount > 0 || queueLength > 0 || sessionInProgress;
 
   const todaySummary =
     dueReviewCount > 0
