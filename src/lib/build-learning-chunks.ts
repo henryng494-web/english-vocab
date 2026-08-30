@@ -188,7 +188,25 @@ function isValidCollocationEn(extracted: string, headword: string): boolean {
   const words = normalizePhrase(extracted).split(/\s+/);
   if (words.length < 2) return false;
   if (words.some((word) => word.includes("?"))) return false;
-  return findHeadwordIndex(words, headword) >= 0;
+  if (findHeadwordIndex(words, headword) < 0) return false;
+  return !isWeakCollocation(extracted, headword);
+}
+
+/** Reject determiner/possessive + headword only (e.g. "the usual", "her usual"). */
+function isWeakCollocation(phrase: string, headword: string): boolean {
+  const words = normalizePhrase(phrase).split(/\s+/).filter(Boolean);
+  if (words.length < 2) return true;
+
+  const idx = findHeadwordIndex(words, headword);
+  if (idx < 0) return true;
+
+  const others = words.filter((_, i) => i !== idx);
+  if (!others.length) return true;
+
+  return others.every((word) => {
+    const token = word.toLowerCase().replace(/[^a-z']/g, "");
+    return LEADING_DETERMINERS.test(token);
+  });
 }
 
 function isFullSentence(en: string): boolean {
@@ -273,7 +291,7 @@ export function buildLearningChunksFromExamples(
           sense: ex.senseIndex,
         });
       }
-    } else {
+    } else if (isValidCollocationEn(en, word)) {
       collocationCandidates.push(item);
     }
   }
@@ -286,22 +304,8 @@ export function buildLearningChunksFromExamples(
   const chunkKeys = new Set(chunks.map((item) => phraseKey(item.en)));
   let collocations = dedupePhrases(collocationCandidates)
     .filter((item) => !chunkKeys.has(phraseKey(item.en)))
-    .sort((a, b) => collocationScore(a.en) - collocationScore(b.en));
-
-  if (collocations.length < MAX_LEARNING_COLLOCATIONS && chunks[0]) {
-    for (const extracted of extractCollocationPhrases(chunks[0].en, word, wordType)) {
-      if (phraseKey(extracted) === phraseKey(chunks[0].en)) continue;
-      if (collocations.some((item) => phraseKey(item.en) === phraseKey(extracted))) {
-        continue;
-      }
-      collocations.push({
-        en: extracted,
-        vi: collocationTranslation(extracted, chunks[0].en, chunks[0].vi),
-        sense: chunks[0].sense,
-      });
-      if (collocations.length >= MAX_LEARNING_COLLOCATIONS) break;
-    }
-  }
+    .filter((item) => !isWeakCollocation(item.en, word))
+    .sort((a, b) => collocationScore(b.en) - collocationScore(a.en));
 
   collocations = collocations.slice(0, MAX_LEARNING_COLLOCATIONS);
 
