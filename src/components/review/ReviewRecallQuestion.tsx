@@ -3,6 +3,7 @@
 import { useAutoSpeakWord } from "@/hooks/use-auto-speak-word";
 import { ReviewWordImage } from "@/components/review/ReviewWordImage";
 import { displayFontClass } from "@/lib/fonts";
+import { useI18n } from "@/hooks/use-i18n";
 import { splitSentenceAroundWord } from "@/lib/review-quiz";
 
 type ReviewRecallQuestionProps = {
@@ -31,6 +32,7 @@ export function ReviewRecallQuestion({
   onRemember,
 }: ReviewRecallQuestionProps) {
   useAutoSpeakWord(word);
+  const { t } = useI18n();
   const parts = splitSentenceAroundWord(sentence, word);
 
   return (
@@ -56,7 +58,7 @@ export function ReviewRecallQuestion({
                 <span key={`${part.text}-${index}`}>{part.text}</span>
               ),
             )
-          : "Do you remember this word?"}
+          : t("review.recallPrompt")}
       </p>
 
       <div className="review-recall__actions">
@@ -68,7 +70,7 @@ export function ReviewRecallQuestion({
           disabled={locked}
           onClick={onLookUp}
         >
-          Look Up
+          {t("review.lookUp")}
         </button>
         <button
           type="button"
@@ -78,7 +80,7 @@ export function ReviewRecallQuestion({
           disabled={locked}
           onClick={onRemember}
         >
-          I Remember
+          {t("review.iRemember")}
         </button>
       </div>
     </div>

@@ -2,6 +2,7 @@
 
 import { ReviewWordImage } from "@/components/review/ReviewWordImage";
 import { displayFontClass } from "@/lib/fonts";
+import { useI18n } from "@/hooks/use-i18n";
 import type { ReviewChoice } from "@/lib/review-quiz";
 
 type ReviewQuestionProps = {
@@ -35,6 +36,7 @@ export function ReviewQuestion({
   onChoose,
   onUnsure,
 }: ReviewQuestionProps) {
+  const { t } = useI18n();
   const correct = correctWord.trim().toLowerCase();
 
   return (
@@ -82,7 +84,7 @@ export function ReviewQuestion({
         disabled={locked}
         onClick={onUnsure}
       >
-        Not Sure?
+        {t("review.notSure")}
       </button>
     </div>
   );

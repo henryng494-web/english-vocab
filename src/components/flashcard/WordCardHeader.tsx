@@ -1,12 +1,11 @@
 "use client";
 
 import { useAutoSpeakWord } from "@/hooks/use-auto-speak-word";
+import { useI18n } from "@/hooks/use-i18n";
 import { capitalizeFirst } from "@/lib/format-text";
-import { normalizeWordType } from "@/lib/word-type";
 import {
   displayWordRegister,
   formatMeaningsForDisplay,
-  registerLabel,
   type WordRegister,
 } from "@/lib/word-meanings";
 import { SpeakButton } from "./SpeakButton";
@@ -32,7 +31,8 @@ export function WordCardHeader({
   autoSpeak = true,
 }: WordCardHeaderProps) {
   useAutoSpeakWord(word, autoSpeak);
-  const wordTypeLabel = normalizeWordType(wordType, word);
+  const { registerLabel, wordTypeLabel } = useI18n();
+  const wordTypeLabelText = wordTypeLabel(wordType, word);
   const meaningLines = meanings ? formatMeaningsForDisplay(meanings) : [];
   const displayedRegister = displayWordRegister(register);
   const registerLabelText = registerLabel(displayedRegister);
@@ -57,7 +57,7 @@ export function WordCardHeader({
         </div>
       </div>
 
-      {meaningLines.length > 0 || registerLabelText || wordTypeLabel ? (
+      {meaningLines.length > 0 || registerLabelText || wordTypeLabelText ? (
         <div className="word-card-header__body">
           {meaningLines.length > 0 ? (
             <div className="word-card-header__meanings" aria-label="Meanings">
@@ -81,9 +81,9 @@ export function WordCardHeader({
               </span>
             ) : null}
 
-            {wordTypeLabel ? (
+            {wordTypeLabelText ? (
               <span className="word-card-header__pos word-type-badge">
-                {capitalizeFirst(wordTypeLabel)}
+                {wordTypeLabelText}
               </span>
             ) : null}
           </div>

@@ -1,3 +1,6 @@
+import type { AppLocale } from "@/lib/i18n/messages";
+import { DEFAULT_APP_LOCALE, isAppLocale } from "@/lib/i18n/messages";
+
 export type DailyGoalMinutes = 10 | 20 | 30 | 60 | 90 | 120;
 
 export type AppSettings = {
@@ -6,6 +9,8 @@ export type AppSettings = {
   reminderEnabled: boolean;
   /** 24h local time HH:MM */
   reminderTime: string;
+  /** Interface language — word content stays bilingual. */
+  appLanguage: AppLocale;
 };
 
 export const DAILY_GOAL_OPTIONS: readonly DailyGoalMinutes[] = [
@@ -28,6 +33,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   dailyGoalMinutes: 20,
   reminderEnabled: false,
   reminderTime: "19:00",
+  appLanguage: DEFAULT_APP_LOCALE,
 };
 
 function isDailyGoalMinutes(value: number): value is DailyGoalMinutes {
@@ -59,6 +65,9 @@ export function readAppSettings(): AppSettings {
           ? parsed.reminderEnabled
           : DEFAULT_SETTINGS.reminderEnabled,
       reminderTime: normalizeReminderTime(parsed.reminderTime),
+      appLanguage: isAppLocale(parsed.appLanguage)
+        ? parsed.appLanguage
+        : DEFAULT_SETTINGS.appLanguage,
     };
   } catch {
     return DEFAULT_SETTINGS;

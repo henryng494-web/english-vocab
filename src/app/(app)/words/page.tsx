@@ -6,6 +6,7 @@ import { AppHeader } from "@/components/layout/AppHeader";
 import { AppMenuButton } from "@/components/layout/AppMenuButton";
 import { WordLibrarySortBar } from "@/components/words/WordLibrarySortBar";
 import { WordList } from "@/components/words/WordList";
+import { useI18n } from "@/hooks/use-i18n";
 import {
   getLocalWordsByFilter,
   type WordLibraryFilter,
@@ -14,44 +15,6 @@ import {
 import { getStaticVietnamese } from "@/lib/static-vietnamese";
 import type { LearningStatus } from "@/types/database";
 
-function statusBadge(status: LearningStatus): string {
-  switch (status) {
-    case "mastered":
-      return "Đã biết";
-    case "new":
-      return "Mới";
-    case "learning":
-      return "Đang học";
-    case "need_review":
-      return "Đến hạn";
-    default:
-      return status;
-  }
-}
-
-function filterMeta(filter: WordLibraryFilter) {
-  if (filter === "known") {
-    return {
-      title: "Thư viện · Đã biết",
-      emptyTitle: "Chưa có từ nào được đánh dấu đã biết",
-      emptyHint: 'Nhấn "Đã biết rồi" trên Hành trình khi bạn thuộc từ đó.',
-    };
-  }
-  return {
-    title: "Thư viện · Đang ôn",
-    emptyTitle: "Chưa có từ đang ôn",
-    emptyHint: 'Nhấn "Học từ này" trên Hành trình để thêm từ vào lịch ôn.',
-  };
-}
-
-function parseFilter(value: string | null): WordLibraryFilter {
-  return value === "known" ? "known" : "review";
-}
-
-function parseSort(value: string | null): WordLibrarySort {
-  return value === "rank" ? "rank" : "recent";
-}
-
 function WordLibraryFilterTabs({
   filter,
   onFilterChange,
@@ -59,8 +22,9 @@ function WordLibraryFilterTabs({
   filter: WordLibraryFilter;
   onFilterChange: (next: WordLibraryFilter) => void;
 }) {
+  const { t } = useI18n();
   return (
-    <div className="word-library__filters" role="tablist" aria-label="Lọc thư viện">
+    <div className="word-library__filters" role="tablist" aria-label={t("library.filterAria")}>
       <button
         type="button"
         role="tab"
@@ -68,7 +32,7 @@ function WordLibraryFilterTabs({
         className={`word-library__filter${filter === "known" ? " is-active" : ""}`}
         onClick={() => onFilterChange("known")}
       >
-        Đã biết
+        {t("library.filterKnown")}
       </button>
       <button
         type="button"
@@ -77,7 +41,7 @@ function WordLibraryFilterTabs({
         className={`word-library__filter${filter === "review" ? " is-active" : ""}`}
         onClick={() => onFilterChange("review")}
       >
-        Đang ôn
+        {t("library.filterReview")}
       </button>
     </div>
   );
@@ -86,10 +50,25 @@ function WordLibraryFilterTabs({
 function WordsPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { t } = useI18n();
   const filter = parseFilter(searchParams.get("filter"));
   const sort = parseSort(searchParams.get("sort"));
-  const meta = filterMeta(filter);
   const [tick, setTick] = useState(0);
+
+  const meta = useMemo(() => {
+    if (filter === "known") {
+      return {
+        title: t("library.knownTitle"),
+        emptyTitle: t("library.knownEmpty"),
+        emptyHint: t("library.knownHint"),
+      };
+    }
+    return {
+      title: t("library.reviewTitle"),
+      emptyTitle: t("library.reviewEmpty"),
+      emptyHint: t("library.reviewHint"),
+    };
+  }, [filter, t]);
 
   const setFilter = useCallback(
     (next: WordLibraryFilter) => {
@@ -125,9 +104,10 @@ function WordsPageContent() {
     return getLocalWordsByFilter(filter, sort).map((entry) => ({
       word: entry.word,
       subtitle: getStaticVietnamese(entry.word) ?? null,
-      badge: filter === "review" ? statusBadge(entry.status) : "Đã biết",
+      badge:
+        filter === "review" ? statusBadge(entry.status, t) : t("status.known"),
     }));
-  }, [filter, sort, tick]);
+  }, [filter, sort, t, tick]);
 
   return (
     <>
@@ -149,6 +129,32 @@ function WordsPageContent() {
       </div>
     </>
   );
+}
+
+function statusBadge(
+  status: LearningStatus,
+  t: (key: import("@/lib/i18n/messages").MessageKey) => string,
+): string {
+  switch (status) {
+    case "mastered":
+      return t("status.known");
+    case "new":
+      return t("status.new");
+    case "learning":
+      return t("status.learning");
+    case "need_review":
+      return t("status.due");
+    default:
+      return status;
+  }
+}
+
+function parseFilter(value: string | null): WordLibraryFilter {
+  return value === "known" ? "known" : "review";
+}
+
+function parseSort(value: string | null): WordLibrarySort {
+  return value === "rank" ? "rank" : "recent";
 }
 
 export default function WordsPage() {

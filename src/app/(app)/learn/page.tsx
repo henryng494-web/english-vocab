@@ -49,6 +49,7 @@ import {
 import { shouldRefreshImageUrl } from "@/lib/unsplash";
 import { refreshAllStaleWordImages } from "@/lib/refresh-stale-word-images";
 import type { LearningStatus, VocabWord } from "@/types/database";
+import { useI18n } from "@/hooks/use-i18n";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 type Phase = "question" | "reveal";
@@ -98,6 +99,7 @@ function applyImageUpdatesToState(
 }
 
 export default function LearnPage() {
+  const { t } = useI18n();
   const { review: bootstrapReview, updateReviewCache } = useAppBootstrap();
   const [allWords, setAllWords] = useState<VocabWord[]>([]);
   const [queue, setQueue] = useState<VocabWord[]>([]);
@@ -685,7 +687,11 @@ export default function LearnPage() {
   return (
     <div className={`app-screen${inSession ? " app-screen--journey" : " app-screen--home"}`}>
       <AppHeader
-        title={inSession ? `Ôn tập ${index + 1}/${queue.length}` : "Ôn tập"}
+        title={
+          inSession
+            ? t("review.sessionTitle", { current: index + 1, total: queue.length })
+            : t("review.title")
+        }
         leading={<AppMenuButton />}
       />
 
@@ -735,7 +741,11 @@ export default function LearnPage() {
           searchKeyword={currentWord.search_keyword}
           wordType={currentWord.word_type}
           meaning={currentWord.vietnamese_meaning}
-          clue={reviewClue(currentWord)}
+          clue={
+            reviewClue(currentWord) === "Choose the matching word."
+              ? t("review.chooseMatching")
+              : reviewClue(currentWord)
+          }
           choices={choices}
           selectedKey={selectedKey}
           unsure={unsure}
@@ -763,12 +773,10 @@ export default function LearnPage() {
           <div className="mx-auto flex max-w-sm flex-col items-center pt-6 text-center">
             <JungleMascot character={sessionDone ? "monkey" : "crocodile"} size={88} />
             <h2 className="mt-3 text-xl font-bold text-foreground">
-              {sessionDone ? "You're all caught up!" : "No words due"}
+              {sessionDone ? t("review.allCaughtUp") : t("review.noWordsDue")}
             </h2>
             <p className="mt-1 text-sm text-foreground/60">
-              {sessionDone
-                ? "Come back when the next review interval is due, or add a new word."
-                : "Learn words on Home or add one below to start reviewing."}
+              {sessionDone ? t("review.comeBackLater") : t("review.learnOnHome")}
             </p>
           </div>
 
@@ -777,7 +785,7 @@ export default function LearnPage() {
               type="text"
               value={newWord}
               onChange={(e) => setNewWord(e.target.value)}
-              placeholder="Add a new word..."
+              placeholder={t("review.addWordPlaceholder")}
               className="flex-1 rounded-xl border border-primary-200 bg-surface px-4 py-3 text-base text-foreground shadow-sm placeholder:text-foreground/40 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
             />
             <button
@@ -785,7 +793,7 @@ export default function LearnPage() {
               disabled={adding || !newWord.trim()}
               className="rounded-xl bg-primary px-4 py-3 text-base font-semibold text-white shadow-sm transition active:bg-primary-hover disabled:opacity-50"
             >
-              {adding ? "..." : "Add"}
+              {adding ? "..." : t("review.add")}
             </button>
           </form>
 
