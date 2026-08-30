@@ -2,15 +2,18 @@
 
 import { useI18n } from "@/hooks/use-i18n";
 import {
-  MAX_DEMO_CHUNKS,
-  MAX_DEMO_COLLOCATIONS,
+  MAX_LEARNING_CHUNKS,
+  MAX_LEARNING_COLLOCATIONS,
   type LearningChunkPhrase,
 } from "@/data/demo-learning-chunks";
 import { capitalizeFirst } from "@/lib/format-text";
-import { getLearningChunks } from "@/lib/learning-chunks";
+import { resolveLearningChunks } from "@/lib/learning-chunks";
 
 type WordLearningChunksProps = {
   word: string;
+  examples?: string | null;
+  wordType?: string | null;
+  meaning?: string | null;
   compact?: boolean;
 };
 
@@ -20,9 +23,11 @@ function PhraseList({ items }: { items: LearningChunkPhrase[] }) {
       {items.map((item) => (
         <li key={`${item.sense ?? 0}-${item.en}`} className="vocab-examples__item">
           <p className="vocab-examples__en italic">{capitalizeFirst(item.en)}</p>
-          <p className="vocab-examples__vi mt-0.5 italic">
-            {capitalizeFirst(item.vi)}
-          </p>
+          {item.vi ? (
+            <p className="vocab-examples__vi mt-0.5 italic">
+              {capitalizeFirst(item.vi)}
+            </p>
+          ) : null}
         </li>
       ))}
     </ul>
@@ -31,14 +36,17 @@ function PhraseList({ items }: { items: LearningChunkPhrase[] }) {
 
 export function WordLearningChunks({
   word,
+  examples,
+  wordType,
+  meaning,
   compact = false,
 }: WordLearningChunksProps) {
   const { t } = useI18n();
-  const entry = getLearningChunks(word);
+  const entry = resolveLearningChunks(word, { examples, wordType, meaning });
   if (!entry) return null;
 
-  const collocationItems = entry.collocations.slice(0, MAX_DEMO_COLLOCATIONS);
-  const chunkItems = entry.chunks.slice(0, MAX_DEMO_CHUNKS);
+  const collocationItems = entry.collocations.slice(0, MAX_LEARNING_COLLOCATIONS);
+  const chunkItems = entry.chunks.slice(0, MAX_LEARNING_CHUNKS);
   if (!collocationItems.length && !chunkItems.length) return null;
 
   return (

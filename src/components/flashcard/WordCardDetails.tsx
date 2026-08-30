@@ -40,7 +40,7 @@ export function WordCardDetails({
   loading = false,
 }: WordCardDetailsProps) {
   const parsed = loading ? [] : parseExamples(examples);
-  const chunksOnly = hasLearningChunks(word);
+  const chunksOnly = hasLearningChunks(word, { examples, wordType, meaning });
   const rows = (family ?? []).filter((item) => item.word.trim());
   const canFlip = rows.length > 1;
   const [showFamily, setShowFamily] = useState(false);
@@ -104,7 +104,13 @@ export function WordCardDetails({
             <div
               className={`discover-card__examples min-h-0 flex-1 overflow-hidden${chunksOnly ? " discover-card__examples--chunks-only" : ""}`}
             >
-              <WordLearningChunks word={word} compact />
+              <WordLearningChunks
+                word={word}
+                examples={examples}
+                wordType={wordType}
+                meaning={meaning}
+                compact
+              />
               {!chunksOnly ? (
                 <VocabExampleList
                   word={word}
