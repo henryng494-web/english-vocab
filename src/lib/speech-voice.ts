@@ -58,6 +58,9 @@ const AVOID_VOICE_PATTERNS: readonly RegExp[] = [
 let cachedVoice: SpeechSynthesisVoice | null | undefined;
 let voicesReady: Promise<SpeechSynthesisVoice | null> | null = null;
 
+/** Keep utterance alive — iOS Safari may drop speech if GC'd before playback. */
+let activeUtterance: SpeechSynthesisUtterance | null = null;
+
 export function isAppleWebKit(): boolean {
   if (typeof navigator === "undefined") return false;
   return /iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent) &&
@@ -206,6 +209,17 @@ export function getSpeechVoiceSync(): SpeechSynthesisVoice | null {
   return picked;
 }
 
+/**
+ * Call synchronously inside tap/click — iOS Safari loads voices and un-pauses
+ * speechSynthesis only during a user gesture.
+ */
+export function primeSpeechSynthesisInGesture(): void {
+  if (typeof window === "undefined" || !window.speechSynthesis) return;
+  const synth = window.speechSynthesis;
+  synth.resume();
+  getSpeechVoiceSync();
+}
+
 export function applyNaturalSpeechSettings(
   utterance: SpeechSynthesisUtterance,
   voice: SpeechSynthesisVoice | null,
@@ -215,4 +229,21 @@ export function applyNaturalSpeechSettings(
   utterance.pitch = isAppleWebKit() ? 1.12 : 1.08;
   utterance.volume = 1;
   if (voice) utterance.voice = voice;
+}
+
+export function speakUtteranceInGesture(
+  utterance: SpeechSynthesisUtterance,
+): void {
+  if (typeof window === "undefined" || !window.speechSynthesis) return;
+  const synth = window.speechSynthesis;
+
+  activeUtterance = utterance;
+  utterance.onend = () => {
+    if (activeUtterance === utterance) activeUtterance = null;
+  };
+  utterance.onerror = () => {
+    if (activeUtterance === utterance) activeUtterance = null;
+  };
+
+  synth.speak(utterance);
 }

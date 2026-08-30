@@ -1,6 +1,6 @@
 "use client";
 
-import { speakEnglishText } from "@/lib/speak-word";
+import { speakEnglishText, unlockSpeechFromUserGesture } from "@/lib/speak-word";
 import { useCallback, useRef, useState } from "react";
 
 type SpeakButtonProps = {
@@ -44,6 +44,7 @@ export function SpeakButton({
   const [speaking, setSpeaking] = useState(false);
   const lastTapRef = useRef(0);
   const pointerHandledRef = useRef(false);
+  const touchHandledRef = useRef(false);
 
   const speak = useCallback(() => {
     if (!text) return;
@@ -51,14 +52,25 @@ export function SpeakButton({
     if (now - lastTapRef.current < 400) return;
     lastTapRef.current = now;
 
+    unlockSpeechFromUserGesture();
     speakEnglishText(text, { force: true });
     setSpeaking(true);
     window.setTimeout(() => setSpeaking(false), 900);
   }, [text]);
 
+  const handleTouchStart = useCallback(
+    (e: React.TouchEvent<HTMLButtonElement>) => {
+      e.stopPropagation();
+      touchHandledRef.current = true;
+      speak();
+    },
+    [speak],
+  );
+
   const handlePointerDown = useCallback(
     (e: React.PointerEvent<HTMLButtonElement>) => {
       e.stopPropagation();
+      if (e.pointerType === "touch") return;
       if (e.pointerType === "mouse" && e.button !== 0) return;
       pointerHandledRef.current = true;
       speak();
@@ -69,6 +81,10 @@ export function SpeakButton({
   const handleClick = useCallback(
     (e: React.MouseEvent<HTMLButtonElement>) => {
       e.stopPropagation();
+      if (touchHandledRef.current) {
+        touchHandledRef.current = false;
+        return;
+      }
       if (pointerHandledRef.current) {
         pointerHandledRef.current = false;
         return;
@@ -89,6 +105,7 @@ export function SpeakButton({
   return (
     <button
       type="button"
+      onTouchStart={handleTouchStart}
       onPointerDown={handlePointerDown}
       onClick={handleClick}
       disabled={speaking}

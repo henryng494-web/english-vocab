@@ -4,10 +4,13 @@ import {
   getCachedSpeechVoice,
   getSpeechVoiceSync,
   isAppleWebKit,
+  primeSpeechSynthesisInGesture,
+  speakUtteranceInGesture,
 } from "@/lib/speech-voice";
 import {
   getCachedWordAudioUrl,
   playWordAudioUrl,
+  playWordAudioUrlSync,
   resolveWordAudioUrl,
   stopWordAudio,
 } from "@/lib/word-pronunciation-audio";
@@ -16,15 +19,43 @@ let lastSpoken: { text: string; at: number } | null = null;
 let speakRequestId = 0;
 
 const DEDUPE_MS = 1800;
+const SPEECH_UNLOCK_KEY = "ev-speech-unlocked";
+
+let speechUnlocked = false;
+
+function readSpeechUnlockedFromStorage(): boolean {
+  if (typeof sessionStorage === "undefined") return false;
+  return sessionStorage.getItem(SPEECH_UNLOCK_KEY) === "1";
+}
+
+/** iOS/Safari block auto-play until the user has tapped once this session. */
+export function isSpeechUnlocked(): boolean {
+  if (!isAppleWebKit()) return true;
+  return speechUnlocked || readSpeechUnlockedFromStorage();
+}
+
+/** Call from tap/click handlers before speaking or enabling auto-speak. */
+export function unlockSpeechFromUserGesture(): void {
+  if (typeof window === "undefined") return;
+  speechUnlocked = true;
+  try {
+    sessionStorage.setItem(SPEECH_UNLOCK_KEY, "1");
+  } catch {
+    /* private mode */
+  }
+  primeSpeechSynthesisInGesture();
+}
 
 function speakWithVoice(text: string, voice: SpeechSynthesisVoice | null): void {
   const synth = window.speechSynthesis;
   if (!synth) return;
-  if (synth.paused) synth.resume();
+
+  primeSpeechSynthesisInGesture();
+  if (synth.speaking || synth.pending) synth.cancel();
 
   const utterance = new SpeechSynthesisUtterance(text);
-  applyNaturalSpeechSettings(utterance, voice);
-  synth.speak(utterance);
+  applyNaturalSpeechSettings(utterance, voice ?? getSpeechVoiceSync());
+  speakUtteranceInGesture(utterance);
 }
 
 /**
@@ -36,9 +67,16 @@ export function speakEnglishTextSync(text: string): void {
   const synth = window.speechSynthesis;
   if (!synth) return;
 
-  synth.cancel();
   stopWordAudio();
   speakWithVoice(text.trim(), getSpeechVoiceSync());
+}
+
+function trySpeakCachedAudioInGesture(text: string): boolean {
+  const cachedAudio = getCachedWordAudioUrl(text);
+  if (!cachedAudio) return false;
+  stopWordAudio();
+  if (typeof window !== "undefined") window.speechSynthesis?.cancel();
+  return playWordAudioUrlSync(cachedAudio);
 }
 
 function claimSpeak(text: string, force: boolean): string | null {
@@ -57,7 +95,6 @@ function claimSpeak(text: string, force: boolean): string | null {
 
   lastSpoken = { text: key, at: now };
   speakRequestId += 1;
-  stopWordAudio();
   return trimmed;
 }
 
@@ -72,14 +109,14 @@ async function speakWithBestAvailableVoice(
     requestId === speakRequestId && lastSpoken?.text === key;
 
   const cachedAudio = getCachedWordAudioUrl(text);
-  if (cachedAudio && !isAppleWebKit()) {
+  if (cachedAudio) {
     if (!stillCurrent()) return;
     if (await playWordAudioUrl(cachedAudio)) return;
   }
 
   const audioUrl = await resolveWordAudioUrl(text);
   if (!stillCurrent()) return;
-  if (audioUrl && !isAppleWebKit() && (await playWordAudioUrl(audioUrl))) return;
+  if (audioUrl && (await playWordAudioUrl(audioUrl))) return;
 
   if (options?.skipTtsFallback || !stillCurrent()) return;
 
@@ -99,13 +136,18 @@ export function speakEnglishTextAuto(text: string): void {
   const trimmed = claimSpeak(text, false);
   if (!trimmed) return;
 
+  if (isAppleWebKit() && !isSpeechUnlocked()) return;
+
   const requestId = speakRequestId;
 
   if (isAppleWebKit()) {
+    if (trySpeakCachedAudioInGesture(trimmed)) return;
     speakEnglishTextSync(trimmed);
+    void resolveWordAudioUrl(trimmed);
     return;
   }
 
+  stopWordAudio();
   window.speechSynthesis?.cancel();
   void speakWithBestAvailableVoice(trimmed, requestId);
 }
@@ -118,10 +160,17 @@ export function speakEnglishText(
   const trimmed = claimSpeak(text, Boolean(options?.force));
   if (!trimmed) return;
 
+  unlockSpeechFromUserGesture();
+
   const requestId = speakRequestId;
 
   if (options?.force) {
+    if (trySpeakCachedAudioInGesture(trimmed)) {
+      void resolveWordAudioUrl(trimmed);
+      return;
+    }
     speakEnglishTextSync(trimmed);
+    void resolveWordAudioUrl(trimmed);
     if (!isAppleWebKit()) {
       void speakWithBestAvailableVoice(trimmed, requestId, {
         skipTtsFallback: true,
@@ -131,10 +180,13 @@ export function speakEnglishText(
   }
 
   if (isAppleWebKit()) {
+    if (trySpeakCachedAudioInGesture(trimmed)) return;
     speakEnglishTextSync(trimmed);
+    void resolveWordAudioUrl(trimmed);
     return;
   }
 
+  stopWordAudio();
   window.speechSynthesis?.cancel();
   void speakWithBestAvailableVoice(trimmed, requestId);
 }

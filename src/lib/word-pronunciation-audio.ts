@@ -62,7 +62,15 @@ export function stopWordAudio(): void {
 
 /** Play human dictionary audio when available. Returns true if playback started. */
 export async function playWordAudioUrl(url: string): Promise<boolean> {
-  if (typeof window === "undefined") return false;
+  return playWordAudioUrlSync(url);
+}
+
+/**
+ * Start MP3 playback synchronously inside a tap handler (required on iOS Safari).
+ * Do not await — call directly from pointerdown/touchstart.
+ */
+export function playWordAudioUrlSync(url: string): boolean {
+  if (typeof window === "undefined" || !url.trim()) return false;
 
   stopWordAudio();
 
@@ -71,11 +79,11 @@ export async function playWordAudioUrl(url: string): Promise<boolean> {
   audio.playbackRate = 1.04;
   currentAudio = audio;
 
-  try {
-    await audio.play();
-    return true;
-  } catch {
-    if (currentAudio === audio) currentAudio = null;
-    return false;
+  const playPromise = audio.play();
+  if (playPromise && typeof playPromise.catch === "function") {
+    playPromise.catch(() => {
+      if (currentAudio === audio) currentAudio = null;
+    });
   }
+  return true;
 }
