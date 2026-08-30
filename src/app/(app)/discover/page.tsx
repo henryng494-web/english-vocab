@@ -51,6 +51,7 @@ import { seedWordImageCacheFromEntries } from "@/lib/word-image-cache";
 import { readOnboarding, shouldShowOnboarding } from "@/lib/onboarding";
 import { countDueReviewWords } from "@/lib/review-schedule";
 import { OnboardingModal } from "@/components/onboarding/OnboardingModal";
+import { useI18n } from "@/hooks/use-i18n";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -74,6 +75,7 @@ function listItemImageTarget(item: DiscoverListItem): WordImagePrefetchTarget {
 export default function DiscoverPage() {
   const pathname = usePathname();
   const router = useRouter();
+  const { t } = useI18n();
   const { ranges: bootstrapRanges, wordCache: bootstrapWordCache, patchRangeAfterSave } =
     useAppBootstrap();
   const inSession = pathname.startsWith("/journey");
@@ -540,12 +542,12 @@ export default function DiscoverPage() {
     return (
       <div className="app-screen app-screen--home">
         <AppHeader
-          title="Trang chủ"
+          title={t("home.title")}
           hideTitle
           leading={
             <div className="app-header__actions">
               <AppMenuButton />
-              <Link href="/search" className="app-header__icon-btn" aria-label="Tìm từ">
+              <Link href="/search" className="app-header__icon-btn" aria-label={t("home.searchAria")}>
                 🔍
               </Link>
               <CoinBadge value={wordsKnown + wordsReviewing} />
@@ -594,12 +596,12 @@ export default function DiscoverPage() {
   return (
     <div className="app-screen app-screen--journey">
       <AppHeader
-        title="Hành trình"
+        title={t("journey.title")}
         leading={
           <button
             type="button"
             className="app-header__icon-btn"
-            aria-label="Về trang chủ"
+            aria-label={t("journey.backHome")}
             onClick={() => router.push("/discover")}
           >
             ←
@@ -609,7 +611,7 @@ export default function DiscoverPage() {
           <HeaderSelect
             value={rangeId}
             onChange={setRangeId}
-            aria-label="Chọn cấp từ"
+            aria-label={t("journey.selectBand")}
             options={WORD_RANGES.map((range) => ({
               id: range.id,
               label: range.compactLabel,
@@ -620,7 +622,7 @@ export default function DiscoverPage() {
 
       <div className="journey-panel px-4">
         <p className="journey-note">
-          {stats.hidden} từ đã biết hoặc đang ôn trong cấp {rangeCompact}
+          {t("journey.hiddenWords", { count: stats.hidden, band: rangeCompact })}
         </p>
 
         {error && (
@@ -638,9 +640,7 @@ export default function DiscoverPage() {
             <JungleMascot character="crocodile" size={72} className="mb-3" />
             <div className="w-full">
               <p className="text-foreground/80">
-                {allRangesFinished
-                  ? "Bạn đã hoàn thành mọi cấp từ. Từ đã học hoặc đánh dấu đã biết sẽ không hiện lại ở đây."
-                  : "Bạn đã xong cấp này. Đang chuyển sang cấp gần nhất còn từ mới…"}
+                {allRangesFinished ? t("journey.allFinished") : t("journey.rangeFinished")}
               </p>
               {allRangesFinished && (
                 <button
@@ -648,7 +648,7 @@ export default function DiscoverPage() {
                   onClick={() => router.push("/discover")}
                   className="btn-pill-primary mt-4 px-6 py-3"
                 >
-                  Về trang chủ
+                  {t("journey.backHomeBtn")}
                 </button>
               )}
             </div>
@@ -668,14 +668,14 @@ export default function DiscoverPage() {
                 onClick={() => updateStatus("new")}
                 className="btn-pill-primary w-full"
               >
-                Học từ này
+                {t("journey.learnThis")}
               </button>
               <button
                 type="button"
                 onClick={() => updateStatus("mastered")}
                 className="btn-pill-outline-secondary w-full"
               >
-                Đã biết rồi
+                {t("journey.alreadyKnow")}
               </button>
             </div>
           </div>

@@ -2,11 +2,8 @@
 
 import { JungleMascot, JungleCastPill } from "@/components/mascot/JungleMascot";
 import { DEFAULT_BOOTSTRAP_RANGE } from "@/lib/app-bootstrap";
-import {
-  DAILY_GOAL_LABELS,
-  DAILY_GOAL_OPTIONS,
-  type DailyGoalMinutes,
-} from "@/lib/app-settings";
+import { DAILY_GOAL_OPTIONS, type DailyGoalMinutes } from "@/lib/app-settings";
+import { useI18n } from "@/hooks/use-i18n";
 import { displayFontClass } from "@/lib/fonts";
 import { completeOnboarding } from "@/lib/onboarding";
 import { WORD_RANGES } from "@/data/word-ranges";
@@ -20,6 +17,7 @@ const STEPS = ["band", "goal", "how"] as const;
 type Step = (typeof STEPS)[number];
 
 export function OnboardingModal({ onComplete }: OnboardingModalProps) {
+  const { t, dailyGoalLabel } = useI18n();
   const [step, setStep] = useState<Step>("band");
   const [rangeId, setRangeId] = useState(DEFAULT_BOOTSTRAP_RANGE);
   const [dailyGoalMinutes, setDailyGoalMinutes] = useState<DailyGoalMinutes>(20);
@@ -32,7 +30,7 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
   }, [dailyGoalMinutes, onComplete, rangeId]);
 
   return (
-    <div className="onboarding" role="dialog" aria-modal="true" aria-label="Giới thiệu app">
+    <div className="onboarding" role="dialog" aria-modal="true" aria-label={t("onboarding.aria")}>
       <div className="onboarding__panel">
         <div className="onboarding__progress" aria-hidden>
           {STEPS.map((item, index) => (
@@ -50,11 +48,9 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
               <JungleMascot character="tiger" size={80} className="mt-3" />
             </div>
             <h2 className={`onboarding__title ${displayFontClass}`}>
-              Chọn cấp từ bạn muốn học
+              {t("onboarding.pickBand")}
             </h2>
-            <p className="onboarding__body">
-              Bắt đầu từ từ phổ biến nhất (Rank 1–100) hoặc chọn band phù hợp trình độ.
-            </p>
+            <p className="onboarding__body">{t("onboarding.pickBandDesc")}</p>
             <div className="onboarding__chips">
               {WORD_RANGES.map((range) => (
                 <button
@@ -68,7 +64,7 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
               ))}
             </div>
             <button type="button" className="btn-pill-primary onboarding__cta" onClick={() => setStep("goal")}>
-              Tiếp theo
+              {t("onboarding.next")}
             </button>
           </>
         ) : null}
@@ -79,11 +75,9 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
               <JungleMascot character="crocodile" size={80} />
             </div>
             <h2 className={`onboarding__title ${displayFontClass}`}>
-              Mục tiêu học mỗi ngày
+              {t("onboarding.dailyGoal")}
             </h2>
-            <p className="onboarding__body">
-              Chọn thời gian bạn muốn dành cho tiếng Anh mỗi ngày — có thể đổi sau trong Menu.
-            </p>
+            <p className="onboarding__body">{t("onboarding.dailyGoalDesc")}</p>
             <div className="onboarding__chips">
               {DAILY_GOAL_OPTIONS.map((minutes) => (
                 <button
@@ -94,16 +88,16 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
                   }`}
                   onClick={() => setDailyGoalMinutes(minutes)}
                 >
-                  {DAILY_GOAL_LABELS[minutes]}
+                  {dailyGoalLabel(minutes)}
                 </button>
               ))}
             </div>
             <div className="onboarding__nav">
               <button type="button" className="btn-pill-outline-secondary onboarding__back" onClick={() => setStep("band")}>
-                Quay lại
+                {t("onboarding.back")}
               </button>
               <button type="button" className="btn-pill-primary onboarding__cta" onClick={() => setStep("how")}>
-                Tiếp theo
+                {t("onboarding.next")}
               </button>
             </div>
           </>
@@ -115,28 +109,24 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
               <JungleMascot character="elephant" size={80} />
             </div>
             <h2 className={`onboarding__title ${displayFontClass}`}>
-              Cách học trên Hành trình
+              {t("onboarding.howTitle")}
             </h2>
             <div className="onboarding__tips">
               <div className="onboarding__tip home-card border-primary-200 bg-primary-50/40">
-                <p className="onboarding__tip-label text-primary-800">Học từ này</p>
-                <p className="onboarding__body mt-1">
-                  Thêm từ vào danh sách <strong>Đang ôn</strong> — app sẽ nhắc bạn ôn theo lịch.
-                </p>
+                <p className="onboarding__tip-label text-primary-800">{t("onboarding.learnThis")}</p>
+                <p className="onboarding__body mt-1">{t("onboarding.learnThisDesc")}</p>
               </div>
               <div className="onboarding__tip home-card border-secondary-200 bg-secondary-50/40">
-                <p className="onboarding__tip-label text-secondary-800">Đã biết rồi</p>
-                <p className="onboarding__body mt-1">
-                  Bỏ qua từ bạn đã thuộc — lưu vào <strong>Đã biết</strong>, không cần ôn lại.
-                </p>
+                <p className="onboarding__tip-label text-secondary-800">{t("onboarding.alreadyKnow")}</p>
+                <p className="onboarding__body mt-1">{t("onboarding.alreadyKnowDesc")}</p>
               </div>
             </div>
             <div className="onboarding__nav">
               <button type="button" className="btn-pill-outline-secondary onboarding__back" onClick={() => setStep("goal")}>
-                Quay lại
+                {t("onboarding.back")}
               </button>
               <button type="button" className="btn-pill-primary onboarding__cta" onClick={finish}>
-                Bắt đầu học
+                {t("onboarding.start")}
               </button>
             </div>
           </>

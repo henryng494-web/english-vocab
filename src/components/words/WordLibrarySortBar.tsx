@@ -1,6 +1,7 @@
 "use client";
 
 import type { WordLibrarySort } from "@/lib/learning-storage";
+import { useI18n } from "@/hooks/use-i18n";
 import { displayFontClass } from "@/lib/fonts";
 
 type WordLibrarySortBarProps = {
@@ -9,27 +10,28 @@ type WordLibrarySortBarProps = {
   onSortChange: (sort: WordLibrarySort) => void;
 };
 
-const SORT_OPTIONS: Array<{ value: WordLibrarySort; label: string }> = [
-  { value: "rank", label: "Rank" },
-  { value: "recent", label: "Recently added" },
-];
-
 export function WordLibrarySortBar({
   count,
   sort,
   onSortChange,
 }: WordLibrarySortBarProps) {
+  const { t } = useI18n();
+  const sortOptions: Array<{ value: WordLibrarySort; label: string }> = [
+    { value: "rank", label: t("library.sortRank") },
+    { value: "recent", label: t("library.sortRecent") },
+  ];
+
   return (
     <div className="word-library__toolbar">
       <p className={`word-library__count ${displayFontClass}`}>
-        {count} {count === 1 ? "word" : "words"}
+        {t("library.wordCount", { count })}
       </p>
       <div
         className="mobile-segment word-library__sort"
         role="group"
-        aria-label="Sort words"
+        aria-label={t("library.sortAria")}
       >
-        {SORT_OPTIONS.map((option) => (
+        {sortOptions.map((option) => (
           <button
             key={option.value}
             type="button"

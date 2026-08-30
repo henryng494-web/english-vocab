@@ -4,6 +4,7 @@ import { SpeakButton } from "@/components/flashcard/SpeakButton";
 import { useAutoSpeakWord } from "@/hooks/use-auto-speak-word";
 import { ReviewWordImage } from "@/components/review/ReviewWordImage";
 import { displayFontClass } from "@/lib/fonts";
+import { useI18n } from "@/hooks/use-i18n";
 import { capitalizeFirst } from "@/lib/format-text";
 import type { ReviewChoice } from "@/lib/review-quiz";
 
@@ -29,6 +30,7 @@ export function ReviewSenseQuestion({
   onUnsure,
 }: ReviewSenseQuestionProps) {
   useAutoSpeakWord(word);
+  const { t } = useI18n();
   const correct = correctWord.trim().toLowerCase();
 
   return (
@@ -87,7 +89,7 @@ export function ReviewSenseQuestion({
           disabled={locked}
           onClick={onUnsure}
         >
-          Not Sure?
+          {t("review.notSure")}
         </button>
       </div>
     </div>

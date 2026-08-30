@@ -6,11 +6,9 @@ import {
   VocabWordCard,
   vocabWordToDiscoverData,
 } from "@/components/discover/VocabWordCard";
+import { useI18n } from "@/hooks/use-i18n";
 import {
   REVIEW_INTERVALS,
-  REVIEW_MASTERED_LABEL,
-  formatReviewConfirmLabel,
-  formatReviewInLabel,
   intervalLevelIndex,
   type ReviewIntervalDays,
 } from "@/lib/review-schedule";
@@ -43,15 +41,16 @@ export function ReviewReveal({
   onConfirm,
   confirming,
 }: ReviewRevealProps) {
+  const {
+    t,
+    reviewTimesLabel,
+    reviewInLabel,
+    reviewConfirmLabel,
+  } = useI18n();
   const filled = markMastered
     ? REVIEW_INTERVALS.length
     : intervalLevelIndex(intervalDays) + 1;
-  const timesLabel =
-    timesReviewed <= 0
-      ? "Not yet"
-      : timesReviewed === 1
-        ? "Once so far"
-        : `${timesReviewed} times so far`;
+  const timesLabel = reviewTimesLabel(timesReviewed);
   const [open, setOpen] = useState(false);
   const [menuBox, setMenuBox] = useState<{ bottom: number; right: number } | null>(
     null,
@@ -126,13 +125,13 @@ export function ReviewReveal({
             disabled={confirming}
             onClick={onConfirm}
           >
-            {formatReviewConfirmLabel(intervalDays, markMastered)}
+            {reviewConfirmLabel(intervalDays, markMastered)}
           </button>
           <button
             ref={btnRef}
             type="button"
             className="review-schedule__chevron"
-            aria-label="Choose review interval"
+            aria-label={t("review.chooseInterval")}
             aria-haspopup="listbox"
             aria-expanded={open}
             aria-controls={listId}
@@ -168,7 +167,7 @@ export function ReviewReveal({
                       setOpen(false);
                     }}
                   >
-                    {formatReviewInLabel(days)}
+                    {reviewInLabel(days)}
                   </button>
                 </li>
               ))}
@@ -186,7 +185,7 @@ export function ReviewReveal({
                     setOpen(false);
                   }}
                 >
-                  {REVIEW_MASTERED_LABEL}
+                  {t("review.alreadyKnow")}
                 </button>
               </li>
             </ul>,

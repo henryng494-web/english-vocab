@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { countDueReviewWords } from "@/lib/review-schedule";
+import { useI18n } from "@/hooks/use-i18n";
 
 type TabItem = {
   href: string;
@@ -83,6 +84,7 @@ function LibraryIcon({ active }: { active: boolean }) {
 export function BottomTabBar() {
   const pathname = usePathname();
   const [dueCount, setDueCount] = useState(0);
+  const { t } = useI18n();
 
   useEffect(() => {
     let cancelled = false;
@@ -117,7 +119,7 @@ export function BottomTabBar() {
   const tabs: TabItem[] = [
     {
       href: "/discover",
-      label: "Trang chủ",
+      label: t("tab.home"),
       match: (path) =>
         path.startsWith("/discover") ||
         path.startsWith("/search") ||
@@ -126,20 +128,20 @@ export function BottomTabBar() {
     },
     {
       href: "/journey",
-      label: "Hành trình",
+      label: t("tab.journey"),
       match: (path) => path.startsWith("/journey"),
       icon: (active) => <JourneyIcon active={active} />,
     },
     {
       href: "/learn",
-      label: "Ôn tập",
+      label: t("tab.review"),
       match: (path) => path.startsWith("/learn"),
       icon: (active) => <LearnIcon active={active} />,
       showBadge: true,
     },
     {
       href: "/words",
-      label: "Thư viện",
+      label: t("tab.library"),
       match: (path) => path.startsWith("/words"),
       icon: (active) => <LibraryIcon active={active} />,
     },
@@ -187,7 +189,7 @@ export function BottomTabBar() {
                   {tab.showBadge && dueCount > 0 ? (
                     <span
                       className="tab-bar-badge"
-                      aria-label={`${dueCount} từ cần ôn hôm nay`}
+                      aria-label={t("tab.dueAria", { count: dueCount })}
                     >
                       {dueCount > 99 ? "99+" : dueCount}
                     </span>

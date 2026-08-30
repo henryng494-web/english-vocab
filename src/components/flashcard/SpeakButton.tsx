@@ -2,6 +2,7 @@
 
 import { speakEnglishText, unlockSpeechFromUserGesture } from "@/lib/speak-word";
 import { useCallback, useRef } from "react";
+import { useI18n } from "@/hooks/use-i18n";
 
 type SpeakButtonProps = {
   text: string;
@@ -40,6 +41,7 @@ export function SpeakButton({
   iconOnly = false,
   className = "",
 }: SpeakButtonProps) {
+  const { t } = useI18n();
   const touchHandledRef = useRef(false);
 
   const speak = useCallback(() => {
@@ -85,10 +87,10 @@ export function SpeakButton({
       onTouchEnd={handleTouchEnd}
       onClick={handleClick}
       className={`${toneClass} ${className}`.trim()}
-      aria-label="Pronounce"
+      aria-label={t("speak.aria")}
     >
       <SpeakerIcon className={iconOnly ? "h-4 w-4" : "h-5 w-5"} />
-      {!iconOnly && "Pronounce"}
+      {!iconOnly && t("speak.pronounce")}
     </button>
   );
 }

@@ -1,11 +1,12 @@
 "use client";
 
 import {
-  DAILY_GOAL_LABELS,
   DAILY_GOAL_OPTIONS,
   type DailyGoalMinutes,
 } from "@/lib/app-settings";
+import { APP_LOCALES } from "@/lib/i18n/messages";
 import { useAppSettings } from "@/context/AppSettingsContext";
+import { useI18n } from "@/hooks/use-i18n";
 import { displayFontClass } from "@/lib/fonts";
 import Link from "next/link";
 import { useEffect, useId } from "react";
@@ -57,7 +58,10 @@ export function AppMenuDrawer({ open, onClose }: AppMenuDrawerProps) {
     setReminderEnabled,
     reminderTime,
     setReminderTime,
+    appLanguage,
+    setAppLanguage,
   } = useAppSettings();
+  const { t, dailyGoalLabel } = useI18n();
 
   useEffect(() => {
     if (!open) return;
@@ -82,31 +86,48 @@ export function AppMenuDrawer({ open, onClose }: AppMenuDrawerProps) {
       <button
         type="button"
         className="app-menu__backdrop"
-        aria-label="Close menu"
+        aria-label={t("menu.close")}
         onClick={onClose}
       />
-      <aside className="app-menu__panel" role="dialog" aria-modal="true" aria-label="Menu">
+      <aside className="app-menu__panel" role="dialog" aria-modal="true" aria-label={t("menu.title")}>
         <div className="app-menu__header">
-          <h2 className={`app-menu__title ${displayFontClass}`}>Menu</h2>
-          <button type="button" className="app-menu__close" onClick={onClose} aria-label="Close">
+          <h2 className={`app-menu__title ${displayFontClass}`}>{t("menu.title")}</h2>
+          <button type="button" className="app-menu__close" onClick={onClose} aria-label={t("menu.close")}>
             ✕
           </button>
         </div>
 
         <div className="app-menu__body">
           <section className="app-menu__section">
-            <h3 className="app-menu__section-title">Learning</h3>
+            <h3 className="app-menu__section-title">{t("menu.language")}</h3>
+            <p className="app-menu__hint">{t("menu.languageHint")}</p>
+            <div className="app-menu__chips">
+              {APP_LOCALES.map((locale) => (
+                <button
+                  key={locale}
+                  type="button"
+                  className={`app-menu__chip${appLanguage === locale ? " is-active" : ""}`}
+                  onClick={() => setAppLanguage(locale)}
+                >
+                  {locale === "vi" ? t("menu.langVi") : t("menu.langEn")}
+                </button>
+              ))}
+            </div>
+          </section>
+
+          <section className="app-menu__section">
+            <h3 className="app-menu__section-title">{t("menu.learning")}</h3>
             <ToggleRow
-              label="Auto-pronounce"
-              description="Speak each new word automatically"
+              label={t("menu.autoSpeak")}
+              description={t("menu.autoSpeakDesc")}
               checked={autoSpeakEnabled}
               onChange={setAutoSpeakEnabled}
             />
           </section>
 
           <section className="app-menu__section">
-            <h3 className="app-menu__section-title">Daily study goal</h3>
-            <p className="app-menu__hint">How long do you want to study each day?</p>
+            <h3 className="app-menu__section-title">{t("menu.dailyGoal")}</h3>
+            <p className="app-menu__hint">{t("menu.dailyGoalHint")}</p>
             <div className="app-menu__chips">
               {goalRowOne.map((minutes) => (
                 <button
@@ -117,7 +138,7 @@ export function AppMenuDrawer({ open, onClose }: AppMenuDrawerProps) {
                   }`}
                   onClick={() => setDailyGoalMinutes(minutes as DailyGoalMinutes)}
                 >
-                  {DAILY_GOAL_LABELS[minutes]}
+                  {dailyGoalLabel(minutes as DailyGoalMinutes)}
                 </button>
               ))}
             </div>
@@ -131,22 +152,22 @@ export function AppMenuDrawer({ open, onClose }: AppMenuDrawerProps) {
                   }`}
                   onClick={() => setDailyGoalMinutes(minutes as DailyGoalMinutes)}
                 >
-                  {DAILY_GOAL_LABELS[minutes]}
+                  {dailyGoalLabel(minutes as DailyGoalMinutes)}
                 </button>
               ))}
             </div>
           </section>
 
           <section className="app-menu__section">
-            <h3 className="app-menu__section-title">Study reminder</h3>
+            <h3 className="app-menu__section-title">{t("menu.reminder")}</h3>
             <ToggleRow
-              label="Daily reminder"
-              description="Browser notification at your chosen time"
+              label={t("menu.reminder")}
+              description={t("menu.reminderDesc")}
               checked={reminderEnabled}
               onChange={setReminderEnabled}
             />
             <label className="app-menu__time-field">
-              <span className="app-menu__time-label">Reminder time</span>
+              <span className="app-menu__time-label">{t("menu.reminderTime")}</span>
               <input
                 type="time"
                 className="app-menu__time-input"
@@ -158,28 +179,28 @@ export function AppMenuDrawer({ open, onClose }: AppMenuDrawerProps) {
           </section>
 
           <section className="app-menu__section">
-            <h3 className="app-menu__section-title">Tài khoản</h3>
+            <h3 className="app-menu__section-title">{t("menu.account")}</h3>
             <nav className="app-menu__links">
               <Link href="/account" className="app-menu__link" onClick={onClose}>
-                Tài khoản & đăng nhập
+                {t("menu.accountLink")}
               </Link>
             </nav>
           </section>
 
           <section className="app-menu__section">
-            <h3 className="app-menu__section-title">Hỗ trợ</h3>
+            <h3 className="app-menu__section-title">{t("menu.support")}</h3>
             <nav className="app-menu__links">
               <Link href="/settings/bug-report" className="app-menu__link" onClick={onClose}>
-                Báo lỗi
+                {t("menu.bugReport")}
               </Link>
               <Link href="/about" className="app-menu__link" onClick={onClose}>
-                Giới thiệu
+                {t("menu.about")}
               </Link>
               <Link href="/privacy" className="app-menu__link" onClick={onClose}>
-                Chính sách bảo mật
+                {t("menu.privacy")}
               </Link>
               <Link href="/terms" className="app-menu__link" onClick={onClose}>
-                Điều khoản sử dụng
+                {t("menu.terms")}
               </Link>
             </nav>
           </section>

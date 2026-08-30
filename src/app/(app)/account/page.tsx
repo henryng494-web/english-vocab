@@ -3,17 +3,20 @@
 import { AppHeader } from "@/components/layout/AppHeader";
 import { InstallAppHint } from "@/components/layout/InstallAppHint";
 import { JungleMascot, JungleCastPill } from "@/components/mascot/JungleMascot";
+import { useI18n } from "@/hooks/use-i18n";
 import { displayFontClass } from "@/lib/fonts";
 import { LAYOUT_VERSION } from "@/lib/layout-version";
 import Link from "next/link";
 
 export default function AccountPage() {
+  const { t } = useI18n();
+
   return (
     <div className="app-screen app-screen--home">
       <AppHeader
-        title="Account"
+        title={t("account.title")}
         leading={
-          <Link href="/discover" className="app-header__icon-btn" aria-label="Về trang chủ">
+          <Link href="/discover" className="app-header__icon-btn" aria-label={t("account.backHome")}>
             ←
           </Link>
         }
@@ -37,15 +40,13 @@ export default function AccountPage() {
           <InstallAppHint />
 
           <section className="home-card border-primary-200 bg-card">
-            <h2 className={`home-section-title ${displayFontClass}`}>Sign in</h2>
-            <p className="home-body-text mt-1">
-              Save learning progress to Supabase when you are signed in.
-            </p>
+            <h2 className={`home-section-title ${displayFontClass}`}>{t("account.signIn")}</h2>
+            <p className="home-body-text mt-1">{t("account.signInDesc")}</p>
             <Link
               href="/auth/login"
               className="btn-pill-primary mt-3 inline-flex px-5 py-3"
             >
-              Go to sign in
+              {t("account.signInBtn")}
             </Link>
           </section>
 

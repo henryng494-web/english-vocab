@@ -1,5 +1,6 @@
 "use client";
 
+import type { AppLocale } from "@/lib/i18n/messages";
 import {
   getDefaultAppSettings,
   patchAppSettings,
@@ -21,6 +22,7 @@ type AppSettingsContextValue = AppSettings & {
   setDailyGoalMinutes: (minutes: DailyGoalMinutes) => void;
   setReminderEnabled: (enabled: boolean) => void;
   setReminderTime: (time: string) => void;
+  setAppLanguage: (language: AppLocale) => void;
   refresh: () => void;
 };
 
@@ -55,6 +57,8 @@ export function AppSettingsProvider({ children }: { children: React.ReactNode })
         setSettings(patchAppSettings({ reminderEnabled: enabled })),
       setReminderTime: (time) =>
         setSettings(patchAppSettings({ reminderTime: time })),
+      setAppLanguage: (language) =>
+        setSettings(patchAppSettings({ appLanguage: language })),
       refresh,
     }),
     [settings, refresh],

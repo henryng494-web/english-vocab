@@ -1,5 +1,6 @@
 "use client";
 
+import { AppLocaleSync } from "@/components/layout/AppLocaleSync";
 import { BottomTabBar } from "@/components/layout/BottomTabBar";
 import { StudyReminderScheduler } from "@/components/layout/StudyReminderScheduler";
 import { StudyTimeTracker } from "@/components/layout/StudyTimeTracker";
@@ -36,6 +37,7 @@ function MobileShellInner({ children }: { children: React.ReactNode }) {
 export function MobileShell({ children }: { children: React.ReactNode }) {
   return (
     <AppSettingsProvider>
+      <AppLocaleSync />
       <AppMenuProvider>
         <AppBootstrapProvider>
           <MobileShellInner>{children}</MobileShellInner>
