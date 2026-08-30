@@ -8,33 +8,21 @@ import {
 } from "@/data/demo-learning-chunks";
 import { capitalizeFirst } from "@/lib/format-text";
 import { getLearningChunks } from "@/lib/learning-chunks";
-import { alignmentMeaningLines } from "@/lib/word-meanings";
 
 type WordLearningChunksProps = {
   word: string;
-  meaning?: string | null;
   compact?: boolean;
 };
 
-function PhraseList({
-  items,
-  meaningLines,
-}: {
-  items: LearningChunkPhrase[];
-  meaningLines: string[];
-}) {
-  const dualSense = meaningLines.length >= 2;
-
+function PhraseList({ items }: { items: LearningChunkPhrase[] }) {
   return (
     <ul className="vocab-examples vocab-examples--compact word-learning-chunks__examples">
       {items.map((item) => (
         <li key={`${item.sense ?? 0}-${item.en}`} className="vocab-examples__item">
-          {dualSense && item.sense ? (
-            <span className="word-learning-chunks__sense">
-              {meaningLines[item.sense - 1]}
-            </span>
-          ) : null}
           <p className="vocab-examples__en italic">{capitalizeFirst(item.en)}</p>
+          <p className="vocab-examples__vi mt-0.5 italic">
+            {capitalizeFirst(item.vi)}
+          </p>
         </li>
       ))}
     </ul>
@@ -43,14 +31,12 @@ function PhraseList({
 
 export function WordLearningChunks({
   word,
-  meaning,
   compact = false,
 }: WordLearningChunksProps) {
   const { t } = useI18n();
   const entry = getLearningChunks(word);
   if (!entry) return null;
 
-  const meaningLines = alignmentMeaningLines(meaning);
   const collocationItems = entry.collocations.slice(0, MAX_DEMO_COLLOCATIONS);
   const chunkItems = entry.chunks.slice(0, MAX_DEMO_CHUNKS);
   if (!collocationItems.length && !chunkItems.length) return null;
@@ -66,14 +52,14 @@ export function WordLearningChunks({
       {collocationItems.length > 0 ? (
         <section className="word-learning-chunks__section">
           <h3 className="word-learning-chunks__label">{t("chunks.collocations")}</h3>
-          <PhraseList items={collocationItems} meaningLines={meaningLines} />
+          <PhraseList items={collocationItems} />
         </section>
       ) : null}
 
       {chunkItems.length > 0 ? (
         <section className="word-learning-chunks__section">
           <h3 className="word-learning-chunks__label">{t("chunks.phrases")}</h3>
-          <PhraseList items={chunkItems} meaningLines={meaningLines} />
+          <PhraseList items={chunkItems} />
         </section>
       ) : null}
     </div>
