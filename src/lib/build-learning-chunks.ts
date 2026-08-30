@@ -169,6 +169,84 @@ function resolveSenseLine(
   return lines.find((line) => viTranslationMatchesGloss(sourceVi, line)) ?? lines[0]!;
 }
 
+function collocationGlossTerms(senseLine: string): string[] {
+  const terms = new Set<string>();
+  for (const term of glossAlignmentTerms(senseLine)) {
+    if (!term.includes(" ") && term.length < 4) continue;
+    terms.add(term);
+    if (term.startsWith("sự ")) {
+      terms.add(term.slice(3));
+    }
+  }
+  return [...terms].sort((a, b) => b.length - a.length);
+}
+
+function findTermSpan(
+  viWords: string[],
+  matchTerm: string,
+): { start: number; end: number } | null {
+  const termWords = matchTerm.split(/\s+/).filter(Boolean);
+  if (!termWords.length) return null;
+
+  for (let i = 0; i <= viWords.length - termWords.length; i++) {
+    let matched = true;
+    for (let j = 0; j < termWords.length; j++) {
+      const token = cleanViToken(viWords[i + j] ?? "").toLowerCase();
+      if (token !== termWords[j]!.toLowerCase()) {
+        matched = false;
+        break;
+      }
+    }
+    if (matched) return { start: i, end: i + termWords.length };
+  }
+
+  if (termWords.length === 1 && termWords[0]!.length >= 4) {
+    const idx = viWords.findIndex((word) =>
+      cleanViToken(word).toLowerCase().includes(termWords[0]!.toLowerCase()),
+    );
+    if (idx >= 0) return { start: idx, end: idx + 1 };
+  }
+
+  return null;
+}
+
+function isWeakViPhrase(phrase: string): boolean {
+  const words = phrase.split(/\s+/).filter(Boolean);
+  if (!words.length) return true;
+  if (words.length === 1 && cleanViToken(words[0] ?? "").length < 4) return true;
+  return false;
+}
+
+function findGlossSpanInVi(
+  viWords: string[],
+  senseLine: string,
+): { start: number; end: number; matchTerm: string } | null {
+  const viText = viWords.join(" ").toLowerCase();
+
+  for (const term of collocationGlossTerms(senseLine)) {
+    if (!viText.includes(term.toLowerCase())) continue;
+    const span = findTermSpan(viWords, term);
+    if (span) return { ...span, matchTerm: term };
+  }
+
+  for (const term of glossAlignmentTerms(senseLine)) {
+    const head = term.split(/\s+/)[0];
+    if (!head || head.length < 2) continue;
+    for (let i = 0; i < viWords.length - 1; i++) {
+      if (cleanViToken(viWords[i] ?? "").toLowerCase() !== head.toLowerCase()) {
+        continue;
+      }
+      return {
+        start: i,
+        end: i + 2,
+        matchTerm: `${head} ${cleanViToken(viWords[i + 1] ?? "")}`,
+      };
+    }
+  }
+
+  return null;
+}
+
 function extractViCollocationPhrase(
   sourceVi: string,
   meaning?: string | null,
@@ -180,37 +258,32 @@ function extractViCollocationPhrase(
   const senseLine = resolveSenseLine(vi, meaning, senseIndex);
   if (!senseLine) return "";
 
-  const terms = [...glossAlignmentTerms(senseLine)].sort(
-    (a, b) => b.length - a.length,
-  );
-  const viLower = vi.toLowerCase();
-
-  let matchTerm = "";
-  for (const term of terms) {
-    if (term.length < 2) continue;
-    if (viLower.includes(term.toLowerCase())) {
-      matchTerm = term;
-      break;
-    }
-  }
-  if (!matchTerm) return "";
-
   const viWords = vi.split(/\s+/);
-  const termStart = matchTerm.split(/\s+/)[0]!.toLowerCase();
-  const termWordIdx = viWords.findIndex((word) =>
-    cleanViToken(word).toLowerCase().includes(termStart),
-  );
-  if (termWordIdx < 0) return "";
+  const located = findGlossSpanInVi(viWords, senseLine);
+  if (!located) return "";
 
-  let start = termWordIdx;
+  let start = located.start;
   if (
     start > 0 &&
     VI_NOUN_PREFIX.test(cleanViToken(viWords[start - 1] ?? ""))
   ) {
     start--;
   }
+  if (start > 0 && cleanViToken(viWords[start - 1] ?? "").toLowerCase() === "sự") {
+    start--;
+  }
+  if (
+    start > 0 &&
+    !VI_TRAILING_STOP.test(cleanViToken(viWords[start - 1] ?? "")) &&
+    located.start - start < 2
+  ) {
+    const prev = cleanViToken(viWords[start - 1] ?? "").toLowerCase();
+    if (prev.length >= 3 && !VI_NOUN_PREFIX.test(prev)) {
+      start--;
+    }
+  }
 
-  let end = termWordIdx + matchTerm.split(/\s+/).filter(Boolean).length;
+  let end = located.end;
   while (end < viWords.length && end - start < 6) {
     const next = cleanViToken(viWords[end] ?? "");
     if (!next || VI_TRAILING_STOP.test(next)) break;
@@ -224,6 +297,7 @@ function extractViCollocationPhrase(
     .trim();
   if (!phrase || phrase.split(/\s+/).length > 6) return "";
   if (phraseKey(phrase) === phraseKey(vi)) return "";
+  if (isWeakViPhrase(phrase)) return "";
   return phrase;
 }
 
@@ -234,6 +308,13 @@ function isBareDeterminerPhrase(collocationEn: string): boolean {
     LEADING_DETERMINERS.test(words[0] ?? "") &&
     Boolean(words[1])
   );
+}
+
+function compactSenseLine(senseLine: string): string {
+  return senseLine
+    .split(",")[0]
+    ?.replace(/^\s*sự\s+/i, "")
+    .trim() ?? senseLine.trim();
 }
 
 function collocationTranslation(
@@ -249,7 +330,7 @@ function collocationTranslation(
 
   const senseLine = resolveSenseLine(sourceVi, meaning, senseIndex);
   if (isBareDeterminerPhrase(collocationEn) && senseLine) {
-    return senseLine.trim();
+    return compactSenseLine(senseLine);
   }
 
   const derived = extractViCollocationPhrase(sourceVi, meaning, senseIndex);
@@ -259,7 +340,7 @@ function collocationTranslation(
     senseLine &&
     normalizePhrase(collocationEn).split(/\s+/).length <= 3
   ) {
-    return senseLine.trim();
+    return compactSenseLine(senseLine);
   }
 
   return "";
