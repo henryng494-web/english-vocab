@@ -503,6 +503,29 @@ body {
   line-height: 1.4;
 }
 
+.vocab-examples__item--speakable {
+  position: relative;
+  padding-top: 0.55rem;
+  padding-right: 2.35rem;
+}
+
+.vocab-examples__speak {
+  position: absolute;
+  top: 0.35rem;
+  right: 0.35rem;
+  z-index: 1;
+  height: 1.75rem !important;
+  width: 1.75rem !important;
+  border-color: color-mix(in srgb, var(--primary) 18%, transparent) !important;
+  background: color-mix(in srgb, var(--primary-50) 85%, white) !important;
+  color: var(--primary-700) !important;
+}
+
+.vocab-examples__speak svg {
+  height: 0.95rem;
+  width: 0.95rem;
+}
+
 .vocab-examples__en,
 .vocab-examples__vi {
   overflow: hidden;
@@ -545,6 +568,10 @@ body {
   border-radius: 0.625rem;
   background: var(--example-bg);
   padding: 0.55rem 0.75rem;
+}
+
+.journey-card-slot .vocab-examples li.vocab-examples__item--speakable {
+  padding-right: 2.35rem;
 }
 
 .journey-card-slot .word-type-badge {

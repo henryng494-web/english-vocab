@@ -142,6 +142,7 @@ export const messages: Record<AppLocale, MessageTree> = {
 
     "speak.pronounce": "Phát âm",
     "speak.aria": "Phát âm",
+    "speak.exampleAria": "Đọc câu ví dụ",
 
     "account.title": "Tài khoản",
     "account.backHome": "Về trang chủ",
@@ -312,6 +313,7 @@ export const messages: Record<AppLocale, MessageTree> = {
 
     "speak.pronounce": "Pronounce",
     "speak.aria": "Pronounce",
+    "speak.exampleAria": "Read example sentence",
 
     "account.title": "Account",
     "account.backHome": "Back to home",

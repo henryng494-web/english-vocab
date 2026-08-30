@@ -72,8 +72,13 @@ export async function lookupDictionaryAudioUrl(word: string): Promise<string | n
   }
 }
 
-export function proxyPronounceAudioPath(word: string): string {
-  return `/api/pronounce/audio?word=${encodeURIComponent(word.trim().toLowerCase())}`;
+export function proxyPronounceAudioPath(text: string): string {
+  const trimmed = text.trim();
+  if (!trimmed) return "";
+  if (/^[a-z][a-z'-]*$/i.test(trimmed)) {
+    return `/api/pronounce/audio?word=${encodeURIComponent(trimmed.toLowerCase())}`;
+  }
+  return `/api/pronounce/audio?text=${encodeURIComponent(trimmed)}`;
 }
 
 /** HTTP TTS fallback when Bing Edge WebSocket is unavailable (e.g. Vercel cold start). */
