@@ -107,7 +107,7 @@ export function WordCardDetails({
         <div className={`card-details__flip${showFamily ? " is-family" : ""}`}>
           <div className="card-details__face card-details__face--meaning">
             <div
-              className={`discover-card__examples min-h-0 flex-1 overflow-hidden${chunksOnly ? " discover-card__examples--chunks-only" : ""}`}
+              className={`discover-card__examples min-h-0 flex-1${chunksOnly ? " discover-card__examples--chunks-only" : ""}`}
             >
               <WordLearningChunks
                 word={word}

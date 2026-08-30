@@ -9,9 +9,25 @@ import type { VocabExample } from "@/lib/parse-examples";
 import { normalizeWordType } from "@/lib/word-type";
 
 const MIN_CHUNK_WORDS = 5;
+const MAX_COLLOCATION_WORDS = 3;
+const MAX_COLLOCATION_WORDS_WITH_PREP = 4;
 
 const LEADING_DETERMINERS =
   /^(a|an|the|my|your|his|her|its|our|their|some|any|this|that|these|those|every|each|no|another|one|two|three|four|five|six|seven|eight|nine|ten|\d+)$/i;
+
+const FRAGMENT_START =
+  /^(i|we|you|they|he|she|it|which|that|when|where|if|but|and|or|so|then|there|here|was|were|is|are|am|had|has|have|met|not|she|her|his|my|our|their)$/i;
+
+const INLINE_VERBS = new Set([
+  "was", "were", "is", "are", "am", "be", "been", "being",
+  "have", "has", "had", "do", "does", "did", "will", "would",
+  "can", "could", "should", "may", "might", "must", "met", "arrived",
+  "got", "get", "went", "go", "come", "came", "said", "say",
+  "make", "made", "take", "took", "give", "gave", "feel", "feels", "felt",
+  "look", "looks", "looked", "seem", "seems", "seemed", "not",
+]);
+
+const PREP_TOKENS = new Set(["of", "in", "on", "at", "for", "with"]);
 
 function normalizePhrase(text: string): string {
   return text.trim().replace(/[.!?…]+$/, "").replace(/\s+/g, " ");
@@ -21,18 +37,43 @@ function phraseKey(en: string): string {
   return normalizePhrase(en).toLowerCase();
 }
 
+function normalizeToken(word: string): string {
+  return word.toLowerCase().replace(/[^a-z']/g, "");
+}
+
 function findHeadwordIndex(words: string[], headword: string): number {
   const hw = headword.toLowerCase();
   const stem = hw.length > 4 ? hw.slice(0, 4) : hw;
 
   for (let i = 0; i < words.length; i++) {
-    const token = words[i].toLowerCase().replace(/[^a-z'-]/g, "");
+    const token = normalizeToken(words[i] ?? "");
     if (!token) continue;
     if (token === hw || token.startsWith(stem) || hw.startsWith(token)) {
       return i;
     }
   }
   return -1;
+}
+
+function hasPrepPattern(words: string[]): boolean {
+  return words.some((word) => PREP_TOKENS.has(normalizeToken(word)));
+}
+
+function isSentenceFragment(phrase: string): boolean {
+  const words = normalizePhrase(phrase).split(/\s+/).filter(Boolean);
+  if (words.length > MAX_COLLOCATION_WORDS_WITH_PREP) return true;
+  if (words.length > MAX_COLLOCATION_WORDS && !hasPrepPattern(words)) return true;
+
+  const first = normalizeToken(words[0] ?? "");
+  if (first === "to" && words.length === 2) return false;
+  if (FRAGMENT_START.test(first)) return true;
+
+  for (let i = 0; i < words.length; i++) {
+    const token = normalizeToken(words[i] ?? "");
+    if (i === 0 && token === "to") continue;
+    if (INLINE_VERBS.has(token)) return true;
+  }
+  return false;
 }
 
 function extractCollocationPhrase(
@@ -47,57 +88,44 @@ function extractCollocationPhrase(
   if (words.length <= 3) return text;
 
   const idx = findHeadwordIndex(words, headword);
-  if (idx < 0) return words.slice(0, Math.min(4, words.length)).join(" ");
+  if (idx < 0) return null;
 
   const pos = normalizeWordType(wordType, headword);
   let start = idx;
   let end = idx + 1;
 
   if (pos === "verb") {
-    const prev = words[idx - 1]?.toLowerCase() ?? "";
-    const auxBefore = new Set([
-      "to", "will", "can", "could", "should", "would", "may", "might", "must",
-      "please", "not", "you", "we", "they", "he", "she", "it", "i", "do", "did",
-    ]);
-    if (auxBefore.has(prev) || prev === "don't") {
-      start = Math.max(0, idx - 1);
-      end = Math.min(words.length, idx + 1);
+    const prev = normalizeToken(words[idx - 1] ?? "");
+    if (prev === "to" || prev === "don't" || prev === "dont") {
+      start = idx - 1;
     } else {
-      start = Math.max(0, idx - 1);
+      start = idx;
+    }
+    end = Math.min(words.length, idx + 2);
+  } else if (pos === "adjective") {
+    const next = normalizeToken(words[idx + 1] ?? "");
+    if (next && !PREP_TOKENS.has(next) && idx + 1 < words.length) {
+      start = idx;
+      end = idx + 2;
+    } else if (idx > 0) {
+      start = idx - 1;
       end = idx + 1;
     }
-  } else if (pos === "adjective") {
-    start = Math.max(0, idx - 1);
-    while (start > 0 && LEADING_DETERMINERS.test(words[start - 1] ?? "")) {
-      start--;
-    }
-    end = idx + 1;
   } else {
-    while (start > 0 && LEADING_DETERMINERS.test(words[start - 1] ?? "")) {
-      start--;
+    if (idx > 0) {
+      start = idx - 1;
     }
-    if (start > 0) {
-      const maybeVerb = words[start - 1]?.toLowerCase().replace(/[^a-z']/g, "") ?? "";
-      const skipBeforeNoun = new Set([
-        "is", "are", "was", "were", "be", "been", "being", "am",
-        "has", "have", "had", "does", "do", "did",
-      ]);
-      if (maybeVerb && !skipBeforeNoun.has(maybeVerb)) {
-        start--;
-      }
-    }
-    const next = words[idx + 1]?.toLowerCase();
+    const next = normalizeToken(words[idx + 1] ?? "");
     if (next === "of" || next === "in" || next === "on") {
       end = Math.min(words.length, idx + 3);
+    } else if (idx + 1 < words.length) {
+      end = idx + 2;
     }
   }
 
-  let phrase = words.slice(start, end).join(" ").trim();
-  phrase = trimDanglingTail(phrase);
+  let phrase = trimDanglingTail(words.slice(start, end).join(" ").trim());
   if (!phrase || phraseKey(phrase) === phraseKey(text)) {
-    start = Math.max(0, idx - 1);
-    end = Math.min(words.length, idx + 2);
-    phrase = trimDanglingTail(words.slice(start, end).join(" ").trim());
+    phrase = trimDanglingTail(words.slice(Math.max(0, idx - 1), idx + 1).join(" ").trim());
   }
   return phrase || null;
 }
@@ -107,70 +135,9 @@ function extractCollocationPhrases(
   headword: string,
   wordType?: string | null,
 ): string[] {
-  const seen = new Set<string>();
-  const results: string[] = [];
-
-  const add = (phrase: string | null) => {
-    if (!phrase || !isValidCollocationEn(phrase, headword)) return;
-    const key = phraseKey(phrase);
-    if (seen.has(key)) return;
-    seen.add(key);
-    results.push(phrase);
-  };
-
-  add(extractCollocationPhrase(sentence, headword, wordType));
-
-  const text = normalizePhrase(sentence);
-  const words = text.split(" ");
-  if (words.length <= 3) return results;
-
-  const idx = findHeadwordIndex(words, headword);
-  if (idx < 0) return results;
-
-  const pos = normalizeWordType(wordType, headword);
-
-  if (pos === "adjective") {
-    if (idx > 0) {
-      let start = idx - 1;
-      while (start > 0 && LEADING_DETERMINERS.test(words[start - 1] ?? "")) {
-        start--;
-      }
-      add(trimDanglingTail(words.slice(start, idx + 1).join(" ")));
-    }
-    for (let back = 2; back <= Math.min(4, idx + 1); back++) {
-      const start = idx - back + 1;
-      if (start < 0) continue;
-      add(trimDanglingTail(words.slice(start, idx + 1).join(" ")));
-    }
-  } else if (pos === "verb") {
-    if (idx > 0) {
-      add(trimDanglingTail(words.slice(Math.max(0, idx - 1), idx + 1).join(" ")));
-    }
-    if (idx >= 2) {
-      add(trimDanglingTail(words.slice(idx - 2, idx + 1).join(" ")));
-    }
-  } else {
-    if (idx > 0) {
-      const prev = words[idx - 1]?.toLowerCase().replace(/[^a-z']/g, "") ?? "";
-      const skipBeforeNoun = new Set([
-        "is", "are", "was", "were", "be", "been", "being", "am",
-        "has", "have", "had", "does", "do", "did",
-      ]);
-      if (prev && !skipBeforeNoun.has(prev)) {
-        add(trimDanglingTail(words.slice(idx - 1, idx + 1).join(" ")));
-      }
-    }
-    if (idx + 1 < words.length) {
-      const next = words[idx + 1]?.toLowerCase();
-      if (next === "of" || next === "in" || next === "on") {
-        add(trimDanglingTail(words.slice(idx, idx + 3).join(" ")));
-      } else {
-        add(trimDanglingTail(words.slice(idx, idx + 2).join(" ")));
-      }
-    }
-  }
-
-  return results;
+  const phrase = extractCollocationPhrase(sentence, headword, wordType);
+  if (!phrase || !isValidCollocationEn(phrase, headword)) return [];
+  return [phrase];
 }
 
 const DANGLING_TAIL =
@@ -185,11 +152,13 @@ function trimDanglingTail(phrase: string): string {
 }
 
 function isValidCollocationEn(extracted: string, headword: string): boolean {
-  const words = normalizePhrase(extracted).split(/\s+/);
+  const words = normalizePhrase(extracted).split(/\s+/).filter(Boolean);
   if (words.length < 2) return false;
   if (words.some((word) => word.includes("?"))) return false;
   if (findHeadwordIndex(words, headword) < 0) return false;
-  return !isWeakCollocation(extracted, headword);
+  if (isWeakCollocation(extracted, headword)) return false;
+  if (isSentenceFragment(extracted)) return false;
+  return true;
 }
 
 /** Reject determiner/possessive + headword only (e.g. "the usual", "her usual"). */
@@ -203,10 +172,7 @@ function isWeakCollocation(phrase: string, headword: string): boolean {
   const others = words.filter((_, i) => i !== idx);
   if (!others.length) return true;
 
-  return others.every((word) => {
-    const token = word.toLowerCase().replace(/[^a-z']/g, "");
-    return LEADING_DETERMINERS.test(token);
-  });
+  return others.every((word) => LEADING_DETERMINERS.test(normalizeToken(word)));
 }
 
 function isFullSentence(en: string): boolean {
@@ -255,7 +221,6 @@ function collocationTranslation(
   if (phraseKey(collocationEn) === phraseKey(sourceEn)) {
     return sourceVi.trim();
   }
-  // Extracted collocations get AI translation on the client (see useLearningChunkTranslations).
   return "";
 }
 
@@ -302,12 +267,11 @@ export function buildLearningChunksFromExamples(
   const chunks = chunkCandidates.slice(0, MAX_LEARNING_CHUNKS);
 
   const chunkKeys = new Set(chunks.map((item) => phraseKey(item.en)));
-  let collocations = dedupePhrases(collocationCandidates)
+  const collocations = dedupePhrases(collocationCandidates)
     .filter((item) => !chunkKeys.has(phraseKey(item.en)))
-    .filter((item) => !isWeakCollocation(item.en, word))
-    .sort((a, b) => collocationScore(b.en) - collocationScore(a.en));
-
-  collocations = collocations.slice(0, MAX_LEARNING_COLLOCATIONS);
+    .filter((item) => isValidCollocationEn(item.en, word))
+    .sort((a, b) => collocationScore(a.en) - collocationScore(b.en))
+    .slice(0, MAX_LEARNING_COLLOCATIONS);
 
   if (!collocations.length && !chunks.length) {
     const fallback = natural[0];
@@ -324,16 +288,19 @@ export function buildLearningChunksFromExamples(
         ],
       };
     }
-    return {
-      collocations: [
-        {
-          en: fallback.en,
-          vi: fallback.vi,
-          sense: fallback.senseIndex,
-        },
-      ],
-      chunks: [],
-    };
+    if (isValidCollocationEn(fallback.en, word)) {
+      return {
+        collocations: [
+          {
+            en: fallback.en,
+            vi: fallback.vi,
+            sense: fallback.senseIndex,
+          },
+        ],
+        chunks: [],
+      };
+    }
+    return null;
   }
 
   return { collocations, chunks };

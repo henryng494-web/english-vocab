@@ -474,16 +474,26 @@ body {
   min-height: 0;
 }
 
+.card-details--compact .card-details__face--meaning {
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 .discover-card__examples {
   display: flex;
   min-height: 0;
+  flex: 1 1 auto;
   flex-direction: column;
   gap: 0.4rem;
   align-items: stretch;
 }
 
 .discover-card__examples--chunks-only {
-  justify-content: center;
+  justify-content: flex-start;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .word-learning-chunks {
@@ -497,9 +507,9 @@ body {
 }
 
 .word-learning-chunks--solo {
-  flex: 1;
+  flex: 0 1 auto;
   min-height: 0;
-  justify-content: center;
+  justify-content: flex-start;
 }
 
 .word-learning-chunks__section {
