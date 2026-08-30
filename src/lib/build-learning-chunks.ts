@@ -15,7 +15,7 @@ const MAX_COLLOCATION_WORDS_WITH_PREP = 4;
 const LEADING_DETERMINERS =
   /^(a|an|the|my|your|his|her|its|our|their|some|any|this|that|these|those|every|each|no|another|one|two|three|four|five|six|seven|eight|nine|ten|several|many|few|multiple|numerous|various|\d+)$/i;
 
-const PREP_TOKENS = new Set(["of", "in", "on", "at", "for", "with"]);
+const PREP_TOKENS = new Set(["of", "in", "on", "at", "for", "with", "by", "to", "about"]);
 
 const TRAILING_PREPS = new Set([
   "into", "onto", "upon", "from", "by", "as", "up", "down", "out", "off", "over",
@@ -85,6 +85,28 @@ function isSentenceFragment(phrase: string): boolean {
   return false;
 }
 
+/** Classic headword + preposition pairs: "flattered by", "good at", "depend on". */
+function isHeadwordPrepCollocation(
+  phrase: string,
+  headword: string,
+  wordType?: string | null,
+): boolean {
+  const words = normalizePhrase(phrase).split(/\s+/).filter(Boolean);
+  if (words.length < 2 || words.length > 3) return false;
+
+  const idx = findHeadwordIndex(words, headword);
+  if (idx < 0) return false;
+
+  const last = normalizeToken(words[words.length - 1] ?? "");
+  if (!TRAILING_PREPS.has(last) && last !== "to") return false;
+
+  const pos = normalizeWordType(wordType, headword);
+  if (pos === "noun") return false;
+
+  if (idx === words.length - 2) return true;
+  return pos === "adjective" && words.length === 3 && idx === words.length - 3;
+}
+
 function extractCollocationPhrase(
   sentence: string,
   headword: string,
@@ -113,7 +135,10 @@ function extractCollocationPhrase(
     end = Math.min(words.length, idx + 2);
   } else if (pos === "adjective") {
     const next = normalizeToken(words[idx + 1] ?? "");
-    if (next && !PREP_TOKENS.has(next) && idx + 1 < words.length) {
+    if (next && TRAILING_PREPS.has(next) && idx + 1 < words.length) {
+      start = idx;
+      end = idx + 2;
+    } else if (next && !INLINE_VERBS.has(next) && idx + 1 < words.length) {
       start = idx;
       end = idx + 2;
     } else if (idx > 0) {
@@ -142,9 +167,17 @@ function extractCollocationPhrase(
     }
   }
 
-  let phrase = trimDanglingTail(words.slice(start, end).join(" ").trim());
+  let phrase = trimDanglingTail(
+    words.slice(start, end).join(" ").trim(),
+    headword,
+    wordType,
+  );
   if (!phrase || phraseKey(phrase) === phraseKey(text)) {
-    phrase = trimDanglingTail(words.slice(Math.max(0, idx - 1), idx + 1).join(" ").trim());
+    phrase = trimDanglingTail(
+      words.slice(Math.max(0, idx - 1), idx + 1).join(" ").trim(),
+      headword,
+      wordType,
+    );
   }
   return phrase || null;
 }
@@ -155,29 +188,47 @@ function extractCollocationPhrases(
   wordType?: string | null,
 ): string[] {
   const phrase = extractCollocationPhrase(sentence, headword, wordType);
-  if (!phrase || !isValidCollocationEn(phrase, headword)) return [];
+  if (!phrase || !isValidCollocationEn(phrase, headword, wordType)) return [];
   return [phrase];
 }
 
 const DANGLING_TAIL =
   /^(at|to|into|onto|in|on|for|with|the|a|an|of|that|you|was|were|is|are|my|your|his|her|its|our|their|from|by|up|off|out|over|under|through|about|against|between|among|within|without|during|before|after)$/i;
 
-function trimDanglingTail(phrase: string): string {
+function trimDanglingTail(
+  phrase: string,
+  headword?: string,
+  wordType?: string | null,
+): string {
   const words = phrase.split(" ");
   while (words.length >= 2 && DANGLING_TAIL.test(normalizeToken(words[words.length - 1] ?? ""))) {
+    const current = words.join(" ").trim();
+    if (headword && isHeadwordPrepCollocation(current, headword, wordType)) {
+      break;
+    }
     words.pop();
   }
   return words.join(" ").trim();
 }
 
-function endsWithDanglingToken(phrase: string): boolean {
+function endsWithDanglingToken(
+  phrase: string,
+  headword: string,
+  wordType?: string | null,
+): boolean {
+  if (isHeadwordPrepCollocation(phrase, headword, wordType)) return false;
   const words = normalizePhrase(phrase).split(/\s+/).filter(Boolean);
   if (words.length < 2) return true;
   const last = normalizeToken(words[words.length - 1] ?? "");
   return DANGLING_TAIL.test(last) || TRAILING_PREPS.has(last);
 }
 
-function hasStrayPreposition(phrase: string): boolean {
+function hasStrayPreposition(
+  phrase: string,
+  headword: string,
+  wordType?: string | null,
+): boolean {
+  if (isHeadwordPrepCollocation(phrase, headword, wordType)) return false;
   const words = normalizePhrase(phrase).split(/\s+/).filter(Boolean);
   for (let i = 0; i < words.length; i++) {
     const token = normalizeToken(words[i] ?? "");
@@ -188,15 +239,19 @@ function hasStrayPreposition(phrase: string): boolean {
   return false;
 }
 
-function isValidCollocationEn(extracted: string, headword: string): boolean {
+function isValidCollocationEn(
+  extracted: string,
+  headword: string,
+  wordType?: string | null,
+): boolean {
   const words = normalizePhrase(extracted).split(/\s+/).filter(Boolean);
   if (words.length < 2) return false;
   if (words.some((word) => word.includes("?"))) return false;
   if (findHeadwordIndex(words, headword) < 0) return false;
   if (isWeakCollocation(extracted, headword)) return false;
   if (isSentenceFragment(extracted)) return false;
-  if (endsWithDanglingToken(extracted)) return false;
-  if (hasStrayPreposition(extracted)) return false;
+  if (endsWithDanglingToken(extracted, headword, wordType)) return false;
+  if (hasStrayPreposition(extracted, headword, wordType)) return false;
   return true;
 }
 
@@ -295,7 +350,7 @@ export function buildLearningChunksFromExamples(
           sense: ex.senseIndex,
         });
       }
-    } else if (isValidCollocationEn(en, word)) {
+    } else if (isValidCollocationEn(en, word, wordType)) {
       collocationCandidates.push(item);
     }
   }
@@ -308,7 +363,7 @@ export function buildLearningChunksFromExamples(
   const chunkKeys = new Set(chunks.map((item) => phraseKey(item.en)));
   const collocations = dedupePhrases(collocationCandidates)
     .filter((item) => !chunkKeys.has(phraseKey(item.en)))
-    .filter((item) => isValidCollocationEn(item.en, word))
+    .filter((item) => isValidCollocationEn(item.en, word, wordType))
     .sort((a, b) => collocationScore(a.en) - collocationScore(b.en))
     .slice(0, MAX_LEARNING_COLLOCATIONS);
 
@@ -327,7 +382,7 @@ export function buildLearningChunksFromExamples(
         ],
       };
     }
-    if (isValidCollocationEn(fallback.en, word)) {
+    if (isValidCollocationEn(fallback.en, word, wordType)) {
       return {
         collocations: [
           {
