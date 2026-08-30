@@ -5,6 +5,8 @@ import { NextRequest, NextResponse } from "next/server";
 export const runtime = "nodejs";
 export const maxDuration = 15;
 
+const NEURAL_BUDGET_MS = 2500;
+
 function raceTimeout<T>(promise: Promise<T>, ms: number): Promise<T | null> {
   return Promise.race([
     promise,
@@ -20,9 +22,10 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Invalid word" }, { status: 400 });
   }
 
+  const neuralPromise = lookupNeuralTtsAudio(word);
   const fallbackPromise = lookupFallbackTtsAudio(word);
 
-  let bytes = await raceTimeout(lookupNeuralTtsAudio(word), 7000);
+  let bytes = await raceTimeout(neuralPromise, NEURAL_BUDGET_MS);
   if (!bytes) {
     bytes = await fallbackPromise;
   }
