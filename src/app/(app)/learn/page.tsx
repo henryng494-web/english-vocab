@@ -50,6 +50,14 @@ import { shouldRefreshImageUrl } from "@/lib/unsplash";
 import { refreshAllStaleWordImages } from "@/lib/refresh-stale-word-images";
 import type { LearningStatus, VocabWord } from "@/types/database";
 import { useI18n } from "@/hooks/use-i18n";
+import {
+  finishReviewPhase,
+  isDailySessionPhase,
+  readDailySession,
+  setDailySessionReviewPlanned,
+} from "@/lib/daily-session";
+import { DailySessionProgressBanner } from "@/components/study/DailySessionSummary";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 type Phase = "question" | "reveal";
@@ -100,6 +108,9 @@ function applyImageUpdatesToState(
 
 export default function LearnPage() {
   const { t } = useI18n();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const isDailySession = searchParams.get("daily") === "1";
   const { review: bootstrapReview, updateReviewCache } = useAppBootstrap();
   const [allWords, setAllWords] = useState<VocabWord[]>([]);
   const [queue, setQueue] = useState<VocabWord[]>([]);
@@ -120,6 +131,9 @@ export default function LearnPage() {
   const [adding, setAdding] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sessionDone, setSessionDone] = useState(false);
+  const [dailySession, setDailySession] = useState(readDailySession());
+  const reviewInitialCountRef = useRef(0);
+  const dailyRedirectRef = useRef(false);
   const hydratedRef = useRef(false);
   const revealDelayRef = useRef(REVEAL_DELAY_MS);
   const phaseRef = useRef<Phase>("question");
@@ -136,6 +150,41 @@ export default function LearnPage() {
   indexRef.current = index;
   queueRef.current = queue;
   allWordsRef.current = allWords;
+
+  useEffect(() => {
+    const refresh = () => setDailySession(readDailySession());
+    refresh();
+    window.addEventListener("daily-session-changed", refresh);
+    return () => window.removeEventListener("daily-session-changed", refresh);
+  }, []);
+
+  useEffect(() => {
+    if (!isDailySession || !isDailySessionPhase("review")) return;
+    if (queue.length === 0) return;
+    if (reviewInitialCountRef.current === 0) {
+      reviewInitialCountRef.current = queue.length;
+      setDailySessionReviewPlanned(queue.length);
+    }
+  }, [isDailySession, queue.length]);
+
+  useEffect(() => {
+    if (!isDailySession || loading) return;
+    if (!isDailySessionPhase("review")) return;
+    if (queue.length > 0 || !sessionDone) return;
+    if (dailyRedirectRef.current) return;
+    dailyRedirectRef.current = true;
+    finishReviewPhase(reviewInitialCountRef.current);
+    router.replace("/journey?daily=1");
+  }, [isDailySession, loading, queue.length, sessionDone, router]);
+
+  useEffect(() => {
+    if (!sessionDone || dailyRedirectRef.current) return;
+    if (!isDailySession || !isDailySessionPhase("review")) return;
+    if (queue.length === 0) return;
+    dailyRedirectRef.current = true;
+    finishReviewPhase(reviewInitialCountRef.current);
+    router.replace("/journey?daily=1");
+  }, [sessionDone, isDailySession, queue.length, router]);
 
   const mergePrefetchedSenseChoices = useCallback(
     (senseChoices: Map<number, ReviewChoice[]>) => {
@@ -699,7 +748,19 @@ export default function LearnPage() {
         <div className="flex flex-1 items-center justify-center">
           <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary-100 border-t-primary" />
         </div>
-      ) : inSession && currentWord && phase === "question" && quizKind === "sense" ? (
+      ) : inSession && isDailySession && dailySession?.phase === "review" ? (
+        <div className="px-4 pt-2">
+          <DailySessionProgressBanner
+            phase="review"
+            newCompleted={0}
+            newTarget={dailySession.newWordsTarget}
+            reviewCompleted={Math.min(index + 1, reviewInitialCountRef.current || queue.length)}
+            reviewPlanned={reviewInitialCountRef.current || dailySession.reviewsPlanned}
+          />
+        </div>
+      ) : null}
+
+      {!loading && inSession && currentWord && phase === "question" && quizKind === "sense" ? (
         <ReviewSenseQuestion
           word={currentWord.word}
           choices={choices}

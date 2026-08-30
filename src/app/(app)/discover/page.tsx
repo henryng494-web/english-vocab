@@ -51,9 +51,22 @@ import { seedWordImageCacheFromEntries } from "@/lib/word-image-cache";
 import { readOnboarding, shouldShowOnboarding } from "@/lib/onboarding";
 import { countDueReviewWords } from "@/lib/review-schedule";
 import { OnboardingModal } from "@/components/onboarding/OnboardingModal";
+import {
+  DailySessionProgressBanner,
+  DailySessionSummary,
+} from "@/components/study/DailySessionSummary";
 import { useI18n } from "@/hooks/use-i18n";
+import {
+  dailySessionQuery,
+  dailySessionRoute,
+  finishDailySession,
+  readDailySession,
+  recordDailyNewWord,
+  resumeOrStartDailySession,
+  type DailySession,
+} from "@/lib/daily-session";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 const PRELOAD_AHEAD = 10;
@@ -75,10 +88,15 @@ function listItemImageTarget(item: DiscoverListItem): WordImagePrefetchTarget {
 export default function DiscoverPage() {
   const pathname = usePathname();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { t } = useI18n();
   const { ranges: bootstrapRanges, wordCache: bootstrapWordCache, patchRangeAfterSave } =
     useAppBootstrap();
   const inSession = pathname.startsWith("/journey");
+  const isDailyJourney =
+    inSession &&
+    (searchParams.get("daily") === "1" || readDailySession()?.phase === "journey");
+  const [dailySession, setDailySession] = useState<DailySession | null>(null);
   const [rangeId, setRangeId] = useState(DEFAULT_BOOTSTRAP_RANGE);
   const [queue, setQueue] = useState<DiscoverListItem[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -98,6 +116,13 @@ export default function DiscoverPage() {
   const onboardingChecked = useRef(false);
 
   const todayGoalMinutes = dailyGoalMinutes;
+
+  useEffect(() => {
+    const refreshSession = () => setDailySession(readDailySession());
+    refreshSession();
+    window.addEventListener("daily-session-changed", refreshSession);
+    return () => window.removeEventListener("daily-session-changed", refreshSession);
+  }, []);
 
   useEffect(() => {
     if (onboardingChecked.current) return;
@@ -478,6 +503,12 @@ export default function DiscoverPage() {
     }));
     if (status === "new") {
       setTodayLearned(incrementTodayWordsLearned());
+      if (isDailyJourney) {
+        const result = recordDailyNewWord();
+        if (result.reached) {
+          router.push("/discover");
+        }
+      }
     }
     setWordsKnown(countMasteredWords());
     setWordsReviewing(countLearningWords());
@@ -568,6 +599,8 @@ export default function DiscoverPage() {
           <div className="flex flex-1 items-center justify-center">
             <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary-100 border-t-primary" />
           </div>
+        ) : dailySession?.phase === "summary" ? (
+          <DailySessionSummary session={dailySession} />
         ) : (
           <DiscoverDashboard
             rangeLabel={rangeLabel}
@@ -580,9 +613,12 @@ export default function DiscoverPage() {
             todayStudySeconds={todayStudySeconds}
             todayGoalMinutes={todayGoalMinutes}
             todayWordsLearned={todayLearned}
+            sessionInProgress={
+              dailySession != null && dailySession.phase !== "summary"
+            }
             onStartToday={() => {
-              if (dueReviewCount > 0) router.push("/learn");
-              else router.push("/journey");
+              const session = resumeOrStartDailySession(dueReviewCount);
+              router.push(`${dailySessionRoute(session)}${dailySessionQuery(session)}`);
             }}
             onStartJourney={() => router.push("/journey")}
             onStartReview={() => router.push("/learn")}
@@ -621,6 +657,25 @@ export default function DiscoverPage() {
       />
 
       <div className="journey-panel px-4">
+        {isDailyJourney && dailySession ? (
+          <>
+            <DailySessionProgressBanner
+              phase="journey"
+              newCompleted={dailySession.newWordsCompleted}
+              newTarget={dailySession.newWordsTarget}
+            />
+            <button
+              type="button"
+              className="daily-session-end"
+              onClick={() => {
+                finishDailySession();
+                router.push("/discover");
+              }}
+            >
+              {t("session.endEarly")}
+            </button>
+          </>
+        ) : null}
         <p className="journey-note">
           {t("journey.hiddenWords", { count: stats.hidden, band: rangeCompact })}
         </p>

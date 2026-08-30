@@ -15,6 +15,7 @@ type DiscoverDashboardProps = {
   todayStudySeconds: number;
   todayGoalMinutes: number;
   todayWordsLearned: number;
+  sessionInProgress?: boolean;
   onStartToday: () => void;
   onStartJourney: () => void;
   onStartReview: () => void;
@@ -82,12 +83,7 @@ export function DiscoverDashboard({
           })
         : t("home.todayGoalDone", { learned: todayWordsLearned });
 
-  const primaryCta =
-    dueReviewCount > 0
-      ? t("home.startReview")
-      : queueLength > 0
-        ? t("home.startLearn")
-        : t("home.doneToday");
+  const primaryCta = canStartToday ? t("home.startSession") : t("home.doneToday");
 
   return (
     <div className="home-scroll page-scroll">
