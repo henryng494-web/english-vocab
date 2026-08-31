@@ -26,7 +26,12 @@ const TRAILING_PREPS = new Set([
 const ALLOWED_MID_PREPS = new Set(["of", "in", "on"]);
 
 const FRAGMENT_START =
-  /^(i|we|you|they|he|she|it|which|that|when|where|if|but|and|or|so|then|there|here|was|were|is|are|am|had|has|have|met|not|she|her|his|my|our|their|several|many|few|multiple|numerous|various|launched|launch|launches)$/i;
+  /^(i|we|you|they|he|she|it|which|that|when|where|if|but|and|or|so|then|there|here|was|were|is|are|am|had|has|have|met|not|she|her|his|my|our|their|launched|launch|launches)$/i;
+
+const QUANTIFIER_HEADWORDS =
+  /^(some|any|several|many|few|multiple|numerous|various|each|every|both|all|most|more|less|enough|another|other)$/i;
+
+const ED_NOUN_EXCEPTIONS = new Set(["red", "bed", "fed", "led", "wed", "shed", "bred"]);
 
 const INLINE_VERBS = new Set([
   "was", "were", "is", "are", "am", "be", "been", "being",
@@ -36,6 +41,73 @@ const INLINE_VERBS = new Set([
   "make", "made", "take", "took", "give", "gave", "feel", "feels", "felt",
   "look", "looks", "looked", "seem", "seems", "seemed", "not",
   "launch", "launched", "launches", "fire", "fired", "fires",
+  "review", "reviewed", "reviews", "raise", "raised", "raises",
+  "ask", "asked", "asks", "call", "called", "calls",
+  "use", "used", "uses", "find", "found", "finds",
+  "want", "wanted", "wants", "need", "needed", "needs",
+  "help", "helped", "helps", "work", "worked", "works",
+  "play", "played", "plays", "show", "showed", "shows",
+  "tell", "told", "tells", "keep", "kept", "keeps",
+  "let", "lets", "put", "puts", "set", "sets",
+  "bring", "brought", "brings", "buy", "bought", "buys",
+  "think", "thought", "thinks", "know", "knew", "knows",
+  "see", "saw", "sees", "hear", "heard", "hears",
+  "leave", "left", "leaves", "mean", "means", "meant",
+  "become", "became", "becomes", "begin", "began", "begins",
+  "write", "wrote", "writes", "read", "reads",
+  "run", "ran", "runs", "walk", "walked", "walks",
+  "talk", "talked", "talks", "speak", "spoke", "speaks",
+  "pay", "paid", "pays", "send", "sent", "sends",
+  "build", "built", "builds", "spend", "spent", "spends",
+  "learn", "learned", "learnt", "learns",
+  "change", "changed", "changes", "move", "moved", "moves",
+  "live", "lived", "lives", "believe", "believed", "believes",
+  "happen", "happened", "happens", "provide", "provided", "provides",
+  "include", "included", "includes", "continue", "continued", "continues",
+  "create", "created", "creates", "decide", "decided", "decides",
+  "expect", "expected", "expects", "remember", "remembered", "remembers",
+  "consider", "considered", "considers", "allow", "allowed", "allows",
+  "add", "added", "adds", "offer", "offered", "offers",
+  "appear", "appeared", "appears", "lose", "lost", "loses",
+  "win", "won", "wins", "serve", "served", "serves",
+  "die", "died", "dies", "stay", "stayed", "stays",
+  "fall", "fell", "falls", "cut", "cuts", "reach", "reached", "reaches",
+  "kill", "killed", "kills", "remain", "remained", "remains",
+  "suggest", "suggested", "suggests", "pass", "passed", "passes",
+  "sell", "sold", "sells", "require", "required", "requires",
+  "report", "reported", "reports", "pull", "pulled", "pulls",
+  "prove", "proved", "proven", "proves",
+  "attend", "attended", "attends", "join", "joined", "joins",
+  "discuss", "discussed", "discusses", "support", "supported", "supports",
+  "develop", "developed", "develops", "improve", "improved", "improves",
+  "accept", "accepted", "accepts", "receive", "received", "receives",
+  "choose", "chose", "chosen", "chooses", "check", "checked", "checks",
+  "follow", "followed", "follows", "watch", "watched", "watches",
+  "wait", "waited", "waits", "open", "opened", "opens",
+  "close", "closed", "closes", "start", "started", "starts",
+  "stop", "stopped", "stops", "finish", "finished", "finishes",
+  "try", "tried", "tries", "plan", "planned", "plans",
+  "prepare", "prepared", "prepares", "share", "shared", "shares",
+  "enjoy", "enjoyed", "enjoys", "love", "loved", "loves",
+  "like", "liked", "likes", "prefer", "preferred", "prefers",
+  "hope", "hoped", "hopes", "wish", "wished", "wishes",
+  "agree", "agreed", "agrees", "disagree", "disagreed", "disagrees",
+  "explain", "explained", "explains", "describe", "described", "describes",
+  "mention", "mentioned", "mentions", "notice", "noticed", "notices",
+  "realize", "realised", "realized", "realizes", "understand", "understood", "understands",
+  "worry", "worried", "worries", "care", "cared", "cares",
+  "miss", "missed", "misses", "avoid", "avoided", "avoids",
+  "face", "faced", "faces", "handle", "handled", "handles",
+  "manage", "managed", "manages", "cover", "covered", "covers",
+  "pick", "picked", "picks", "drop", "dropped", "drops",
+  "carry", "carried", "carries", "hold", "held", "holds",
+  "push", "pushed", "pushes", "turn", "turned", "turns",
+  "break", "broke", "broken", "breaks", "fix", "fixed", "fixes",
+  "solve", "solved", "solves", "answer", "answered", "answers",
+  "reply", "replied", "replies", "respond", "responded", "responds",
+  "return", "returned", "returns", "visit", "visited", "visits",
+  "travel", "travelled", "traveled", "travels", "meet", "met", "meets",
+  "eat", "ate", "eaten", "eats", "drink", "drank", "drunk", "drinks",
 ]);
 
 function normalizePhrase(text: string): string {
@@ -68,7 +140,39 @@ function hasPrepPattern(words: string[]): boolean {
   return words.some((word) => PREP_TOKENS.has(normalizeToken(word)));
 }
 
-function isSentenceFragment(phrase: string): boolean {
+function looksLikeVerbToken(token: string): boolean {
+  const t = normalizeToken(token);
+  if (!t) return false;
+  if (INLINE_VERBS.has(t)) return true;
+  if (ED_NOUN_EXCEPTIONS.has(t)) return false;
+  if (t.endsWith("ed") && t.length > 3) return true;
+  return false;
+}
+
+function isQuantifierLike(
+  wordType: string | null | undefined,
+  headword: string,
+): boolean {
+  const pos = normalizeWordType(wordType, headword);
+  if (pos === "determiner" || pos === "article" || pos === "number") {
+    return true;
+  }
+  return QUANTIFIER_HEADWORDS.test(headword.toLowerCase());
+}
+
+function hasVerbBeforeHeadword(phrase: string, headword: string): boolean {
+  const words = normalizePhrase(phrase).split(/\s+/).filter(Boolean);
+  const idx = findHeadwordIndex(words, headword);
+  if (idx <= 0) return false;
+  for (let i = 0; i < idx; i++) {
+    const token = normalizeToken(words[i] ?? "");
+    if (token === "to") continue;
+    if (looksLikeVerbToken(token)) return true;
+  }
+  return false;
+}
+
+function isSentenceFragment(phrase: string, headword?: string): boolean {
   const words = normalizePhrase(phrase).split(/\s+/).filter(Boolean);
   if (words.length > MAX_COLLOCATION_WORDS_WITH_PREP) return true;
   if (words.length > MAX_COLLOCATION_WORDS && !hasPrepPattern(words)) return true;
@@ -76,8 +180,11 @@ function isSentenceFragment(phrase: string): boolean {
   const first = normalizeToken(words[0] ?? "");
   if (first === "to" && words.length === 2) return false;
   if (FRAGMENT_START.test(first)) return true;
+  if (headword && hasVerbBeforeHeadword(phrase, headword)) return true;
 
+  const hwIdx = headword ? findHeadwordIndex(words, headword) : -1;
   for (let i = 0; i < words.length; i++) {
+    if (i === hwIdx) continue;
     const token = normalizeToken(words[i] ?? "");
     if (i === 0 && token === "to") continue;
     if (INLINE_VERBS.has(token)) return true;
@@ -98,7 +205,8 @@ function isHeadwordPrepCollocation(
   if (idx < 0) return false;
 
   const last = normalizeToken(words[words.length - 1] ?? "");
-  if (!TRAILING_PREPS.has(last) && last !== "to") return false;
+  if (last === "to") return false;
+  if (!TRAILING_PREPS.has(last)) return false;
 
   const pos = normalizeWordType(wordType, headword);
   if (pos === "noun") return false;
@@ -122,16 +230,36 @@ function extractCollocationPhrase(
   if (idx < 0) return null;
 
   const pos = normalizeWordType(wordType, headword);
+
+  if (isQuantifierLike(pos, headword)) {
+    const next = words[idx + 1];
+    if (!next) return null;
+    const nextToken = normalizeToken(next);
+    if (
+      looksLikeVerbToken(nextToken) ||
+      TRAILING_PREPS.has(nextToken) ||
+      LEADING_DETERMINERS.test(nextToken)
+    ) {
+      return null;
+    }
+    return `${words[idx]} ${next}`.trim();
+  }
+
   let start = idx;
   let end = idx + 1;
 
   if (pos === "verb") {
     const prev = normalizeToken(words[idx - 1] ?? "");
     if (prev === "to" || prev === "don't" || prev === "dont") {
-      start = idx - 1;
-    } else {
-      start = idx;
+      return `${words[idx - 1]} ${words[idx]}`.trim();
     }
+    for (let j = idx + 1; j < Math.min(words.length, idx + 4); j++) {
+      const token = normalizeToken(words[j] ?? "");
+      if (TRAILING_PREPS.has(token) || ALLOWED_MID_PREPS.has(token)) {
+        return `${words[idx]} ${words[j]}`.trim();
+      }
+    }
+    start = idx;
     end = Math.min(words.length, idx + 2);
   } else if (pos === "adjective") {
     const next = normalizeToken(words[idx + 1] ?? "");
@@ -149,7 +277,21 @@ function extractCollocationPhrase(
     const prev = normalizeToken(words[idx - 1] ?? "");
     const next = normalizeToken(words[idx + 1] ?? "");
 
-    if (
+    if (looksLikeVerbToken(prev)) {
+      if (
+        ALLOWED_MID_PREPS.has(next) &&
+        idx + 2 < words.length &&
+        !TRAILING_PREPS.has(normalizeToken(words[idx + 2] ?? ""))
+      ) {
+        start = idx;
+        end = idx + 3;
+      } else if (next && !TRAILING_PREPS.has(next) && !looksLikeVerbToken(next)) {
+        start = idx;
+        end = idx + 2;
+      } else {
+        return null;
+      }
+    } else if (
       ALLOWED_MID_PREPS.has(next) &&
       idx + 2 < words.length &&
       !TRAILING_PREPS.has(normalizeToken(words[idx + 2] ?? ""))
@@ -157,11 +299,11 @@ function extractCollocationPhrase(
       start = idx > 0 && LEADING_DETERMINERS.test(prev) ? idx - 1 : idx;
       end = idx + 3;
     } else if (next && !TRAILING_PREPS.has(next)) {
-      if (idx > 0 && !INLINE_VERBS.has(prev) && !FRAGMENT_START.test(prev)) {
+      if (idx > 0 && !looksLikeVerbToken(prev) && !FRAGMENT_START.test(prev)) {
         start = idx - 1;
       }
       end = idx + 2;
-    } else if (idx > 0) {
+    } else if (idx > 0 && !looksLikeVerbToken(prev)) {
       start = idx - 1;
       end = idx + 1;
     }
@@ -173,8 +315,13 @@ function extractCollocationPhrase(
     wordType,
   );
   if (!phrase || phraseKey(phrase) === phraseKey(text)) {
+    const prev = normalizeToken(words[idx - 1] ?? "");
+    const fallbackStart =
+      idx > 0 && !looksLikeVerbToken(prev) && !FRAGMENT_START.test(prev)
+        ? idx - 1
+        : idx;
     phrase = trimDanglingTail(
-      words.slice(Math.max(0, idx - 1), idx + 1).join(" ").trim(),
+      words.slice(fallbackStart, idx + 1).join(" ").trim(),
       headword,
       wordType,
     );
@@ -249,9 +396,14 @@ function isValidCollocationEn(
   if (words.some((word) => word.includes("?"))) return false;
   if (findHeadwordIndex(words, headword) < 0) return false;
   if (isWeakCollocation(extracted, headword)) return false;
-  if (isSentenceFragment(extracted)) return false;
+  if (isSentenceFragment(extracted, headword)) return false;
+  if (hasVerbBeforeHeadword(extracted, headword)) return false;
   if (endsWithDanglingToken(extracted, headword, wordType)) return false;
   if (hasStrayPreposition(extracted, headword, wordType)) return false;
+  if (isQuantifierLike(wordType, headword)) {
+    if (words.length !== 2) return false;
+    if (findHeadwordIndex(words, headword) !== 0) return false;
+  }
   return true;
 }
 
