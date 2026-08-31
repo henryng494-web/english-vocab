@@ -53,7 +53,6 @@ import { readOnboarding, shouldShowOnboarding } from "@/lib/onboarding";
 import { countDueReviewWords } from "@/lib/review-schedule";
 import { OnboardingModal } from "@/components/onboarding/OnboardingModal";
 import {
-  DailySessionProgressBanner,
   DailySessionSummary,
 } from "@/components/study/DailySessionSummary";
 import { useI18n } from "@/hooks/use-i18n";
@@ -666,23 +665,16 @@ export default function DiscoverPage() {
 
       <div className="journey-panel px-4">
         {isDailyJourney && dailySession ? (
-          <>
-            <DailySessionProgressBanner
-              phase="journey"
-              newCompleted={dailySession.newWordsCompleted}
-              newTarget={dailySession.newWordsTarget}
-            />
-            <button
-              type="button"
-              className="daily-session-end"
-              onClick={() => {
-                finishDailySession();
-                router.push("/discover");
-              }}
-            >
-              {t("session.endEarly")}
-            </button>
-          </>
+          <button
+            type="button"
+            className="daily-session-end"
+            onClick={() => {
+              finishDailySession();
+              router.push("/discover");
+            }}
+          >
+            {t("session.endEarly")}
+          </button>
         ) : null}
         <p className="journey-note">
           {t("journey.hiddenWords", { count: stats.hidden, band: rangeCompact })}
