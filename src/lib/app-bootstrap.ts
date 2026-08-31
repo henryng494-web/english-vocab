@@ -20,7 +20,7 @@ import {
   preloadWordImagesFromCache,
   type WordImagePrefetchTarget,
 } from "@/lib/image-preload";
-import { loadReviewSession, type ReviewSessionData } from "@/lib/review-fetch";
+import { loadReviewSessionFast, type ReviewSessionData } from "@/lib/review-fetch";
 import { refreshAllStaleWordImages } from "@/lib/refresh-stale-word-images";
 import { seedWordImageCacheFromEntries } from "@/lib/word-image-cache";
 
@@ -158,7 +158,7 @@ export async function runAppBootstrap(
 
   preloadAsset("/mascot/welcome/welcome-splash.png?v=jungle9");
 
-  const reviewPromise = loadReviewSession().catch(() => null);
+  const reviewPromise = loadReviewSessionFast().catch(() => null);
 
   const ranges: Record<string, RangeBootstrapData> = {};
   let rangesDone = 0;

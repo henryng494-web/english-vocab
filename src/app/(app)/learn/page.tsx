@@ -30,8 +30,8 @@ import {
 import { useAppBootstrap } from "@/context/AppBootstrapContext";
 import {
   countLocalDueReviewWords,
+  enrichReviewSession,
   fetchReviewSessionBundle,
-  loadActionableReviewSession,
   loadLocalReviewSessionSync,
 } from "@/lib/review-fetch";
 import { hasQualityExamples } from "@/lib/example-quality";
@@ -105,8 +105,14 @@ export default function LearnPage() {
   const searchParams = useSearchParams();
   const isDailySession = searchParams.get("daily") === "1";
   const { review: bootstrapReview, updateReviewCache } = useAppBootstrap();
-  const [allWords, setAllWords] = useState<VocabWord[]>([]);
-  const [queue, setQueue] = useState<VocabWord[]>([]);
+  const [allWords, setAllWords] = useState<VocabWord[]>(() => {
+    if (typeof window === "undefined") return [];
+    return loadLocalReviewSessionSync().allWords;
+  });
+  const [queue, setQueue] = useState<VocabWord[]>(() => {
+    if (typeof window === "undefined") return [];
+    return loadLocalReviewSessionSync().dueQueue;
+  });
   const [index, setIndex] = useState(0);
   const [phase, setPhase] = useState<Phase>("question");
   const [choices, setChoices] = useState<ReviewChoice[]>([]);
@@ -118,13 +124,19 @@ export default function LearnPage() {
   const [intervalDays, setIntervalDays] = useState<ReviewIntervalDays>(1);
   const [markMastered, setMarkMastered] = useState(false);
   const [timesReviewed, setTimesReviewed] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(() => {
+    if (typeof window === "undefined") return true;
+    return loadLocalReviewSessionSync().dueQueue.length === 0;
+  });
   const [confirming, setConfirming] = useState(false);
   const [newWord, setNewWord] = useState("");
   const [adding, setAdding] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sessionDone, setSessionDone] = useState(false);
-  const [expectedDueCount, setExpectedDueCount] = useState(0);
+  const [expectedDueCount, setExpectedDueCount] = useState(() => {
+    if (typeof window === "undefined") return 0;
+    return countLocalDueReviewWords();
+  });
   const localBootstrappedRef = useRef(false);
   const [dailySession, setDailySession] = useState(readDailySession());
   const reviewInitialCountRef = useRef(0);
@@ -480,52 +492,73 @@ export default function LearnPage() {
     async (options?: { silent?: boolean }) => {
       const localDueCount = countLocalDueReviewWords();
       if (!options?.silent) {
-        setLoading(localDueCount === 0 && queueRef.current.length === 0);
+        setLoading(true);
       }
       setError(null);
       try {
         setExpectedDueCount(localDueCount);
-        const { expectedDue, session, summary } = await fetchReviewSessionBundle();
+        const { expectedDue, session, summary } = await fetchReviewSessionBundle({
+          enrich: false,
+        });
         setExpectedDueCount(expectedDue);
 
-        const { allWords, dueQueue } = session;
+        const { allWords: fastWords, dueQueue: fastQueue } = session;
 
         if (
           options?.silent &&
-          dueQueue.length === 0 &&
+          fastQueue.length === 0 &&
           expectedDue > 0 &&
           queueRef.current.length > 0
         ) {
           return;
         }
 
-        if (dueQueue.length === 0 && queueRef.current.length > 0) {
+        if (fastQueue.length === 0 && queueRef.current.length > 0) {
           return;
         }
 
-        if (dueQueue.length === 0 && expectedDue > 0) {
+        if (fastQueue.length > 0 || expectedDue === 0) {
+          updateReviewCache({ allWords: fastWords, dueQueue: fastQueue });
+          applyReviewSessionReady(
+            fastWords,
+            fastQueue,
+            queueRef.current.length === 0,
+          );
+        } else if (expectedDue > 0) {
           const fallback = loadLocalReviewSessionSync();
           if (fallback.dueQueue.length > 0) {
             updateReviewCache(fallback);
-            applyReviewSessionReady(fallback.allWords, fallback.dueQueue, true);
-            return;
-          }
-          const retried = await loadActionableReviewSession(summary);
-          if (retried.dueQueue.length > 0) {
-            updateReviewCache(retried);
-            applyReviewSessionReady(retried.allWords, retried.dueQueue, true);
-            return;
+            applyReviewSessionReady(
+              fallback.allWords,
+              fallback.dueQueue,
+              queueRef.current.length === 0,
+            );
           }
         }
 
-        updateReviewCache({ allWords, dueQueue });
-        applyReviewSessionReady(allWords, dueQueue, true);
+        if (fastQueue.length > 0) {
+          void enrichReviewSession(summary, fastQueue).then((enriched) => {
+            if (enriched.dueQueue.length === 0 && queueRef.current.length > 0) {
+              return;
+            }
+            updateReviewCache(enriched);
+            applyReviewSessionReady(
+              enriched.allWords,
+              enriched.dueQueue,
+              queueRef.current.length === 0,
+            );
+          });
+        }
       } catch (err) {
         const fallback = loadLocalReviewSessionSync();
         if (fallback.dueQueue.length > 0) {
           setExpectedDueCount(countLocalDueReviewWords());
           updateReviewCache(fallback);
-          applyReviewSessionReady(fallback.allWords, fallback.dueQueue, true);
+          applyReviewSessionReady(
+            fallback.allWords,
+            fallback.dueQueue,
+            queueRef.current.length === 0,
+          );
         } else if (!options?.silent) {
           setError(err instanceof Error ? err.message : "Failed to load vocabulary");
         }
@@ -542,12 +575,27 @@ export default function LearnPage() {
     if (localBootstrappedRef.current) return;
     localBootstrappedRef.current = true;
 
+    if (queueRef.current.length > 0) {
+      setLoading(false);
+      setExpectedDueCount(Math.max(countLocalDueReviewWords(), queueRef.current.length));
+      if (!activeQuestionRef.current) {
+        const pool =
+          allWordsRef.current.length > 0 ? allWordsRef.current : queueRef.current;
+        applyReviewSessionReady(pool, queueRef.current, true);
+      }
+      hydratedRef.current = true;
+      void fetchWords({ silent: true });
+      return;
+    }
+
     const bootstrap = bootstrapReview;
     if (bootstrap?.dueQueue.length) {
       setLoading(false);
-      setExpectedDueCount(bootstrap.dueQueue.length);
-      updateReviewCache(bootstrap);
-      applyReviewSessionReady(bootstrap.allWords, bootstrap.dueQueue, true);
+      setExpectedDueCount(Math.max(bootstrap.dueQueue.length, countLocalDueReviewWords()));
+      if (queueRef.current.length === 0) {
+        updateReviewCache(bootstrap);
+        applyReviewSessionReady(bootstrap.allWords, bootstrap.dueQueue, true);
+      }
       hydratedRef.current = true;
       void fetchWords({ silent: true });
       return;
@@ -559,8 +607,10 @@ export default function LearnPage() {
     const local = loadLocalReviewSessionSync();
     if (local.dueQueue.length > 0) {
       setLoading(false);
-      updateReviewCache(local);
-      applyReviewSessionReady(local.allWords, local.dueQueue, true);
+      if (queueRef.current.length === 0) {
+        updateReviewCache(local);
+        applyReviewSessionReady(local.allWords, local.dueQueue, true);
+      }
       hydratedRef.current = true;
       void fetchWords({ silent: true });
       return;

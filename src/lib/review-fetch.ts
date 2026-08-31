@@ -30,6 +30,7 @@ export type LearningSummaryRow = {
 };
 
 const DETAILS_BATCH = 100;
+const SUMMARY_RETRY_DELAYS_MS = [0, 350, 800];
 
 function normalizeVocabWord(word: VocabWord): VocabWord {
   return {
@@ -64,14 +65,25 @@ function stubVocabWord(
 
 /** Same learning rows Home/badge use for due counts. */
 export async function fetchLearningSummary(): Promise<LearningSummaryRow[]> {
-  try {
-    const res = await fetch("/api/words?summary=learning", {
-      cache: "no-store",
-    });
-    const data = (await res.json()) as { words?: LearningSummaryRow[] };
-    if (res.ok) return data.words ?? [];
-  } catch {
-    /* local-only fallback */
+  for (let attempt = 0; attempt < SUMMARY_RETRY_DELAYS_MS.length; attempt++) {
+    const delay = SUMMARY_RETRY_DELAYS_MS[attempt] ?? 0;
+    if (delay > 0) {
+      await new Promise((resolve) => window.setTimeout(resolve, delay));
+    }
+    try {
+      const res = await fetch("/api/words?summary=learning", {
+        cache: "no-store",
+      });
+      const data = (await res.json()) as { words?: LearningSummaryRow[] };
+      if (res.ok) {
+        const words = data.words ?? [];
+        if (words.length > 0 || attempt === SUMMARY_RETRY_DELAYS_MS.length - 1) {
+          return words;
+        }
+      }
+    } catch {
+      /* retry */
+    }
   }
   return [];
 }
@@ -219,9 +231,7 @@ export function loadLocalReviewSessionSync(): ReviewSessionData {
     return { allWords: [], dueQueue: [] };
   }
 
-  const dueKeys = getActionableDueReviewKeys([]);
-  const due = buildDueQueueFromKeys(dueKeys, [], []);
-  const dueQueue = applySessionSnapshotWithHeal(due);
+  const dueQueue = buildFastDueQueue([]);
   return { allWords: dueQueue, dueQueue };
 }
 
@@ -232,10 +242,29 @@ export function countLocalDueReviewWords(): number {
 }
 
 
-async function buildActionableReviewSession(
-  extraWords: LearningSummaryRow[],
-): Promise<ReviewSessionData> {
+/** Build due queue from keys immediately — no network (stubs when needed). */
+export function buildFastDueQueue(extraWords: LearningSummaryRow[] = []): VocabWord[] {
   const dueKeys = getActionableDueReviewKeys(extraWords);
+  let dueQueue = applySessionSnapshotWithHeal(
+    buildDueQueueFromKeys(dueKeys, [], extraWords),
+  );
+
+  if (dueQueue.length === 0 && dueKeys.length > 0) {
+    clearReviewSessionSnapshot();
+    dueQueue = buildDueQueueFromKeys(dueKeys, [], extraWords);
+  }
+
+  return dueQueue;
+}
+
+export async function enrichReviewSession(
+  extraWords: LearningSummaryRow[],
+  dueQueue: VocabWord[],
+): Promise<ReviewSessionData> {
+  const dueKeys = dueQueue.map((word) => word.word.trim().toLowerCase());
+  if (dueKeys.length === 0) {
+    return { allWords: [], dueQueue: [] };
+  }
 
   let allWords = await fetchReviewWords(extraWords);
 
@@ -251,17 +280,35 @@ async function buildActionableReviewSession(
     }
   }
 
-  let due = buildDueQueueFromKeys(dueKeys, allWords, extraWords);
-  let dueQueue = applySessionSnapshotWithHeal(due);
-
-  if (dueQueue.length === 0 && dueKeys.length > 0) {
+  let enrichedQueue = applySessionSnapshotWithHeal(
+    buildDueQueueFromKeys(dueKeys, allWords, extraWords),
+  );
+  if (enrichedQueue.length === 0 && dueKeys.length > 0) {
     clearReviewSessionSnapshot();
-    dueQueue = buildDueQueueFromKeys(dueKeys, allWords, extraWords);
+    enrichedQueue = buildDueQueueFromKeys(dueKeys, allWords, extraWords);
   }
 
-  void prefetchReviewQuestionRange(dueQueue, allWords, 0, 20);
+  void prefetchReviewQuestionRange(enrichedQueue, allWords, 0, 20);
 
-  return { allWords, dueQueue };
+  return {
+    allWords,
+    dueQueue: enrichedQueue.length > 0 ? enrichedQueue : dueQueue,
+  };
+}
+
+async function buildActionableReviewSession(
+  extraWords: LearningSummaryRow[],
+): Promise<ReviewSessionData> {
+  const dueQueue = buildFastDueQueue(extraWords);
+  return enrichReviewSession(extraWords, dueQueue);
+}
+
+/** Fast review bootstrap for splash — stubs only, no heavy word fetch. */
+export async function loadReviewSessionFast(): Promise<ReviewSessionData> {
+  const summary = await fetchLearningSummary();
+  hydrateLocalLearningFromApi(summary, { notify: false });
+  const dueQueue = buildFastDueQueue(summary);
+  return { allWords: dueQueue, dueQueue };
 }
 
 export type ReviewSessionBundle = {
@@ -271,12 +318,21 @@ export type ReviewSessionBundle = {
 };
 
 /** One API read — hydrate local, count due, build queue (matches Home/badge). */
-export async function fetchReviewSessionBundle(): Promise<ReviewSessionBundle> {
+export async function fetchReviewSessionBundle(options?: {
+  enrich?: boolean;
+}): Promise<ReviewSessionBundle> {
   const summary = await fetchLearningSummary();
-  hydrateLocalLearningFromApi(summary);
+  hydrateLocalLearningFromApi(summary, { notify: false });
   const expectedDue = countDueReviewWords(summary);
-  const session = await buildActionableReviewSession(summary);
-  return { summary, expectedDue, session };
+  const dueQueue = buildFastDueQueue(summary);
+  const session = { allWords: dueQueue, dueQueue };
+
+  if (options?.enrich === false || dueQueue.length === 0) {
+    return { summary, expectedDue, session };
+  }
+
+  const enriched = await enrichReviewSession(summary, dueQueue);
+  return { summary, expectedDue, session: enriched };
 }
 
 /**
@@ -319,5 +375,5 @@ export async function prepareReviewSession(
 }
 
 export async function loadReviewSession(): Promise<ReviewSessionData> {
-  return loadActionableReviewSession();
+  return loadReviewSessionFast();
 }

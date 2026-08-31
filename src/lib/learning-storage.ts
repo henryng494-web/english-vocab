@@ -48,6 +48,7 @@ export function hydrateLocalLearningFromApi(
     status?: LearningStatus | string;
     last_reviewed_at?: string | null;
   }>,
+  options?: { notify?: boolean },
 ): void {
   if (typeof window === "undefined" || rows.length === 0) return;
   const map = readLocalLearning();
@@ -68,7 +69,9 @@ export function hydrateLocalLearningFromApi(
 
   if (!changed) return;
   localStorage.setItem(STORAGE_KEY, JSON.stringify(map));
-  window.dispatchEvent(new Event("vocab-learning-changed"));
+  if (options?.notify !== false) {
+    window.dispatchEvent(new Event("vocab-learning-changed"));
+  }
 }
 
 export function writeLocalLearning(word: string, status: LearningStatus) {
