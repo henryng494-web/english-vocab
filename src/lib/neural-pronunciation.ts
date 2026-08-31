@@ -1,7 +1,7 @@
 import { Communicate } from "edge-tts-universal";
 
 /** Bump when voice/prosody changes so clients/CDN fetch fresh MP3s. */
-export const PRONOUNCE_VOICE_VERSION = "ava-youth2";
+export const PRONOUNCE_VOICE_VERSION = "ava-youth3";
 
 /** Expressive US neural voice — more natural than Jenny. */
 export const PRONOUNCE_NEURAL_VOICE = "en-US-AvaMultilingualNeural";

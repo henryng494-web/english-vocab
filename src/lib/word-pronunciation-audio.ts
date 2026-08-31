@@ -60,7 +60,7 @@ export async function resolveWordAudioUrl(word: string): Promise<string | null> 
 
   const normalized = normalizeWord(word);
   const lookup = fetch(`/api/pronounce?word=${encodeURIComponent(normalized)}`, {
-    cache: "force-cache",
+    cache: "no-cache",
   })
     .then(async (response) => {
       if (!response.ok) {
@@ -134,7 +134,7 @@ export function warmWordAudioBytes(
 
   const url = options?.bustCache ? `${src}${src.includes("?") ? "&" : "?"}_=${Date.now()}` : src;
 
-  return fetch(url, { cache: options?.bustCache ? "no-store" : "force-cache" })
+  return fetch(url, { cache: options?.bustCache ? "no-store" : "no-cache" })
     .then((response) => {
       if (!response.ok) {
         warmedAudioBytes.delete(key);
@@ -222,7 +222,8 @@ export function primeAudioPipelineInUserGesture(): void {
     audio.pause();
     audio.currentTime = 0;
     if (currentAudio === audio) currentAudio = null;
-    if (prevSrc) {
+    const versionToken = `v=${PRONOUNCE_VOICE_VERSION}`;
+    if (prevSrc && prevSrc.includes(versionToken)) {
       audio.src = prevSrc;
       audio.dataset.wordKey = prevKey;
     } else {

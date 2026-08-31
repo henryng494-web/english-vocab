@@ -12,8 +12,8 @@ let speakRequestId = 0;
 
 const DEDUPE_MS = 1800;
 const SPEECH_UNLOCK_KEY = "ev-speech-unlocked";
-const AUTO_MP3_WAIT_MS = 2200;
-const AUTO_MP3_RETRY_MS = 3000;
+const AUTO_MP3_WAIT_MS = 4800;
+const AUTO_MP3_RETRY_MS = 6500;
 
 let speechUnlocked = false;
 

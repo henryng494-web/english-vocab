@@ -1,20 +1,10 @@
-import { lookupFallbackTtsAudio } from "@/lib/dictionary-pronunciation";
 import { lookupNeuralTtsAudio } from "@/lib/neural-pronunciation";
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 export const maxDuration = 15;
 
-const NEURAL_BUDGET_MS = 2500;
-
-function raceTimeout<T>(promise: Promise<T>, ms: number): Promise<T | null> {
-  return Promise.race([
-    promise,
-    new Promise<null>((resolve) => {
-      setTimeout(() => resolve(null), ms);
-    }),
-  ]);
-}
+const NEURAL_RETRY_DELAY_MS = 350;
 
 export async function GET(request: NextRequest) {
   const word = request.nextUrl.searchParams.get("word")?.trim().toLowerCase();
@@ -22,22 +12,30 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Invalid word" }, { status: 400 });
   }
 
-  const neuralPromise = lookupNeuralTtsAudio(word);
-  const fallbackPromise = lookupFallbackTtsAudio(word);
-
-  let bytes = await raceTimeout(neuralPromise, NEURAL_BUDGET_MS);
+  let bytes = await lookupNeuralTtsAudio(word);
   if (!bytes) {
-    bytes = await fallbackPromise;
+    await new Promise((resolve) => setTimeout(resolve, NEURAL_RETRY_DELAY_MS));
+    bytes = await lookupNeuralTtsAudio(word);
   }
 
   if (!bytes) {
-    return NextResponse.json({ error: "No audio" }, { status: 404 });
+    return NextResponse.json(
+      { error: "Neural TTS unavailable" },
+      {
+        status: 503,
+        headers: {
+          "Cache-Control": "no-store",
+          "Retry-After": "1",
+        },
+      },
+    );
   }
 
   return new NextResponse(bytes, {
     headers: {
       "Content-Type": "audio/mpeg",
       "Cache-Control": "public, max-age=2592000, stale-while-revalidate=86400",
+      "X-Pronounce-Engine": "neural",
     },
   });
 }
