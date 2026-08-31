@@ -1,4 +1,5 @@
 import { getStaticWordDetail } from "@/data/preset-word-details";
+import { hasQualityStandardVocab } from "@/data/standard-vocab";
 import { loadPersistedWordCache } from "@/lib/discover-word-cache";
 import { standardToDiscoverFields } from "@/lib/enrichment-helpers";
 import { resolveImageSearchKeyword } from "@/lib/image-keyword";
@@ -61,8 +62,39 @@ function mergeHydratedFields(
   return next;
 }
 
+/** Curated standard cards override stale DB meanings for review clues. */
+function applyCuratedReviewFields(word: VocabWord): VocabWord | null {
+  const key = word.word.trim().toLowerCase();
+  if (!hasQualityStandardVocab(key)) return null;
+
+  const standard = standardToDiscoverFields(key);
+  if (!standard || !hasReviewClueFields(standard)) return null;
+
+  const next: VocabWord = {
+    ...word,
+    phonetic: standard.phonetic || word.phonetic,
+    word_type: standard.word_type || word.word_type,
+    vietnamese_meaning: standard.vietnamese_meaning,
+    english_definition: standard.english_definition,
+    examples: standard.examples ?? word.examples,
+    search_keyword: standard.search_keyword || word.search_keyword,
+  };
+  if (!next.search_keyword?.trim()) {
+    next.search_keyword = resolveImageSearchKeyword(next.word, {
+      pos: next.word_type,
+      meaning: next.vietnamese_meaning,
+      englishDefinition: next.english_definition,
+      searchKeyword: next.search_keyword,
+    });
+  }
+  return next;
+}
+
 /** Instant clue/meaning from discover cache, curated vocab, or preset JSON. */
 export function hydrateReviewWordLocal(word: VocabWord): VocabWord {
+  const curated = applyCuratedReviewFields(word);
+  if (curated) return curated;
+
   if (hasReviewClueFields(word)) return word;
 
   const key = word.word.trim().toLowerCase();

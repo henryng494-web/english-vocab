@@ -481,6 +481,23 @@ const CURATED: Record<string, RawEntry> = {
     ],
     keyword: "police custody detention",
   },
+  fancy: {
+    pos: "adjective",
+    ipa: "/ˈfænsi/",
+    meaning: "Sang trọng, lộng lẫy",
+    definition: "Có nghĩa là sang trọng, lộng lẫy.",
+    examples: [
+      {
+        en: "She wore a fancy dress to the party.",
+        vi: "Cô ấy mặc váy lộng lẫy đi dự tiệc.",
+      },
+      {
+        en: "They went to a fancy restaurant for their anniversary.",
+        vi: "Họ đến nhà hàng sang trọng kỷ niệm ngày cưới.",
+      },
+    ],
+    keyword: "fancy elegant dress party",
+  },
   scheme: {
     pos: "noun",
     ipa: "/skiːm/",
