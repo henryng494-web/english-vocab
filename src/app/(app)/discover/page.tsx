@@ -59,7 +59,6 @@ import { useI18n } from "@/hooks/use-i18n";
 import {
   dailySessionQuery,
   dailySessionRoute,
-  finishDailySession,
   readDailySession,
   recordDailyNewWord,
   resumeOrStartDailySession,
@@ -664,18 +663,6 @@ export default function DiscoverPage() {
       />
 
       <div className="journey-panel px-4">
-        {isDailyJourney && dailySession ? (
-          <button
-            type="button"
-            className="daily-session-end"
-            onClick={() => {
-              finishDailySession();
-              router.push("/discover");
-            }}
-          >
-            {t("session.endEarly")}
-          </button>
-        ) : null}
         <p className="journey-note">
           {t("journey.hiddenWords", { count: stats.hidden, band: rangeCompact })}
         </p>
