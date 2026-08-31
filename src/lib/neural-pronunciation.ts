@@ -1,7 +1,14 @@
 import { Communicate } from "edge-tts-universal";
 
-/** Natural US neural voice — single voice for all words. */
-export const PRONOUNCE_NEURAL_VOICE = "en-US-JennyNeural";
+/** Bump when voice/prosody changes so clients/CDN fetch fresh MP3s. */
+export const PRONOUNCE_VOICE_VERSION = "ava-youth1";
+
+/** Expressive US neural voice — more natural than Jenny. */
+export const PRONOUNCE_NEURAL_VOICE = "en-US-AvaMultilingualNeural";
+/** Slightly faster delivery — brighter, more youthful. */
+export const PRONOUNCE_NEURAL_RATE = "+8%";
+/** Light lift — keeps Ava natural without sounding cartoonish. */
+export const PRONOUNCE_NEURAL_PITCH = "+4Hz";
 
 const neuralAudioCache = new Map<string, ArrayBuffer>();
 const NEURAL_CACHE_MAX = 4000;
@@ -9,9 +16,15 @@ const NEURAL_CACHE_MAX = 4000;
 const CONNECTION_TIMEOUT_MS = 6000;
 const SYNTHESIS_TIMEOUT_MS = 8000;
 
+function cacheKey(word: string): string {
+  return `${PRONOUNCE_VOICE_VERSION}:${word.trim().toLowerCase()}`;
+}
+
 async function synthesizeNeuralMp3(word: string): Promise<ArrayBuffer | null> {
   const comm = new Communicate(word, {
     voice: PRONOUNCE_NEURAL_VOICE,
+    rate: PRONOUNCE_NEURAL_RATE,
+    pitch: PRONOUNCE_NEURAL_PITCH,
     connectionTimeout: CONNECTION_TIMEOUT_MS,
   });
   const chunks: Buffer[] = [];
@@ -43,14 +56,16 @@ function raceTimeout<T>(promise: Promise<T>, ms: number): Promise<T | null> {
 
 /** Microsoft Edge neural TTS (server-only). Per-request WebSocket with hard timeout. */
 export async function lookupNeuralTtsAudio(word: string): Promise<ArrayBuffer | null> {
-  const key = word.trim().toLowerCase();
-  if (!key) return null;
+  const normalized = word.trim().toLowerCase();
+  if (!normalized) return null;
+
+  const key = cacheKey(normalized);
 
   const cached = neuralAudioCache.get(key);
   if (cached) return cached;
 
   const buffer = await raceTimeout(
-    synthesizeNeuralMp3(key).catch(() => null),
+    synthesizeNeuralMp3(normalized).catch(() => null),
     SYNTHESIS_TIMEOUT_MS,
   );
   if (!buffer || buffer.byteLength === 0) return null;

@@ -1,3 +1,5 @@
+import { PRONOUNCE_VOICE_VERSION } from "@/lib/neural-pronunciation";
+
 type DictionaryPhonetic = {
   text?: string;
   audio?: string;
@@ -73,7 +75,11 @@ export async function lookupDictionaryAudioUrl(word: string): Promise<string | n
 }
 
 export function proxyPronounceAudioPath(word: string): string {
-  return `/api/pronounce/audio?word=${encodeURIComponent(word.trim().toLowerCase())}`;
+  const params = new URLSearchParams({
+    word: word.trim().toLowerCase(),
+    v: PRONOUNCE_VOICE_VERSION,
+  });
+  return `/api/pronounce/audio?${params}`;
 }
 
 /** HTTP TTS fallback when Bing Edge WebSocket is unavailable (e.g. Vercel cold start). */
