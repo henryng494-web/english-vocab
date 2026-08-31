@@ -327,6 +327,16 @@ export function keepNaturalExamples(
   return paired.slice(0, TARGET_COUNT);
 }
 
+function viContainsGlossTerm(viText: string, term: string): boolean {
+  if (term.includes(" ")) {
+    return viText.includes(term);
+  }
+  const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return new RegExp(`(^|[\\s,.;:!?()"'])${escaped}([\\s,.;:!?()"']|$)`, "i").test(
+    viText,
+  );
+}
+
 export function viTranslationMatchesGloss(
   vi: string | null | undefined,
   meaningLine: string | null | undefined,
@@ -338,15 +348,15 @@ export function viTranslationMatchesGloss(
   const terms = glossAlignmentTerms(gloss);
   if (!terms.length) return true;
 
-  return terms.some((term) => {
-    if (term.includes(" ")) {
-      return viText.includes(term);
-    }
-    const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    return new RegExp(`(^|[\\s,.;:!?()"'])${escaped}([\\s,.;:!?()"']|$)`, "i").test(
-      viText,
-    );
-  });
+  const multiWordGloss = gloss.split(/\s+/).filter(Boolean).length >= 2;
+
+  for (const term of terms) {
+    if (!viContainsGlossTerm(viText, term)) continue;
+    if (multiWordGloss && !term.includes(" ")) continue;
+    return true;
+  }
+
+  return false;
 }
 
 export function hasMeaningAlignedExamples(

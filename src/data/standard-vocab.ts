@@ -785,6 +785,23 @@ const CURATED: Record<string, RawEntry> = {
     ],
     keyword: "november",
   },
+  neighborhood: {
+    pos: "noun",
+    ipa: "/ˈneɪbərhʊd/",
+    meaning: "Khu dân cư\nVùng lân cận",
+    definition: "Khu vực quanh nhà bạn, nơi mọi người sống gần nhau.",
+    examples: [
+      {
+        en: "I grew up in a quiet neighborhood.",
+        vi: "Tôi lớn lên ở một khu dân cư yên tĩnh.",
+      },
+      {
+        en: "There are several parks in our neighborhood.",
+        vi: "Có vài công viên ở vùng lân cận của chúng tôi.",
+      },
+    ],
+    keyword: "neighbor community neighborhood scene",
+  },
   december: {
     pos: "noun",
     ipa: "/dɪˈsembər/",

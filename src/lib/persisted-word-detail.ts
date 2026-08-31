@@ -5,7 +5,10 @@ import {
 import { hasQualityMeanings } from "@/lib/meaning-quality";
 import { isPlaceholderPhonetic } from "@/lib/phonetic";
 import { parseExamples } from "@/lib/parse-examples";
-import { containsForeignScript } from "@/lib/sanitize-vi";
+import {
+  containsForeignScript,
+  hasCorruptedVietnameseText,
+} from "@/lib/sanitize-vi";
 import { normalizeWordType } from "@/lib/word-type";
 import {
   decodeRegisterFromCollocation,
@@ -78,6 +81,7 @@ export function isPersistedWordDetailComplete(
   if (detail.word.toLowerCase() !== word.toLowerCase()) return false;
   if (!detail.vietnamese_meaning?.trim()) return false;
   if (containsForeignScript(detail.vietnamese_meaning)) return false;
+  if (hasCorruptedVietnameseText(detail.vietnamese_meaning)) return false;
   if (
     !hasQualityMeanings(
       word,

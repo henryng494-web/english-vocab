@@ -1,5 +1,6 @@
 import type { VocabExample } from "@/lib/parse-examples";
 import { parseExamples } from "@/lib/parse-examples";
+import { hasCorruptedVietnameseText } from "@/lib/sanitize-vi";
 import { looksLikeEnglish } from "@/lib/translate-vi";
 import { alignmentMeaningLines, parseVietnameseMeanings } from "@/lib/word-meanings";
 import { viTranslationMatchesGloss } from "@/lib/example-quality";
@@ -67,6 +68,7 @@ export function hasQualityMeanings(
   const lines = parseVietnameseMeanings(vietnameseMeaning);
   if (!lines.length) return false;
 
+  if (hasCorruptedVietnameseText(vietnameseMeaning)) return false;
   if (lines.some((line) => looksLikeEnglish(line))) return false;
   if (lines.some((line) => isEncyclopedicGloss(line))) return false;
   if (lines.some((line) => isDirectionalGlossMismatch(word, line))) return false;

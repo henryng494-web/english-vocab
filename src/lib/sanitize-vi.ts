@@ -33,6 +33,20 @@ export function containsForeignScript(text: string | null | undefined): boolean 
   return Boolean(text && FOREIGN_SCRIPT.test(text));
 }
 
+/** Latin Extended blocks that never appear in quốc ngữ glosses (e.g. ⱶ U+2C76). */
+const CORRUPT_LATIN_EXTENDED =
+  /[\u2C00-\u2C7F\uA720-\uA7FF\uAB30-\uAB6F]/u;
+
+/** True when text carries replacement glyphs or other non-Vietnamese script debris. */
+export function hasCorruptedVietnameseText(
+  text: string | null | undefined,
+): boolean {
+  if (!text?.trim()) return false;
+  if (text.includes("\uFFFD")) return true;
+  if (containsForeignScript(text)) return true;
+  return CORRUPT_LATIN_EXTENDED.test(text);
+}
+
 export function sanitizeVietnameseText(text: string | null | undefined): string {
   if (!text) return "";
   let out = "";
