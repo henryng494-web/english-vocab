@@ -51,6 +51,7 @@ import {
 import { seedWordImageCacheFromEntries } from "@/lib/word-image-cache";
 import { readOnboarding, shouldShowOnboarding } from "@/lib/onboarding";
 import { countDueReviewWords } from "@/lib/review-schedule";
+import { countActionableDueReviews } from "@/lib/review-fetch";
 import { OnboardingModal } from "@/components/onboarding/OnboardingModal";
 import {
   DailySessionProgressBanner,
@@ -91,7 +92,7 @@ export default function DiscoverPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { t } = useI18n();
-  const { ranges: bootstrapRanges, wordCache: bootstrapWordCache, patchRangeAfterSave } =
+  const { ranges: bootstrapRanges, wordCache: bootstrapWordCache, patchRangeAfterSave, review: bootstrapReview } =
     useAppBootstrap();
   const inSession = pathname.startsWith("/journey");
   const isDailyJourney =
@@ -136,6 +137,12 @@ export default function DiscoverPage() {
   useEffect(() => {
     let cancelled = false;
     const refreshDue = async () => {
+      if (bootstrapReview?.allWords?.length) {
+        if (!cancelled) {
+          setDueReviewCount(countActionableDueReviews(bootstrapReview.allWords));
+        }
+        return;
+      }
       const local = countDueReviewWords();
       if (!cancelled) setDueReviewCount(local);
       try {
@@ -161,7 +168,7 @@ export default function DiscoverPage() {
       window.removeEventListener("vocab-learning-changed", refreshDue);
       window.removeEventListener("storage", refreshDue);
     };
-  }, []);
+  }, [bootstrapReview]);
 
   useEffect(() => {
     const refreshStudyTime = () => setTodayStudySeconds(getTodayStudySeconds());

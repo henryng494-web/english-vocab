@@ -59,11 +59,13 @@ export function writeReviewSessionSnapshot(snapshot: ReviewSessionSnapshot): voi
       queueWords: snapshot.queueWords.map((w) => w.trim().toLowerCase()),
     }),
   );
+  window.dispatchEvent(new Event("vocab-learning-changed"));
 }
 
 export function clearReviewSessionSnapshot(): void {
   if (typeof window === "undefined") return;
   localStorage.removeItem(STORAGE_KEY);
+  window.dispatchEvent(new Event("vocab-learning-changed"));
 }
 
 /** Build today's queue: drop completed words, keep saved order, append newly due. */

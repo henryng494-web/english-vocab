@@ -1,5 +1,9 @@
 import { readLocalLearning } from "@/lib/learning-storage";
 import { isExcludedVocabWord } from "@/lib/proper-noun";
+import {
+  localReviewDateKey,
+  readReviewSessionSnapshot,
+} from "@/lib/review-session-storage";
 import type { LearningStatus } from "@/types/database";
 
 export const REVIEW_INTERVALS = [1, 2, 4, 7, 14, 30] as const;
@@ -102,21 +106,24 @@ export function isDueReviewWord(
   return isReviewDue(word, now);
 }
 
-export function countDueReviewWords(
+function collectDueReviewKeys(
   extraWords: Array<{
     word: string;
     status?: LearningStatus | string;
     last_reviewed_at?: string | null;
   }> = [],
   now = Date.now(),
-): number {
+): Set<string> {
   const local = readLocalLearning();
   const due = new Set<string>();
 
   for (const [word, entry] of Object.entries(local)) {
     if (isExcludedVocabWord(word)) continue;
-    if (entry.status === "mastered") continue;
-    if (isReviewDue(word, now)) due.add(word.trim().toLowerCase());
+    if (
+      isDueReviewWord(word, entry.status, entry.last_reviewed_at, now)
+    ) {
+      due.add(word.trim().toLowerCase());
+    }
   }
 
   for (const item of extraWords) {
@@ -134,7 +141,42 @@ export function countDueReviewWords(
     }
   }
 
-  return due.size;
+  return due;
+}
+
+function excludeSessionCompletedToday(keys: Set<string>, now = Date.now()): number {
+  const snapshot = readReviewSessionSnapshot();
+  if (!snapshot || snapshot.date !== localReviewDateKey(new Date(now))) {
+    return keys.size;
+  }
+  const completed = new Set(snapshot.completedWords);
+  let count = 0;
+  for (const key of keys) {
+    if (!completed.has(key)) count += 1;
+  }
+  return count;
+}
+
+export function countDueReviewWords(
+  extraWords: Array<{
+    word: string;
+    status?: LearningStatus | string;
+    last_reviewed_at?: string | null;
+  }> = [],
+  now = Date.now(),
+): number {
+  return excludeSessionCompletedToday(collectDueReviewKeys(extraWords, now), now);
+}
+
+export function countDueReviewWordKeys(
+  extraWords: Array<{
+    word: string;
+    status?: LearningStatus | string;
+    last_reviewed_at?: string | null;
+  }> = [],
+  now = Date.now(),
+): number {
+  return collectDueReviewKeys(extraWords, now).size;
 }
 
 export function writeReviewSchedule(

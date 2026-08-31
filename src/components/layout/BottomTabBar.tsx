@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useAppBootstrap } from "@/context/AppBootstrapContext";
+import { countActionableDueReviews } from "@/lib/review-fetch";
 import { countDueReviewWords } from "@/lib/review-schedule";
 import { useI18n } from "@/hooks/use-i18n";
 
@@ -83,12 +85,19 @@ function LibraryIcon({ active }: { active: boolean }) {
 
 export function BottomTabBar() {
   const pathname = usePathname();
+  const { review } = useAppBootstrap();
   const [dueCount, setDueCount] = useState(0);
   const { t } = useI18n();
 
   useEffect(() => {
     let cancelled = false;
     const refresh = async () => {
+      if (review?.allWords?.length) {
+        if (!cancelled) {
+          setDueCount(countActionableDueReviews(review.allWords));
+        }
+        return;
+      }
       const local = countDueReviewWords();
       if (!cancelled) setDueCount(local);
       try {
@@ -114,7 +123,7 @@ export function BottomTabBar() {
       window.removeEventListener("vocab-learning-changed", refresh);
       window.removeEventListener("storage", refresh);
     };
-  }, [pathname]);
+  }, [pathname, review]);
 
   const tabs: TabItem[] = [
     {

@@ -1,6 +1,10 @@
 import { mergeLocalLearning } from "@/lib/learning-storage";
 import { prefetchReviewQuestionRange } from "@/lib/review-image-preload";
 import { isDueReviewWord } from "@/lib/review-schedule";
+import {
+  applyReviewSessionSnapshot,
+  readReviewSessionSnapshot,
+} from "@/lib/review-session-storage";
 import { getImportanceTier } from "@/lib/word-rank";
 import type { VocabWord } from "@/types/database";
 
@@ -24,13 +28,18 @@ export async function fetchReviewWords(): Promise<VocabWord[]> {
 }
 
 export function buildDueReviewQueue(allWords: VocabWord[]): VocabWord[] {
-  return allWords.filter((word) =>
+  const due = allWords.filter((word) =>
     isDueReviewWord(
       word.word,
       word.learning_status,
       word.last_reviewed_at,
     ),
   );
+  return applyReviewSessionSnapshot(due, readReviewSessionSnapshot());
+}
+
+export function countActionableDueReviews(allWords: VocabWord[]): number {
+  return buildDueReviewQueue(allWords).length;
 }
 
 export async function prepareReviewSession(
