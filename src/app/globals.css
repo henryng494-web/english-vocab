@@ -466,7 +466,7 @@ body {
 }
 
 .discover-card--compact {
-  grid-template-rows: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  grid-template-rows: minmax(0, 0.72fr) minmax(0, 1.28fr);
 }
 
 .discover-card__body--compact {
@@ -489,7 +489,7 @@ body {
 }
 
 .discover-card__examples--chunks-only {
-  justify-content: center;
+  justify-content: flex-start;
   overflow: hidden;
 }
 
@@ -507,9 +507,18 @@ body {
 }
 
 .word-learning-chunks--solo {
-  flex: 0 1 auto;
+  flex: 1 1 auto;
   min-height: 0;
   width: 100%;
+}
+
+.word-learning-chunks__section--collocations {
+  flex: 0 0 auto;
+}
+
+.word-learning-chunks__section--phrases {
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 .word-learning-chunks__section {
@@ -560,6 +569,20 @@ body {
 .word-learning-chunks__item--inline .vocab-examples__en,
 .word-learning-chunks__item--inline .vocab-examples__vi {
   display: inline;
+  overflow: visible;
+  -webkit-line-clamp: unset;
+  line-clamp: unset;
+}
+
+.word-learning-chunks__section--phrases .vocab-examples__item {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: visible;
+}
+
+.word-learning-chunks__section--phrases .vocab-examples__en,
+.word-learning-chunks__section--phrases .vocab-examples__vi {
+  display: block;
   overflow: visible;
   -webkit-line-clamp: unset;
   line-clamp: unset;
