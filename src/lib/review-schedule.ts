@@ -235,6 +235,24 @@ export function countDueReviewWords(
   return excludeSessionCompletedToday(collectDueReviewKeys(extraWords, now), now);
 }
 
+/** Due word keys for today's review session (matches badge/home counts). */
+export function getActionableDueReviewKeys(
+  extraWords: Array<{
+    word: string;
+    status?: LearningStatus | string;
+    last_reviewed_at?: string | null;
+  }> = [],
+  now = Date.now(),
+): string[] {
+  const keys = collectDueReviewKeys(extraWords, now);
+  const snapshot = readReviewSessionSnapshot();
+  if (!snapshot || snapshot.date !== localReviewDateKey(new Date(now))) {
+    return [...keys];
+  }
+  const completed = new Set(snapshot.completedWords);
+  return [...keys].filter((key) => !completed.has(key));
+}
+
 export function countDueReviewWordKeys(
   extraWords: Array<{
     word: string;

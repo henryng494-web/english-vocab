@@ -1,9 +1,10 @@
-import type { DiscoverWordData } from "@/components/discover/DiscoverCard";
+import { getPresetRank } from "@/data/preset-word-details";
 import { mergeLocalLearning, readLocalLearning } from "@/lib/learning-storage";
 import { prefetchReviewQuestionRange } from "@/lib/review-image-preload";
 import { isExcludedVocabWord } from "@/lib/proper-noun";
 import {
   createDueReviewFilterContext,
+  getActionableDueReviewKeys,
   isDueReviewWordInContext,
 } from "@/lib/review-schedule";
 import {
@@ -11,14 +12,14 @@ import {
   readReviewSessionSnapshot,
 } from "@/lib/review-session-storage";
 import { getImportanceTier } from "@/lib/word-rank";
-import type { VocabWord } from "@/types/database";
+import type { LearningStatus, VocabWord } from "@/types/database";
 
 export type ReviewSessionData = {
   allWords: VocabWord[];
   dueQueue: VocabWord[];
 };
 
-const HYDRATE_CONCURRENCY = 6;
+const DETAILS_BATCH = 100;
 
 function normalizeVocabWord(word: VocabWord): VocabWord {
   return {
@@ -27,64 +28,63 @@ function normalizeVocabWord(word: VocabWord): VocabWord {
   };
 }
 
-function discoverWordToVocab(word: DiscoverWordData): VocabWord {
-  const rank = word.rank ?? 10000;
+function stubVocabFromLocal(
+  word: string,
+  status: LearningStatus,
+  lastReviewedAt: string,
+): VocabWord {
+  const rank = getPresetRank(word) ?? 10000;
   return {
-    id: word.word,
-    word: word.word,
-    phonetic: word.phonetic ?? "",
-    word_type: word.word_type ?? "",
-    vietnamese_meaning: word.vietnamese_meaning ?? "",
-    english_definition: word.english_definition ?? "",
-    examples: word.examples ?? "",
-    collocations: word.collocations ?? null,
-    image_url: word.image_url ?? null,
+    id: word,
+    word,
+    phonetic: "",
+    word_type: "",
+    vietnamese_meaning: "",
+    english_definition: "",
+    examples: "",
+    collocations: null,
+    image_url: null,
     rank,
-    importance_tier: word.importance_tier ?? getImportanceTier(rank),
-    learning_status: "new",
-    last_reviewed_at: null,
-    search_keyword: word.search_keyword ?? null,
-    word_family: word.word_family ?? undefined,
-    register: word.register ?? null,
+    importance_tier: getImportanceTier(rank),
+    learning_status: status,
+    last_reviewed_at: lastReviewedAt,
   };
 }
 
-async function hydrateMissingReviewWords(
-  words: VocabWord[],
-  missingKeys: string[],
-): Promise<VocabWord[]> {
-  if (missingKeys.length === 0) return words;
+async function fetchWordDetailsBatch(keys: string[]): Promise<VocabWord[]> {
+  if (keys.length === 0) return [];
 
-  const hydrated: VocabWord[] = [];
-  let index = 0;
+  const unique = [
+    ...new Set(keys.map((key) => key.trim().toLowerCase()).filter(Boolean)),
+  ];
+  const results: VocabWord[] = [];
 
-  async function worker() {
-    while (index < missingKeys.length) {
-      const key = missingKeys[index]!;
-      index += 1;
-      try {
-        const res = await fetch(
-          `/api/discover/word?word=${encodeURIComponent(key)}`,
-          { cache: "no-store" },
-        );
-        if (!res.ok) continue;
-        const data = (await res.json()) as { word?: DiscoverWordData };
-        if (!data.word?.word) continue;
-        hydrated.push(discoverWordToVocab(data.word));
-      } catch {
-        /* skip failed hydrate */
-      }
+  for (let offset = 0; offset < unique.length; offset += DETAILS_BATCH) {
+    const batch = unique.slice(offset, offset + DETAILS_BATCH);
+    try {
+      const res = await fetch(
+        `/api/words?scope=details&words=${encodeURIComponent(batch.join(","))}`,
+        { cache: "no-store" },
+      );
+      if (!res.ok) continue;
+      const data = (await res.json()) as { words?: VocabWord[] };
+      results.push(...((data.words ?? []) as VocabWord[]).map(normalizeVocabWord));
+    } catch {
+      /* try next batch */
     }
   }
 
-  await Promise.all(
-    Array.from(
-      { length: Math.min(HYDRATE_CONCURRENCY, missingKeys.length) },
-      () => worker(),
-    ),
-  );
+  return results;
+}
 
-  return [...words, ...hydrated.map(normalizeVocabWord)];
+function localReviewPoolKeys(): string[] {
+  const local = readLocalLearning();
+  return Object.entries(local)
+    .filter(
+      ([word, entry]) =>
+        !isExcludedVocabWord(word) && entry.status !== "mastered",
+    )
+    .map(([word]) => word.trim().toLowerCase());
 }
 
 /** Due review rows keyed off local learning state (matches badge/home counts). */
@@ -110,8 +110,9 @@ export function collectDueReviewWords(allWords: VocabWord[]): VocabWord[] {
     ) {
       continue;
     }
-    const vocab = byKey.get(key);
-    if (!vocab) continue;
+    const vocab =
+      byKey.get(key) ??
+      stubVocabFromLocal(word, entry.status, entry.last_reviewed_at);
     due.push(vocab);
     seen.add(key);
   }
@@ -143,34 +144,49 @@ export function buildDueReviewQueue(allWords: VocabWord[]): VocabWord[] {
 }
 
 export async function fetchReviewWords(): Promise<VocabWord[]> {
-  const res = await fetch("/api/words?scope=learning&sort=recent", {
-    cache: "no-store",
-  });
-  const data = await res.json();
-  if (!res.ok) {
-    throw new Error(data.details ?? data.error ?? "Failed to load word list");
+  let words: VocabWord[] = [];
+
+  try {
+    const res = await fetch("/api/words?scope=learning&sort=recent", {
+      cache: "no-store",
+    });
+    const data = (await res.json()) as { words?: VocabWord[] };
+    if (res.ok) {
+      words = ((data.words ?? []) as VocabWord[]).map(normalizeVocabWord);
+    }
+  } catch {
+    /* fall back to local batch hydration */
   }
 
-  let words = mergeLocalLearning(
-    ((data.words ?? []) as VocabWord[]).map(normalizeVocabWord),
-  );
-
-  const local = readLocalLearning();
   const have = new Set(words.map((word) => word.word.trim().toLowerCase()));
-  const missing = Object.entries(local)
-    .filter(
-      ([word, entry]) =>
-        !isExcludedVocabWord(word) &&
-        entry.status !== "mastered" &&
-        !have.has(word.trim().toLowerCase()),
-    )
-    .map(([word]) => word.trim().toLowerCase());
+  const poolKeys = localReviewPoolKeys();
+  const missingPool = poolKeys.filter((key) => !have.has(key));
 
-  if (missing.length > 0) {
-    words = mergeLocalLearning(await hydrateMissingReviewWords(words, missing));
+  if (missingPool.length > 0) {
+    const hydrated = await fetchWordDetailsBatch(missingPool);
+    for (const word of hydrated) {
+      const key = word.word.trim().toLowerCase();
+      if (!have.has(key)) {
+        words.push(word);
+        have.add(key);
+      }
+    }
   }
 
-  return words;
+  // Ensure due words always have rows even if batch hydration missed some.
+  const missingDue = getActionableDueReviewKeys().filter((key) => !have.has(key));
+  if (missingDue.length > 0) {
+    const local = readLocalLearning();
+    for (const key of missingDue) {
+      const entry = local[key];
+      if (!entry) continue;
+      words.push(
+        stubVocabFromLocal(key, entry.status, entry.last_reviewed_at),
+      );
+    }
+  }
+
+  return mergeLocalLearning(words.map(normalizeVocabWord));
 }
 
 export function countActionableDueReviews(allWords: VocabWord[]): number {

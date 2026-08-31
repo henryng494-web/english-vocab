@@ -7,7 +7,7 @@ import { isExcludedVocabWord } from "@/lib/proper-noun";
 import { getFamilyHeadword } from "@/lib/word-family";
 import { withWordFamily } from "@/lib/word-family-display";
 import { isValidVocabWord } from "@/lib/word-validation";
-import type { LearningStatus, VocabWord } from "@/types/database";
+import type { LearningStatus, VocabWord, WordDetail } from "@/types/database";
 import { NextResponse } from "next/server";
 
 function errorMessage(error: unknown): string {
@@ -16,6 +16,58 @@ function errorMessage(error: unknown): string {
     return String((error as { message: unknown }).message);
   }
   return "Unknown error";
+}
+
+function parseWordListParam(raw: string | null, limit = 150): string[] {
+  if (!raw?.trim()) return [];
+  const seen = new Set<string>();
+  const words: string[] = [];
+  for (const part of raw.split(",")) {
+    const word = part.trim().toLowerCase();
+    if (!word || seen.has(word) || !isValidVocabWord(word)) continue;
+    if (isExcludedVocabWord(word) || isExcludedVocabWord(getFamilyHeadword(word))) {
+      continue;
+    }
+    seen.add(word);
+    words.push(word);
+    if (words.length >= limit) break;
+  }
+  return words;
+}
+
+function mapDetailsToVocabWords(
+  details: WordDetail[],
+  rankByWord: Map<string, number>,
+  learningByWord: Map<
+    string,
+    { status?: string; last_reviewed_at?: string | null }
+  >,
+): VocabWord[] {
+  return details
+    .filter(
+      (detail) =>
+        isValidVocabWord(detail.word) &&
+        !isExcludedVocabWord(detail.word) &&
+        !isExcludedVocabWord(getFamilyHeadword(detail.word)),
+    )
+    .map((detail) => {
+      const rank =
+        getPresetRank(detail.word) ?? rankByWord.get(detail.word) ?? 10000;
+      const learning = learningByWord.get(detail.word);
+      return withWordFamily({
+        ...detail,
+        rank,
+        importance_tier: getImportanceTier(rank),
+        learning_status: (learning?.status as LearningStatus) ?? "new",
+        last_reviewed_at: learning?.last_reviewed_at ?? null,
+        search_keyword: resolveImageSearchKeyword(detail.word, {
+          pos: detail.word_type,
+          meaning: detail.vietnamese_meaning,
+          englishDefinition: detail.english_definition,
+        }),
+        family_head: getFamilyHeadword(detail.word),
+      });
+    });
 }
 
 export async function GET(request: Request) {
@@ -37,6 +89,35 @@ export async function GET(request: Request) {
         (row) =>
           row.status !== "mastered" && !isExcludedVocabWord(row.word),
       );
+      return NextResponse.json({ words });
+    }
+
+    /** Word details for explicit word lists (local review hydration). */
+    if (searchParams.get("scope") === "details") {
+      const wordList = parseWordListParam(searchParams.get("words"));
+      if (wordList.length === 0) {
+        return NextResponse.json({ words: [] });
+      }
+
+      const [{ data: details, error: detailsError }, { data: bankRows, error: bankError }] =
+        await Promise.all([
+          supabase.from("word_details").select("*").in("word", wordList),
+          supabase.from("word_bank").select("word, rank").in("word", wordList),
+        ]);
+
+      if (detailsError) throw detailsError;
+      if (bankError) throw bankError;
+
+      const rankByWord = new Map(
+        (bankRows ?? []).map((row) => [row.word, row.rank]),
+      );
+
+      const words = mapDetailsToVocabWords(
+        details ?? [],
+        rankByWord,
+        new Map(),
+      );
+
       return NextResponse.json({ words });
     }
 
@@ -74,31 +155,11 @@ export async function GET(request: Request) {
         (bankRows ?? []).map((row) => [row.word, row.rank]),
       );
 
-      let words: VocabWord[] = (details ?? [])
-        .filter(
-          (detail) =>
-            isValidVocabWord(detail.word) &&
-            !isExcludedVocabWord(detail.word) &&
-            !isExcludedVocabWord(getFamilyHeadword(detail.word)),
-        )
-        .map((detail) => {
-          const rank =
-            getPresetRank(detail.word) ?? rankByWord.get(detail.word) ?? 10000;
-          const learning = learningByWord.get(detail.word);
-          return withWordFamily({
-            ...detail,
-            rank,
-            importance_tier: getImportanceTier(rank),
-            learning_status: (learning?.status as LearningStatus) ?? "new",
-            last_reviewed_at: learning?.last_reviewed_at ?? null,
-            search_keyword: resolveImageSearchKeyword(detail.word, {
-              pos: detail.word_type,
-              meaning: detail.vietnamese_meaning,
-              englishDefinition: detail.english_definition,
-            }),
-            family_head: getFamilyHeadword(detail.word),
-          });
-        });
+      let words = mapDetailsToVocabWords(
+        details ?? [],
+        rankByWord,
+        learningByWord,
+      );
 
       if (sort === "recent") {
         words.sort((a, b) => {

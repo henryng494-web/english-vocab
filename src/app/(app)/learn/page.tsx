@@ -127,6 +127,7 @@ export default function LearnPage() {
   const reviewInitialCountRef = useRef(0);
   const dailyRedirectRef = useRef(false);
   const hydratedRef = useRef(false);
+  const prevPathRef = useRef<string | null>(null);
   const revealDelayRef = useRef(REVEAL_DELAY_MS);
   const phaseRef = useRef<Phase>("question");
   const lockedRef = useRef(false);
@@ -514,7 +515,11 @@ export default function LearnPage() {
 
   useEffect(() => {
     if (pathname !== "/learn" || !hydratedRef.current) return;
-    void fetchWords({ silent: true });
+    if (prevPathRef.current === pathname) return;
+    if (prevPathRef.current && prevPathRef.current !== "/learn") {
+      void fetchWords({ silent: true });
+    }
+    prevPathRef.current = pathname;
   }, [pathname, fetchWords]);
 
   useEffect(() => {
