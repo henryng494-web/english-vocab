@@ -51,6 +51,7 @@ import {
 import { seedWordImageCacheFromEntries } from "@/lib/word-image-cache";
 import { readOnboarding, shouldShowOnboarding } from "@/lib/onboarding";
 import { countDueReviewWords } from "@/lib/review-schedule";
+import { fetchLearningSummary } from "@/lib/review-fetch";
 import { OnboardingModal } from "@/components/onboarding/OnboardingModal";
 import {
   DailySessionSummary,
@@ -136,16 +137,8 @@ export default function DiscoverPage() {
     const refreshDue = async () => {
       let count = countDueReviewWords();
       try {
-        const res = await fetch("/api/words?summary=learning", { cache: "no-store" });
-        const data = (await res.json()) as {
-          words?: Array<{
-            word: string;
-            status?: string;
-            last_reviewed_at?: string | null;
-          }>;
-        };
-        if (cancelled) return;
-        count = countDueReviewWords(data.words ?? []);
+        const summary = await fetchLearningSummary();
+        count = countDueReviewWords(summary);
       } catch {
         /* keep local count */
       }

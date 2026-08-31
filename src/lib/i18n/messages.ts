@@ -102,6 +102,10 @@ export const messages: Record<AppLocale, MessageTree> = {
       "Quay lại khi đến lịch ôn tiếp theo, hoặc thêm từ mới.",
     "review.learnOnHome":
       "Học từ trên Trang chủ hoặc thêm từ bên dưới để bắt đầu ôn.",
+    "review.syncMismatch": "Chưa tải được lịch ôn",
+    "review.syncMismatchHint":
+      "Có {count} từ đến hạn nhưng Review chưa load xong. Thử lại.",
+    "review.retryLoad": "Tải lại",
     "review.addWordPlaceholder": "Thêm từ mới…",
     "review.add": "Thêm",
 
@@ -274,6 +278,10 @@ export const messages: Record<AppLocale, MessageTree> = {
     "review.comeBackLater":
       "Come back when the next review interval is due, or add a new word.",
     "review.learnOnHome": "Learn words on Home or add one below to start reviewing.",
+    "review.syncMismatch": "Could not load your review queue",
+    "review.syncMismatchHint":
+      "{count} words are due but Review did not load them. Tap to retry.",
+    "review.retryLoad": "Retry",
     "review.addWordPlaceholder": "Add a new word…",
     "review.add": "Add",
 

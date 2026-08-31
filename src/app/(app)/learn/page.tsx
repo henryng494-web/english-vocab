@@ -29,8 +29,8 @@ import {
 } from "@/lib/review-image-preload";
 import { useAppBootstrap } from "@/context/AppBootstrapContext";
 import {
-  fetchReviewWords,
-  collectDueReviewWords,
+  fetchExpectedDueReviewCount,
+  loadActionableReviewSession,
 } from "@/lib/review-fetch";
 import { hasQualityExamples } from "@/lib/example-quality";
 import { parseExamples } from "@/lib/parse-examples";
@@ -41,7 +41,6 @@ import {
   type ReviewIntervalDays,
 } from "@/lib/review-schedule";
 import {
-  applyReviewSessionSnapshot,
   clearReviewSessionSnapshot,
   markReviewSessionCompleted,
   readReviewSessionSnapshot,
@@ -123,6 +122,7 @@ export default function LearnPage() {
   const [adding, setAdding] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sessionDone, setSessionDone] = useState(false);
+  const [expectedDueCount, setExpectedDueCount] = useState(0);
   const [dailySession, setDailySession] = useState(readDailySession());
   const reviewInitialCountRef = useRef(0);
   const dailyRedirectRef = useRef(false);
@@ -388,11 +388,8 @@ export default function LearnPage() {
     startQuestion(queue[newIndex]!, allWords, newIndex);
   }, [queue, index, phase, locked, allWords, startQuestion]);
 
-  const applyReviewSession = useCallback(
-    (fetched: VocabWord[], due: VocabWord[], startFirst = true) => {
-      const snapshot = readReviewSessionSnapshot();
-      const sessionDue = applyReviewSessionSnapshot(due, snapshot);
-
+  const applyReviewSessionReady = useCallback(
+    (fetched: VocabWord[], sessionDue: VocabWord[], startFirst = true) => {
       setAllWords(fetched);
       setQueue(sessionDue);
       setSessionDone(sessionDue.length === 0);
@@ -414,7 +411,7 @@ export default function LearnPage() {
         return;
       }
 
-      const inProgress = snapshot?.inProgress;
+      const inProgress = readReviewSessionSnapshot()?.inProgress;
       if (inProgress) {
         const resumeIndex = sessionDue.findIndex(
           (item) =>
@@ -479,12 +476,22 @@ export default function LearnPage() {
       }
       setError(null);
       try {
-        const all = await fetchReviewWords();
-        const due = collectDueReviewWords(all);
-        const snapshot = readReviewSessionSnapshot();
-        const sessionDue = applyReviewSessionSnapshot(due, snapshot);
-        updateReviewCache({ allWords: all, dueQueue: sessionDue });
-        applyReviewSession(all, due, true);
+        const expectedDue = await fetchExpectedDueReviewCount();
+        setExpectedDueCount(expectedDue);
+
+        const { allWords, dueQueue } = await loadActionableReviewSession();
+
+        if (
+          options?.silent &&
+          dueQueue.length === 0 &&
+          expectedDue > 0 &&
+          queueRef.current.length > 0
+        ) {
+          return;
+        }
+
+        updateReviewCache({ allWords, dueQueue });
+        applyReviewSessionReady(allWords, dueQueue, true);
       } catch (err) {
         if (!options?.silent) {
           setError(err instanceof Error ? err.message : "Failed to load vocabulary");
@@ -495,7 +502,7 @@ export default function LearnPage() {
         }
       }
     },
-    [applyReviewSession, updateReviewCache],
+    [applyReviewSessionReady, updateReviewCache],
   );
 
   useEffect(() => {
@@ -787,7 +794,9 @@ export default function LearnPage() {
     }
   }
 
-  const inSession = Boolean(currentWord) && !sessionDone;
+  const inSession = Boolean(currentWord) && queue.length > 0;
+  const syncMismatch = !loading && queue.length === 0 && expectedDueCount > 0;
+  const allCaughtUp = !loading && queue.length === 0 && expectedDueCount === 0;
 
   return (
     <div className={`app-screen${inSession ? " app-screen--journey" : " app-screen--home"}`}>
@@ -888,13 +897,32 @@ export default function LearnPage() {
       ) : (
         <div className="page-scroll px-4">
           <div className="mx-auto flex max-w-sm flex-col items-center pt-6 text-center">
-            <JungleMascot character={sessionDone ? "monkey" : "crocodile"} size={88} />
+            <JungleMascot character={allCaughtUp ? "monkey" : "crocodile"} size={88} />
             <h2 className="mt-3 text-xl font-bold text-foreground">
-              {sessionDone ? t("review.allCaughtUp") : t("review.noWordsDue")}
+              {syncMismatch
+                ? t("review.syncMismatch")
+                : allCaughtUp
+                  ? t("review.allCaughtUp")
+                  : t("review.noWordsDue")}
             </h2>
             <p className="mt-1 text-sm text-foreground/60">
-              {sessionDone ? t("review.comeBackLater") : t("review.learnOnHome")}
+              {syncMismatch
+                ? t("review.syncMismatchHint", { count: expectedDueCount })
+                : allCaughtUp
+                  ? t("review.comeBackLater")
+                  : t("review.learnOnHome")}
             </p>
+            {syncMismatch ? (
+              <button
+                type="button"
+                onClick={() => {
+                  void fetchWords();
+                }}
+                className="mt-4 rounded-xl bg-primary px-5 py-3 text-base font-semibold text-white shadow-sm"
+              >
+                {t("review.retryLoad")}
+              </button>
+            ) : null}
           </div>
 
           <form onSubmit={handleAddWord} className="mt-6 flex gap-2">

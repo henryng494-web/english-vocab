@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { countDueReviewWords } from "@/lib/review-schedule";
+import { fetchLearningSummary } from "@/lib/review-fetch";
 import { useI18n } from "@/hooks/use-i18n";
 
 type TabItem = {
@@ -91,16 +92,8 @@ export function BottomTabBar() {
     const refresh = async () => {
       let count = countDueReviewWords();
       try {
-        const res = await fetch("/api/words?summary=learning", { cache: "no-store" });
-        const data = (await res.json()) as {
-          words?: Array<{
-            word: string;
-            status?: string;
-            last_reviewed_at?: string | null;
-          }>;
-        };
-        if (cancelled) return;
-        count = countDueReviewWords(data.words ?? []);
+        const summary = await fetchLearningSummary();
+        count = countDueReviewWords(summary);
       } catch {
         /* keep local count */
       }
