@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useAppBootstrap } from "@/context/AppBootstrapContext";
-import { countActionableDueReviews } from "@/lib/review-fetch";
 import { countDueReviewWords } from "@/lib/review-schedule";
 import { useI18n } from "@/hooks/use-i18n";
 
@@ -92,10 +91,8 @@ export function BottomTabBar() {
   useEffect(() => {
     let cancelled = false;
     const refresh = async () => {
-      if (review?.allWords?.length) {
-        if (!cancelled) {
-          setDueCount(countActionableDueReviews(review.allWords));
-        }
+      if (review?.dueQueue) {
+        if (!cancelled) setDueCount(review.dueQueue.length);
         return;
       }
       const local = countDueReviewWords();

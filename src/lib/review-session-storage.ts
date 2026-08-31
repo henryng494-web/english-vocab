@@ -49,7 +49,10 @@ export function readReviewSessionSnapshot(): ReviewSessionSnapshot | null {
   }
 }
 
-export function writeReviewSessionSnapshot(snapshot: ReviewSessionSnapshot): void {
+export function writeReviewSessionSnapshot(
+  snapshot: ReviewSessionSnapshot,
+  options?: { notify?: boolean },
+): void {
   if (typeof window === "undefined") return;
   localStorage.setItem(
     STORAGE_KEY,
@@ -59,7 +62,9 @@ export function writeReviewSessionSnapshot(snapshot: ReviewSessionSnapshot): voi
       queueWords: snapshot.queueWords.map((w) => w.trim().toLowerCase()),
     }),
   );
-  window.dispatchEvent(new Event("vocab-learning-changed"));
+  if (options?.notify !== false) {
+    window.dispatchEvent(new Event("vocab-learning-changed"));
+  }
 }
 
 export function clearReviewSessionSnapshot(): void {
@@ -132,16 +137,19 @@ export function saveReviewSessionInProgress(
   const prev = readReviewSessionSnapshot();
   const completed = prev?.date === today ? prev.completedWords : [];
 
-  writeReviewSessionSnapshot({
-    date: today,
-    completedWords: completed,
-    queueWords: queue.map((item) => item.word.trim().toLowerCase()),
-    inProgress,
-  });
+  writeReviewSessionSnapshot(
+    {
+      date: today,
+      completedWords: completed,
+      queueWords: queue.map((item) => item.word.trim().toLowerCase()),
+      inProgress,
+    },
+    { notify: false },
+  );
 }
 
 export function clearReviewSessionInProgress(): void {
   const prev = readReviewSessionSnapshot();
   if (!prev) return;
-  writeReviewSessionSnapshot({ ...prev, inProgress: null });
+  writeReviewSessionSnapshot({ ...prev, inProgress: null }, { notify: false });
 }

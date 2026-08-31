@@ -51,7 +51,6 @@ import {
 import { seedWordImageCacheFromEntries } from "@/lib/word-image-cache";
 import { readOnboarding, shouldShowOnboarding } from "@/lib/onboarding";
 import { countDueReviewWords } from "@/lib/review-schedule";
-import { countActionableDueReviews } from "@/lib/review-fetch";
 import { OnboardingModal } from "@/components/onboarding/OnboardingModal";
 import {
   DailySessionProgressBanner,
@@ -137,9 +136,9 @@ export default function DiscoverPage() {
   useEffect(() => {
     let cancelled = false;
     const refreshDue = async () => {
-      if (bootstrapReview?.allWords?.length) {
+      if (bootstrapReview?.dueQueue) {
         if (!cancelled) {
-          setDueReviewCount(countActionableDueReviews(bootstrapReview.allWords));
+          setDueReviewCount(bootstrapReview.dueQueue.length);
         }
         return;
       }

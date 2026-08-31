@@ -85,9 +85,67 @@ function endOfLocalDay(now = Date.now()): number {
   return d.getTime();
 }
 
+type DueReviewContext = {
+  now: number;
+  endOfDay: number;
+  local: ReturnType<typeof readLocalLearning>;
+  schedule: ScheduleMap;
+};
+
+function createDueReviewContext(now = Date.now()): DueReviewContext {
+  return {
+    now,
+    endOfDay: endOfLocalDay(now),
+    local: readLocalLearning(),
+    schedule: readReviewSchedule(),
+  };
+}
+
+function scheduleEntryForWord(
+  word: string,
+  schedule: ScheduleMap,
+): ReviewScheduleEntry {
+  const key = word.trim().toLowerCase();
+  const stored = schedule[key];
+  if (
+    stored &&
+    isInterval(stored.intervalDays) &&
+    typeof stored.nextReviewAt === "string" &&
+    typeof stored.timesReviewed === "number"
+  ) {
+    return stored;
+  }
+  return {
+    intervalDays: 1,
+    nextReviewAt: new Date(0).toISOString(),
+    timesReviewed: 0,
+  };
+}
+
+function isReviewDueWithContext(word: string, ctx: DueReviewContext): boolean {
+  const entry = scheduleEntryForWord(word, ctx.schedule);
+  return Date.parse(entry.nextReviewAt) <= ctx.endOfDay;
+}
+
 export function isReviewDue(word: string, now = Date.now()): boolean {
-  const entry = getReviewSchedule(word);
-  return Date.parse(entry.nextReviewAt) <= endOfLocalDay(now);
+  const ctx = createDueReviewContext(now);
+  return isReviewDueWithContext(word, ctx);
+}
+
+function isDueReviewWordWithContext(
+  word: string,
+  learningStatus: LearningStatus,
+  lastReviewedAt: string | null | undefined,
+  ctx: DueReviewContext,
+): boolean {
+  if (isExcludedVocabWord(word)) return false;
+  const key = word.trim().toLowerCase();
+  const localEntry = ctx.local[key] ?? ctx.local[word];
+  const status = localEntry?.status ?? learningStatus;
+  if (status === "mastered") return false;
+  const tracked = Boolean(localEntry) || Boolean(lastReviewedAt);
+  if (!tracked) return false;
+  return isReviewDueWithContext(word, ctx);
 }
 
 export function isDueReviewWord(
@@ -96,14 +154,25 @@ export function isDueReviewWord(
   lastReviewedAt: string | null | undefined,
   now = Date.now(),
 ): boolean {
-  if (isExcludedVocabWord(word)) return false;
-  const local = readLocalLearning();
-  const localEntry = local[word] ?? local[word.trim().toLowerCase()];
-  const status = localEntry?.status ?? learningStatus;
-  if (status === "mastered") return false;
-  const tracked = Boolean(localEntry) || Boolean(lastReviewedAt);
-  if (!tracked) return false;
-  return isReviewDue(word, now);
+  return isDueReviewWordWithContext(
+    word,
+    learningStatus,
+    lastReviewedAt,
+    createDueReviewContext(now),
+  );
+}
+
+export function createDueReviewFilterContext(now = Date.now()): DueReviewContext {
+  return createDueReviewContext(now);
+}
+
+export function isDueReviewWordInContext(
+  word: string,
+  learningStatus: LearningStatus,
+  lastReviewedAt: string | null | undefined,
+  ctx: DueReviewContext,
+): boolean {
+  return isDueReviewWordWithContext(word, learningStatus, lastReviewedAt, ctx);
 }
 
 function collectDueReviewKeys(
@@ -114,14 +183,12 @@ function collectDueReviewKeys(
   }> = [],
   now = Date.now(),
 ): Set<string> {
-  const local = readLocalLearning();
+  const ctx = createDueReviewContext(now);
   const due = new Set<string>();
 
-  for (const [word, entry] of Object.entries(local)) {
+  for (const [word, entry] of Object.entries(ctx.local)) {
     if (isExcludedVocabWord(word)) continue;
-    if (
-      isDueReviewWord(word, entry.status, entry.last_reviewed_at, now)
-    ) {
+    if (isDueReviewWordWithContext(word, entry.status, entry.last_reviewed_at, ctx)) {
       due.add(word.trim().toLowerCase());
     }
   }
@@ -130,11 +197,11 @@ function collectDueReviewKeys(
     const key = item.word.trim().toLowerCase();
     if (isExcludedVocabWord(key)) continue;
     if (
-      isDueReviewWord(
+      isDueReviewWordWithContext(
         item.word,
         (item.status as LearningStatus) ?? "new",
         item.last_reviewed_at,
-        now,
+        ctx,
       )
     ) {
       due.add(key);

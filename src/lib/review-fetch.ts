@@ -1,6 +1,9 @@
 import { mergeLocalLearning } from "@/lib/learning-storage";
 import { prefetchReviewQuestionRange } from "@/lib/review-image-preload";
-import { isDueReviewWord } from "@/lib/review-schedule";
+import {
+  createDueReviewFilterContext,
+  isDueReviewWordInContext,
+} from "@/lib/review-schedule";
 import {
   applyReviewSessionSnapshot,
   readReviewSessionSnapshot,
@@ -28,11 +31,13 @@ export async function fetchReviewWords(): Promise<VocabWord[]> {
 }
 
 export function buildDueReviewQueue(allWords: VocabWord[]): VocabWord[] {
+  const ctx = createDueReviewFilterContext();
   const due = allWords.filter((word) =>
-    isDueReviewWord(
+    isDueReviewWordInContext(
       word.word,
       word.learning_status,
       word.last_reviewed_at,
+      ctx,
     ),
   );
   return applyReviewSessionSnapshot(due, readReviewSessionSnapshot());
