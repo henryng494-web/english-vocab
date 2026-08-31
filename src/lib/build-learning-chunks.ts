@@ -31,6 +31,22 @@ const FRAGMENT_START =
 const QUANTIFIER_HEADWORDS =
   /^(some|any|several|many|few|multiple|numerous|various|each|every|both|all|most|more|less|enough|another|other)$/i;
 
+/** Headwords where "the X" is itself a useful Goes-with chunk (superlative, etc.). */
+const DETERMINER_PAIR_HEADWORDS = new Set([
+  "best",
+  "first",
+  "last",
+  "least",
+  "most",
+  "next",
+  "only",
+  "other",
+  "rest",
+  "same",
+  "whole",
+  "worst",
+]);
+
 const ED_NOUN_EXCEPTIONS = new Set(["red", "bed", "fed", "led", "wed", "shed", "bred"]);
 
 const INLINE_VERBS = new Set([
@@ -212,6 +228,15 @@ function isLeadingPrepHeadwordPair(phrase: string, headword: string): boolean {
   const prep = normalizeToken(words[0] ?? "");
   if (findHeadwordIndex(words, headword) !== 1) return false;
   return PREP_TOKENS.has(prep) || TRAILING_PREPS.has(prep);
+}
+
+/** Determiner + headword pairs: "the least", "the most" — valid for superlatives. */
+function isLeadingDeterminerHeadwordPair(phrase: string, headword: string): boolean {
+  const words = normalizePhrase(phrase).split(/\s+/).filter(Boolean);
+  if (words.length !== 2) return false;
+  if (findHeadwordIndex(words, headword) !== 1) return false;
+  if (!LEADING_DETERMINERS.test(normalizeToken(words[0] ?? ""))) return false;
+  return DETERMINER_PAIR_HEADWORDS.has(headword.toLowerCase());
 }
 
 /** Classic headword + preposition pairs: "flattered by", "good at", "depend on". */
@@ -442,6 +467,8 @@ function isWeakCollocation(phrase: string, headword: string): boolean {
 
   const others = words.filter((_, i) => i !== idx);
   if (!others.length) return true;
+
+  if (isLeadingDeterminerHeadwordPair(phrase, headword)) return false;
 
   return others.every((word) => LEADING_DETERMINERS.test(normalizeToken(word)));
 }

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   LEARNING_CHUNK_OVERRIDES,
+  MAX_LEARNING_COLLOCATIONS,
   type LearningChunkEntry,
   type LearningChunkPhrase,
 } from "@/data/demo-learning-chunks";
@@ -10,6 +11,10 @@ import {
   getCachedCollocationTranslations,
   setCachedCollocationTranslations,
 } from "@/lib/learning-chunk-vi-cache";
+import {
+  getCachedSupplementCollocations,
+  setCachedSupplementCollocations,
+} from "@/lib/learning-chunk-supplement-cache";
 
 type UseLearningChunkTranslationsArgs = {
   word: string;
@@ -67,6 +72,7 @@ export function useLearningChunkTranslations({
     entry?.collocations ?? [],
   );
   const hydratedKeyRef = useRef<string | null>(null);
+  const supplementedKeyRef = useRef<string | null>(null);
 
   const isOverride = useMemo(() => {
     const key = word.trim().toLowerCase();
@@ -76,7 +82,77 @@ export function useLearningChunkTranslations({
   useEffect(() => {
     setCollocations(entry?.collocations ?? []);
     hydratedKeyRef.current = null;
+    supplementedKeyRef.current = null;
   }, [seedKey, entry]);
+
+  useEffect(() => {
+    if (!entry || isOverride) return;
+    if (entry.collocations.length > 0) return;
+    if (!entry.chunks.length) return;
+    if (supplementedKeyRef.current === seedKey) return;
+
+    const usefulPhrase = entry.chunks[0];
+    const cached = getCachedSupplementCollocations(word, []);
+    if (cached?.length) {
+      setCollocations(cached);
+      supplementedKeyRef.current = seedKey;
+      hydratedKeyRef.current = seedKey;
+      return;
+    }
+
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const response = await fetch("/api/learning-chunks/supplement", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            word,
+            wordType,
+            meaning,
+            register,
+            englishDefinition,
+            existing: [],
+            usefulPhrase: usefulPhrase
+              ? { en: usefulPhrase.en, vi: usefulPhrase.vi }
+              : null,
+            count: MAX_LEARNING_COLLOCATIONS,
+          }),
+        });
+
+        if (!response.ok || cancelled) return;
+
+        const data = (await response.json()) as {
+          collocations?: LearningChunkPhrase[];
+        };
+        const supplemented = data.collocations?.filter(
+          (item) => item.en?.trim() && item.vi?.trim(),
+        );
+        if (!supplemented?.length || cancelled) return;
+
+        setCachedSupplementCollocations(word, [], supplemented);
+        setCollocations(supplemented);
+        supplementedKeyRef.current = seedKey;
+        hydratedKeyRef.current = seedKey;
+      } catch {
+        // keep chunk-only card when supplement fails
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    word,
+    wordType,
+    meaning,
+    register,
+    englishDefinition,
+    entry,
+    seedKey,
+    isOverride,
+  ]);
 
   useEffect(() => {
     if (!entry || isOverride) return;
