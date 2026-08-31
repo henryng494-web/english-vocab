@@ -3,6 +3,7 @@ import { isForeignSubtitleToken } from "@/data/foreign-subtitle-tokens";
 import { isInvalidVocabWord } from "@/data/invalid-vocab-words";
 import { isLowValueInterjection } from "@/data/low-value-interjections";
 import { isValidTwoLetterWord } from "@/data/valid-two-letter-words";
+import { isVocabAbbreviation } from "@/data/vocab-abbreviations";
 import { PROPER_NOUNS } from "@/data/proper-nouns";
 import { isProfaneWord } from "@/lib/safe-image-search";
 
@@ -22,6 +23,7 @@ export function isExcludedVocabWord(word: string): boolean {
     isLowValueInterjection(key) ||
     isContractionStem(key) ||
     isInvalidVocabWord(key) ||
-    isForeignSubtitleToken(key)
+    isForeignSubtitleToken(key) ||
+    isVocabAbbreviation(key)
   );
 }
