@@ -31,7 +31,6 @@ import { useAppBootstrap } from "@/context/AppBootstrapContext";
 import {
   fetchReviewWords,
   buildDueReviewQueue,
-  prepareReviewSession,
 } from "@/lib/review-fetch";
 import { hasQualityExamples } from "@/lib/example-quality";
 import { parseExamples } from "@/lib/parse-examples";
@@ -59,7 +58,7 @@ import {
   setDailySessionReviewPlanned,
 } from "@/lib/daily-session";
 import { DailySessionProgressBanner } from "@/components/study/DailySessionSummary";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 type Phase = "question" | "reveal";
@@ -67,16 +66,6 @@ type Phase = "question" | "reveal";
 const REVEAL_DELAY_MS = 850;
 const REVIEW_PREFETCH_AHEAD = 6;
 const REVIEW_WARM_COUNT = 20;
-
-function mergeQueueWordData(
-  queue: VocabWord[],
-  fresh: VocabWord[],
-): VocabWord[] {
-  const byWord = new Map(
-    fresh.map((item) => [item.word.trim().toLowerCase(), item]),
-  );
-  return queue.map((item) => byWord.get(item.word.trim().toLowerCase()) ?? item);
-}
 
 function patchImageUpdates(
   updates: Record<string, string>,
@@ -111,6 +100,7 @@ function applyImageUpdatesToState(
 export default function LearnPage() {
   const { t } = useI18n();
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const isDailySession = searchParams.get("daily") === "1";
   const { review: bootstrapReview, updateReviewCache } = useAppBootstrap();
@@ -494,13 +484,7 @@ export default function LearnPage() {
         const sessionDue = applyReviewSessionSnapshot(due, snapshot);
         updateReviewCache({ allWords: all, dueQueue: sessionDue });
         if (options?.silent) {
-          setAllWords(all);
-          prefetchedChoicesRef.current.clear();
-          setQueue((prev) => {
-            if (prev.length === 0) return sessionDue;
-            return applyReviewSessionSnapshot(mergeQueueWordData(prev, all), snapshot);
-          });
-          void prepareReviewSession(all);
+          applyReviewSession(all, due, true);
           return;
         }
         applyReviewSession(all, due, true);
@@ -533,6 +517,19 @@ export default function LearnPage() {
       void fetchWords();
     }
   }, [applyReviewSession, bootstrapReview, fetchWords]);
+
+  useEffect(() => {
+    const refresh = () => {
+      void fetchWords({ silent: true });
+    };
+    window.addEventListener("vocab-learning-changed", refresh);
+    return () => window.removeEventListener("vocab-learning-changed", refresh);
+  }, [fetchWords]);
+
+  useEffect(() => {
+    if (pathname !== "/learn" || !hydratedRef.current) return;
+    void fetchWords({ silent: true });
+  }, [pathname, fetchWords]);
 
   useEffect(() => {
     if (!locked || phase !== "question") return;

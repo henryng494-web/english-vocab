@@ -89,7 +89,7 @@ export default function DiscoverPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { t } = useI18n();
-  const { ranges: bootstrapRanges, wordCache: bootstrapWordCache, patchRangeAfterSave, review: bootstrapReview } =
+  const { ranges: bootstrapRanges, wordCache: bootstrapWordCache, patchRangeAfterSave } =
     useAppBootstrap();
   const inSession = pathname.startsWith("/journey");
   const isDailyJourney =
@@ -134,14 +134,7 @@ export default function DiscoverPage() {
   useEffect(() => {
     let cancelled = false;
     const refreshDue = async () => {
-      if (bootstrapReview?.dueQueue) {
-        if (!cancelled) {
-          setDueReviewCount(bootstrapReview.dueQueue.length);
-        }
-        return;
-      }
-      const local = countDueReviewWords();
-      if (!cancelled) setDueReviewCount(local);
+      let count = countDueReviewWords();
       try {
         const res = await fetch("/api/words?summary=learning", { cache: "no-store" });
         const data = (await res.json()) as {
@@ -152,10 +145,11 @@ export default function DiscoverPage() {
           }>;
         };
         if (cancelled) return;
-        setDueReviewCount(countDueReviewWords(data.words ?? []));
+        count = countDueReviewWords(data.words ?? []);
       } catch {
         /* keep local count */
       }
+      if (!cancelled) setDueReviewCount(count);
     };
     void refreshDue();
     window.addEventListener("vocab-learning-changed", refreshDue);
@@ -165,7 +159,7 @@ export default function DiscoverPage() {
       window.removeEventListener("vocab-learning-changed", refreshDue);
       window.removeEventListener("storage", refreshDue);
     };
-  }, [bootstrapReview]);
+  }, []);
 
   useEffect(() => {
     const refreshStudyTime = () => setTodayStudySeconds(getTodayStudySeconds());

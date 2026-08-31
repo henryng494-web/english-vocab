@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { useAppBootstrap } from "@/context/AppBootstrapContext";
 import { countDueReviewWords } from "@/lib/review-schedule";
 import { useI18n } from "@/hooks/use-i18n";
 
@@ -84,19 +83,13 @@ function LibraryIcon({ active }: { active: boolean }) {
 
 export function BottomTabBar() {
   const pathname = usePathname();
-  const { review } = useAppBootstrap();
   const [dueCount, setDueCount] = useState(0);
   const { t } = useI18n();
 
   useEffect(() => {
     let cancelled = false;
     const refresh = async () => {
-      if (review?.dueQueue) {
-        if (!cancelled) setDueCount(review.dueQueue.length);
-        return;
-      }
-      const local = countDueReviewWords();
-      if (!cancelled) setDueCount(local);
+      let count = countDueReviewWords();
       try {
         const res = await fetch("/api/words?summary=learning", { cache: "no-store" });
         const data = (await res.json()) as {
@@ -107,10 +100,11 @@ export function BottomTabBar() {
           }>;
         };
         if (cancelled) return;
-        setDueCount(countDueReviewWords(data.words ?? []));
+        count = countDueReviewWords(data.words ?? []);
       } catch {
         /* keep local count */
       }
+      if (!cancelled) setDueCount(count);
     };
     void refresh();
     window.addEventListener("vocab-learning-changed", refresh);
@@ -120,7 +114,7 @@ export function BottomTabBar() {
       window.removeEventListener("vocab-learning-changed", refresh);
       window.removeEventListener("storage", refresh);
     };
-  }, [pathname, review]);
+  }, [pathname]);
 
   const tabs: TabItem[] = [
     {
