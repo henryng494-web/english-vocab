@@ -26,14 +26,15 @@ function readInstantReviewState(): ReviewSessionState {
     };
   }
   const instant = resolveReviewSession(getCachedLearningSummary());
-  const hasQueue = instant.queue.length > 0;
+  const queue = instant.queue.map(hydrateReviewWordLocal);
+  const hasQueue = queue.length > 0;
   return {
     ready: true,
     loading: !hasQueue,
     enriching: hasQueue,
     dueCount: instant.dueCount,
-    queue: instant.queue,
-    pool: instant.pool,
+    queue,
+    pool: queue,
     error: null,
   };
 }
@@ -49,6 +50,7 @@ export type ReviewSessionState = {
   error: string | null;
 };
 
+
 export function useReviewSession() {
   const enrichGenRef = useRef(0);
   const [state, setState] = useState<ReviewSessionState>(readInstantReviewState);
@@ -59,16 +61,37 @@ export function useReviewSession() {
       queue: VocabWord[],
       pool: VocabWord[],
       error: string | null,
-      options?: { loading?: boolean; enriching?: boolean },
+      options?: { loading?: boolean; enriching?: boolean; mergeQueue?: boolean },
     ) => {
-      setState({
-        ready: true,
-        loading: options?.loading ?? false,
-        enriching: options?.enriching ?? false,
-        dueCount,
-        queue,
-        pool,
-        error,
+      setState((prev) => {
+        const sameOrder =
+          options?.mergeQueue &&
+          prev.queue.length > 0 &&
+          prev.queue.length === queue.length &&
+          prev.queue.every(
+            (word, index) =>
+              word.word.trim().toLowerCase() ===
+              queue[index]?.word.trim().toLowerCase(),
+          );
+        const poolByKey = new Map(
+          pool.map((word) => [word.word.trim().toLowerCase(), word]),
+        );
+        const nextQueue = sameOrder
+          ? prev.queue.map(
+              (word) =>
+                poolByKey.get(word.word.trim().toLowerCase()) ?? word,
+            )
+          : queue;
+
+        return {
+          ready: true,
+          loading: options?.loading ?? false,
+          enriching: options?.enriching ?? false,
+          dueCount,
+          queue: nextQueue,
+          pool,
+          error,
+        };
       });
     },
     [],
@@ -111,6 +134,7 @@ export function useReviewSession() {
         apply(dueEnriched.dueCount, dueEnriched.queue, dueEnriched.pool, null, {
           loading: false,
           enriching: true,
+          mergeQueue: true,
         });
       }
 
@@ -120,6 +144,7 @@ export function useReviewSession() {
       apply(enriched.dueCount, enriched.queue, enriched.pool, null, {
         loading: false,
         enriching: false,
+        mergeQueue: true,
       });
     } catch (err) {
       if (enrichGenRef.current !== enrichGen) return;
@@ -154,11 +179,23 @@ export function useReviewSession() {
     setState((prev) => ({ ...prev, queue, pool }));
   }, []);
 
+  const patchWordFields = useCallback(
+    (mutator: (item: VocabWord) => VocabWord) => {
+      setState((prev) => ({
+        ...prev,
+        queue: prev.queue.map(mutator),
+        pool: prev.pool.map(mutator),
+      }));
+    },
+    [],
+  );
+
   return {
     ...state,
     reload,
     patchQueue,
     patchPool,
     patchBoth,
+    patchWordFields,
   };
 }

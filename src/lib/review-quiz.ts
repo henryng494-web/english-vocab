@@ -292,6 +292,7 @@ export function buildReviewQuestionPlan(
           Boolean(item.english_definition?.trim()),
       ),
       word.rank,
+      reviewSenseCacheKey(questionIndex, word.word),
     );
   }
 
@@ -351,10 +352,33 @@ function shuffle<T>(items: T[]): T[] {
   return next;
 }
 
+function hashSeed(seed: string): number {
+  let hash = 2166136261;
+  for (let i = 0; i < seed.length; i++) {
+    hash ^= seed.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  return hash >>> 0;
+}
+
+function seededShuffle<T>(items: T[], seed: string): T[] {
+  const next = [...items];
+  let state = hashSeed(seed);
+  for (let i = next.length - 1; i > 0; i--) {
+    state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
+    const j = state % (i + 1);
+    const current = next[i];
+    next[i] = next[j]!;
+    next[j] = current!;
+  }
+  return next;
+}
+
 export function buildReviewChoices(
   correctWord: string,
   pool: Array<{ word: string; rank?: number; family_head?: string | null }>,
   correctRank = 0,
+  choiceSeed?: string,
 ): ReviewChoice[] {
   const correct = correctWord.trim().toLowerCase();
   const correctHead = familyKey(
@@ -378,9 +402,12 @@ export function buildReviewChoices(
     ]),
   ].filter((item) => item && item !== correct);
   const distractors = unique.slice(0, 3);
-  const words = shuffle([correct, ...distractors]);
+  const options = [correct, ...distractors];
+  const words = choiceSeed
+    ? seededShuffle(options, choiceSeed)
+    : shuffle(options);
   return words.map((word, index) => ({
-    key: `${word}-${index}`,
+    key: word,
     letter: LETTERS[index] ?? String(index + 1),
     word: capitalizeFirst(word),
   }));

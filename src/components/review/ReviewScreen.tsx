@@ -112,6 +112,7 @@ export function ReviewScreen() {
     reload,
     patchQueue,
     patchBoth,
+    patchWordFields,
   } = useReviewSession();
   const [index, setIndex] = useState(0);
   const [phase, setPhase] = useState<Phase>("question");
@@ -142,6 +143,8 @@ export function ReviewScreen() {
   const prefetchedChoicesRef = useRef<Map<string, ReviewChoice[]>>(new Map());
   const prefetchInflightRef = useRef<Map<number, Promise<void>>>(new Map());
   const activeQuestionRef = useRef<{ word: string; index: number } | null>(null);
+  const senseUpgradeRef = useRef<string | null>(null);
+  const choiceSeedRef = useRef("");
 
   const currentWord = queue[index];
   phaseRef.current = phase;
@@ -275,6 +278,8 @@ export function ReviewScreen() {
   const startQuestion = useCallback((word: VocabWord, pool: VocabWord[], questionIndex = 0) => {
     const schedule = getReviewSchedule(word.word);
     const cacheKey = reviewSenseCacheKey(questionIndex, word.word);
+    choiceSeedRef.current = cacheKey;
+    senseUpgradeRef.current = null;
     const cachedSenseChoices = prefetchedChoicesRef.current.get(cacheKey);
     const planned = buildReviewQuestionPlan(word, pool, questionIndex);
     let kind = planned.kind;
@@ -297,6 +302,7 @@ export function ReviewScreen() {
               Boolean(item.english_definition?.trim()),
           ),
           word.rank,
+          cacheKey,
         );
       } else {
         kind = "sense";
@@ -356,25 +362,15 @@ export function ReviewScreen() {
     if (senseChoicesAreValidForPrompt(choices, currentWord.word, allWords)) {
       return;
     }
+    const cacheKey = reviewSenseCacheKey(index, currentWord.word);
+    if (senseUpgradeRef.current === cacheKey) return;
+
     const rebuilt = resolveReviewSenseChoices(currentWord.word, allWords);
     if (senseChoicesAreValidForPrompt(rebuilt, currentWord.word, allWords)) {
+      senseUpgradeRef.current = cacheKey;
       setChoices(rebuilt);
-      return;
     }
-    setQuizKind("word");
-    setChoices(
-      buildReviewChoices(
-        currentWord.word,
-        allWords.filter(
-          (item) =>
-            /^[a-z]+$/i.test(item.word) &&
-            item.word.length >= 3 &&
-            Boolean(item.english_definition?.trim()),
-        ),
-        currentWord.rank,
-      ),
-    );
-  }, [phase, quizKind, currentWord, locked, choices, allWords]);
+  }, [phase, quizKind, currentWord, locked, choices, allWords, index]);
 
   useEffect(() => {
     if (phase !== "question" || locked) return;
@@ -426,21 +422,15 @@ export function ReviewScreen() {
       const { targets } = collectReviewQuestionImageTargets(first, pool, 0);
       void prefetchReviewImages(targets).then((updates) => {
         if (Object.keys(updates).length === 0) return;
-        patchBoth(
-          sessionQueue.map((item) => {
-            const key = item.word.trim().toLowerCase();
-            return updates[key] ? { ...item, image_url: updates[key] } : item;
-          }),
-          pool.map((item) => {
-            const key = item.word.trim().toLowerCase();
-            return updates[key] ? { ...item, image_url: updates[key] } : item;
-          }),
-        );
+        patchWordFields((item) => {
+          const key = item.word.trim().toLowerCase();
+          return updates[key] ? { ...item, image_url: updates[key] } : item;
+        });
       });
 
       void prefetchReviewClues(sessionQueue, 1, 16).then((clueUpdates) => {
         if (Object.keys(clueUpdates).length === 0) return;
-        const patchWord = (item: VocabWord) => {
+        patchWordFields((item) => {
           const key = item.word.trim().toLowerCase();
           const patch = clueUpdates[key];
           if (!patch) return item;
@@ -456,8 +446,7 @@ export function ReviewScreen() {
             search_keyword: patch.search_keyword ?? item.search_keyword,
             image_url: patch.image_url ?? item.image_url,
           };
-        };
-        patchBoth(sessionQueue.map(patchWord), pool.map(patchWord));
+        });
       });
 
       const inProgress = readReviewSessionSnapshot()?.inProgress;
@@ -472,10 +461,9 @@ export function ReviewScreen() {
             sessionQueue[resumeIndex]!,
           );
           if (resumeWord !== sessionQueue[resumeIndex]) {
-            const patchedQueue = sessionQueue.map((item, index) =>
-              index === resumeIndex ? resumeWord : item,
+            patchWordFields((item) =>
+              item.word === resumeWord.word ? resumeWord : item,
             );
-            patchBoth(patchedQueue, pool);
           }
           setIndex(resumeIndex);
           setPhase("reveal");
@@ -494,14 +482,13 @@ export function ReviewScreen() {
 
       const firstReady = await ensureReviewWordClue(first);
       if (firstReady !== first) {
-        patchBoth(
-          sessionQueue.map((item, index) => (index === 0 ? firstReady : item)),
-          pool,
+        patchWordFields((item) =>
+          item.word === firstReady.word ? firstReady : item,
         );
       }
 
       setIndex(0);
-      startQuestion(firstReady, pool, 0);
+      startQuestion(firstReady, allWordsRef.current.length > 0 ? allWordsRef.current : pool, 0);
 
       void refreshAllStaleWordImages(
         pool.map((word) => ({
@@ -517,7 +504,7 @@ export function ReviewScreen() {
       });
     },
     [
-      patchBoth,
+      patchWordFields,
       prefetchQuestionsAhead,
       setAllWords,
       setQueue,
@@ -533,11 +520,11 @@ export function ReviewScreen() {
       }
       return;
     }
-    if (sessionStartedRef.current && activeQuestionRef.current) return;
+    if (sessionStartedRef.current) return;
 
     sessionStartedRef.current = true;
     void beginSession(queue, allWords.length > 0 ? allWords : queue);
-  }, [loading, queue, allWords, beginSession]);
+  }, [loading, queue.length, beginSession]);
 
   useEffect(() => {
     if (!locked || phase !== "question") return;
