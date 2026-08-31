@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "generate:subtlex": "node scripts/generate-subtlex-ranks.mjs",
+    "generate:proper-nouns": "node scripts/generate-proper-nouns.mjs",
     "generate:keywords": "npx tsx scripts/generate-curated-keywords.ts",
     "generate:mascot-manifest": "npx tsx scripts/generate-mascot-scene-manifest.ts",
     "extract:mascot-sprites": "python3 scripts/extract-mascot-sprites.py",
