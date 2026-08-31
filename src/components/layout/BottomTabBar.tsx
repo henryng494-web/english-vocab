@@ -2,9 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
-import { countDueReviewWords } from "@/lib/review-schedule";
-import { fetchLearningSummary } from "@/lib/review-fetch";
+import { useSyncExternalStore } from "react";
+import {
+  getReviewDueCount,
+  subscribeReviewDueCount,
+} from "@/lib/review-due-store";
 import { useI18n } from "@/hooks/use-i18n";
 
 type TabItem = {
@@ -81,33 +83,14 @@ function LibraryIcon({ active }: { active: boolean }) {
   );
 }
 
-
 export function BottomTabBar() {
   const pathname = usePathname();
-  const [dueCount, setDueCount] = useState(0);
+  const dueCount = useSyncExternalStore(
+    subscribeReviewDueCount,
+    getReviewDueCount,
+    () => 0,
+  );
   const { t } = useI18n();
-
-  useEffect(() => {
-    let cancelled = false;
-    const refresh = async () => {
-      let count = countDueReviewWords();
-      try {
-        const summary = await fetchLearningSummary();
-        count = countDueReviewWords(summary);
-      } catch {
-        /* keep local count */
-      }
-      if (!cancelled) setDueCount(count);
-    };
-    void refresh();
-    window.addEventListener("vocab-learning-changed", refresh);
-    window.addEventListener("storage", refresh);
-    return () => {
-      cancelled = true;
-      window.removeEventListener("vocab-learning-changed", refresh);
-      window.removeEventListener("storage", refresh);
-    };
-  }, [pathname]);
 
   const tabs: TabItem[] = [
     {

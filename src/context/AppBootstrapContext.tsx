@@ -20,7 +20,7 @@ import {
 } from "@/lib/app-bootstrap";
 import { warmWordPronunciationsBatch } from "@/lib/pronunciation-preload";
 import type { DiscoverWordData } from "@/components/discover/DiscoverCard";
-import type { ReviewSessionData } from "@/lib/review-fetch";
+import type { ReviewSession } from "@/lib/review-session";
 
 type AppBootstrapContextValue = {
   ready: boolean;
@@ -28,8 +28,8 @@ type AppBootstrapContextValue = {
   ranges: Record<string, RangeBootstrapData> | null;
   wordCache: Record<string, DiscoverWordData> | null;
   defaultRangeId: string | null;
-  review: ReviewSessionData | null;
-  updateReviewCache: (data: ReviewSessionData) => void;
+  review: ReviewSession | null;
+  updateReviewCache: (data: ReviewSession) => void;
   /** Remove a word (and optional family) from a cached discover band after Journey save. */
   patchRangeAfterSave: (
     rangeId: string,
@@ -49,8 +49,7 @@ export function AppBootstrapProvider({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false);
   const [progress, setProgress] = useState<BootstrapProgress>(INITIAL_PROGRESS);
   const [snapshot, setSnapshot] = useState<AppBootstrapSnapshot | null>(null);
-  const [reviewOverride, setReviewOverride] =
-    useState<ReviewSessionData | null>(null);
+  const [reviewOverride, setReviewOverride] = useState<ReviewSession | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -82,7 +81,7 @@ export function AppBootstrapProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const updateReviewCache = useCallback((data: ReviewSessionData) => {
+  const updateReviewCache = useCallback((data: ReviewSession) => {
     setReviewOverride(data);
   }, []);
 

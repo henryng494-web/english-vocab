@@ -1,379 +1,65 @@
-import { getPresetRank } from "@/data/preset-word-details";
-import {
-  hydrateLocalLearningFromApi,
-  mergeLocalLearning,
-  readLocalLearning,
-} from "@/lib/learning-storage";
-import { prefetchReviewQuestionRange } from "@/lib/review-image-preload";
-import { isExcludedVocabWord } from "@/lib/proper-noun";
-import {
-  countDueReviewWords,
-  getActionableDueReviewKeys,
-} from "@/lib/review-schedule";
-import {
-  applyReviewSessionSnapshot,
-  clearReviewSessionSnapshot,
-  readReviewSessionSnapshot,
-} from "@/lib/review-session-storage";
-import { getImportanceTier } from "@/lib/word-rank";
-import type { LearningStatus, VocabWord } from "@/types/database";
+/** @deprecated Use `@/lib/review-session` — kept for legacy imports. */
+export {
+  enrichReviewSession,
+  fetchLearningSummary,
+  loadReviewSession,
+  loadReviewSessionFast,
+  resolveReviewSession,
+  type LearningSummaryRow,
+  type ReviewSession,
+} from "@/lib/review-session";
 
+import {
+  fetchLearningSummary,
+  loadReviewSession,
+  resolveReviewSession,
+  type LearningSummaryRow,
+  type ReviewSession,
+} from "@/lib/review-session";
+
+/** @deprecated Use ReviewSession */
 export type ReviewSessionData = {
-  allWords: VocabWord[];
-  dueQueue: VocabWord[];
+  allWords: ReviewSession["pool"];
+  dueQueue: ReviewSession["queue"];
 };
 
-export type LearningSummaryRow = {
-  word: string;
-  status?: LearningStatus | string;
-  last_reviewed_at?: string | null;
-};
-
-const DETAILS_BATCH = 100;
-const SUMMARY_RETRY_DELAYS_MS = [0, 350, 800];
-
-function normalizeVocabWord(word: VocabWord): VocabWord {
-  return {
-    ...word,
-    importance_tier: word.importance_tier ?? getImportanceTier(word.rank),
-  };
+export function toReviewSessionData(session: ReviewSession): ReviewSessionData {
+  return { allWords: session.pool, dueQueue: session.queue };
 }
 
-function stubVocabWord(
-  word: string,
-  status: LearningStatus,
-  lastReviewedAt: string | null | undefined,
-): VocabWord {
-  const key = word.trim().toLowerCase();
-  const rank = getPresetRank(key) ?? 10000;
-  return {
-    id: key,
-    word: key,
-    phonetic: "",
-    word_type: "",
-    vietnamese_meaning: "",
-    english_definition: "",
-    examples: "",
-    collocations: null,
-    image_url: null,
-    rank,
-    importance_tier: getImportanceTier(rank),
-    learning_status: status,
-    last_reviewed_at: lastReviewedAt ?? new Date().toISOString(),
-  };
-}
-
-/** Same learning rows Home/badge use for due counts. */
-export async function fetchLearningSummary(): Promise<LearningSummaryRow[]> {
-  for (let attempt = 0; attempt < SUMMARY_RETRY_DELAYS_MS.length; attempt++) {
-    const delay = SUMMARY_RETRY_DELAYS_MS[attempt] ?? 0;
-    if (delay > 0) {
-      await new Promise((resolve) => window.setTimeout(resolve, delay));
-    }
-    try {
-      const res = await fetch("/api/words?summary=learning", {
-        cache: "no-store",
-      });
-      const data = (await res.json()) as { words?: LearningSummaryRow[] };
-      if (res.ok) {
-        const words = data.words ?? [];
-        if (words.length > 0 || attempt === SUMMARY_RETRY_DELAYS_MS.length - 1) {
-          return words;
-        }
-      }
-    } catch {
-      /* retry */
-    }
-  }
-  return [];
-}
-
-async function fetchWordDetailsBatch(keys: string[]): Promise<VocabWord[]> {
-  if (keys.length === 0) return [];
-
-  const unique = [
-    ...new Set(keys.map((key) => key.trim().toLowerCase()).filter(Boolean)),
-  ];
-  const results: VocabWord[] = [];
-
-  for (let offset = 0; offset < unique.length; offset += DETAILS_BATCH) {
-    const batch = unique.slice(offset, offset + DETAILS_BATCH);
-    try {
-      const res = await fetch(
-        `/api/words?scope=details&words=${encodeURIComponent(batch.join(","))}`,
-        { cache: "no-store" },
-      );
-      if (!res.ok) continue;
-      const data = (await res.json()) as { words?: VocabWord[] };
-      results.push(...((data.words ?? []) as VocabWord[]).map(normalizeVocabWord));
-    } catch {
-      /* try next batch */
-    }
-  }
-
-  return results;
-}
-
-function localReviewPoolKeys(extraWords: LearningSummaryRow[]): string[] {
-  const keys = new Set<string>();
-  const local = readLocalLearning();
-
-  for (const [word, entry] of Object.entries(local)) {
-    if (isExcludedVocabWord(word) || entry.status === "mastered") continue;
-    keys.add(word.trim().toLowerCase());
-  }
-
-  for (const row of extraWords) {
-    const key = row.word.trim().toLowerCase();
-    if (isExcludedVocabWord(key) || row.status === "mastered") continue;
-    keys.add(key);
-  }
-
-  return [...keys];
-}
-
-/** Review pool — learning words with card details (for quiz distractors). */
-export async function fetchReviewWords(
-  extraWords: LearningSummaryRow[] = [],
-): Promise<VocabWord[]> {
-  let words: VocabWord[] = [];
-
-  try {
-    const res = await fetch("/api/words?scope=learning&sort=recent", {
-      cache: "no-store",
-    });
-    const data = (await res.json()) as { words?: VocabWord[] };
-    if (res.ok) {
-      words = ((data.words ?? []) as VocabWord[]).map(normalizeVocabWord);
-    }
-  } catch {
-    /* hydrate from details batches below */
-  }
-
-  const have = new Set(words.map((word) => word.word.trim().toLowerCase()));
-  const missingPool = localReviewPoolKeys(extraWords).filter(
-    (key) => !have.has(key),
-  );
-
-  if (missingPool.length > 0) {
-    for (const word of await fetchWordDetailsBatch(missingPool)) {
-      const key = word.word.trim().toLowerCase();
-      if (!have.has(key)) {
-        words.push(word);
-        have.add(key);
-      }
-    }
-  }
-
-  return mergeLocalLearning(words.map(normalizeVocabWord));
-}
-
-/** Build queue rows from the exact due-key set Home/badge uses. */
-export function buildDueQueueFromKeys(
-  dueKeys: string[],
-  allWords: VocabWord[],
-  extraWords: LearningSummaryRow[],
-): VocabWord[] {
-  const byKey = new Map(
-    allWords.map((word) => [word.word.trim().toLowerCase(), word]),
-  );
-  const local = readLocalLearning();
-  const apiByKey = new Map(
-    extraWords.map((row) => [row.word.trim().toLowerCase(), row]),
-  );
-
-  const due: VocabWord[] = [];
-  for (const key of dueKeys) {
-    const existing = byKey.get(key);
-    if (existing) {
-      due.push(existing);
-      continue;
-    }
-
-    const localEntry = local[key];
-    if (localEntry) {
-      due.push(
-        stubVocabWord(key, localEntry.status, localEntry.last_reviewed_at),
-      );
-      continue;
-    }
-
-    const apiRow = apiByKey.get(key);
-    due.push(
-      stubVocabWord(
-        key,
-        (apiRow?.status as LearningStatus) ?? "new",
-        apiRow?.last_reviewed_at,
-      ),
-    );
-  }
-
-  return due;
-}
-
-function applySessionSnapshotWithHeal(due: VocabWord[]): VocabWord[] {
-  const snapshot = readReviewSessionSnapshot();
-  let sessionDue = applyReviewSessionSnapshot(due, snapshot);
-
-  if (sessionDue.length === 0 && due.length > 0) {
-    clearReviewSessionSnapshot();
-    sessionDue = due;
-  }
-
-  return sessionDue;
-}
-
-/**
- * Instant Review bootstrap from device storage — no network (safe for client mount).
- */
-export function loadLocalReviewSessionSync(): ReviewSessionData {
-  if (typeof window === "undefined") {
-    return { allWords: [], dueQueue: [] };
-  }
-
-  const dueQueue = buildFastDueQueue([]);
-  return { allWords: dueQueue, dueQueue };
-}
-
-/** Synchronous due count for UI — matches Home badge local path. */
-export function countLocalDueReviewWords(): number {
-  if (typeof window === "undefined") return 0;
-  return countDueReviewWords();
-}
-
-
-/** Build due queue from keys immediately — no network (stubs when needed). */
-export function buildFastDueQueue(extraWords: LearningSummaryRow[] = []): VocabWord[] {
-  const dueKeys = getActionableDueReviewKeys(extraWords);
-  let dueQueue = applySessionSnapshotWithHeal(
-    buildDueQueueFromKeys(dueKeys, [], extraWords),
-  );
-
-  if (dueQueue.length === 0 && dueKeys.length > 0) {
-    clearReviewSessionSnapshot();
-    dueQueue = buildDueQueueFromKeys(dueKeys, [], extraWords);
-  }
-
-  return dueQueue;
-}
-
-export async function enrichReviewSession(
-  extraWords: LearningSummaryRow[],
-  dueQueue: VocabWord[],
-): Promise<ReviewSessionData> {
-  const dueKeys = dueQueue.map((word) => word.word.trim().toLowerCase());
-  if (dueKeys.length === 0) {
-    return { allWords: [], dueQueue: [] };
-  }
-
-  let allWords = await fetchReviewWords(extraWords);
-
-  const have = new Set(allWords.map((word) => word.word.trim().toLowerCase()));
-  const missingDue = dueKeys.filter((key) => !have.has(key));
-  if (missingDue.length > 0) {
-    for (const word of await fetchWordDetailsBatch(missingDue)) {
-      const key = word.word.trim().toLowerCase();
-      if (!have.has(key)) {
-        allWords = mergeLocalLearning([...allWords, word]);
-        have.add(key);
-      }
-    }
-  }
-
-  let enrichedQueue = applySessionSnapshotWithHeal(
-    buildDueQueueFromKeys(dueKeys, allWords, extraWords),
-  );
-  if (enrichedQueue.length === 0 && dueKeys.length > 0) {
-    clearReviewSessionSnapshot();
-    enrichedQueue = buildDueQueueFromKeys(dueKeys, allWords, extraWords);
-  }
-
-  void prefetchReviewQuestionRange(enrichedQueue, allWords, 0, 20);
-
-  return {
-    allWords,
-    dueQueue: enrichedQueue.length > 0 ? enrichedQueue : dueQueue,
-  };
-}
-
-async function buildActionableReviewSession(
-  extraWords: LearningSummaryRow[],
-): Promise<ReviewSessionData> {
-  const dueQueue = buildFastDueQueue(extraWords);
-  return enrichReviewSession(extraWords, dueQueue);
-}
-
-/** Fast review bootstrap for splash — stubs only, no heavy word fetch. */
-export async function loadReviewSessionFast(): Promise<ReviewSessionData> {
-  const summary = await fetchLearningSummary();
-  hydrateLocalLearningFromApi(summary, { notify: false });
-  const dueQueue = buildFastDueQueue(summary);
-  return { allWords: dueQueue, dueQueue };
-}
-
-export type ReviewSessionBundle = {
+export async function fetchReviewSessionBundle(): Promise<{
   summary: LearningSummaryRow[];
   expectedDue: number;
   session: ReviewSessionData;
-};
-
-/** One API read — hydrate local, count due, build queue (matches Home/badge). */
-export async function fetchReviewSessionBundle(options?: {
-  enrich?: boolean;
-}): Promise<ReviewSessionBundle> {
+}> {
   const summary = await fetchLearningSummary();
-  hydrateLocalLearningFromApi(summary, { notify: false });
-  const expectedDue = countDueReviewWords(summary);
-  const dueQueue = buildFastDueQueue(summary);
-  const session = { allWords: dueQueue, dueQueue };
-
-  if (options?.enrich === false || dueQueue.length === 0) {
-    return { summary, expectedDue, session };
-  }
-
-  const enriched = await enrichReviewSession(summary, dueQueue);
-  return { summary, expectedDue, session: enriched };
+  const expectedDue = resolveReviewSession(summary).dueCount;
+  const session = await loadReviewSession();
+  return {
+    summary,
+    expectedDue,
+    session: toReviewSessionData(session),
+  };
 }
 
-/**
- * Single source of truth for Review tab — same due keys as badge/Home counts.
- * Pass prefetched summary to avoid duplicate /api/words?summary=learning calls.
- */
+export async function fetchExpectedDueReviewCount(): Promise<number> {
+  const summary = await fetchLearningSummary();
+  return resolveReviewSession(summary).dueCount;
+}
+
+export function countLocalDueReviewWords(): number {
+  return resolveReviewSession([]).dueCount;
+}
+
+export function loadLocalReviewSessionSync(): ReviewSessionData {
+  return toReviewSessionData(resolveReviewSession([]));
+}
+
 export async function loadActionableReviewSession(
   prefetchedSummary?: LearningSummaryRow[],
 ): Promise<ReviewSessionData> {
   if (prefetchedSummary) {
-    return buildActionableReviewSession(prefetchedSummary);
+    return toReviewSessionData(resolveReviewSession(prefetchedSummary));
   }
-  const { session } = await fetchReviewSessionBundle();
-  return session;
-}
-
-/** Expected due count — matches Home/badge (includes DB + local learning rows). */
-export async function fetchExpectedDueReviewCount(): Promise<number> {
-  const { expectedDue } = await fetchReviewSessionBundle();
-  return expectedDue;
-}
-
-export function buildDueReviewQueue(allWords: VocabWord[]): VocabWord[] {
-  const dueKeys = getActionableDueReviewKeys();
-  return applySessionSnapshotWithHeal(
-    buildDueQueueFromKeys(dueKeys, allWords, []),
-  );
-}
-
-export function countActionableDueReviews(allWords: VocabWord[]): number {
-  return buildDueReviewQueue(allWords).length;
-}
-
-export async function prepareReviewSession(
-  allWords: VocabWord[],
-): Promise<ReviewSessionData> {
-  const dueQueue = buildDueReviewQueue(allWords);
-  void prefetchReviewQuestionRange(dueQueue, allWords, 0, 20);
-  return { allWords, dueQueue };
-}
-
-export async function loadReviewSession(): Promise<ReviewSessionData> {
-  return loadReviewSessionFast();
+  return toReviewSessionData(await loadReviewSession());
 }

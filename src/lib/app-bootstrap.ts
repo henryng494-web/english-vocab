@@ -20,7 +20,10 @@ import {
   preloadWordImagesFromCache,
   type WordImagePrefetchTarget,
 } from "@/lib/image-preload";
-import { loadReviewSessionFast, type ReviewSessionData } from "@/lib/review-fetch";
+import {
+  loadReviewSessionFast,
+  type ReviewSession,
+} from "@/lib/review-session";
 import { refreshAllStaleWordImages } from "@/lib/refresh-stale-word-images";
 import { seedWordImageCacheFromEntries } from "@/lib/word-image-cache";
 
@@ -49,7 +52,7 @@ export type AppBootstrapSnapshot = {
   defaultRangeId: string;
   ranges: Record<string, RangeBootstrapData>;
   wordCache: Record<string, DiscoverWordData>;
-  review: ReviewSessionData | null;
+  review: ReviewSession | null;
 };
 
 function report(
@@ -218,9 +221,9 @@ export async function runAppBootstrap(
 
   report(onProgress, 94, "");
   const review = await raceTimeout(reviewPromise, BOOTSTRAP_REVIEW_TIMEOUT_MS);
-  if (review?.allWords?.length) {
+  if (review?.pool?.length) {
     void refreshAllStaleWordImages(
-      review.allWords.map((word) => ({
+      review.pool.map((word) => ({
         word: word.word,
         imageUrl: word.image_url,
         meaning: word.vietnamese_meaning,

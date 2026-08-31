@@ -50,8 +50,11 @@ import {
 } from "@/lib/learning-storage";
 import { seedWordImageCacheFromEntries } from "@/lib/word-image-cache";
 import { readOnboarding, shouldShowOnboarding } from "@/lib/onboarding";
-import { countDueReviewWords } from "@/lib/review-schedule";
-import { fetchLearningSummary } from "@/lib/review-fetch";
+import { useSyncExternalStore } from "react";
+import {
+  getReviewDueCount,
+  subscribeReviewDueCount,
+} from "@/lib/review-due-store";
 import { OnboardingModal } from "@/components/onboarding/OnboardingModal";
 import {
   DailySessionSummary,
@@ -110,7 +113,11 @@ export default function DiscoverPage() {
   const [todayLearned, setTodayLearned] = useState(0);
   const { dailyGoalMinutes } = useAppSettings();
   const [todayStudySeconds, setTodayStudySeconds] = useState(0);
-  const [dueReviewCount, setDueReviewCount] = useState(0);
+  const dueReviewCount = useSyncExternalStore(
+    subscribeReviewDueCount,
+    getReviewDueCount,
+    () => 0,
+  );
   const [showOnboarding, setShowOnboarding] = useState(false);
   const inflightSaves = useRef(new Set<string>());
   const onboardingChecked = useRef(false);
@@ -130,28 +137,6 @@ export default function DiscoverPage() {
     const state = readOnboarding();
     setShowOnboarding(shouldShowOnboarding());
     if (state.completed) setRangeId(state.preferredRangeId);
-  }, []);
-
-  useEffect(() => {
-    let cancelled = false;
-    const refreshDue = async () => {
-      let count = countDueReviewWords();
-      try {
-        const summary = await fetchLearningSummary();
-        count = countDueReviewWords(summary);
-      } catch {
-        /* keep local count */
-      }
-      if (!cancelled) setDueReviewCount(count);
-    };
-    void refreshDue();
-    window.addEventListener("vocab-learning-changed", refreshDue);
-    window.addEventListener("storage", refreshDue);
-    return () => {
-      cancelled = true;
-      window.removeEventListener("vocab-learning-changed", refreshDue);
-      window.removeEventListener("storage", refreshDue);
-    };
   }, []);
 
   useEffect(() => {
