@@ -489,7 +489,8 @@ body {
 }
 
 .discover-card__examples--chunks-only {
-  justify-content: flex-start;
+  justify-content: center;
+  justify-content: safe center;
   overflow: hidden;
 }
 
@@ -507,9 +508,9 @@ body {
 }
 
 .word-learning-chunks--solo {
-  flex: 1 1 auto;
-  min-height: 0;
+  flex: 0 1 auto;
   width: 100%;
+  max-height: 100%;
 }
 
 .word-learning-chunks__section--collocations {
@@ -517,8 +518,7 @@ body {
 }
 
 .word-learning-chunks__section--phrases {
-  flex: 1 1 auto;
-  min-height: 0;
+  flex: 0 0 auto;
 }
 
 .word-learning-chunks__section {
@@ -575,8 +575,7 @@ body {
 }
 
 .word-learning-chunks__section--phrases .vocab-examples__item {
-  flex: 1 1 auto;
-  min-height: 0;
+  flex: 0 0 auto;
   overflow: visible;
 }
 
