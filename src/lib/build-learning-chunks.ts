@@ -122,18 +122,31 @@ function normalizeToken(word: string): string {
   return word.toLowerCase().replace(/[^a-z']/g, "");
 }
 
-function findHeadwordIndex(words: string[], headword: string): number {
+function tokenMatchesHeadword(token: string, headword: string): boolean {
+  const t = normalizeToken(token);
   const hw = headword.toLowerCase();
+  if (!t || !hw) return false;
+  if (t === hw) return true;
+  if (LEADING_DETERMINERS.test(t) || t.length <= 2) return false;
   const stem = hw.length > 4 ? hw.slice(0, 4) : hw;
+  return t.startsWith(stem);
+}
 
+function findHeadwordIndex(words: string[], headword: string): number {
   for (let i = 0; i < words.length; i++) {
     const token = normalizeToken(words[i] ?? "");
-    if (!token) continue;
-    if (token === hw || token.startsWith(stem) || hw.startsWith(token)) {
-      return i;
-    }
+    if (token === headword.toLowerCase()) return i;
+  }
+  for (let i = 0; i < words.length; i++) {
+    const token = normalizeToken(words[i] ?? "");
+    if (tokenMatchesHeadword(token, headword)) return i;
   }
   return -1;
+}
+
+function phraseContainsHeadword(phrase: string, headword: string): boolean {
+  const words = normalizePhrase(phrase).split(/\s+/).filter(Boolean);
+  return words.some((word) => tokenMatchesHeadword(word, headword));
 }
 
 function hasPrepPattern(words: string[]): boolean {
@@ -394,6 +407,7 @@ function isValidCollocationEn(
   const words = normalizePhrase(extracted).split(/\s+/).filter(Boolean);
   if (words.length < 2) return false;
   if (words.some((word) => word.includes("?"))) return false;
+  if (!phraseContainsHeadword(extracted, headword)) return false;
   if (findHeadwordIndex(words, headword) < 0) return false;
   if (isWeakCollocation(extracted, headword)) return false;
   if (isSentenceFragment(extracted, headword)) return false;
