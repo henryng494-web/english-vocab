@@ -9,9 +9,7 @@ const PRONUNCIATION_WARM_CONCURRENCY = 4;
 function preloadWordPronunciation(word: string): void {
   preloadWordAudioElement(word);
   warmWordAudioBytes(word);
-  void resolveWordAudioUrl(word).then((url) => {
-    if (url) preloadWordAudioElement(word, url);
-  });
+  void resolveWordAudioUrl(word);
 }
 
 /** Browser-fetch MP3 bytes so the next card play hits cache. */

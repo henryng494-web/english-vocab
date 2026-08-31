@@ -1,4 +1,5 @@
 import { proxyPronounceAudioPath } from "@/lib/dictionary-pronunciation";
+import { PRONOUNCE_VOICE_VERSION } from "@/lib/neural-pronunciation";
 
 const audioUrlCache = new Map<string, string | null>();
 const pendingLookups = new Map<string, Promise<string | null>>();
@@ -7,8 +8,15 @@ const warmedAudioBytes = new Set<string>();
 let pronounceAudioElement: HTMLAudioElement | null = null;
 let currentAudio: HTMLAudioElement | null = null;
 
-function cacheKey(word: string): string {
+function normalizeWord(word: string): string {
   return word.trim().toLowerCase();
+}
+
+/** Client cache key — must include voice version so auto-speak never replays stale MP3s. */
+function cacheKey(word: string): string {
+  const normalized = normalizeWord(word);
+  if (!normalized) return "";
+  return `${PRONOUNCE_VOICE_VERSION}:${normalized}`;
 }
 
 function absoluteAudioUrl(relativePath: string): string {
@@ -34,6 +42,13 @@ function getAudioElement(): HTMLAudioElement | null {
   return pronounceAudioElement;
 }
 
+/** Same-origin neural MP3 path for the current voice version. */
+function resolvePlayableUrl(word: string): string {
+  const normalized = normalizeWord(word);
+  if (!normalized) return "";
+  return proxyPronounceAudioPath(normalized);
+}
+
 /** Resolve a same-origin pronunciation MP3 URL (cached). */
 export async function resolveWordAudioUrl(word: string): Promise<string | null> {
   const key = cacheKey(word);
@@ -43,7 +58,8 @@ export async function resolveWordAudioUrl(word: string): Promise<string | null> 
   const pending = pendingLookups.get(key);
   if (pending) return pending;
 
-  const lookup = fetch(`/api/pronounce?word=${encodeURIComponent(key)}`, {
+  const normalized = normalizeWord(word);
+  const lookup = fetch(`/api/pronounce?word=${encodeURIComponent(normalized)}`, {
     cache: "force-cache",
   })
     .then(async (response) => {
@@ -52,7 +68,7 @@ export async function resolveWordAudioUrl(word: string): Promise<string | null> 
         return null;
       }
       const data = (await response.json()) as { audioUrl?: string | null };
-      const url = data.audioUrl?.trim() || null;
+      const url = data.audioUrl?.trim() || resolvePlayableUrl(word);
       audioUrlCache.set(key, url);
       return url;
     })
@@ -74,15 +90,8 @@ export function getCachedWordAudioUrl(word: string): string | null {
   return audioUrlCache.get(key) ?? null;
 }
 
-function resolvePlayableUrl(word: string, url?: string | null): string {
-  const key = cacheKey(word);
-  if (url?.trim()) return url;
-  if (key) return proxyPronounceAudioPath(key);
-  return "";
-}
-
 /** Warm audio src while the card is visible (no play — iOS blocks that). */
-export function preloadWordAudioElement(word: string, url?: string | null): void {
+export function preloadWordAudioElement(word: string, _url?: string | null): void {
   if (typeof window === "undefined") return;
   const key = cacheKey(word);
   if (!key) return;
@@ -90,7 +99,7 @@ export function preloadWordAudioElement(word: string, url?: string | null): void
   const audio = getAudioElement();
   if (!audio) return;
 
-  const src = absoluteAudioUrl(resolvePlayableUrl(key, url ?? getCachedWordAudioUrl(key)));
+  const src = absoluteAudioUrl(resolvePlayableUrl(word));
   if (!src) return;
 
   if (audio.dataset.wordKey !== key || audio.src !== src) {
@@ -102,9 +111,7 @@ export function preloadWordAudioElement(word: string, url?: string | null): void
 
 export function preloadWordAudio(word: string): void {
   preloadWordAudioElement(word);
-  void resolveWordAudioUrl(word).then((url) => {
-    if (url) preloadWordAudioElement(word, url);
-  });
+  void resolveWordAudioUrl(word);
 }
 
 /** Fetch MP3 bytes into the HTTP cache (no play — safe before user gesture). */
@@ -122,7 +129,7 @@ export function warmWordAudioBytes(
 
   warmedAudioBytes.add(key);
 
-  const src = absoluteAudioUrl(resolvePlayableUrl(key));
+  const src = absoluteAudioUrl(resolvePlayableUrl(word));
   if (!src) return Promise.resolve();
 
   const url = options?.bustCache ? `${src}${src.includes("?") ? "&" : "?"}_=${Date.now()}` : src;
@@ -249,7 +256,7 @@ export function playWordAudioInUserGesture(word: string): boolean {
   const audio = getAudioElement();
   if (!key || !audio) return false;
 
-  const src = absoluteAudioUrl(resolvePlayableUrl(key));
+  const src = absoluteAudioUrl(resolvePlayableUrl(word));
   if (!src) return false;
 
   if (audio.dataset.wordKey !== key || audio.src !== src) {

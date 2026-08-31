@@ -1,12 +1,12 @@
 import { Communicate } from "edge-tts-universal";
 
 /** Bump when voice/prosody changes so clients/CDN fetch fresh MP3s. */
-export const PRONOUNCE_VOICE_VERSION = "ava-youth1";
+export const PRONOUNCE_VOICE_VERSION = "ava-youth2";
 
 /** Expressive US neural voice — more natural than Jenny. */
 export const PRONOUNCE_NEURAL_VOICE = "en-US-AvaMultilingualNeural";
-/** Slightly faster delivery — brighter, more youthful. */
-export const PRONOUNCE_NEURAL_RATE = "+8%";
+/** Natural pace — auto and manual tap must match. */
+export const PRONOUNCE_NEURAL_RATE = "+0%";
 /** Light lift — keeps Ava natural without sounding cartoonish. */
 export const PRONOUNCE_NEURAL_PITCH = "+4Hz";
 
