@@ -1,14 +1,16 @@
 import { Communicate } from "edge-tts-universal";
 
 /** Bump when voice/prosody changes so clients/CDN fetch fresh MP3s. */
-export const PRONOUNCE_VOICE_VERSION = "ava-youth3";
+export const PRONOUNCE_VOICE_VERSION = "ava-youth4";
 
 /** Expressive US neural voice — more natural than Jenny. */
 export const PRONOUNCE_NEURAL_VOICE = "en-US-AvaMultilingualNeural";
-/** Natural pace — auto and manual tap must match. */
-export const PRONOUNCE_NEURAL_RATE = "+0%";
+/** Learner pace — slower than default neural TTS. */
+export const PRONOUNCE_NEURAL_RATE = "-22%";
 /** Light lift — keeps Ava natural without sounding cartoonish. */
 export const PRONOUNCE_NEURAL_PITCH = "+4Hz";
+/** Client playback multiplier (applied on top of MP3; keep in sync with rate). */
+export const PRONOUNCE_PLAYBACK_RATE = 0.9;
 
 const neuralAudioCache = new Map<string, ArrayBuffer>();
 const NEURAL_CACHE_MAX = 4000;

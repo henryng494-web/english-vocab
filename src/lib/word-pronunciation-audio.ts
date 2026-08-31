@@ -1,5 +1,8 @@
 import { proxyPronounceAudioPath } from "@/lib/dictionary-pronunciation";
-import { PRONOUNCE_VOICE_VERSION } from "@/lib/neural-pronunciation";
+import {
+  PRONOUNCE_PLAYBACK_RATE,
+  PRONOUNCE_VOICE_VERSION,
+} from "@/lib/neural-pronunciation";
 
 const audioUrlCache = new Map<string, string | null>();
 const pendingLookups = new Map<string, Promise<string | null>>();
@@ -28,7 +31,11 @@ function configureAudioElement(audio: HTMLAudioElement): void {
   audio.preload = "auto";
   audio.setAttribute("playsinline", "");
   audio.setAttribute("webkit-playsinline", "true");
-  audio.playbackRate = 1;
+  audio.playbackRate = PRONOUNCE_PLAYBACK_RATE;
+}
+
+function applyPlaybackRate(audio: HTMLAudioElement): void {
+  audio.playbackRate = PRONOUNCE_PLAYBACK_RATE;
 }
 
 /** Register the layout `<audio>` element (required for iOS Safari + PWA). */
@@ -284,6 +291,7 @@ export function playWordAudioInUserGesture(word: string): boolean {
   }
 
   audio.currentTime = 0;
+  applyPlaybackRate(audio);
   currentAudio = audio;
 
   const playPromise = audio.play();
@@ -320,6 +328,7 @@ export async function playWordAudioWhenReady(
 
   try {
     audio.currentTime = 0;
+    applyPlaybackRate(audio);
     currentAudio = audio;
     await audio.play();
     return true;
@@ -342,6 +351,7 @@ export async function playWordAudioUrl(url: string): Promise<boolean> {
 
   stopWordAudio();
   audio.src = absoluteAudioUrl(url);
+  applyPlaybackRate(audio);
   currentAudio = audio;
 
   try {
@@ -360,6 +370,7 @@ export function playWordAudioUrlSync(url: string): boolean {
 
   stopWordAudio();
   audio.src = absoluteAudioUrl(url);
+  applyPlaybackRate(audio);
   currentAudio = audio;
   void audio.play().catch(() => {
     if (currentAudio === audio) currentAudio = null;
