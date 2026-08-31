@@ -4,6 +4,7 @@ import { ReviewWordImage } from "@/components/review/ReviewWordImage";
 import { displayFontClass } from "@/lib/fonts";
 import { useI18n } from "@/hooks/use-i18n";
 import { splitSentenceAroundWord } from "@/lib/review-quiz";
+import { useCallback, useRef } from "react";
 
 type ReviewRecallQuestionProps = {
   word: string;
@@ -31,7 +32,40 @@ export function ReviewRecallQuestion({
   onRemember,
 }: ReviewRecallQuestionProps) {
   const { t } = useI18n();
+  const touchHandledRef = useRef(false);
   const parts = splitSentenceAroundWord(sentence, word);
+
+  const runAction = useCallback(
+    (action: () => void) => {
+      if (locked) return;
+      action();
+    },
+    [locked],
+  );
+
+  const bindAction = useCallback(
+    (action: () => void) => ({
+      onTouchEnd: (event: React.TouchEvent<HTMLButtonElement>) => {
+        event.preventDefault();
+        event.stopPropagation();
+        touchHandledRef.current = true;
+        runAction(action);
+      },
+      onClick: (event: React.MouseEvent<HTMLButtonElement>) => {
+        event.preventDefault();
+        event.stopPropagation();
+        if (touchHandledRef.current) {
+          touchHandledRef.current = false;
+          return;
+        }
+        runAction(action);
+      },
+    }),
+    [runAction],
+  );
+
+  const lookUpHandlers = bindAction(onLookUp);
+  const rememberHandlers = bindAction(onRemember);
 
   return (
     <div className={`review-recall ${displayFontClass}`}>
@@ -66,7 +100,7 @@ export function ReviewRecallQuestion({
             locked && remembered === false ? " is-active" : ""
           }`}
           disabled={locked}
-          onClick={onLookUp}
+          {...lookUpHandlers}
         >
           {t("review.lookUp")}
         </button>
@@ -76,7 +110,7 @@ export function ReviewRecallQuestion({
             locked && remembered === true ? " is-correct" : ""
           }`}
           disabled={locked}
-          onClick={onRemember}
+          {...rememberHandlers}
         >
           {t("review.iRemember")}
         </button>

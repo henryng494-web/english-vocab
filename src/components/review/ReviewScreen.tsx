@@ -147,6 +147,9 @@ export function ReviewScreen() {
   const activeQuestionRef = useRef<{ word: string; index: number } | null>(null);
   const senseUpgradeRef = useRef<string | null>(null);
   const choiceSeedRef = useRef("");
+  const prevEnrichingRef = useRef(enriching);
+  const enrichFetchInflightRef = useRef<string | null>(null);
+  const [sessionStep, setSessionStep] = useState(0);
 
   const currentWord = queue[index];
   phaseRef.current = phase;
@@ -222,33 +225,42 @@ export function ReviewScreen() {
   );
 
   const prefetchQuestionAt = useCallback(
-    (questionIndex: number) => {
-      const pending = prefetchInflightRef.current.get(questionIndex);
+    (queueIndex: number, sessionStepForQuiz: number) => {
+      const pending = prefetchInflightRef.current.get(queueIndex);
       if (pending) return;
 
       const promise = (async () => {
         const q = queueRef.current;
         const pool = allWordsRef.current;
-        const word = q[questionIndex];
+        const word = q[queueIndex];
         if (!word) return;
 
-        const plan = collectReviewQuestionImageTargets(word, pool, questionIndex);
+        const plan = collectReviewQuestionImageTargets(
+          word,
+          pool,
+          sessionStepForQuiz,
+        );
         if (
           plan.kind === "sense" &&
           senseChoicesAreValidForPrompt(plan.choices, word.word, pool)
         ) {
           prefetchedChoicesRef.current.set(
-            reviewSenseCacheKey(questionIndex, word.word),
+            reviewSenseCacheKey(sessionStepForQuiz, word.word),
             plan.choices,
           );
         }
 
         preloadReviewImageBatch(plan.targets);
         const updates = await prefetchReviewImages(plan.targets);
-        applyImageUpdatesToState(updates, setAllWords, setQueue, setChoices);
+        if (Object.keys(updates).length === 0) return;
 
-        if (plan.kind === "sense" && Object.keys(updates).length > 0) {
-          const cacheKey = reviewSenseCacheKey(questionIndex, word.word);
+        patchWordFields((item) => {
+          const key = item.word.trim().toLowerCase();
+          return updates[key] ? { ...item, image_url: updates[key] } : item;
+        });
+
+        if (plan.kind === "sense") {
+          const cacheKey = reviewSenseCacheKey(sessionStepForQuiz, word.word);
           const cached =
             prefetchedChoicesRef.current.get(cacheKey) ?? plan.choices;
           prefetchedChoicesRef.current.set(
@@ -258,26 +270,42 @@ export function ReviewScreen() {
               return updates[key] ? { ...choice, imageUrl: updates[key] } : choice;
             }),
           );
+          if (
+            activeQuestionRef.current?.word.trim().toLowerCase() ===
+            word.word.trim().toLowerCase()
+          ) {
+            setChoices((prev) =>
+              prev.map((choice) => {
+                const key = choice.word.trim().toLowerCase();
+                return updates[key] ? { ...choice, imageUrl: updates[key] } : choice;
+              }),
+            );
+          }
         }
       })().finally(() => {
-        prefetchInflightRef.current.delete(questionIndex);
+        prefetchInflightRef.current.delete(queueIndex);
       });
 
-      prefetchInflightRef.current.set(questionIndex, promise);
+      prefetchInflightRef.current.set(queueIndex, promise);
     },
-    [],
+    [patchWordFields],
   );
 
   const prefetchQuestionsAhead = useCallback(
-    (fromIndex: number, count = REVIEW_PREFETCH_AHEAD) => {
+    (fromQueueIndex: number, fromSessionStep: number, count = REVIEW_PREFETCH_AHEAD) => {
       for (let offset = 1; offset <= count; offset++) {
-        prefetchQuestionAt(fromIndex + offset);
+        prefetchQuestionAt(fromQueueIndex + offset, fromSessionStep + offset);
       }
     },
     [prefetchQuestionAt],
   );
 
-  const startQuestion = useCallback((word: VocabWord, pool: VocabWord[], questionIndex = 0) => {
+  const startQuestion = useCallback((
+    word: VocabWord,
+    pool: VocabWord[],
+    questionIndex = 0,
+    queueIndex?: number,
+  ) => {
     const schedule = getReviewSchedule(word.word);
     const cacheKey = reviewSenseCacheKey(questionIndex, word.word);
     choiceSeedRef.current = cacheKey;
@@ -337,25 +365,31 @@ export function ReviewScreen() {
       }));
       preloadReviewImageBatch(senseTargets);
       void prefetchReviewImages(senseTargets).then((updates) => {
-        applyImageUpdatesToState(updates, setAllWords, setQueue, setChoices);
-        if (Object.keys(updates).length > 0) {
-          setChoices((prev) =>
-            prev.map((choice) => {
-              const key = choice.word.trim().toLowerCase();
-              return updates[key] ? { ...choice, imageUrl: updates[key] } : choice;
-            }),
-          );
-        }
+        if (Object.keys(updates).length === 0) return;
+        patchWordFields((item) => {
+          const key = item.word.trim().toLowerCase();
+          return updates[key] ? { ...item, image_url: updates[key] } : item;
+        });
+        setChoices((prev) =>
+          prev.map((choice) => {
+            const key = choice.word.trim().toLowerCase();
+            return updates[key] ? { ...choice, imageUrl: updates[key] } : choice;
+          }),
+        );
       });
     } else {
       preloadReviewImageBatch(targets);
       void prefetchReviewImages(targets).then((updates) => {
-        applyImageUpdatesToState(updates, setAllWords, setQueue, setChoices);
+        if (Object.keys(updates).length === 0) return;
+        patchWordFields((item) => {
+          const key = item.word.trim().toLowerCase();
+          return updates[key] ? { ...item, image_url: updates[key] } : item;
+        });
       });
     }
 
-    prefetchQuestionsAhead(questionIndex);
-  }, [prefetchQuestionsAhead]);
+    prefetchQuestionsAhead(queueIndex ?? indexRef.current, questionIndex);
+  }, [patchWordFields, prefetchQuestionsAhead]);
 
   useEffect(() => {
     if (phase !== "question" || quizKind !== "sense" || !currentWord || locked) {
@@ -364,7 +398,7 @@ export function ReviewScreen() {
     if (senseChoicesAreValidForPrompt(choices, currentWord.word, allWords)) {
       return;
     }
-    const cacheKey = reviewSenseCacheKey(index, currentWord.word);
+    const cacheKey = reviewSenseCacheKey(sessionStep, currentWord.word);
     if (senseUpgradeRef.current === cacheKey) return;
 
     const rebuilt = resolveReviewSenseChoices(currentWord.word, allWords);
@@ -372,7 +406,7 @@ export function ReviewScreen() {
       senseUpgradeRef.current = cacheKey;
       setChoices(rebuilt);
     }
-  }, [phase, quizKind, currentWord, locked, choices, allWords, index]);
+  }, [phase, quizKind, currentWord, locked, choices, allWords, sessionStep]);
 
   useEffect(() => {
     if (phase !== "question" || locked) return;
@@ -386,10 +420,14 @@ export function ReviewScreen() {
     const newIndex = queue.findIndex(
       (item) => item.word.trim().toLowerCase() === promptKey,
     );
-    if (newIndex < 0) return;
+    if (newIndex < 0 || newIndex === index) return;
     setIndex(newIndex);
-    startQuestion(queue[newIndex]!, allWords, newIndex);
-  }, [queue, index, phase, locked, allWords, startQuestion]);
+    startQuestion(
+      queue[newIndex]!,
+      allWords,
+      sessionStep,
+    );
+  }, [queue, index, phase, locked, allWords, startQuestion, sessionStep]);
 
   const setAllWords = useCallback(
     (value: VocabWord[] | ((prev: VocabWord[]) => VocabWord[])) => {
@@ -419,6 +457,9 @@ export function ReviewScreen() {
       }
 
       setSessionDone(false);
+      if (reviewInitialCountRef.current === 0) {
+        reviewInitialCountRef.current = sessionQueue.length;
+      }
       const pool = sessionPool.length > 0 ? sessionPool : sessionQueue;
       warmReviewImages(sessionQueue, pool);
 
@@ -471,8 +512,9 @@ export function ReviewScreen() {
             );
           }
           setIndex(resumeIndex);
+          setSessionStep(resumeIndex);
           startQuestion(resumeWord, pool, resumeIndex);
-          prefetchQuestionsAhead(resumeIndex);
+          prefetchQuestionsAhead(resumeIndex, resumeIndex);
           setSessionReady(true);
           return;
         }
@@ -495,6 +537,7 @@ export function ReviewScreen() {
         ) ?? firstReady;
 
       setIndex(0);
+      setSessionStep(0);
       startQuestion(latestFirst, activePool, 0);
       setSessionReady(true);
 
@@ -508,7 +551,11 @@ export function ReviewScreen() {
         })),
         3,
       ).then((updates) => {
-        applyImageUpdatesToState(updates, setAllWords, setQueue, setChoices);
+        if (Object.keys(updates).length === 0) return;
+        patchWordFields((item) => {
+          const key = item.word.trim().toLowerCase();
+          return updates[key] ? { ...item, image_url: updates[key] } : item;
+        });
       });
     },
     [
@@ -536,16 +583,16 @@ export function ReviewScreen() {
   }, [loading, queue.length, beginSession, allWords.length]);
 
   useEffect(() => {
-    if (!sessionReady || enriching || locked || phase !== "question" || !currentWord) {
-      return;
-    }
-    // Recall questions intentionally have no multiple-choice options.
+    const wasEnriching = prevEnrichingRef.current;
+    prevEnrichingRef.current = enriching;
+    if (!wasEnriching || enriching) return;
+    if (!sessionReady || locked || phase !== "question" || !currentWord) return;
     if (quizKind === "recall") return;
     if (choices.length > 0) return;
 
     const pool = allWords.length > 0 ? allWords : queue;
     const word = hydrateReviewWordLocal(queue[index] ?? currentWord);
-    startQuestion(word, pool, index);
+    startQuestion(word, pool, sessionStep);
   }, [
     enriching,
     sessionReady,
@@ -558,6 +605,7 @@ export function ReviewScreen() {
     queue,
     index,
     startQuestion,
+    sessionStep,
   ]);
 
   useEffect(() => {
@@ -651,6 +699,17 @@ export function ReviewScreen() {
       };
     }
 
+    const recallSentence =
+      quizKind === "recall"
+        ? pickReviewRecallSentence(
+            currentWord.word,
+            currentWord.examples,
+            currentWord.vietnamese_meaning,
+            currentWord.word_type,
+          )
+        : "";
+    const recallReady = Boolean(recallSentence.trim());
+
     const missingImage = shouldRefreshImageUrl(
       currentWord.image_url,
       currentWord.word,
@@ -660,20 +719,15 @@ export function ReviewScreen() {
       currentWord.english_definition?.trim() &&
       currentWord.vietnamese_meaning.trim().toLowerCase() ===
         currentWord.english_definition.trim().toLowerCase();
-    const missingExamples =
-      quizKind === "recall" &&
-      !pickReviewRecallSentence(
+    const missingExamples = quizKind === "recall" && !recallReady;
+    const badExamples =
+      !recallReady &&
+      !hasQualityExamples(
         currentWord.word,
-        currentWord.examples,
-        currentWord.vietnamese_meaning,
+        parseExamples(currentWord.examples),
         currentWord.word_type,
+        currentWord.vietnamese_meaning,
       );
-    const badExamples = !hasQualityExamples(
-      currentWord.word,
-      parseExamples(currentWord.examples),
-      currentWord.word_type,
-      currentWord.vietnamese_meaning,
-    );
     if (!missingImage && !badVi && !missingExamples && !badExamples) return;
 
     let cancelled = false;
@@ -689,16 +743,10 @@ export function ReviewScreen() {
         .then((res) => res.json())
         .then((data: { image_url?: string | null }) => {
           if (cancelled || !data.image_url) return;
-          const patch = { image_url: data.image_url };
-          setQueue((prev) =>
-            prev.map((word) =>
-              word.word === currentWord.word ? { ...word, ...patch } : word,
-            ),
-          );
-          setAllWords((prev) =>
-            prev.map((word) =>
-              word.word === currentWord.word ? { ...word, ...patch } : word,
-            ),
+          patchWordFields((item) =>
+            item.word === currentWord.word
+              ? { ...item, image_url: data.image_url ?? null }
+              : item,
           );
         })
         .catch(() => {});
@@ -706,6 +754,12 @@ export function ReviewScreen() {
         cancelled = true;
       };
     }
+
+    if (quizKind === "recall" && recallReady) return;
+
+    const fetchKey = currentWord.word.trim().toLowerCase();
+    if (enrichFetchInflightRef.current === fetchKey) return;
+    enrichFetchInflightRef.current = fetchKey;
 
     const params = new URLSearchParams({
       word: currentWord.word,
@@ -716,28 +770,28 @@ export function ReviewScreen() {
       .then((res) => res.json())
       .then((data) => {
         if (cancelled || !data.word) return;
-        const patch = {
-          image_url: data.word.image_url ?? currentWord.image_url,
-          vietnamese_meaning:
-            data.word.vietnamese_meaning ?? currentWord.vietnamese_meaning,
-          english_definition:
-            data.word.english_definition ?? currentWord.english_definition,
-          phonetic: data.word.phonetic ?? currentWord.phonetic,
-          word_type: data.word.word_type ?? currentWord.word_type,
-          examples: data.word.examples ?? currentWord.examples,
-        };
-        setQueue((prev) =>
-          prev.map((word) =>
-            word.word === currentWord.word ? { ...word, ...patch } : word,
-          ),
-        );
-        setAllWords((prev) =>
-          prev.map((word) =>
-            word.word === currentWord.word ? { ...word, ...patch } : word,
-          ),
+        patchWordFields((item) =>
+          item.word === currentWord.word
+            ? {
+                ...item,
+                image_url: data.word.image_url ?? item.image_url ?? null,
+                vietnamese_meaning:
+                  data.word.vietnamese_meaning ?? item.vietnamese_meaning,
+                english_definition:
+                  data.word.english_definition ?? item.english_definition,
+                phonetic: data.word.phonetic ?? item.phonetic,
+                word_type: data.word.word_type ?? item.word_type,
+                examples: data.word.examples ?? item.examples,
+              }
+            : item,
         );
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => {
+        if (enrichFetchInflightRef.current === fetchKey) {
+          enrichFetchInflightRef.current = null;
+        }
+      });
     return () => {
       cancelled = true;
     };
@@ -747,7 +801,9 @@ export function ReviewScreen() {
     currentWord?.vietnamese_meaning,
     currentWord?.english_definition,
     currentWord?.examples,
+    currentWord?.rank,
     quizKind,
+    patchWordFields,
   ]);
 
   function lockAnswer(
@@ -862,21 +918,23 @@ export function ReviewScreen() {
         }
       }
 
-      const nextIndex = index + 1;
-      const remaining = queue.slice(nextIndex);
+      const nextStep = sessionStep + 1;
+      const remaining = queue.slice(index + 1);
       markReviewSessionCompleted(currentWord.word, remaining);
       patchQueue(remaining);
 
-      if (nextIndex >= queue.length) {
+      if (remaining.length === 0) {
         setSessionDone(true);
         patchQueue([]);
         setIndex(0);
+        setSessionStep(0);
         sessionStartedRef.current = false;
         clearReviewSessionSnapshot();
         return;
       }
-      setIndex(nextIndex);
-      startQuestion(queue[nextIndex], allWords, nextIndex);
+      setSessionStep(nextStep);
+      setIndex(0);
+      startQuestion(remaining[0]!, allWords, nextStep, 0);
     } finally {
       setConfirming(false);
     }
@@ -894,7 +952,10 @@ export function ReviewScreen() {
       <AppHeader
         title={
           inSession
-            ? t("review.sessionTitle", { current: index + 1, total: queue.length })
+            ? t("review.sessionTitle", {
+                current: sessionStep + 1,
+                total: reviewInitialCountRef.current || queue.length,
+              })
             : t("review.title")
         }
         leading={<AppMenuButton />}
