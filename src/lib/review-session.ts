@@ -339,6 +339,10 @@ export function resolveReviewSessionFast(): ReviewSession {
 export async function loadReviewSessionFast(): Promise<ReviewSession> {
   try {
     const summary = await fetchLearningSummary();
+    if (typeof window !== "undefined") {
+      const { seedCachedLearningSummary } = await import("@/lib/review-due-store");
+      seedCachedLearningSummary(summary);
+    }
     return resolveReviewSession(summary);
   } catch {
     return resolveReviewSessionFast();

@@ -10,8 +10,17 @@ import {
   enrichReviewSession,
   resolveReviewSession,
 } from "@/lib/review-session";
-import { hydrateReviewWordLocal } from "@/lib/review-word-hydrate";
+import {
+  hasReviewClueFields,
+  hydrateReviewWordLocal,
+} from "@/lib/review-word-hydrate";
 import type { VocabWord } from "@/types/database";
+
+function firstCardDueReady(queue: VocabWord[]): boolean {
+  const first = queue[0];
+  if (!first) return false;
+  return hasReviewClueFields(hydrateReviewWordLocal(first));
+}
 
 function readInstantReviewState(): ReviewSessionState {
   if (typeof window === "undefined") {
@@ -19,6 +28,7 @@ function readInstantReviewState(): ReviewSessionState {
       ready: false,
       loading: true,
       enriching: false,
+      dueReady: false,
       dueCount: 0,
       queue: [],
       pool: [],
@@ -28,10 +38,12 @@ function readInstantReviewState(): ReviewSessionState {
   const instant = resolveReviewSession(getCachedLearningSummary());
   const queue = instant.queue.map(hydrateReviewWordLocal);
   const hasQueue = queue.length > 0;
+  const dueReady = hasQueue && firstCardDueReady(queue);
   return {
     ready: true,
     loading: !hasQueue,
     enriching: hasQueue,
+    dueReady,
     dueCount: instant.dueCount,
     queue,
     pool: queue,
@@ -43,13 +55,15 @@ export type ReviewSessionState = {
   ready: boolean;
   /** True only while waiting for the first queue (no cards to show yet). */
   loading: boolean;
+  /** True while the full review pool is still loading in the background. */
   enriching: boolean;
+  /** True when the first card has clue text (local cache or due-word DB fetch). */
+  dueReady: boolean;
   dueCount: number;
   queue: VocabWord[];
   pool: VocabWord[];
   error: string | null;
 };
-
 
 export function useReviewSession() {
   const enrichGenRef = useRef(0);
@@ -61,35 +75,47 @@ export function useReviewSession() {
       queue: VocabWord[],
       pool: VocabWord[],
       error: string | null,
-      options?: { loading?: boolean; enriching?: boolean; mergeQueue?: boolean },
+      options?: {
+        loading?: boolean;
+        enriching?: boolean;
+        dueReady?: boolean;
+        mergeQueue?: boolean;
+      },
     ) => {
       setState((prev) => {
+        const hydratedQueue = queue.map(hydrateReviewWordLocal);
+        const hydratedPool = pool.map(hydrateReviewWordLocal);
         const sameOrder =
           options?.mergeQueue &&
           prev.queue.length > 0 &&
-          prev.queue.length === queue.length &&
+          prev.queue.length === hydratedQueue.length &&
           prev.queue.every(
             (word, index) =>
               word.word.trim().toLowerCase() ===
-              queue[index]?.word.trim().toLowerCase(),
+              hydratedQueue[index]?.word.trim().toLowerCase(),
           );
         const poolByKey = new Map(
-          pool.map((word) => [word.word.trim().toLowerCase(), word]),
+          hydratedPool.map((word) => [word.word.trim().toLowerCase(), word]),
         );
         const nextQueue = sameOrder
           ? prev.queue.map(
               (word) =>
-                poolByKey.get(word.word.trim().toLowerCase()) ?? word,
+                hydrateReviewWordLocal(
+                  poolByKey.get(word.word.trim().toLowerCase()) ?? word,
+                ),
             )
-          : queue;
+          : hydratedQueue;
 
         return {
           ready: true,
           loading: options?.loading ?? false,
           enriching: options?.enriching ?? false,
+          dueReady:
+            options?.dueReady ??
+            (nextQueue.length > 0 && firstCardDueReady(nextQueue)),
           dueCount,
           queue: nextQueue,
-          pool,
+          pool: hydratedPool,
           error,
         };
       });
@@ -99,10 +125,12 @@ export function useReviewSession() {
 
   const reload = useCallback(async () => {
     const instant = resolveReviewSession(getCachedLearningSummary());
-    if (instant.queue.length > 0) {
-      apply(instant.dueCount, instant.queue, instant.pool, null, {
+    const instantQueue = instant.queue.map(hydrateReviewWordLocal);
+    if (instantQueue.length > 0) {
+      apply(instant.dueCount, instantQueue, instantQueue, null, {
         loading: false,
         enriching: true,
+        dueReady: firstCardDueReady(instantQueue),
       });
     } else {
       setState((prev) => ({ ...prev, loading: true, error: null }));
@@ -112,53 +140,72 @@ export function useReviewSession() {
     enrichGenRef.current = enrichGen;
 
     try {
-      await refreshReviewDueSummary();
+      const summaryPromise = refreshReviewDueSummary();
+      const dueEnrichedPromise =
+        instantQueue.length > 0
+          ? enrichDueReviewWords(getCachedLearningSummary(), instantQueue)
+          : Promise.resolve<{ dueCount: number; queue: VocabWord[]; pool: VocabWord[] } | null>(null);
+
+      await summaryPromise;
       const summary = getCachedLearningSummary();
       const sync = resolveReviewSession(summary);
+      const syncQueue = sync.queue.map(hydrateReviewWordLocal);
 
-      if (sync.queue.length > 0) {
-        apply(sync.dueCount, sync.queue, sync.pool, null, {
-          loading: false,
-          enriching: true,
-        });
-      } else if (instant.queue.length === 0) {
-        apply(0, [], [], null, { loading: false, enriching: false });
+      const dueEnriched = await dueEnrichedPromise;
+      if (enrichGenRef.current !== enrichGen) return;
+
+      const baseQueue =
+        dueEnriched?.queue.length
+          ? dueEnriched.queue
+          : syncQueue.length > 0
+            ? syncQueue
+            : instantQueue;
+
+      if (baseQueue.length > 0) {
+        apply(
+          dueEnriched?.dueCount ?? sync.dueCount ?? instant.dueCount,
+          baseQueue,
+          dueEnriched?.pool ?? baseQueue,
+          null,
+          {
+            loading: false,
+            enriching: true,
+            dueReady: true,
+            mergeQueue: true,
+          },
+        );
+      } else if (instantQueue.length === 0 && syncQueue.length === 0) {
+        apply(0, [], [], null, { loading: false, enriching: false, dueReady: false });
         return;
       }
 
-      const baseQueue = sync.queue.length > 0 ? sync.queue : instant.queue;
-
-      const dueEnriched = await enrichDueReviewWords(summary, baseQueue);
-      if (enrichGenRef.current !== enrichGen) return;
-      if (dueEnriched.queue.length > 0) {
-        apply(dueEnriched.dueCount, dueEnriched.queue, dueEnriched.pool, null, {
-          loading: false,
-          enriching: true,
-          mergeQueue: true,
-        });
-      }
-
-      const enriched = await enrichReviewSession(summary, dueEnriched.queue);
+      const enriched = await enrichReviewSession(summary, baseQueue);
       if (enrichGenRef.current !== enrichGen) return;
 
       apply(enriched.dueCount, enriched.queue, enriched.pool, null, {
         loading: false,
         enriching: false,
+        dueReady: true,
         mergeQueue: true,
       });
     } catch (err) {
       if (enrichGenRef.current !== enrichGen) return;
       const fallback = resolveReviewSession(getCachedLearningSummary());
+      const fallbackQueue = fallback.queue.map(hydrateReviewWordLocal);
       apply(
         fallback.dueCount,
-        fallback.queue,
-        fallback.pool,
-        fallback.queue.length > 0
+        fallbackQueue,
+        fallbackQueue,
+        fallbackQueue.length > 0
           ? null
           : err instanceof Error
             ? err.message
             : "Failed to load review",
-        { loading: false, enriching: false },
+        {
+          loading: false,
+          enriching: false,
+          dueReady: firstCardDueReady(fallbackQueue),
+        },
       );
     }
   }, [apply]);

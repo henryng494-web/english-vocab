@@ -25,6 +25,13 @@ export function getCachedLearningSummary(): LearningSummaryRow[] {
   return cachedSummary ?? [];
 }
 
+/** Seed summary from splash bootstrap so Review tab skips a cold fetch. */
+export function seedCachedLearningSummary(rows: LearningSummaryRow[]): void {
+  if (rows.length === 0) return;
+  cachedSummary = rows;
+  emit();
+}
+
 export function subscribeReviewDueCount(listener: () => void): () => void {
   listeners.add(listener);
 

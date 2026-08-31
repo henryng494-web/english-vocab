@@ -105,6 +105,7 @@ export function ReviewScreen() {
   const {
     loading,
     enriching,
+    dueReady,
     dueCount,
     queue,
     pool: allWords,
@@ -116,6 +117,7 @@ export function ReviewScreen() {
   } = useReviewSession();
   const [index, setIndex] = useState(0);
   const [phase, setPhase] = useState<Phase>("question");
+  const [sessionReady, setSessionReady] = useState(false);
   const [choices, setChoices] = useState<ReviewChoice[]>([]);
   const [quizKind, setQuizKind] = useState<ReviewQuizKind>("word");
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
@@ -408,9 +410,11 @@ export function ReviewScreen() {
 
   const beginSession = useCallback(
     async (sessionQueue: VocabWord[], sessionPool: VocabWord[]) => {
+      setSessionReady(false);
       if (sessionQueue.length === 0) {
         sessionStartedRef.current = false;
         setSessionDone(true);
+        setSessionReady(true);
         return;
       }
 
@@ -476,6 +480,7 @@ export function ReviewScreen() {
           setTimesReviewed(inProgress.timesReviewed);
           setMarkMastered(inProgress.markMastered);
           prefetchQuestionsAhead(resumeIndex);
+          setSessionReady(true);
           return;
         }
       }
@@ -487,8 +492,18 @@ export function ReviewScreen() {
         );
       }
 
+      const activePool =
+        allWordsRef.current.length > 0 ? allWordsRef.current : pool;
+      const latestFirst =
+        queueRef.current.find(
+          (item) =>
+            item.word.trim().toLowerCase() ===
+            firstReady.word.trim().toLowerCase(),
+        ) ?? firstReady;
+
       setIndex(0);
-      startQuestion(firstReady, allWordsRef.current.length > 0 ? allWordsRef.current : pool, 0);
+      startQuestion(latestFirst, activePool, 0);
+      setSessionReady(true);
 
       void refreshAllStaleWordImages(
         pool.map((word) => ({
@@ -515,16 +530,40 @@ export function ReviewScreen() {
 
   useEffect(() => {
     if (loading || queue.length === 0) {
+      setSessionReady(false);
       if (!loading && queue.length === 0) {
         sessionStartedRef.current = false;
       }
       return;
     }
+    if (!dueReady) return;
     if (sessionStartedRef.current) return;
 
     sessionStartedRef.current = true;
     void beginSession(queue, allWords.length > 0 ? allWords : queue);
-  }, [loading, queue.length, beginSession]);
+  }, [loading, dueReady, queue.length, beginSession, allWords, queue]);
+
+  useEffect(() => {
+    if (!sessionReady || enriching || locked || phase !== "question" || !currentWord) {
+      return;
+    }
+    if (choices.length > 0) return;
+
+    const pool = allWords.length > 0 ? allWords : queue;
+    const word = hydrateReviewWordLocal(queue[index] ?? currentWord);
+    startQuestion(word, pool, index);
+  }, [
+    enriching,
+    sessionReady,
+    choices.length,
+    locked,
+    phase,
+    currentWord,
+    allWords,
+    queue,
+    index,
+    startQuestion,
+  ]);
 
   useEffect(() => {
     if (!locked || phase !== "question") return;
@@ -849,10 +888,11 @@ export function ReviewScreen() {
   }
 
   const showSpinner = loading && queue.length === 0;
+  const showPreparing = !showSpinner && queue.length > 0 && (!dueReady || !sessionReady);
   const syncMismatch = !showSpinner && queue.length === 0 && dueCount > 0;
   const allCaughtUp = !showSpinner && queue.length === 0 && dueCount === 0;
   const displayError = error ?? loadError;
-  const inSession = Boolean(currentWord) && queue.length > 0;
+  const inSession = Boolean(currentWord) && queue.length > 0 && sessionReady;
 
   return (
     <div className={`app-screen${inSession ? " app-screen--journey" : " app-screen--home"}`}>
@@ -865,7 +905,7 @@ export function ReviewScreen() {
         leading={<AppMenuButton />}
       />
 
-      {showSpinner ? (
+      {showSpinner || showPreparing ? (
         <div className="flex flex-1 items-center justify-center">
           <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary-100 border-t-primary" />
         </div>
