@@ -4,6 +4,8 @@ import { DISCOVER_WORD_CACHE_VERSION, stubFromListItem } from "@/lib/discover-wo
 import { meaningsNeedRegeneration } from "@/lib/meaning-quality";
 import { examplesNeedRegeneration } from "@/lib/repair-word-examples";
 import { getLocallyTakenWords } from "@/lib/learning-storage";
+import { isExcludedVocabWord } from "@/lib/proper-noun";
+import { getFamilyHeadword } from "@/lib/word-family";
 
 export type DiscoverListPreview = {
   phonetic?: string | null;
@@ -40,6 +42,12 @@ export function filterDiscoverQueue(
     ),
   );
   return items.filter((item) => {
+    if (
+      isExcludedVocabWord(item.word) ||
+      isExcludedVocabWord(getFamilyHeadword(item.word))
+    ) {
+      return false;
+    }
     const family = item.family_members?.length
       ? item.family_members
       : [item.word];

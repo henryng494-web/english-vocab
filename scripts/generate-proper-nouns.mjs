@@ -281,8 +281,7 @@ for (const entry of subtlex) {
   const word = raw.toLowerCase();
   if (!/^[a-z]+$/.test(word) || word.length < 2) continue;
   if (ngsl.has(word) || CURRICULUM.has(word) || KEEP_COMMON.has(word)) continue;
-  // Sentence-initial adverbs ("Fortunately") are not names.
-  if (word.length > 4 && word.endsWith("ly")) continue;
+  // Do not drop -ly given names (Emily, Kelly, Billy). Sentence adverbs live in KEEP_COMMON.
   proper.add(word);
 }
 

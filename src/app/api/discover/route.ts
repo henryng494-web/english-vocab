@@ -9,6 +9,7 @@ import {
 import { standardToDiscoverFields } from "@/lib/enrichment-helpers";
 import { hasStaticVietnamese } from "@/lib/static-vietnamese";
 import { serializeExamples } from "@/lib/parse-examples";
+import { isExcludedVocabWord } from "@/lib/proper-noun";
 import { createClient } from "@/lib/supabase/server";
 import { getImportanceTier } from "@/lib/word-rank";
 import { getFamilyMembers, familyContainsTaken } from "@/lib/word-family";
@@ -49,7 +50,9 @@ export async function GET(request: Request) {
     );
 
     const visiblePreset = presetWords.filter(
-      (preset) => !familyContainsTaken(preset.word, takenWords),
+      (preset) =>
+        !isExcludedVocabWord(preset.word) &&
+        !familyContainsTaken(preset.word, takenWords),
     );
 
     const words = visiblePreset.map((preset) => {
