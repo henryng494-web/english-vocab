@@ -12,6 +12,7 @@ import {
   clearReviewSessionSnapshot,
   readReviewSessionSnapshot,
 } from "@/lib/review-session-storage";
+import { resolveImageSearchKeyword } from "@/lib/image-keyword";
 import { getImportanceTier } from "@/lib/word-rank";
 import type { LearningStatus, VocabWord } from "@/types/database";
 
@@ -58,6 +59,7 @@ function stubVocabWord(
     importance_tier: getImportanceTier(rank),
     learning_status: status,
     last_reviewed_at: lastReviewedAt ?? new Date().toISOString(),
+    search_keyword: resolveImageSearchKeyword(key, { pos: "", meaning: "" }),
   };
 }
 
@@ -225,6 +227,29 @@ async function fetchReviewPool(
   return mergeLocalLearning(words.map(normalizeVocabWord));
 }
 
+async function enrichDueWordsOnly(
+  extraWords: LearningSummaryRow[],
+  queue: VocabWord[],
+): Promise<{ queue: VocabWord[]; pool: VocabWord[] }> {
+  if (queue.length === 0) {
+    return { queue: [], pool: [] };
+  }
+
+  const dueKeys = queue.map((word) => word.word.trim().toLowerCase());
+  const dueDetails = await fetchWordDetailsBatch(dueKeys);
+  const pool = mergeLocalLearning(dueDetails.map(normalizeVocabWord));
+  const enrichedQueue = applySnapshot(
+    buildQueueFromKeys(dueKeys, pool, extraWords),
+  );
+
+  void prefetchReviewQuestionRange(enrichedQueue, pool, 0, 20);
+
+  return {
+    queue: enrichedQueue.length > 0 ? enrichedQueue : queue,
+    pool,
+  };
+}
+
 async function enrichQueue(
   extraWords: LearningSummaryRow[],
   queue: VocabWord[],
@@ -271,6 +296,21 @@ export async function loadReviewSession(): Promise<ReviewSession> {
   const enriched = await enrichQueue(summary, base.queue);
   return {
     dueCount: base.dueCount,
+    queue: enriched.queue,
+    pool: enriched.pool,
+  };
+}
+
+export async function enrichDueReviewWords(
+  extraWords: LearningSummaryRow[],
+  queue: VocabWord[],
+): Promise<ReviewSession> {
+  if (queue.length === 0) {
+    return { dueCount: 0, queue: [], pool: [] };
+  }
+  const enriched = await enrichDueWordsOnly(extraWords, queue);
+  return {
+    dueCount: queue.length,
     queue: enriched.queue,
     pool: enriched.pool,
   };

@@ -12,6 +12,7 @@ import {
   type WordImagePrefetchTarget,
 } from "@/lib/image-preload";
 import { peekCachedWordImageUrl } from "@/lib/word-image-cache";
+import { isRealCardImageUrl } from "@/lib/unsplash";
 import { preloadWordPronunciations } from "@/lib/pronunciation-preload";
 import type { VocabWord } from "@/types/database";
 
@@ -60,7 +61,7 @@ function collectUpdates(
       continue;
     }
     const known = peekCachedWordImageUrl(word, target.imageUrl);
-    if (known) updates[word] = known;
+    if (known && isRealCardImageUrl(known, word)) updates[word] = known;
   }
   return updates;
 }
@@ -74,7 +75,12 @@ export async function prefetchReviewImages(
     targets,
     REVIEW_IMAGE_PREFETCH_CONCURRENCY,
   );
-  return { ...collectUpdates(targets), ...fetched };
+  const merged = { ...collectUpdates(targets), ...fetched };
+  const realOnly: Record<string, string> = {};
+  for (const [word, url] of Object.entries(merged)) {
+    if (isRealCardImageUrl(url, word)) realOnly[word] = url;
+  }
+  return realOnly;
 }
 
 export function preloadReviewImageBatch(targets: ReviewImageTarget[]): void {

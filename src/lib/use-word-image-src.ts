@@ -14,6 +14,10 @@ import { resolveCastPreferredImagePath } from "@/lib/cast-word-images";
 import { peekCachedWordImageUrl } from "@/lib/word-image-cache";
 import { resolveWordImageForCard } from "@/lib/image-preload";
 
+function isQuizDisplayUrl(url: string | null | undefined, word: string): boolean {
+  return Boolean(url && isRealCardImageUrl(url, word));
+}
+
 type WordImageSrcOptions = {
   /** Hide SVG placeholders until a real photo loads (review quizzes). */
   quizSafe?: boolean;
@@ -113,8 +117,8 @@ export function useWordImageSrc(
       );
       if (cancelled) return;
       if (quizSafe) {
-        if (fetched) {
-          setSrc(fetched);
+        if (isQuizDisplayUrl(fetched, word)) {
+          setSrc(fetched!);
           setReady(true);
           return;
         }
@@ -149,8 +153,8 @@ export function useWordImageSrc(
             imageUrl,
             meaning,
           );
-          if (fetched) {
-            setSrc(fetched);
+          if (isQuizDisplayUrl(fetched, word)) {
+            setSrc(fetched!);
             setReady(true);
           }
         })();

@@ -97,6 +97,7 @@ export function ReviewScreen() {
   const isDailySession = searchParams.get("daily") === "1";
   const {
     loading,
+    enriching,
     dueCount,
     queue,
     pool: allWords,
@@ -411,7 +412,24 @@ export function ReviewScreen() {
       }
 
       setSessionDone(false);
-      warmReviewImages(sessionQueue, sessionPool);
+      const pool = sessionPool.length > 0 ? sessionPool : sessionQueue;
+      warmReviewImages(sessionQueue, pool);
+
+      const first = sessionQueue[0]!;
+      const { targets } = collectReviewQuestionImageTargets(first, pool, 0);
+      void prefetchReviewImages(targets).then((updates) => {
+        if (Object.keys(updates).length === 0) return;
+        patchBoth(
+          sessionQueue.map((item) => {
+            const key = item.word.trim().toLowerCase();
+            return updates[key] ? { ...item, image_url: updates[key] } : item;
+          }),
+          pool.map((item) => {
+            const key = item.word.trim().toLowerCase();
+            return updates[key] ? { ...item, image_url: updates[key] } : item;
+          }),
+        );
+      });
 
       const inProgress = readReviewSessionSnapshot()?.inProgress;
       if (inProgress) {
@@ -426,7 +444,7 @@ export function ReviewScreen() {
           setQuizKind(
             buildReviewQuestionPlan(
               sessionQueue[resumeIndex]!,
-              sessionPool,
+              pool,
               resumeIndex,
             ).kind,
           );
@@ -436,27 +454,15 @@ export function ReviewScreen() {
           setTimesReviewed(inProgress.timesReviewed);
           setMarkMastered(inProgress.markMastered);
           prefetchQuestionsAhead(resumeIndex);
-          void refreshAllStaleWordImages(
-            sessionPool.map((word) => ({
-              word: word.word,
-              imageUrl: word.image_url,
-              meaning: word.vietnamese_meaning,
-              wordType: word.word_type,
-              searchKeyword: word.search_keyword,
-            })),
-            3,
-          ).then((updates) => {
-            applyImageUpdatesToState(updates, setAllWords, setQueue, setChoices);
-          });
           return;
         }
       }
 
       setIndex(0);
-      startQuestion(sessionQueue[0]!, sessionPool, 0);
+      startQuestion(sessionQueue[0]!, pool, 0);
 
       void refreshAllStaleWordImages(
-        sessionPool.map((word) => ({
+        pool.map((word) => ({
           word: word.word,
           imageUrl: word.image_url,
           meaning: word.vietnamese_meaning,
@@ -468,7 +474,14 @@ export function ReviewScreen() {
         applyImageUpdatesToState(updates, setAllWords, setQueue, setChoices);
       });
     },
-    [prefetchQuestionsAhead, setAllWords, setQueue, startQuestion, warmReviewImages],
+    [
+      patchBoth,
+      prefetchQuestionsAhead,
+      setAllWords,
+      setQueue,
+      startQuestion,
+      warmReviewImages,
+    ],
   );
 
   useEffect(() => {
@@ -750,8 +763,9 @@ export function ReviewScreen() {
     }
   }
 
-  const syncMismatch = !loading && queue.length === 0 && dueCount > 0;
-  const allCaughtUp = !loading && queue.length === 0 && dueCount === 0;
+  const showSpinner = loading && queue.length === 0;
+  const syncMismatch = !showSpinner && queue.length === 0 && dueCount > 0;
+  const allCaughtUp = !showSpinner && queue.length === 0 && dueCount === 0;
   const displayError = error ?? loadError;
   const inSession = Boolean(currentWord) && queue.length > 0;
 
@@ -766,7 +780,7 @@ export function ReviewScreen() {
         leading={<AppMenuButton />}
       />
 
-      {loading ? (
+      {showSpinner ? (
         <div className="flex flex-1 items-center justify-center">
           <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary-100 border-t-primary" />
         </div>
@@ -782,7 +796,7 @@ export function ReviewScreen() {
         </div>
       ) : null}
 
-      {!loading && inSession && currentWord && phase === "question" && quizKind === "sense" ? (
+      {!showSpinner && inSession && currentWord && phase === "question" && quizKind === "sense" ? (
         <ReviewSenseQuestion
           word={currentWord.word}
           choices={choices}
