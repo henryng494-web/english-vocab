@@ -30,7 +30,7 @@ import {
 import { useAppBootstrap } from "@/context/AppBootstrapContext";
 import {
   fetchReviewWords,
-  buildDueReviewQueue,
+  collectDueReviewWords,
 } from "@/lib/review-fetch";
 import { hasQualityExamples } from "@/lib/example-quality";
 import { parseExamples } from "@/lib/parse-examples";
@@ -103,7 +103,7 @@ export default function LearnPage() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const isDailySession = searchParams.get("daily") === "1";
-  const { review: bootstrapReview, updateReviewCache } = useAppBootstrap();
+  const { updateReviewCache } = useAppBootstrap();
   const [allWords, setAllWords] = useState<VocabWord[]>([]);
   const [queue, setQueue] = useState<VocabWord[]>([]);
   const [index, setIndex] = useState(0);
@@ -117,7 +117,7 @@ export default function LearnPage() {
   const [intervalDays, setIntervalDays] = useState<ReviewIntervalDays>(1);
   const [markMastered, setMarkMastered] = useState(false);
   const [timesReviewed, setTimesReviewed] = useState(0);
-  const [loading, setLoading] = useState(!bootstrapReview);
+  const [loading, setLoading] = useState(true);
   const [confirming, setConfirming] = useState(false);
   const [newWord, setNewWord] = useState("");
   const [adding, setAdding] = useState(false);
@@ -479,14 +479,10 @@ export default function LearnPage() {
       setError(null);
       try {
         const all = await fetchReviewWords();
-        const due = buildDueReviewQueue(all);
+        const due = collectDueReviewWords(all);
         const snapshot = readReviewSessionSnapshot();
         const sessionDue = applyReviewSessionSnapshot(due, snapshot);
         updateReviewCache({ allWords: all, dueQueue: sessionDue });
-        if (options?.silent) {
-          applyReviewSession(all, due, true);
-          return;
-        }
         applyReviewSession(all, due, true);
       } catch (err) {
         if (!options?.silent) {
@@ -505,18 +501,8 @@ export default function LearnPage() {
     if (hydratedRef.current) return;
     hydratedRef.current = true;
 
-    if (bootstrapReview) {
-      applyReviewSession(
-        bootstrapReview.allWords,
-        bootstrapReview.dueQueue,
-        true,
-      );
-      setLoading(false);
-      void fetchWords({ silent: true });
-    } else {
-      void fetchWords();
-    }
-  }, [applyReviewSession, bootstrapReview, fetchWords]);
+    void fetchWords();
+  }, [fetchWords]);
 
   useEffect(() => {
     const refresh = () => {

@@ -40,6 +40,81 @@ export async function GET(request: Request) {
       return NextResponse.json({ words });
     }
 
+    /** Review pool — word_details for active user_learning rows only (not the full catalog). */
+    if (searchParams.get("scope") === "learning") {
+      const { data: learningRows, error: learningError } = await supabase
+        .from("user_learning")
+        .select("word, status, last_reviewed_at");
+
+      if (learningError) throw learningError;
+
+      const active = (learningRows ?? []).filter(
+        (row) =>
+          row.status !== "mastered" && !isExcludedVocabWord(row.word),
+      );
+      if (active.length === 0) {
+        return NextResponse.json({ words: [] });
+      }
+
+      const learningByWord = new Map(
+        active.map((row) => [row.word, row]),
+      );
+      const wordList = [...learningByWord.keys()];
+
+      const [{ data: details, error: detailsError }, { data: bankRows, error: bankError }] =
+        await Promise.all([
+          supabase.from("word_details").select("*").in("word", wordList),
+          supabase.from("word_bank").select("word, rank").in("word", wordList),
+        ]);
+
+      if (detailsError) throw detailsError;
+      if (bankError) throw bankError;
+
+      const rankByWord = new Map(
+        (bankRows ?? []).map((row) => [row.word, row.rank]),
+      );
+
+      let words: VocabWord[] = (details ?? [])
+        .filter(
+          (detail) =>
+            isValidVocabWord(detail.word) &&
+            !isExcludedVocabWord(detail.word) &&
+            !isExcludedVocabWord(getFamilyHeadword(detail.word)),
+        )
+        .map((detail) => {
+          const rank =
+            getPresetRank(detail.word) ?? rankByWord.get(detail.word) ?? 10000;
+          const learning = learningByWord.get(detail.word);
+          return withWordFamily({
+            ...detail,
+            rank,
+            importance_tier: getImportanceTier(rank),
+            learning_status: (learning?.status as LearningStatus) ?? "new",
+            last_reviewed_at: learning?.last_reviewed_at ?? null,
+            search_keyword: resolveImageSearchKeyword(detail.word, {
+              pos: detail.word_type,
+              meaning: detail.vietnamese_meaning,
+              englishDefinition: detail.english_definition,
+            }),
+            family_head: getFamilyHeadword(detail.word),
+          });
+        });
+
+      if (sort === "recent") {
+        words.sort((a, b) => {
+          const aTime = a.last_reviewed_at ?? "";
+          const bTime = b.last_reviewed_at ?? "";
+          return bTime.localeCompare(aTime);
+        });
+      } else {
+        words.sort(
+          (a, b) => a.rank - b.rank || a.word.localeCompare(b.word),
+        );
+      }
+
+      return NextResponse.json({ words });
+    }
+
     // Corrupt-word cleanup belongs in scripts/admin — not on every list read.
     if (searchParams.get("repair") === "true") {
       await cleanupCorruptWords(supabase);
