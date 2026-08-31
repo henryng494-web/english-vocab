@@ -541,7 +541,7 @@ export function ReviewScreen() {
 
     sessionStartedRef.current = true;
     void beginSession(queue, allWords.length > 0 ? allWords : queue);
-  }, [loading, dueReady, queue.length, beginSession, allWords, queue]);
+  }, [loading, dueReady, queue.length, beginSession, allWords.length]);
 
   useEffect(() => {
     if (!sessionReady || enriching || locked || phase !== "question" || !currentWord) {
