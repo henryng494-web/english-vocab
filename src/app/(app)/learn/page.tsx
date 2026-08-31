@@ -29,8 +29,10 @@ import {
 } from "@/lib/review-image-preload";
 import { useAppBootstrap } from "@/context/AppBootstrapContext";
 import {
-  fetchExpectedDueReviewCount,
+  countLocalDueReviewWords,
+  fetchReviewSessionBundle,
   loadActionableReviewSession,
+  loadLocalReviewSessionSync,
 } from "@/lib/review-fetch";
 import { hasQualityExamples } from "@/lib/example-quality";
 import { parseExamples } from "@/lib/parse-examples";
@@ -102,7 +104,7 @@ export default function LearnPage() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const isDailySession = searchParams.get("daily") === "1";
-  const { updateReviewCache } = useAppBootstrap();
+  const { review: bootstrapReview, updateReviewCache } = useAppBootstrap();
   const [allWords, setAllWords] = useState<VocabWord[]>([]);
   const [queue, setQueue] = useState<VocabWord[]>([]);
   const [index, setIndex] = useState(0);
@@ -123,6 +125,7 @@ export default function LearnPage() {
   const [error, setError] = useState<string | null>(null);
   const [sessionDone, setSessionDone] = useState(false);
   const [expectedDueCount, setExpectedDueCount] = useState(0);
+  const localBootstrappedRef = useRef(false);
   const [dailySession, setDailySession] = useState(readDailySession());
   const reviewInitialCountRef = useRef(0);
   const dailyRedirectRef = useRef(false);
@@ -390,7 +393,11 @@ export default function LearnPage() {
 
   const applyReviewSessionReady = useCallback(
     (fetched: VocabWord[], sessionDue: VocabWord[], startFirst = true) => {
-      setAllWords(fetched);
+      if (sessionDue.length === 0 && queueRef.current.length > 0) {
+        return;
+      }
+
+      setAllWords(fetched.length > 0 ? fetched : sessionDue);
       setQueue(sessionDue);
       setSessionDone(sessionDue.length === 0);
       warmReviewImages(sessionDue, fetched);
@@ -471,15 +478,17 @@ export default function LearnPage() {
 
   const fetchWords = useCallback(
     async (options?: { silent?: boolean }) => {
+      const localDueCount = countLocalDueReviewWords();
       if (!options?.silent) {
-        setLoading(true);
+        setLoading(localDueCount === 0 && queueRef.current.length === 0);
       }
       setError(null);
       try {
-        const expectedDue = await fetchExpectedDueReviewCount();
+        setExpectedDueCount(localDueCount);
+        const { expectedDue, session, summary } = await fetchReviewSessionBundle();
         setExpectedDueCount(expectedDue);
 
-        const { allWords, dueQueue } = await loadActionableReviewSession();
+        const { allWords, dueQueue } = session;
 
         if (
           options?.silent &&
@@ -490,10 +499,34 @@ export default function LearnPage() {
           return;
         }
 
+        if (dueQueue.length === 0 && queueRef.current.length > 0) {
+          return;
+        }
+
+        if (dueQueue.length === 0 && expectedDue > 0) {
+          const fallback = loadLocalReviewSessionSync();
+          if (fallback.dueQueue.length > 0) {
+            updateReviewCache(fallback);
+            applyReviewSessionReady(fallback.allWords, fallback.dueQueue, true);
+            return;
+          }
+          const retried = await loadActionableReviewSession(summary);
+          if (retried.dueQueue.length > 0) {
+            updateReviewCache(retried);
+            applyReviewSessionReady(retried.allWords, retried.dueQueue, true);
+            return;
+          }
+        }
+
         updateReviewCache({ allWords, dueQueue });
         applyReviewSessionReady(allWords, dueQueue, true);
       } catch (err) {
-        if (!options?.silent) {
+        const fallback = loadLocalReviewSessionSync();
+        if (fallback.dueQueue.length > 0) {
+          setExpectedDueCount(countLocalDueReviewWords());
+          updateReviewCache(fallback);
+          applyReviewSessionReady(fallback.allWords, fallback.dueQueue, true);
+        } else if (!options?.silent) {
           setError(err instanceof Error ? err.message : "Failed to load vocabulary");
         }
       } finally {
@@ -506,11 +539,41 @@ export default function LearnPage() {
   );
 
   useEffect(() => {
-    if (hydratedRef.current) return;
-    hydratedRef.current = true;
+    if (localBootstrappedRef.current) return;
+    localBootstrappedRef.current = true;
 
+    const bootstrap = bootstrapReview;
+    if (bootstrap?.dueQueue.length) {
+      setLoading(false);
+      setExpectedDueCount(bootstrap.dueQueue.length);
+      updateReviewCache(bootstrap);
+      applyReviewSessionReady(bootstrap.allWords, bootstrap.dueQueue, true);
+      hydratedRef.current = true;
+      void fetchWords({ silent: true });
+      return;
+    }
+
+    const localDueCount = countLocalDueReviewWords();
+    setExpectedDueCount(localDueCount);
+
+    const local = loadLocalReviewSessionSync();
+    if (local.dueQueue.length > 0) {
+      setLoading(false);
+      updateReviewCache(local);
+      applyReviewSessionReady(local.allWords, local.dueQueue, true);
+      hydratedRef.current = true;
+      void fetchWords({ silent: true });
+      return;
+    }
+
+    hydratedRef.current = true;
     void fetchWords();
-  }, [fetchWords]);
+  }, [
+    applyReviewSessionReady,
+    bootstrapReview,
+    fetchWords,
+    updateReviewCache,
+  ]);
 
   useEffect(() => {
     const refresh = () => {
@@ -794,9 +857,11 @@ export default function LearnPage() {
     }
   }
 
+  const localDueCount = countLocalDueReviewWords();
+  const displayDueCount = Math.max(localDueCount, expectedDueCount);
   const inSession = Boolean(currentWord) && queue.length > 0;
-  const syncMismatch = !loading && queue.length === 0 && expectedDueCount > 0;
-  const allCaughtUp = !loading && queue.length === 0 && expectedDueCount === 0;
+  const syncMismatch = !loading && queue.length === 0 && displayDueCount > 0;
+  const allCaughtUp = !loading && queue.length === 0 && displayDueCount === 0;
 
   return (
     <div className={`app-screen${inSession ? " app-screen--journey" : " app-screen--home"}`}>
@@ -907,7 +972,7 @@ export default function LearnPage() {
             </h2>
             <p className="mt-1 text-sm text-foreground/60">
               {syncMismatch
-                ? t("review.syncMismatchHint", { count: expectedDueCount })
+                ? t("review.syncMismatchHint", { count: displayDueCount })
                 : allCaughtUp
                   ? t("review.comeBackLater")
                   : t("review.learnOnHome")}

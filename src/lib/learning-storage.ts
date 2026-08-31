@@ -41,6 +41,36 @@ export function readLocalLearning(): LocalLearningMap {
   }
 }
 
+/** Pull DB-only learning rows into localStorage so Review counts match Home/badge. */
+export function hydrateLocalLearningFromApi(
+  rows: Array<{
+    word: string;
+    status?: LearningStatus | string;
+    last_reviewed_at?: string | null;
+  }>,
+): void {
+  if (typeof window === "undefined" || rows.length === 0) return;
+  const map = readLocalLearning();
+  let changed = false;
+  const now = new Date().toISOString();
+
+  for (const row of rows) {
+    const key = row.word.trim().toLowerCase();
+    if (!key || !isCountableWord(key) || map[key]) continue;
+    if (row.status === "mastered") continue;
+    map[key] = {
+      status: (row.status as LearningStatus) ?? "new",
+      last_reviewed_at: row.last_reviewed_at ?? now,
+      added_at: row.last_reviewed_at ?? now,
+    };
+    changed = true;
+  }
+
+  if (!changed) return;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(map));
+  window.dispatchEvent(new Event("vocab-learning-changed"));
+}
+
 export function writeLocalLearning(word: string, status: LearningStatus) {
   if (typeof window === "undefined") return;
   const key = word.trim().toLowerCase();

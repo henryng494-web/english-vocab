@@ -1,5 +1,9 @@
 import { getPresetRank } from "@/data/preset-word-details";
-import { mergeLocalLearning, readLocalLearning } from "@/lib/learning-storage";
+import {
+  hydrateLocalLearningFromApi,
+  mergeLocalLearning,
+  readLocalLearning,
+} from "@/lib/learning-storage";
 import { prefetchReviewQuestionRange } from "@/lib/review-image-preload";
 import { isExcludedVocabWord } from "@/lib/proper-noun";
 import {
@@ -208,10 +212,29 @@ function applySessionSnapshotWithHeal(due: VocabWord[]): VocabWord[] {
 }
 
 /**
- * Single source of truth for Review tab — same due keys as badge/Home counts.
+ * Instant Review bootstrap from device storage — no network (safe for client mount).
  */
-export async function loadActionableReviewSession(): Promise<ReviewSessionData> {
-  const extraWords = await fetchLearningSummary();
+export function loadLocalReviewSessionSync(): ReviewSessionData {
+  if (typeof window === "undefined") {
+    return { allWords: [], dueQueue: [] };
+  }
+
+  const dueKeys = getActionableDueReviewKeys([]);
+  const due = buildDueQueueFromKeys(dueKeys, [], []);
+  const dueQueue = applySessionSnapshotWithHeal(due);
+  return { allWords: dueQueue, dueQueue };
+}
+
+/** Synchronous due count for UI — matches Home badge local path. */
+export function countLocalDueReviewWords(): number {
+  if (typeof window === "undefined") return 0;
+  return countDueReviewWords();
+}
+
+
+async function buildActionableReviewSession(
+  extraWords: LearningSummaryRow[],
+): Promise<ReviewSessionData> {
   const dueKeys = getActionableDueReviewKeys(extraWords);
 
   let allWords = await fetchReviewWords(extraWords);
@@ -228,18 +251,52 @@ export async function loadActionableReviewSession(): Promise<ReviewSessionData> 
     }
   }
 
-  const due = buildDueQueueFromKeys(dueKeys, allWords, extraWords);
-  const dueQueue = applySessionSnapshotWithHeal(due);
+  let due = buildDueQueueFromKeys(dueKeys, allWords, extraWords);
+  let dueQueue = applySessionSnapshotWithHeal(due);
+
+  if (dueQueue.length === 0 && dueKeys.length > 0) {
+    clearReviewSessionSnapshot();
+    dueQueue = buildDueQueueFromKeys(dueKeys, allWords, extraWords);
+  }
 
   void prefetchReviewQuestionRange(dueQueue, allWords, 0, 20);
 
   return { allWords, dueQueue };
 }
 
+export type ReviewSessionBundle = {
+  summary: LearningSummaryRow[];
+  expectedDue: number;
+  session: ReviewSessionData;
+};
+
+/** One API read — hydrate local, count due, build queue (matches Home/badge). */
+export async function fetchReviewSessionBundle(): Promise<ReviewSessionBundle> {
+  const summary = await fetchLearningSummary();
+  hydrateLocalLearningFromApi(summary);
+  const expectedDue = countDueReviewWords(summary);
+  const session = await buildActionableReviewSession(summary);
+  return { summary, expectedDue, session };
+}
+
+/**
+ * Single source of truth for Review tab — same due keys as badge/Home counts.
+ * Pass prefetched summary to avoid duplicate /api/words?summary=learning calls.
+ */
+export async function loadActionableReviewSession(
+  prefetchedSummary?: LearningSummaryRow[],
+): Promise<ReviewSessionData> {
+  if (prefetchedSummary) {
+    return buildActionableReviewSession(prefetchedSummary);
+  }
+  const { session } = await fetchReviewSessionBundle();
+  return session;
+}
+
 /** Expected due count — matches Home/badge (includes DB + local learning rows). */
 export async function fetchExpectedDueReviewCount(): Promise<number> {
-  const extraWords = await fetchLearningSummary();
-  return countDueReviewWords(extraWords);
+  const { expectedDue } = await fetchReviewSessionBundle();
+  return expectedDue;
 }
 
 export function buildDueReviewQueue(allWords: VocabWord[]): VocabWord[] {
