@@ -463,6 +463,24 @@ const CURATED: Record<string, RawEntry> = {
     ],
     keyword: "color",
   },
+  detention: {
+    pos: "noun",
+    ipa: "/dɪˈtenʃən/",
+    meaning: "Tạm giữ",
+    definition:
+      "Việc giữ ai đó một cách chính thức, không cho rời đi tạm thời (cảnh sát, nhập cư, v.v.).",
+    examples: [
+      {
+        en: "He was held in detention for questioning.",
+        vi: "Anh ấy bị tạm giữ để thẩm vấn.",
+      },
+      {
+        en: "She spent two days in detention.",
+        vi: "Cô ấy bị tạm giữ hai ngày.",
+      },
+    ],
+    keyword: "police custody detention",
+  },
   scheme: {
     pos: "noun",
     ipa: "/skiːm/",
