@@ -2,6 +2,7 @@
 
 import {
   DAILY_GOAL_OPTIONS,
+  PRONOUNCE_SPEED_OPTIONS,
   type DailyGoalMinutes,
 } from "@/lib/app-settings";
 import { APP_LOCALES } from "@/lib/i18n/messages";
@@ -52,6 +53,8 @@ export function AppMenuDrawer({ open, onClose }: AppMenuDrawerProps) {
   const {
     autoSpeakEnabled,
     setAutoSpeakEnabled,
+    pronounceSpeed,
+    setPronounceSpeed,
     dailyGoalMinutes,
     setDailyGoalMinutes,
     reminderEnabled,
@@ -61,7 +64,7 @@ export function AppMenuDrawer({ open, onClose }: AppMenuDrawerProps) {
     appLanguage,
     setAppLanguage,
   } = useAppSettings();
-  const { t, dailyGoalLabel } = useI18n();
+  const { t, dailyGoalLabel, pronounceSpeedLabel } = useI18n();
 
   useEffect(() => {
     if (!open) return;
@@ -123,6 +126,24 @@ export function AppMenuDrawer({ open, onClose }: AppMenuDrawerProps) {
               checked={autoSpeakEnabled}
               onChange={setAutoSpeakEnabled}
             />
+            <div className="app-menu__subblock">
+              <p className="app-menu__subblock-title">{t("menu.pronounceSpeed")}</p>
+              <p className="app-menu__hint">{t("menu.pronounceSpeedHint")}</p>
+              <div className="app-menu__chips">
+                {PRONOUNCE_SPEED_OPTIONS.map((speed) => (
+                  <button
+                    key={speed}
+                    type="button"
+                    className={`app-menu__chip${
+                      pronounceSpeed === speed ? " is-active" : ""
+                    }`}
+                    onClick={() => setPronounceSpeed(speed)}
+                  >
+                    {pronounceSpeedLabel(speed)}
+                  </button>
+                ))}
+              </div>
+            </div>
           </section>
 
           <section className="app-menu__section">

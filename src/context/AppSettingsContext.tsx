@@ -7,6 +7,7 @@ import {
   readAppSettings,
   type AppSettings,
   type DailyGoalMinutes,
+  type PronounceSpeed,
 } from "@/lib/app-settings";
 import {
   createContext,
@@ -23,6 +24,7 @@ type AppSettingsContextValue = AppSettings & {
   setReminderEnabled: (enabled: boolean) => void;
   setReminderTime: (time: string) => void;
   setAppLanguage: (language: AppLocale) => void;
+  setPronounceSpeed: (speed: PronounceSpeed) => void;
   refresh: () => void;
 };
 
@@ -59,6 +61,8 @@ export function AppSettingsProvider({ children }: { children: React.ReactNode })
         setSettings(patchAppSettings({ reminderTime: time })),
       setAppLanguage: (language) =>
         setSettings(patchAppSettings({ appLanguage: language })),
+      setPronounceSpeed: (speed) =>
+        setSettings(patchAppSettings({ pronounceSpeed: speed })),
       refresh,
     }),
     [settings, refresh],

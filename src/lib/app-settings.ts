@@ -1,5 +1,14 @@
 import type { AppLocale } from "@/lib/i18n/messages";
 import { DEFAULT_APP_LOCALE, isAppLocale } from "@/lib/i18n/messages";
+import {
+  DEFAULT_PRONOUNCE_SPEED,
+  isPronounceSpeed,
+  playbackRateForPronounceSpeed,
+  type PronounceSpeed,
+} from "@/lib/pronounce-speed";
+
+export type { PronounceSpeed };
+export { PRONOUNCE_SPEED_OPTIONS } from "@/lib/pronounce-speed";
 
 export type DailyGoalMinutes = 10 | 20 | 30 | 60 | 90 | 120;
 
@@ -11,6 +20,8 @@ export type AppSettings = {
   reminderTime: string;
   /** Interface language — word content stays bilingual. */
   appLanguage: AppLocale;
+  /** MP3 playback speed — learner preference from menu. */
+  pronounceSpeed: PronounceSpeed;
 };
 
 export const DAILY_GOAL_OPTIONS: readonly DailyGoalMinutes[] = [
@@ -34,6 +45,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   reminderEnabled: false,
   reminderTime: "19:00",
   appLanguage: DEFAULT_APP_LOCALE,
+  pronounceSpeed: DEFAULT_PRONOUNCE_SPEED,
 };
 
 function isDailyGoalMinutes(value: number): value is DailyGoalMinutes {
@@ -68,6 +80,9 @@ export function readAppSettings(): AppSettings {
       appLanguage: isAppLocale(parsed.appLanguage)
         ? parsed.appLanguage
         : DEFAULT_SETTINGS.appLanguage,
+      pronounceSpeed: isPronounceSpeed(parsed.pronounceSpeed)
+        ? parsed.pronounceSpeed
+        : DEFAULT_SETTINGS.pronounceSpeed,
     };
   } catch {
     return DEFAULT_SETTINGS;
@@ -88,4 +103,9 @@ export function patchAppSettings(patch: Partial<AppSettings>): AppSettings {
 
 export function getDefaultAppSettings(): AppSettings {
   return { ...DEFAULT_SETTINGS };
+}
+
+/** Current learner playback rate for pronunciation MP3s. */
+export function getPronouncePlaybackRate(): number {
+  return playbackRateForPronounceSpeed(readAppSettings().pronounceSpeed);
 }

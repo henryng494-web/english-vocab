@@ -25,6 +25,11 @@ export const messages: Record<AppLocale, MessageTree> = {
     "menu.learning": "Học tập",
     "menu.autoSpeak": "Tự động phát âm",
     "menu.autoSpeakDesc": "Đọc mỗi từ mới khi xuất hiện",
+    "menu.pronounceSpeed": "Tốc độ phát âm",
+    "menu.pronounceSpeedHint": "Áp dụng khi bấm loa hoặc tự động phát âm",
+    "menu.pronounceSlow": "Chậm",
+    "menu.pronounceMedium": "Vừa",
+    "menu.pronounceFast": "Nhanh",
     "menu.dailyGoal": "Mục tiêu học mỗi ngày",
     "menu.dailyGoalHint": "Bạn muốn học bao lâu mỗi ngày?",
     "menu.goal10": "10 phút",
@@ -201,6 +206,11 @@ export const messages: Record<AppLocale, MessageTree> = {
     "menu.learning": "Learning",
     "menu.autoSpeak": "Auto-pronounce",
     "menu.autoSpeakDesc": "Speak each new word automatically",
+    "menu.pronounceSpeed": "Pronunciation speed",
+    "menu.pronounceSpeedHint": "Applies to the speaker button and auto-pronounce",
+    "menu.pronounceSlow": "Slow",
+    "menu.pronounceMedium": "Medium",
+    "menu.pronounceFast": "Fast",
     "menu.dailyGoal": "Daily study goal",
     "menu.dailyGoalHint": "How long do you want to study each day?",
     "menu.goal10": "10 min",
@@ -390,4 +400,15 @@ export function dailyGoalMessageKey(minutes: number): MessageKey | null {
     120: "menu.goal120",
   };
   return map[minutes] ?? null;
+}
+
+export function pronounceSpeedMessageKey(
+  speed: string,
+): MessageKey | null {
+  const map: Record<string, MessageKey> = {
+    slow: "menu.pronounceSlow",
+    medium: "menu.pronounceMedium",
+    fast: "menu.pronounceFast",
+  };
+  return map[speed] ?? null;
 }

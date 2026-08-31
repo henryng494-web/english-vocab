@@ -9,8 +9,6 @@ export const PRONOUNCE_NEURAL_VOICE = "en-US-AvaMultilingualNeural";
 export const PRONOUNCE_NEURAL_RATE = "-22%";
 /** Light lift — keeps Ava natural without sounding cartoonish. */
 export const PRONOUNCE_NEURAL_PITCH = "+4Hz";
-/** Client playback multiplier (applied on top of MP3; keep in sync with rate). */
-export const PRONOUNCE_PLAYBACK_RATE = 0.9;
 
 const neuralAudioCache = new Map<string, ArrayBuffer>();
 const NEURAL_CACHE_MAX = 4000;

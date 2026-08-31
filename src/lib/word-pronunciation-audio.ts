@@ -1,8 +1,6 @@
 import { proxyPronounceAudioPath } from "@/lib/dictionary-pronunciation";
-import {
-  PRONOUNCE_PLAYBACK_RATE,
-  PRONOUNCE_VOICE_VERSION,
-} from "@/lib/neural-pronunciation";
+import { getPronouncePlaybackRate } from "@/lib/app-settings";
+import { PRONOUNCE_VOICE_VERSION } from "@/lib/neural-pronunciation";
 
 const audioUrlCache = new Map<string, string | null>();
 const pendingLookups = new Map<string, Promise<string | null>>();
@@ -31,17 +29,29 @@ function configureAudioElement(audio: HTMLAudioElement): void {
   audio.preload = "auto";
   audio.setAttribute("playsinline", "");
   audio.setAttribute("webkit-playsinline", "true");
-  audio.playbackRate = PRONOUNCE_PLAYBACK_RATE;
+  applyPlaybackRate(audio);
 }
 
 function applyPlaybackRate(audio: HTMLAudioElement): void {
-  audio.playbackRate = PRONOUNCE_PLAYBACK_RATE;
+  audio.playbackRate = getPronouncePlaybackRate();
 }
+
+function bindPlaybackRateListener(): void {
+  if (typeof window === "undefined" || playbackRateListenerBound) return;
+  playbackRateListenerBound = true;
+  window.addEventListener("app-settings-changed", () => {
+    const audio = getAudioElement();
+    if (audio) applyPlaybackRate(audio);
+  });
+}
+
+let playbackRateListenerBound = false;
 
 /** Register the layout `<audio>` element (required for iOS Safari + PWA). */
 export function registerPronounceAudioElement(element: HTMLAudioElement): void {
   pronounceAudioElement = element;
   configureAudioElement(element);
+  bindPlaybackRateListener();
 }
 
 function getAudioElement(): HTMLAudioElement | null {
