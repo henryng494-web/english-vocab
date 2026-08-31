@@ -110,6 +110,15 @@ export function hydrateReviewWordLocal(word: VocabWord): VocabWord {
   return word;
 }
 
+/** Local hydrate, then one fast DB lookup — for the active review card. */
+export async function ensureReviewWordClue(word: VocabWord): Promise<VocabWord> {
+  const local = hydrateReviewWordLocal(word);
+  if (hasReviewClueFields(local)) return local;
+  const details = await fetchReviewWordDetails(word.word);
+  if (!details) return local;
+  return mergeHydratedFields(local, details);
+}
+
 export async function fetchReviewWordDetails(
   word: string,
 ): Promise<Partial<VocabWord> | null> {

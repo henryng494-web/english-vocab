@@ -43,6 +43,7 @@ import {
 import { shouldRefreshImageUrl } from "@/lib/unsplash";
 import { refreshAllStaleWordImages } from "@/lib/refresh-stale-word-images";
 import {
+  ensureReviewWordClue,
   fetchReviewWordDetails,
   hasReviewClueFields,
   hydrateReviewWordLocal,
@@ -410,7 +411,7 @@ export function ReviewScreen() {
   );
 
   const beginSession = useCallback(
-    (sessionQueue: VocabWord[], sessionPool: VocabWord[]) => {
+    async (sessionQueue: VocabWord[], sessionPool: VocabWord[]) => {
       if (sessionQueue.length === 0) {
         sessionStartedRef.current = false;
         setSessionDone(true);
@@ -437,7 +438,7 @@ export function ReviewScreen() {
         );
       });
 
-      void prefetchReviewClues(sessionQueue, 0, 16).then((clueUpdates) => {
+      void prefetchReviewClues(sessionQueue, 1, 16).then((clueUpdates) => {
         if (Object.keys(clueUpdates).length === 0) return;
         const patchWord = (item: VocabWord) => {
           const key = item.word.trim().toLowerCase();
@@ -467,14 +468,19 @@ export function ReviewScreen() {
             inProgress.word.trim().toLowerCase(),
         );
         if (resumeIndex >= 0) {
+          const resumeWord = await ensureReviewWordClue(
+            sessionQueue[resumeIndex]!,
+          );
+          if (resumeWord !== sessionQueue[resumeIndex]) {
+            const patchedQueue = sessionQueue.map((item, index) =>
+              index === resumeIndex ? resumeWord : item,
+            );
+            patchBoth(patchedQueue, pool);
+          }
           setIndex(resumeIndex);
           setPhase("reveal");
           setQuizKind(
-            buildReviewQuestionPlan(
-              sessionQueue[resumeIndex]!,
-              pool,
-              resumeIndex,
-            ).kind,
+            buildReviewQuestionPlan(resumeWord, pool, resumeIndex).kind,
           );
           setLocked(true);
           setCorrect(inProgress.correct);
@@ -486,8 +492,16 @@ export function ReviewScreen() {
         }
       }
 
+      const firstReady = await ensureReviewWordClue(first);
+      if (firstReady !== first) {
+        patchBoth(
+          sessionQueue.map((item, index) => (index === 0 ? firstReady : item)),
+          pool,
+        );
+      }
+
       setIndex(0);
-      startQuestion(hydrateReviewWordLocal(sessionQueue[0]!), pool, 0);
+      startQuestion(firstReady, pool, 0);
 
       void refreshAllStaleWordImages(
         pool.map((word) => ({
@@ -522,7 +536,7 @@ export function ReviewScreen() {
     if (sessionStartedRef.current && activeQuestionRef.current) return;
 
     sessionStartedRef.current = true;
-    beginSession(queue, allWords.length > 0 ? allWords : queue);
+    void beginSession(queue, allWords.length > 0 ? allWords : queue);
   }, [loading, queue, allWords, beginSession]);
 
   useEffect(() => {
