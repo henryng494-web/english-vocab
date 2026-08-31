@@ -155,7 +155,7 @@ export async function GET(request: Request) {
         (bankRows ?? []).map((row) => [row.word, row.rank]),
       );
 
-      let words = mapDetailsToVocabWords(
+      const words = mapDetailsToVocabWords(
         details ?? [],
         rankByWord,
         learningByWord,
