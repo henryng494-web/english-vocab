@@ -1,16 +1,9 @@
 import {
   preloadWordAudioElement,
-  resolveWordAudioUrl,
   warmWordAudioBytes,
 } from "@/lib/word-pronunciation-audio";
 
 const PRONUNCIATION_WARM_CONCURRENCY = 4;
-
-function preloadWordPronunciation(word: string): void {
-  preloadWordAudioElement(word);
-  warmWordAudioBytes(word);
-  void resolveWordAudioUrl(word);
-}
 
 /** Browser-fetch MP3 bytes so the next card play hits cache. */
 export function warmWordPronunciation(word: string): void {
@@ -21,10 +14,13 @@ export function warmWordPronunciation(word: string): void {
 
 /** Preload pronunciation for one or more words (current card + ahead). */
 export function preloadWordPronunciations(words: string[]): void {
-  for (const word of words) {
-    const trimmed = word?.trim();
+  for (let index = 0; index < words.length; index++) {
+    const trimmed = words[index]?.trim();
     if (!trimmed) continue;
-    preloadWordPronunciation(trimmed);
+    // Only bind the shared <audio> element to the visible word — ahead words fetch only.
+    if (index === 0) {
+      preloadWordAudioElement(trimmed);
+    }
     warmWordAudioBytes(trimmed);
   }
 }

@@ -1,5 +1,6 @@
 import { isAppleWebKit } from "@/lib/speech-voice";
 import {
+  isWordAudioPlaying,
   playWordAudioInUserGesture,
   playWordAudioWhenReady,
   preloadWordAudioElement,
@@ -67,11 +68,13 @@ async function speakMp3Auto(
 ): Promise<void> {
   const key = text.toLowerCase();
   preloadWordAudioElement(text);
-  await warmWordAudioBytes(text);
+  void warmWordAudioBytes(text);
   if (!stillCurrentRequest(requestId, key)) return;
+  if (isWordAudioPlaying(text)) return;
 
   if (await playWordAudioWhenReady(text, AUTO_MP3_WAIT_MS)) return;
   if (!stillCurrentRequest(requestId, key)) return;
+  if (isWordAudioPlaying(text)) return;
 
   await warmWordAudioBytes(text, { bustCache: true });
   preloadWordAudioElement(text);
@@ -107,7 +110,6 @@ export function cancelSpeech(): void {
 }
 
 export function preloadWordPronunciation(word: string): void {
-  preloadWordAudioElement(word);
   void warmWordAudioBytes(word);
 }
 

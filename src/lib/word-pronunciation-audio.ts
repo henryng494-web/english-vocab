@@ -42,6 +42,20 @@ function getAudioElement(): HTMLAudioElement | null {
   return pronounceAudioElement;
 }
 
+function isSharedAudioPlaying(): boolean {
+  const audio = getAudioElement();
+  if (!audio) return false;
+  return !audio.paused && !audio.ended && audio.currentTime > 0;
+}
+
+/** True when the shared element is actively playing this word. */
+export function isWordAudioPlaying(word: string): boolean {
+  const key = cacheKey(word);
+  const audio = getAudioElement();
+  if (!key || !audio) return false;
+  return audio.dataset.wordKey === key && isSharedAudioPlaying();
+}
+
 /** Same-origin neural MP3 path for the current voice version. */
 function resolvePlayableUrl(word: string): string {
   const normalized = normalizeWord(word);
@@ -99,6 +113,11 @@ export function preloadWordAudioElement(word: string, _url?: string | null): voi
   const audio = getAudioElement();
   if (!audio) return;
 
+  // Never hijack the shared element while another word is playing.
+  if (isSharedAudioPlaying() && audio.dataset.wordKey !== key) {
+    return;
+  }
+
   const src = absoluteAudioUrl(resolvePlayableUrl(word));
   if (!src) return;
 
@@ -138,9 +157,7 @@ export function warmWordAudioBytes(
     .then((response) => {
       if (!response.ok) {
         warmedAudioBytes.delete(key);
-        return;
       }
-      preloadWordAudioElement(word);
     })
     .catch(() => {
       warmedAudioBytes.delete(key);
@@ -288,6 +305,8 @@ export async function playWordAudioWhenReady(
   const audio = getAudioElement();
   if (!key || !audio) return false;
 
+  if (isWordAudioPlaying(word)) return true;
+
   preloadWordAudioElement(word);
 
   if (!isWordAudioElementReady(word)) {
@@ -296,6 +315,8 @@ export async function playWordAudioWhenReady(
   }
 
   if (audio.dataset.wordKey !== key) return false;
+
+  if (isWordAudioPlaying(word)) return true;
 
   try {
     audio.currentTime = 0;
