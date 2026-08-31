@@ -109,14 +109,14 @@ export function WordLearningChunks({
       }
     >
       {collocationItems.length > 0 ? (
-        <section className="word-learning-chunks__section">
+        <section className="word-learning-chunks__section word-learning-chunks__section--collocations">
           <h3 className="word-learning-chunks__label">{t("chunks.collocations")}</h3>
           <PhraseList items={collocationItems} inline />
         </section>
       ) : null}
 
       {chunkItems.length > 0 ? (
-        <section className="word-learning-chunks__section">
+        <section className="word-learning-chunks__section word-learning-chunks__section--phrases">
           <h3 className="word-learning-chunks__label">{t("chunks.phrases")}</h3>
           <PhraseList items={chunkItems} />
         </section>
