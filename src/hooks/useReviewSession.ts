@@ -151,6 +151,14 @@ export function useReviewSession() {
       const sync = resolveReviewSession(summary);
       const syncQueue = sync.queue.map(hydrateReviewWordLocal);
 
+      if (instantQueue.length === 0 && syncQueue.length > 0) {
+        apply(sync.dueCount, syncQueue, syncQueue, null, {
+          loading: false,
+          enriching: true,
+          dueReady: firstCardDueReady(syncQueue),
+        });
+      }
+
       const dueEnriched = await dueEnrichedPromise;
       if (enrichGenRef.current !== enrichGen) return;
 
@@ -163,7 +171,7 @@ export function useReviewSession() {
 
       if (baseQueue.length > 0) {
         apply(
-          dueEnriched?.dueCount ?? sync.dueCount ?? instant.dueCount,
+          sync.dueCount || dueEnriched?.dueCount || instant.dueCount,
           baseQueue,
           dueEnriched?.pool ?? baseQueue,
           null,
@@ -182,7 +190,7 @@ export function useReviewSession() {
       const enriched = await enrichReviewSession(summary, baseQueue);
       if (enrichGenRef.current !== enrichGen) return;
 
-      apply(enriched.dueCount, enriched.queue, enriched.pool, null, {
+      apply(enriched.dueCount || sync.dueCount, enriched.queue, enriched.pool, null, {
         loading: false,
         enriching: false,
         dueReady: true,

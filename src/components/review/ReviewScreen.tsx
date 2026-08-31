@@ -36,6 +36,7 @@ import {
 } from "@/lib/review-schedule";
 import {
   clearReviewSessionSnapshot,
+  clearReviewSessionInProgress,
   markReviewSessionCompleted,
   readReviewSessionSnapshot,
   saveReviewSessionInProgress,
@@ -105,7 +106,6 @@ export function ReviewScreen() {
   const {
     loading,
     enriching,
-    dueReady,
     dueCount,
     queue,
     pool: allWords,
@@ -461,6 +461,7 @@ export function ReviewScreen() {
             inProgress.word.trim().toLowerCase(),
         );
         if (resumeIndex >= 0) {
+          clearReviewSessionInProgress();
           const resumeWord = await ensureReviewWordClue(
             sessionQueue[resumeIndex]!,
           );
@@ -470,15 +471,7 @@ export function ReviewScreen() {
             );
           }
           setIndex(resumeIndex);
-          setPhase("reveal");
-          setQuizKind(
-            buildReviewQuestionPlan(resumeWord, pool, resumeIndex).kind,
-          );
-          setLocked(true);
-          setCorrect(inProgress.correct);
-          setIntervalDays(inProgress.intervalDays);
-          setTimesReviewed(inProgress.timesReviewed);
-          setMarkMastered(inProgress.markMastered);
+          startQuestion(resumeWord, pool, resumeIndex);
           prefetchQuestionsAhead(resumeIndex);
           setSessionReady(true);
           return;
@@ -536,12 +529,11 @@ export function ReviewScreen() {
       }
       return;
     }
-    if (!dueReady) return;
     if (sessionStartedRef.current) return;
 
     sessionStartedRef.current = true;
     void beginSession(queue, allWords.length > 0 ? allWords : queue);
-  }, [loading, dueReady, queue.length, beginSession, allWords.length]);
+  }, [loading, queue.length, beginSession, allWords.length]);
 
   useEffect(() => {
     if (!sessionReady || enriching || locked || phase !== "question" || !currentWord) {
@@ -887,9 +879,9 @@ export function ReviewScreen() {
     }
   }
 
-  const showSpinner = loading && queue.length === 0;
-  const showPreparing = !showSpinner && queue.length > 0 && (!dueReady || !sessionReady);
-  const syncMismatch = !showSpinner && queue.length === 0 && dueCount > 0;
+  const showSpinner = (loading && queue.length === 0) || (queue.length > 0 && !sessionReady);
+  const syncMismatch =
+    !showSpinner && queue.length === 0 && dueCount > 0;
   const allCaughtUp = !showSpinner && queue.length === 0 && dueCount === 0;
   const displayError = error ?? loadError;
   const inSession = Boolean(currentWord) && queue.length > 0 && sessionReady;
@@ -905,7 +897,7 @@ export function ReviewScreen() {
         leading={<AppMenuButton />}
       />
 
-      {showSpinner || showPreparing ? (
+      {showSpinner ? (
         <div className="flex flex-1 items-center justify-center">
           <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary-100 border-t-primary" />
         </div>
@@ -990,7 +982,7 @@ export function ReviewScreen() {
           }}
           confirming={confirming}
         />
-      ) : (
+      ) : !showSpinner ? (
         <div className="page-scroll px-4">
           <div className="mx-auto flex max-w-sm flex-col items-center pt-6 text-center">
             <JungleMascot character={allCaughtUp ? "monkey" : "crocodile"} size={88} />
@@ -1045,7 +1037,7 @@ export function ReviewScreen() {
             </p>
           ) : null}
         </div>
-      )}
+      ) : null}
     </div>
   );
 }
