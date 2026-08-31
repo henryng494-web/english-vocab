@@ -13,7 +13,6 @@ import {
   readReviewSessionSnapshot,
 } from "@/lib/review-session-storage";
 import { resolveImageSearchKeyword } from "@/lib/image-keyword";
-import { hydrateReviewWordLocal } from "@/lib/review-word-hydrate";
 import { getImportanceTier } from "@/lib/word-rank";
 import type { LearningStatus, VocabWord } from "@/types/database";
 
@@ -33,10 +32,10 @@ const SUMMARY_RETRY_DELAYS_MS = [0, 400, 900];
 const DETAILS_BATCH = 100;
 
 function normalizeVocabWord(word: VocabWord): VocabWord {
-  return hydrateReviewWordLocal({
+  return {
     ...word,
     importance_tier: word.importance_tier ?? getImportanceTier(word.rank),
-  });
+  };
 }
 
 function stubVocabWord(
@@ -46,7 +45,7 @@ function stubVocabWord(
 ): VocabWord {
   const key = word.trim().toLowerCase();
   const rank = getPresetRank(key) ?? 10000;
-  return hydrateReviewWordLocal({
+  return {
     id: key,
     word: key,
     phonetic: "",
@@ -61,7 +60,7 @@ function stubVocabWord(
     learning_status: status,
     last_reviewed_at: lastReviewedAt ?? new Date().toISOString(),
     search_keyword: resolveImageSearchKeyword(key, { pos: "", meaning: "" }),
-  });
+  };
 }
 
 export async function fetchLearningSummary(): Promise<LearningSummaryRow[]> {
@@ -332,8 +331,16 @@ export async function enrichReviewSession(
   };
 }
 
-/** Fast bootstrap for splash — stubs only. */
+/** Fast bootstrap for splash — sync stubs only, no network. */
+export function resolveReviewSessionFast(): ReviewSession {
+  return resolveReviewSession([]);
+}
+
 export async function loadReviewSessionFast(): Promise<ReviewSession> {
-  const summary = await fetchLearningSummary();
-  return resolveReviewSession(summary);
+  try {
+    const summary = await fetchLearningSummary();
+    return resolveReviewSession(summary);
+  } catch {
+    return resolveReviewSessionFast();
+  }
 }

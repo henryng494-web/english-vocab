@@ -10,6 +10,7 @@ import {
   enrichReviewSession,
   resolveReviewSession,
 } from "@/lib/review-session";
+import { hydrateReviewWordLocal } from "@/lib/review-word-hydrate";
 import type { VocabWord } from "@/types/database";
 
 function readInstantReviewState(): ReviewSessionState {

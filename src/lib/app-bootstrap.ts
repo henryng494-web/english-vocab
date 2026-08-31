@@ -22,6 +22,7 @@ import {
 } from "@/lib/image-preload";
 import {
   loadReviewSessionFast,
+  resolveReviewSessionFast,
   type ReviewSession,
 } from "@/lib/review-session";
 import { refreshAllStaleWordImages } from "@/lib/refresh-stale-word-images";
@@ -36,7 +37,11 @@ export const BOOTSTRAP_WORD_CONCURRENCY = 6;
 export const MIN_WELCOME_MS = 1600;
 /** Per-word detail fetch during splash — avoid blocking on Gemini repair. */
 export const BOOTSTRAP_WORD_TIMEOUT_MS = 8000;
-export const BOOTSTRAP_REVIEW_TIMEOUT_MS = 6000;
+export const BOOTSTRAP_REVIEW_TIMEOUT_MS = 4000;
+export const BOOTSTRAP_RANGE_TIMEOUT_MS = 12000;
+export const BOOTSTRAP_FAILSAFE_MS = 14000;
+/** Defer the multi-MB tail band — it can freeze mobile JSON parsing on splash. */
+const DEFERRED_BOOTSTRAP_RANGE = "5001-plus";
 
 export type BootstrapProgress = {
   progress: number;
@@ -118,6 +123,28 @@ function raceTimeout<T>(promise: Promise<T>, ms: number): Promise<T | null> {
   ]);
 }
 
+async function fetchWithTimeout<T>(
+  promise: Promise<T>,
+  ms: number,
+): Promise<T | null> {
+  return raceTimeout(promise, ms);
+}
+
+async function loadBootstrapRange(
+  rangeId: string,
+): Promise<RangeBootstrapData> {
+  try {
+    const loaded = await fetchWithTimeout(
+      fetchDiscoverRange(rangeId),
+      BOOTSTRAP_RANGE_TIMEOUT_MS,
+    );
+    if (loaded) return { queue: loaded.words, stats: loaded.stats };
+  } catch {
+    /* fall through */
+  }
+  return { queue: [], stats: { total: 0, hidden: 0 } };
+}
+
 async function loadBootstrapWordDetail(
   item: DiscoverListItem,
   wordCache: Map<string, DiscoverWordData>,
@@ -161,28 +188,33 @@ export async function runAppBootstrap(
 
   preloadAsset("/mascot/welcome/welcome-splash.png?v=jungle9");
 
-  const reviewPromise = loadReviewSessionFast().catch(() => null);
+  const reviewPromise = fetchWithTimeout(
+    loadReviewSessionFast(),
+    BOOTSTRAP_REVIEW_TIMEOUT_MS,
+  ).catch(() => null);
 
   const ranges: Record<string, RangeBootstrapData> = {};
   let rangesDone = 0;
+  const bootstrapRanges = WORD_RANGES.filter(
+    (range) => range.id !== DEFERRED_BOOTSTRAP_RANGE,
+  );
 
   await Promise.all(
-    WORD_RANGES.map(async (range) => {
-      try {
-        const { words, stats } = await fetchDiscoverRange(range.id);
-        ranges[range.id] = { queue: words, stats };
-      } catch {
-        ranges[range.id] = { queue: [], stats: { total: 0, hidden: 0 } };
-      } finally {
-        rangesDone += 1;
-        report(
-          onProgress,
-          10 + Math.round((rangesDone / WORD_RANGES.length) * 48),
-          "",
-        );
-      }
+    bootstrapRanges.map(async (range) => {
+      ranges[range.id] = await loadBootstrapRange(range.id);
+      rangesDone += 1;
+      report(
+        onProgress,
+        10 + Math.round((rangesDone / bootstrapRanges.length) * 48),
+        "",
+      );
     }),
   );
+
+  void loadBootstrapRange(DEFERRED_BOOTSTRAP_RANGE).then((deferred) => {
+    ranges[DEFERRED_BOOTSTRAP_RANGE] = deferred;
+  });
+  ranges[DEFERRED_BOOTSTRAP_RANGE] = { queue: [], stats: { total: 0, hidden: 0 } };
 
   report(onProgress, 62, "");
 
@@ -220,7 +252,8 @@ export async function runAppBootstrap(
   seedWordImageCacheFromEntries(wordCache.entries());
 
   report(onProgress, 94, "");
-  const review = await raceTimeout(reviewPromise, BOOTSTRAP_REVIEW_TIMEOUT_MS);
+  const review =
+    (await reviewPromise) ?? resolveReviewSessionFast();
   if (review?.pool?.length) {
     void refreshAllStaleWordImages(
       review.pool.map((word) => ({

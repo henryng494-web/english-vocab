@@ -14,6 +14,7 @@ import {
   waitForWelcomeMinimum,
   DEFAULT_BOOTSTRAP_RANGE,
   BOOTSTRAP_PRELOAD_DEFAULT,
+  BOOTSTRAP_FAILSAFE_MS,
   type AppBootstrapSnapshot,
   type BootstrapProgress,
   type RangeBootstrapData,
@@ -57,9 +58,21 @@ export function AppBootstrapProvider({ children }: { children: ReactNode }) {
 
     void (async () => {
       try {
-        const loaded = await runAppBootstrap((next) => {
-          if (!cancelled) setProgress(next);
-        });
+        const loaded = await Promise.race([
+          runAppBootstrap((next) => {
+            if (!cancelled) setProgress(next);
+          }),
+          new Promise<AppBootstrapSnapshot>((resolve) => {
+            setTimeout(() => {
+              resolve({
+                defaultRangeId: DEFAULT_BOOTSTRAP_RANGE,
+                ranges: {},
+                wordCache: {},
+                review: null,
+              });
+            }, BOOTSTRAP_FAILSAFE_MS);
+          }),
+        ]);
         await waitForWelcomeMinimum(startedAt);
         if (cancelled) return;
         setSnapshot(loaded);
