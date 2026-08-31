@@ -205,6 +205,15 @@ function isSentenceFragment(phrase: string, headword?: string): boolean {
   return false;
 }
 
+/** Fixed prep + headword pairs learners treat as one unit: "at least", "at most". */
+function isLeadingPrepHeadwordPair(phrase: string, headword: string): boolean {
+  const words = normalizePhrase(phrase).split(/\s+/).filter(Boolean);
+  if (words.length !== 2) return false;
+  const prep = normalizeToken(words[0] ?? "");
+  if (findHeadwordIndex(words, headword) !== 1) return false;
+  return PREP_TOKENS.has(prep) || TRAILING_PREPS.has(prep);
+}
+
 /** Classic headword + preposition pairs: "flattered by", "good at", "depend on". */
 function isHeadwordPrepCollocation(
   phrase: string,
@@ -376,6 +385,7 @@ function endsWithDanglingToken(
   headword: string,
   wordType?: string | null,
 ): boolean {
+  if (isLeadingPrepHeadwordPair(phrase, headword)) return false;
   if (isHeadwordPrepCollocation(phrase, headword, wordType)) return false;
   const words = normalizePhrase(phrase).split(/\s+/).filter(Boolean);
   if (words.length < 2) return true;
@@ -388,6 +398,7 @@ function hasStrayPreposition(
   headword: string,
   wordType?: string | null,
 ): boolean {
+  if (isLeadingPrepHeadwordPair(phrase, headword)) return false;
   if (isHeadwordPrepCollocation(phrase, headword, wordType)) return false;
   const words = normalizePhrase(phrase).split(/\s+/).filter(Boolean);
   for (let i = 0; i < words.length; i++) {

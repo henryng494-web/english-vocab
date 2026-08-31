@@ -103,6 +103,19 @@ export const LEARNING_CHUNK_OVERRIDES: Record<string, LearningChunkEntry> = {
       },
     ],
   },
+  least: {
+    collocations: [
+      { en: "at least", vi: "ít nhất", sense: 1 },
+      { en: "the least", vi: "ít nhất / nhỏ nhất", sense: 2 },
+    ],
+    chunks: [
+      {
+        en: "At least eat something before you go.",
+        vi: "Ít nhất hãy ăn gì đó trước khi đi.",
+        sense: 1,
+      },
+    ],
+  },
   spring: {
     collocations: [
       { en: "in the spring", vi: "vào mùa xuân", sense: 1 },
