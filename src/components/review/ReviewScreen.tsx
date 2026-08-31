@@ -42,6 +42,12 @@ import {
 } from "@/lib/review-session-storage";
 import { shouldRefreshImageUrl } from "@/lib/unsplash";
 import { refreshAllStaleWordImages } from "@/lib/refresh-stale-word-images";
+import {
+  fetchReviewWordDetails,
+  hasReviewClueFields,
+  hydrateReviewWordLocal,
+  prefetchReviewClues,
+} from "@/lib/review-word-hydrate";
 import type { LearningStatus, VocabWord } from "@/types/database";
 import { useI18n } from "@/hooks/use-i18n";
 import {
@@ -431,6 +437,28 @@ export function ReviewScreen() {
         );
       });
 
+      void prefetchReviewClues(sessionQueue, 0, 16).then((clueUpdates) => {
+        if (Object.keys(clueUpdates).length === 0) return;
+        const patchWord = (item: VocabWord) => {
+          const key = item.word.trim().toLowerCase();
+          const patch = clueUpdates[key];
+          if (!patch) return item;
+          return {
+            ...item,
+            vietnamese_meaning:
+              patch.vietnamese_meaning ?? item.vietnamese_meaning,
+            english_definition:
+              patch.english_definition ?? item.english_definition,
+            phonetic: patch.phonetic ?? item.phonetic,
+            word_type: patch.word_type ?? item.word_type,
+            examples: patch.examples ?? item.examples,
+            search_keyword: patch.search_keyword ?? item.search_keyword,
+            image_url: patch.image_url ?? item.image_url,
+          };
+        };
+        patchBoth(sessionQueue.map(patchWord), pool.map(patchWord));
+      });
+
       const inProgress = readReviewSessionSnapshot()?.inProgress;
       if (inProgress) {
         const resumeIndex = sessionQueue.findIndex(
@@ -459,7 +487,7 @@ export function ReviewScreen() {
       }
 
       setIndex(0);
-      startQuestion(sessionQueue[0]!, pool, 0);
+      startQuestion(hydrateReviewWordLocal(sessionQueue[0]!), pool, 0);
 
       void refreshAllStaleWordImages(
         pool.map((word) => ({
@@ -532,6 +560,62 @@ export function ReviewScreen() {
 
   useEffect(() => {
     if (!currentWord) return;
+
+    if (!hasReviewClueFields(currentWord)) {
+      const hydrated = hydrateReviewWordLocal(currentWord);
+      if (hasReviewClueFields(hydrated)) {
+        const patch = {
+          vietnamese_meaning: hydrated.vietnamese_meaning,
+          english_definition: hydrated.english_definition,
+          phonetic: hydrated.phonetic,
+          word_type: hydrated.word_type,
+          examples: hydrated.examples,
+          search_keyword: hydrated.search_keyword,
+          image_url: hydrated.image_url ?? currentWord.image_url,
+        };
+        setQueue((prev) =>
+          prev.map((word) =>
+            word.word === currentWord.word ? { ...word, ...patch } : word,
+          ),
+        );
+        setAllWords((prev) =>
+          prev.map((word) =>
+            word.word === currentWord.word ? { ...word, ...patch } : word,
+          ),
+        );
+        return;
+      }
+
+      let cancelled = false;
+      void fetchReviewWordDetails(currentWord.word).then((details) => {
+        if (cancelled || !details || !hasReviewClueFields(details)) return;
+        const patch = {
+          vietnamese_meaning:
+            details.vietnamese_meaning ?? currentWord.vietnamese_meaning,
+          english_definition:
+            details.english_definition ?? currentWord.english_definition,
+          phonetic: details.phonetic ?? currentWord.phonetic,
+          word_type: details.word_type ?? currentWord.word_type,
+          examples: details.examples ?? currentWord.examples,
+          search_keyword: details.search_keyword ?? currentWord.search_keyword,
+          image_url: details.image_url ?? currentWord.image_url,
+        };
+        setQueue((prev) =>
+          prev.map((word) =>
+            word.word === currentWord.word ? { ...word, ...patch } : word,
+          ),
+        );
+        setAllWords((prev) =>
+          prev.map((word) =>
+            word.word === currentWord.word ? { ...word, ...patch } : word,
+          ),
+        );
+      });
+      return () => {
+        cancelled = true;
+      };
+    }
+
     const missingImage = shouldRefreshImageUrl(
       currentWord.image_url,
       currentWord.word,
