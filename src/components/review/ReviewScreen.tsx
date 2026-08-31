@@ -539,6 +539,8 @@ export function ReviewScreen() {
     if (!sessionReady || enriching || locked || phase !== "question" || !currentWord) {
       return;
     }
+    // Recall questions intentionally have no multiple-choice options.
+    if (quizKind === "recall") return;
     if (choices.length > 0) return;
 
     const pool = allWords.length > 0 ? allWords : queue;
@@ -551,6 +553,7 @@ export function ReviewScreen() {
     locked,
     phase,
     currentWord,
+    quizKind,
     allWords,
     queue,
     index,
