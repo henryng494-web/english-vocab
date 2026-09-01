@@ -131,6 +131,26 @@ export async function fetchDiscoverRange(
   };
 }
 
+const DISCOVER_WORD_FETCH_TIMEOUT_MS = 25000;
+
+async function fetchDiscoverWordResponse(
+  params: URLSearchParams,
+): Promise<Response> {
+  const controller = new AbortController();
+  const timer = window.setTimeout(
+    () => controller.abort(),
+    DISCOVER_WORD_FETCH_TIMEOUT_MS,
+  );
+  try {
+    return await fetch(`/api/discover/word?${params}`, {
+      cache: "no-store",
+      signal: controller.signal,
+    });
+  } finally {
+    window.clearTimeout(timer);
+  }
+}
+
 export async function fetchDiscoverWordDetail(
   item: DiscoverListItem,
   options?: { forceRepair?: boolean; bootstrap?: boolean },
@@ -145,9 +165,7 @@ export async function fetchDiscoverWordDetail(
     if (forceRepair) {
       params.set("forceRepair", "true");
     }
-    const res = await fetch(`/api/discover/word?${params}`, {
-      cache: "no-store",
-    });
+    const res = await fetchDiscoverWordResponse(params);
     const data = await res.json();
     if (!res.ok) {
       throw new Error(data.details ?? data.error ?? "Failed to load word");
@@ -156,7 +174,7 @@ export async function fetchDiscoverWordDetail(
   };
 
   const loaded = await fetchOnce(options?.forceRepair ?? false);
-  if (
+  const needsRepair =
     !options?.bootstrap &&
     !options?.forceRepair &&
     (examplesNeedRegeneration(
@@ -171,9 +189,12 @@ export async function fetchDiscoverWordDetail(
         loaded.word_type,
         loaded.examples,
         loaded.english_definition,
-      ))
-  ) {
+      ));
+
+  // Show the card as soon as we have a gloss — don't block on a second repair round-trip.
+  if (needsRepair && !loaded.vietnamese_meaning?.trim()) {
     return fetchOnce(true);
   }
+
   return loaded;
 }

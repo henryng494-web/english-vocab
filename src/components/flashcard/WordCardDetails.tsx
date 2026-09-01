@@ -37,6 +37,18 @@ type WordCardDetailsProps = {
   loading?: boolean;
 };
 
+function DetailsLoadingSkeleton() {
+  return (
+    <div className="card-details card-details--compact">
+      <div className="space-y-3 pt-1" aria-hidden>
+        <div className="h-6 w-3/4 animate-pulse rounded bg-primary-50" />
+        <div className="h-10 w-full animate-pulse rounded-lg bg-primary-50" />
+        <div className="h-10 w-full animate-pulse rounded-lg bg-primary-50" />
+      </div>
+    </div>
+  );
+}
+
 export function WordCardDetails({
   word,
   examples,
@@ -69,13 +81,7 @@ export function WordCardDetails({
   }, [word]);
 
   if (loading) {
-    return (
-      <div className="space-y-3 pt-1" aria-hidden>
-        <div className="h-6 w-3/4 animate-pulse rounded bg-primary-50" />
-        <div className="h-10 w-full animate-pulse rounded-lg bg-primary-50" />
-        <div className="h-10 w-full animate-pulse rounded-lg bg-primary-50" />
-      </div>
-    );
+    return <DetailsLoadingSkeleton />;
   }
 
   function toggle() {

@@ -7,6 +7,7 @@ import { displayPhonetic } from "@/lib/phonetic";
 import type { WordFamilyMember } from "@/types/database";
 import type { WordRegister } from "@/lib/word-meanings";
 import { resolveWordRegister } from "@/lib/word-meanings";
+import { buildWordFamilyEntries } from "@/lib/word-family-display";
 
 export type DiscoverWordData = {
   word: string;
@@ -77,6 +78,14 @@ export function DiscoverCard({
   const detailsLoading = loading && !data.vietnamese_meaning?.trim();
   const phonetic = displayPhonetic(data.word, data.phonetic);
   const register = resolveWordRegister(data);
+  const wordFamily =
+    data.word_family && data.word_family.length > 0
+      ? data.word_family
+      : buildWordFamilyEntries(
+          data.word,
+          data.vietnamese_meaning,
+          data.word_type,
+        );
 
   return (
     <div className="discover-card discover-card--compact grid h-full min-h-0 w-full overflow-hidden rounded-2xl border-2 shadow-lg">
@@ -107,7 +116,7 @@ export function DiscoverCard({
           meaning={data.vietnamese_meaning}
           register={register}
           englishDefinition={data.english_definition}
-          family={data.word_family}
+          family={wordFamily}
           similarWords={data.similar_words}
           loading={detailsLoading}
         />

@@ -14,7 +14,6 @@ import { meaningsNeedRegeneration } from "@/lib/meaning-quality";
 import { repairWordMeanings } from "@/lib/repair-word-meanings";
 import { getImportanceTier } from "@/lib/word-rank";
 import { withWordFamily } from "@/lib/word-family-display";
-import { withSimilarWords } from "@/lib/word-synonyms";
 import { resolveImageSearchKeyword } from "@/lib/image-keyword";
 import {
   fetchWordImageUrlDetailed,
@@ -369,14 +368,12 @@ export async function GET(request: Request) {
         }
       }
       return NextResponse.json({
-        word: await withSimilarWords(
-          persistedDetailToDiscoverWord(
-            word,
-            repairedDbDetail!,
-            frequencyRank,
-            imageUrl,
-            searchKeyword,
-          ),
+        word: persistedDetailToDiscoverWord(
+          word,
+          repairedDbDetail!,
+          frequencyRank,
+          imageUrl,
+          searchKeyword,
         ),
       });
     }
@@ -499,13 +496,13 @@ export async function GET(request: Request) {
     }
 
     return NextResponse.json({
-      word: await withSimilarWords({
+      word: {
         ...responseWord,
         vietnamese_meaning: vietnameseMeaningFinal,
         examples,
         phonetic,
         from_cache: hasQualityStandardVocab(word),
-      }),
+      },
     });
   } catch (error) {
     console.error("Discover word preview error:", error);

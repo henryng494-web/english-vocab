@@ -36,6 +36,8 @@ export function WordCardHeader({
   const meaningLines = meanings ? formatMeaningsForDisplay(meanings) : [];
   const displayedRegister = displayWordRegister(register);
   const registerLabelText = registerLabel(displayedRegister);
+  const showMeta =
+    meaningLines.length > 0 && (registerLabelText || wordTypeLabelText);
 
   return (
     <div className="word-card-header">
@@ -57,7 +59,7 @@ export function WordCardHeader({
         </div>
       </div>
 
-      {meaningLines.length > 0 || registerLabelText || wordTypeLabelText ? (
+      {meaningLines.length > 0 || showMeta ? (
         <div className="word-card-header__body">
           {meaningLines.length > 0 ? (
             <div className="word-card-header__meanings" aria-label="Meanings">
@@ -71,22 +73,24 @@ export function WordCardHeader({
             <div className="word-card-header__meanings" aria-hidden />
           )}
 
-          <div className="word-card-header__meta">
-            {registerLabelText ? (
-              <span
-                className={`word-card-header__register-value word-card-header__register-value--${displayedRegister}`}
-                aria-label={`Register: ${registerLabelText}`}
-              >
-                {registerLabelText}
-              </span>
-            ) : null}
+          {showMeta ? (
+            <div className="word-card-header__meta">
+              {registerLabelText ? (
+                <span
+                  className={`word-card-header__register-value word-card-header__register-value--${displayedRegister}`}
+                  aria-label={`Register: ${registerLabelText}`}
+                >
+                  {registerLabelText}
+                </span>
+              ) : null}
 
-            {wordTypeLabelText ? (
-              <span className="word-card-header__pos word-type-badge">
-                {wordTypeLabelText}
-              </span>
-            ) : null}
-          </div>
+              {wordTypeLabelText ? (
+                <span className="word-card-header__pos word-type-badge">
+                  {wordTypeLabelText}
+                </span>
+              ) : null}
+            </div>
+          ) : null}
         </div>
       ) : null}
     </div>
