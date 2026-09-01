@@ -114,6 +114,11 @@ ${EXAMPLE_RULES(word)}
 
 ${SHARED_OUTPUT_RULES}
 
+Similar words (similarWords):
+- 1–3 common English words with the same or very close meaning as the PRIMARY sense
+- Learner-friendly everyday vocabulary; same part of speech when possible
+- Never the headword or its inflections (e.g. for "shock" use "surprise", "jolt" — not "shocked")
+
 Respond with ONLY valid JSON:
 {
   "word": "${word}",
@@ -125,8 +130,45 @@ Respond with ONLY valid JSON:
     { "en": "English for meaning 1.", "vi": "Bản dịch.", "senseIndex": 1 },
     { "en": "English for meaning 2.", "vi": "Bản dịch.", "senseIndex": 2 }
   ],
-  "searchKeyword": "concrete photo phrase"
+  "searchKeyword": "concrete photo phrase",
+  "similarWords": ["synonym1", "synonym2"]
 }`;
+}
+
+export function buildSimilarWordsPrompt(
+  word: string,
+  pos?: string | null,
+  meaning?: string | null,
+  englishDefinition?: string | null,
+  familyWords: string[] = [],
+): string {
+  const posHint = pos?.trim() ? `Part of speech: ${pos.trim()}.` : "";
+  const meaningHint = meaning?.trim()
+    ? `Vietnamese meaning(s): ${meaning.trim()}.`
+    : "";
+  const definitionHint = englishDefinition?.trim()
+    ? `English definition: ${englishDefinition.trim()}.`
+    : "";
+  const blocked = [word, ...familyWords]
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .join(", ");
+
+  return `English learner flashcard — suggest 1–3 similar English words.
+
+Headword: "${word}"
+${posHint} ${meaningHint} ${definitionHint}
+
+Rules:
+- Words must be common everyday English (learner-friendly, not rare)
+- Same or very close meaning to the PRIMARY sense shown above
+- Prefer the same part of speech when possible
+- NEVER include: ${blocked}
+- Single English words only (no phrases)
+- Return 1 word if only one good match exists; max 3
+
+Reply with ONLY JSON:
+{"similarWords":["word1","word2"]}`;
 }
 
 export function buildMeaningPrompt(word: string): string {

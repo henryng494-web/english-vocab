@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { VocabExampleList } from "@/components/flashcard/VocabExampleList";
 import { WordLearningChunks } from "@/components/flashcard/WordLearningChunks";
+import { useI18n } from "@/hooks/use-i18n";
 import { capitalizeFirst } from "@/lib/format-text";
 import { hasLearningChunks } from "@/lib/learning-chunks";
 import { parseExamples } from "@/lib/parse-examples";
@@ -31,6 +32,7 @@ type WordCardDetailsProps = {
   register?: WordRegister | null;
   englishDefinition?: string | null;
   family?: WordFamilyMember[] | null;
+  similarWords?: string[] | null;
   loading?: boolean;
 };
 
@@ -42,12 +44,15 @@ export function WordCardDetails({
   register,
   englishDefinition,
   family,
+  similarWords,
   loading = false,
 }: WordCardDetailsProps) {
+  const { t } = useI18n();
   const parsed = loading ? [] : parseExamples(examples);
   const chunksOnly = hasLearningChunks(word, { examples, wordType, meaning });
   const rows = (family ?? []).filter((item) => item.word.trim());
-  const canFlip = rows.length > 1;
+  const similar = (similarWords ?? []).filter((item) => item.trim());
+  const canFlip = rows.length > 1 || similar.length > 0;
   const [showFamily, setShowFamily] = useState(false);
   const startX = useRef<number | null>(null);
   const swiped = useRef(false);
@@ -131,22 +136,40 @@ export function WordCardDetails({
           </div>
 
           {canFlip ? (
-            <ul className="card-details__face card-details__face--family">
-              {rows.map((item) => {
-                const pos =
-                  POS_ABBREV[item.pos] ?? (item.pos ? `${item.pos}.` : "");
-                return (
-                  <li key={item.word} className="card-family__row">
-                    <span className="card-family__word">
-                      {capitalizeFirst(item.word)}
-                    </span>
-                    {pos ? (
-                      <span className="card-family__meta"> — {pos}</span>
-                    ) : null}
-                  </li>
-                );
-              })}
-            </ul>
+            <div className="card-details__face card-details__face--family">
+              {rows.length > 0 ? (
+                <section className="card-family__column">
+                  <ul className="card-family__list">
+                    {rows.map((item) => {
+                      const pos =
+                        POS_ABBREV[item.pos] ?? (item.pos ? `${item.pos}.` : "");
+                      return (
+                        <li key={item.word} className="card-family__row">
+                          <span className="card-family__word">
+                            {capitalizeFirst(item.word)}
+                          </span>
+                          {pos ? (
+                            <span className="card-family__meta"> — {pos}</span>
+                          ) : null}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </section>
+              ) : null}
+              {similar.length > 0 ? (
+                <section className="card-similar__column">
+                  <h3 className="card-similar__label">{t("card.similarWords")}</h3>
+                  <ul className="card-similar__list">
+                    {similar.map((item) => (
+                      <li key={item} className="card-similar__row">
+                        {capitalizeFirst(item)}
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              ) : null}
+            </div>
           ) : null}
         </div>
       </div>

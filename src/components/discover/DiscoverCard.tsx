@@ -23,6 +23,7 @@ export type DiscoverWordData = {
   search_keyword?: string | null;
   word_family?: WordFamilyMember[] | null;
   family_members?: string[] | null;
+  similar_words?: string[] | null;
 };
 
 type DiscoverCardProps = {
@@ -107,6 +108,7 @@ export function DiscoverCard({
           register={register}
           englishDefinition={data.english_definition}
           family={data.word_family}
+          similarWords={data.similar_words}
           loading={detailsLoading}
         />
       </div>

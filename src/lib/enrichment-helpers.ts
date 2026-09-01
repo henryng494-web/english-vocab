@@ -12,6 +12,8 @@ import {
   serializeVietnameseMeanings,
 } from "@/lib/word-meanings";
 import { withWordFamily } from "@/lib/word-family-display";
+import { normalizeSimilarWords } from "@/lib/word-synonyms";
+import { getFamilyDisplayWords } from "@/lib/word-family";
 
 export function enrichmentToDiscoverWord(
   word: string,
@@ -49,6 +51,11 @@ export function enrichmentToDiscoverWord(
     from_static: enrichment.fromStatic ?? false,
     source: enrichment.source,
     search_keyword: keyword,
+    similar_words: normalizeSimilarWords(
+      enrichment.similarWords,
+      word,
+      getFamilyDisplayWords(word),
+    ),
   });
 }
 

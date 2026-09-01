@@ -96,6 +96,9 @@ export function mapApiWordToDiscoverData(
     word_family: Array.isArray(apiWord.word_family)
       ? (apiWord.word_family as DiscoverWordData["word_family"])
       : null,
+    similar_words: Array.isArray(apiWord.similar_words)
+      ? (apiWord.similar_words as string[])
+      : null,
   };
 }
 

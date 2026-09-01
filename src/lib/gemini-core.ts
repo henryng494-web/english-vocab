@@ -8,6 +8,7 @@ import {
   buildExampleTranslationPrompt,
   buildExamplesPrompt,
   buildMeaningPrompt,
+  buildSimilarWordsPrompt,
   type CollocationTranslationInput,
 } from "@/lib/gemini-prompts";
 import { sanitizeVietnameseText } from "@/lib/sanitize-vi";
@@ -49,6 +50,7 @@ export type WordEnrichment = {
   wordType: string;
   collocations: string | null;
   searchKeyword: string;
+  similarWords?: string[];
   frequencyRank: number;
   importanceTier: "Top 1000" | "Top 3000" | "Top 5000" | "Beyond 5000";
   fromFallback?: boolean;
@@ -70,6 +72,7 @@ type GeminiJsonShape = {
     string | { en?: string; vi?: string; senseIndex?: number; sense?: number }
   >;
   searchKeyword?: string;
+  similarWords?: string[];
   rank?: number;
 };
 
@@ -178,6 +181,12 @@ function parseGeminiResponse(text: string, word: string): WordEnrichment {
   const phonetic = formatIpa(phoneticRaw, word);
   const searchKeyword =
     parsed.searchKeyword?.trim().toLowerCase() || word;
+  const similarWords = Array.isArray(parsed.similarWords)
+    ? parsed.similarWords
+        .map((item) => String(item ?? "").trim().toLowerCase())
+        .filter(Boolean)
+        .slice(0, 3)
+    : [];
 
   return {
     englishDefinition: capitalizeFirst(definition),
@@ -189,6 +198,7 @@ function parseGeminiResponse(text: string, word: string): WordEnrichment {
     wordType,
     collocations: encodeRegisterCollocation(register),
     searchKeyword,
+    similarWords,
     frequencyRank,
     importanceTier: getImportanceTier(
       frequencyRank,
@@ -427,6 +437,39 @@ Do NOT repeat the spelling (wrong: /spent/). No other text.`;
     return formatIpa(text, word);
   } catch (error) {
     console.warn(`Gemini phonetic failed for "${word}":`, error);
+    return null;
+  }
+}
+
+export async function generateSimilarWordsWithGemini(
+  word: string,
+  pos?: string | null,
+  meaning?: string | null,
+  englishDefinition?: string | null,
+  familyWords: string[] = [],
+): Promise<string[] | null> {
+  if (!process.env.GEMINI_API_KEY?.trim()) return null;
+
+  try {
+    const text = await generateGeminiText(
+      buildSimilarWordsPrompt(
+        word,
+        pos,
+        meaning,
+        englishDefinition,
+        familyWords,
+      ),
+    );
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) return null;
+    const parsed = JSON.parse(jsonMatch[0]) as { similarWords?: unknown };
+    if (!Array.isArray(parsed.similarWords)) return null;
+    return parsed.similarWords
+      .map((item) => String(item ?? "").trim().toLowerCase())
+      .filter(Boolean)
+      .slice(0, 3);
+  } catch (error) {
+    console.warn(`Gemini similar words failed for "${word}":`, error);
     return null;
   }
 }
