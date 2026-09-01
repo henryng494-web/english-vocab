@@ -7,6 +7,7 @@ const pendingLookups = new Map<string, Promise<string | null>>();
 const warmedAudioBytes = new Set<string>();
 /** In-memory blob URLs — iOS plays cached blobs instantly inside a user gesture. */
 const blobUrlByKey = new Map<string, string>();
+const pendingWarmByKey = new Map<string, Promise<void>>();
 
 let pronounceAudioElement: HTMLAudioElement | null = null;
 let currentAudio: HTMLAudioElement | null = null;
@@ -234,7 +235,13 @@ export function preloadWordAudio(word: string): void {
   void resolveWordAudioUrl(word);
 }
 
-/** Fetch MP3 bytes into the HTTP cache (no play — safe before user gesture). */
+/** True when MP3 bytes are cached in memory (fastest auto-speak path). */
+export function hasWordAudioBlob(word: string): boolean {
+  const key = cacheKey(word);
+  return Boolean(key && blobUrlByKey.has(key));
+}
+
+/** Fetch MP3 bytes into memory (blob URL) and HTTP cache — safe before user gesture. */
 export function warmWordAudioBytes(
   word: string,
   options?: { bustCache?: boolean },
@@ -243,18 +250,21 @@ export function warmWordAudioBytes(
   const key = cacheKey(word);
   if (!key) return Promise.resolve();
 
-  if (!options?.bustCache && warmedAudioBytes.has(key)) {
-    return Promise.resolve();
+  if (!options?.bustCache) {
+    if (blobUrlByKey.has(key)) return Promise.resolve();
+    const pending = pendingWarmByKey.get(key);
+    if (pending) return pending;
+  } else {
+    warmedAudioBytes.delete(key);
+    revokeBlobUrl(key);
   }
-
-  warmedAudioBytes.add(key);
 
   const src = absoluteAudioUrl(resolvePlayableUrl(word));
   if (!src) return Promise.resolve();
 
   const url = options?.bustCache ? `${src}${src.includes("?") ? "&" : "?"}_=${Date.now()}` : src;
 
-  return fetch(url, { cache: options?.bustCache ? "no-store" : "no-cache" })
+  const warm = fetch(url, { cache: options?.bustCache ? "no-store" : "no-cache" })
     .then(async (response) => {
       if (!response.ok) {
         warmedAudioBytes.delete(key);
@@ -267,10 +277,17 @@ export function warmWordAudioBytes(
       }
       revokeBlobUrl(key);
       blobUrlByKey.set(key, URL.createObjectURL(blob));
+      warmedAudioBytes.add(key);
     })
     .catch(() => {
       warmedAudioBytes.delete(key);
+    })
+    .finally(() => {
+      pendingWarmByKey.delete(key);
     });
+
+  pendingWarmByKey.set(key, warm);
+  return warm;
 }
 
 /** True when the shared `<audio>` element has buffered enough to play soon. */

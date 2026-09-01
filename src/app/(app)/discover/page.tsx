@@ -37,6 +37,7 @@ import {
   type WordImagePrefetchTarget,
 } from "@/lib/image-preload";
 import { preloadWordPronunciations } from "@/lib/pronunciation-preload";
+import { unlockSpeechFromUserGesture } from "@/lib/speak-word";
 import { getTodayStudySeconds } from "@/lib/study-time";
 import { useAppSettings } from "@/context/AppSettingsContext";
 import {
@@ -461,6 +462,8 @@ export default function DiscoverPage() {
 
   function updateStatus(status: "mastered" | "new") {
     if (!currentItem) return;
+
+    unlockSpeechFromUserGesture();
 
     const word = currentItem.word.trim().toLowerCase();
     if (!word || inflightSaves.current.has(word)) return;

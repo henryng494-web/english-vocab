@@ -4,20 +4,10 @@ import {
   preloadWordPronunciation,
   speakEnglishTextAuto,
 } from "@/lib/speak-word";
-import { isAppleWebKit } from "@/lib/speech-voice";
 import { useAutoSpeakSetting } from "@/context/AppSettingsContext";
 import { useEffect } from "react";
 
-const AUTO_SPEAK_DELAY_MS = isAppleWebKit() ? 320 : 200;
-
-let autoSpeakTimer: number | null = null;
-
-function clearAutoSpeakTimer(): void {
-  if (autoSpeakTimer !== null) {
-    window.clearTimeout(autoSpeakTimer);
-    autoSpeakTimer = null;
-  }
-}
+let autoSpeakGeneration = 0;
 
 /** Auto-pronounce when `text` changes (new word card). Respects menu setting. */
 export function useAutoSpeakWord(
@@ -28,24 +18,23 @@ export function useAutoSpeakWord(
   const active = enabled && autoSpeakEnabled;
 
   useEffect(() => {
-    if (!active) {
-      clearAutoSpeakTimer();
-      return;
-    }
+    if (!active) return;
 
     const trimmed = text?.trim() ?? "";
     if (!trimmed) return;
 
-    clearAutoSpeakTimer();
+    const generation = ++autoSpeakGeneration;
     preloadWordPronunciation(trimmed);
 
-    autoSpeakTimer = window.setTimeout(() => {
-      autoSpeakTimer = null;
+    // One animation frame — lets the card paint, then speak as soon as bytes are warm.
+    const frame = window.requestAnimationFrame(() => {
+      if (generation !== autoSpeakGeneration) return;
       speakEnglishTextAuto(trimmed);
-    }, AUTO_SPEAK_DELAY_MS);
+    });
 
-    // Intentionally no cleanup: React Strict Mode runs cleanup then re-runs the
-    // effect with the same deps. Clearing the timer there left auto-speak silent.
-    // A new run (word/setting change) clears the previous timer at the top.
+    // Intentionally no effect cleanup: Strict Mode re-runs bump generation above.
+    return () => {
+      window.cancelAnimationFrame(frame);
+    };
   }, [text, active]);
 }

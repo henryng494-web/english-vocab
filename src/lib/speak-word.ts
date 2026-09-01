@@ -1,5 +1,7 @@
 import { isAppleWebKit } from "@/lib/speech-voice";
 import {
+  hasWordAudioBlob,
+  isWordAudioElementReady,
   isWordAudioPlaying,
   playWordAudioInUserGesture,
   playWordAudioWhenReady,
@@ -14,8 +16,9 @@ let speakRequestId = 0;
 
 const DEDUPE_MS = 1800;
 const SPEECH_UNLOCK_KEY = "ev-speech-unlocked";
-const AUTO_MP3_WAIT_MS = 4800;
-const AUTO_MP3_RETRY_MS = 6500;
+const AUTO_MP3_WAIT_MS = 2200;
+const AUTO_MP3_WAIT_BLOB_MS = 600;
+const AUTO_MP3_RETRY_MS = 3200;
 
 let speechUnlocked = false;
 
@@ -63,32 +66,44 @@ function stillCurrentRequest(requestId: number, key: string): boolean {
   return requestId === speakRequestId && lastSpoken?.text === key;
 }
 
+function autoSpeakWaitMs(word: string): number {
+  if (hasWordAudioBlob(word) || isWordAudioElementReady(word)) {
+    return AUTO_MP3_WAIT_BLOB_MS;
+  }
+  return AUTO_MP3_WAIT_MS;
+}
+
 async function speakMp3Auto(
   text: string,
   requestId: number,
 ): Promise<void> {
   const key = text.toLowerCase();
   preloadWordAudioElement(text);
-  void warmWordAudioBytes(text);
+  await warmWordAudioBytes(text);
   if (!stillCurrentRequest(requestId, key)) return;
+  preloadWordAudioElement(text);
   if (isWordAudioPlaying(text)) return;
 
-  if (await playWordAudioWhenReady(text, AUTO_MP3_WAIT_MS)) return;
+  if (await playWordAudioWhenReady(text, autoSpeakWaitMs(text))) return;
   if (!stillCurrentRequest(requestId, key)) return;
   if (isWordAudioPlaying(text)) return;
 
   await warmWordAudioBytes(text, { bustCache: true });
+  if (!stillCurrentRequest(requestId, key)) return;
   preloadWordAudioElement(text);
   await playWordAudioWhenReady(text, AUTO_MP3_RETRY_MS);
 }
 
 /** Auto-pronounce after preload (no user gesture — requires prior audio unlock on iOS). */
 export function speakEnglishTextAuto(text: string): void {
-  const trimmed = claimSpeak(text, false);
-  if (!trimmed) return;
+  const trimmed = text?.trim();
+  if (!trimmed || typeof window === "undefined") return;
 
   if (isAppleWebKit() && !isSpeechUnlocked()) return;
 
+  const key = trimmed.toLowerCase();
+  lastSpoken = { text: key, at: Date.now() };
+  speakRequestId += 1;
   void speakMp3Auto(trimmed, speakRequestId);
 }
 
