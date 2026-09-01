@@ -1,5 +1,5 @@
 import { proxyPronounceAudioPath } from "@/lib/dictionary-pronunciation";
-import { getPronouncePlaybackRate } from "@/lib/app-settings";
+import { getPronouncePlaybackRate } from "@/lib/pronounce-speed";
 import { PRONOUNCE_VOICE_VERSION } from "@/lib/neural-pronunciation";
 
 const audioUrlCache = new Map<string, string | null>();
@@ -33,7 +33,51 @@ function configureAudioElement(audio: HTMLAudioElement): void {
 }
 
 function applyPlaybackRate(audio: HTMLAudioElement): void {
-  audio.playbackRate = getPronouncePlaybackRate();
+  const rate = getPronouncePlaybackRate();
+  audio.playbackRate = Number.isFinite(rate) && rate > 0 ? rate : 0.9;
+}
+
+function resolveAudioElement(): HTMLAudioElement | null {
+  if (pronounceAudioElement) return pronounceAudioElement;
+  if (typeof document === "undefined") return null;
+  const found = document.getElementById("ev-pronounce-audio");
+  if (!(found instanceof HTMLAudioElement)) return null;
+  pronounceAudioElement = found;
+  configureAudioElement(found);
+  bindPlaybackRateListener();
+  return found;
+}
+
+function startPlayback(audio: HTMLAudioElement): void {
+  applyPlaybackRate(audio);
+  currentAudio = audio;
+  audio.currentTime = 0;
+
+  const playAttempt = () => {
+    const playPromise = audio.play();
+    if (!playPromise || typeof playPromise.catch !== "function") return;
+    playPromise.catch(() => {
+      if (audio.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
+        void audio.play().catch(() => {
+          if (currentAudio === audio) currentAudio = null;
+        });
+        return;
+      }
+      const onReady = () => {
+        audio.removeEventListener("canplay", onReady);
+        audio.removeEventListener("canplaythrough", onReady);
+        if (currentAudio !== audio) return;
+        applyPlaybackRate(audio);
+        void audio.play().catch(() => {
+          if (currentAudio === audio) currentAudio = null;
+        });
+      };
+      audio.addEventListener("canplay", onReady);
+      audio.addEventListener("canplaythrough", onReady);
+    });
+  };
+
+  playAttempt();
 }
 
 function bindPlaybackRateListener(): void {
@@ -56,7 +100,7 @@ export function registerPronounceAudioElement(element: HTMLAudioElement): void {
 
 function getAudioElement(): HTMLAudioElement | null {
   if (typeof document === "undefined") return null;
-  return pronounceAudioElement;
+  return resolveAudioElement();
 }
 
 function isSharedAudioPlaying(): boolean {
@@ -300,16 +344,7 @@ export function playWordAudioInUserGesture(word: string): boolean {
     audio.load();
   }
 
-  audio.currentTime = 0;
-  applyPlaybackRate(audio);
-  currentAudio = audio;
-
-  const playPromise = audio.play();
-  if (playPromise && typeof playPromise.catch === "function") {
-    playPromise.catch(() => {
-      if (currentAudio === audio) currentAudio = null;
-    });
-  }
+  startPlayback(audio);
   return true;
 }
 
@@ -336,16 +371,20 @@ export async function playWordAudioWhenReady(
 
   if (isWordAudioPlaying(word)) return true;
 
-  try {
-    audio.currentTime = 0;
-    applyPlaybackRate(audio);
-    currentAudio = audio;
-    await audio.play();
-    return true;
-  } catch {
-    if (currentAudio === audio) currentAudio = null;
-    return false;
-  }
+  return new Promise((resolve) => {
+    let timer = 0;
+    const finish = (ok: boolean) => {
+      audio.removeEventListener("playing", onPlaying);
+      window.clearTimeout(timer);
+      resolve(ok);
+    };
+    const onPlaying = () => {
+      if (audio.dataset.wordKey === key && !audio.paused) finish(true);
+    };
+    timer = window.setTimeout(() => finish(isWordAudioPlaying(word)), timeoutMs);
+    audio.addEventListener("playing", onPlaying);
+    startPlayback(audio);
+  });
 }
 
 /** @deprecated Use playWordAudioInUserGesture inside tap handlers. */

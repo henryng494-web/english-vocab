@@ -1,20 +1,17 @@
 "use client";
 
 import { registerPronounceAudioElement } from "@/lib/word-pronunciation-audio";
-import { useEffect, useRef } from "react";
+import { useCallback } from "react";
 
 /** Persistent DOM audio node — iOS Safari/PWA ignores dynamically created Audio(). */
 export function PronounceAudio() {
-  const ref = useRef<HTMLAudioElement>(null);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (el) registerPronounceAudioElement(el);
+  const audioRef = useCallback((element: HTMLAudioElement | null) => {
+    if (element) registerPronounceAudioElement(element);
   }, []);
 
   return (
     <audio
-      ref={ref}
+      ref={audioRef}
       id="ev-pronounce-audio"
       preload="auto"
       playsInline

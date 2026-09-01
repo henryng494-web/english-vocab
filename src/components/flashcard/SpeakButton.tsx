@@ -84,6 +84,7 @@ export function SpeakButton({
   return (
     <button
       type="button"
+      data-pronounce-speak
       onTouchEnd={handleTouchEnd}
       onClick={handleClick}
       className={`${toneClass} ${className}`.trim()}

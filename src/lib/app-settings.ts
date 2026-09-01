@@ -3,7 +3,6 @@ import { DEFAULT_APP_LOCALE, isAppLocale } from "@/lib/i18n/messages";
 import {
   DEFAULT_PRONOUNCE_SPEED,
   isPronounceSpeed,
-  playbackRateForPronounceSpeed,
   type PronounceSpeed,
 } from "@/lib/pronounce-speed";
 
@@ -105,7 +104,4 @@ export function getDefaultAppSettings(): AppSettings {
   return { ...DEFAULT_SETTINGS };
 }
 
-/** Current learner playback rate for pronunciation MP3s. */
-export function getPronouncePlaybackRate(): number {
-  return playbackRateForPronounceSpeed(readAppSettings().pronounceSpeed);
-}
+export { getPronouncePlaybackRate } from "@/lib/pronounce-speed";
