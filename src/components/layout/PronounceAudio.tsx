@@ -15,7 +15,7 @@ export function PronounceAudio() {
       id="ev-pronounce-audio"
       preload="auto"
       playsInline
-      hidden
+      className="sr-only"
     />
   );
 }

@@ -4,6 +4,7 @@ import {
   playWordAudioInUserGesture,
   playWordAudioWhenReady,
   preloadWordAudioElement,
+  primeAudioPipelineInUserGesture,
   stopWordAudio,
   warmWordAudioBytes,
 } from "@/lib/word-pronunciation-audio";
@@ -100,6 +101,9 @@ export function speakEnglishText(
   if (!trimmed) return;
 
   unlockSpeechFromUserGesture();
+  if (isAppleWebKit()) {
+    primeAudioPipelineInUserGesture();
+  }
   preloadWordAudioElement(trimmed);
   void warmWordAudioBytes(trimmed);
   playWordAudioInUserGesture(trimmed);
@@ -110,6 +114,7 @@ export function cancelSpeech(): void {
 }
 
 export function preloadWordPronunciation(word: string): void {
+  preloadWordAudioElement(word);
   void warmWordAudioBytes(word);
 }
 

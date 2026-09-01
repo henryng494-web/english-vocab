@@ -5,6 +5,8 @@ import { PRONOUNCE_VOICE_VERSION } from "@/lib/neural-pronunciation";
 const audioUrlCache = new Map<string, string | null>();
 const pendingLookups = new Map<string, Promise<string | null>>();
 const warmedAudioBytes = new Set<string>();
+/** In-memory blob URLs — iOS plays cached blobs instantly inside a user gesture. */
+const blobUrlByKey = new Map<string, string>();
 
 let pronounceAudioElement: HTMLAudioElement | null = null;
 let currentAudio: HTMLAudioElement | null = null;
@@ -18,6 +20,23 @@ function cacheKey(word: string): string {
   const normalized = normalizeWord(word);
   if (!normalized) return "";
   return `${PRONOUNCE_VOICE_VERSION}:${normalized}`;
+}
+
+function revokeBlobUrl(key: string): void {
+  const blobUrl = blobUrlByKey.get(key);
+  if (!blobUrl) return;
+  URL.revokeObjectURL(blobUrl);
+  blobUrlByKey.delete(key);
+}
+
+/** Prefer warmed blob URL (instant on iOS); fall back to same-origin API path. */
+function resolvePlayableSrc(word: string): string {
+  const key = cacheKey(word);
+  if (key) {
+    const blobUrl = blobUrlByKey.get(key);
+    if (blobUrl) return blobUrl;
+  }
+  return absoluteAudioUrl(resolvePlayableUrl(word));
 }
 
 function absoluteAudioUrl(relativePath: string): string {
@@ -200,7 +219,7 @@ export function preloadWordAudioElement(word: string, _url?: string | null): voi
     return;
   }
 
-  const src = absoluteAudioUrl(resolvePlayableUrl(word));
+  const src = resolvePlayableSrc(word);
   if (!src) return;
 
   if (audio.dataset.wordKey !== key || !audioSrcMatches(audio, src)) {
@@ -236,10 +255,18 @@ export function warmWordAudioBytes(
   const url = options?.bustCache ? `${src}${src.includes("?") ? "&" : "?"}_=${Date.now()}` : src;
 
   return fetch(url, { cache: options?.bustCache ? "no-store" : "no-cache" })
-    .then((response) => {
+    .then(async (response) => {
       if (!response.ok) {
         warmedAudioBytes.delete(key);
+        return;
       }
+      const blob = await response.blob();
+      if (blob.size === 0) {
+        warmedAudioBytes.delete(key);
+        return;
+      }
+      revokeBlobUrl(key);
+      blobUrlByKey.set(key, URL.createObjectURL(blob));
     })
     .catch(() => {
       warmedAudioBytes.delete(key);
@@ -356,14 +383,14 @@ export function playWordAudioInUserGesture(word: string): boolean {
   const audio = getAudioElement();
   if (!key || !audio) return false;
 
-  const src = absoluteAudioUrl(resolvePlayableUrl(word));
+  const src = resolvePlayableSrc(word);
   if (!src) return false;
 
   if (audio.dataset.wordKey !== key || !audioSrcMatches(audio, src)) {
     audio.pause();
     audio.dataset.wordKey = key;
     audio.src = src;
-    audio.load();
+    // Do not call load() here — it resets the buffer and breaks iOS gesture playback.
   }
 
   startPlayback(audio);
