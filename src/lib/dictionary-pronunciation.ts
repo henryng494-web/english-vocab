@@ -28,6 +28,31 @@ function pickUsAudioUrl(phonetics: DictionaryPhonetic[] | undefined): string | n
   return withAudio[0]?.audio?.trim() ?? null;
 }
 
+const DICTIONARY_FETCH_TIMEOUT_MS = 2200;
+
+/** Fetch US dictionary MP3 bytes (same-origin proxy for client playback). */
+export async function fetchDictionaryAudioBytes(word: string): Promise<ArrayBuffer | null> {
+  const upstreamUrl = await lookupDictionaryAudioUrl(word);
+  if (!upstreamUrl) return null;
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), DICTIONARY_FETCH_TIMEOUT_MS);
+
+  try {
+    const upstream = await fetch(upstreamUrl, {
+      signal: controller.signal,
+      next: { revalidate: 60 * 60 * 24 * 30 },
+    });
+    if (!upstream.ok) return null;
+    const bytes = await upstream.arrayBuffer();
+    return bytes.byteLength > 0 ? bytes : null;
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 /** Upstream dictionary MP3 URL (cross-origin). */
 export async function lookupDictionaryAudioUrl(word: string): Promise<string | null> {
   const key = word.trim().toLowerCase();

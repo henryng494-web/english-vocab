@@ -1,3 +1,4 @@
+import { fetchDictionaryAudioBytes } from "@/lib/dictionary-pronunciation";
 import { lookupNeuralTtsAudio } from "@/lib/neural-pronunciation";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -10,6 +11,17 @@ export async function GET(request: NextRequest) {
   const word = request.nextUrl.searchParams.get("word")?.trim().toLowerCase();
   if (!word || !/^[a-z][a-z'-]*$/i.test(word)) {
     return NextResponse.json({ error: "Invalid word" }, { status: 400 });
+  }
+
+  const dictionaryBytes = await fetchDictionaryAudioBytes(word);
+  if (dictionaryBytes) {
+    return new NextResponse(dictionaryBytes, {
+      headers: {
+        "Content-Type": "audio/mpeg",
+        "Cache-Control": "public, max-age=2592000, stale-while-revalidate=86400",
+        "X-Pronounce-Engine": "dictionary",
+      },
+    });
   }
 
   let bytes = await lookupNeuralTtsAudio(word);
