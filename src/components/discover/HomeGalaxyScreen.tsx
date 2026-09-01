@@ -185,9 +185,8 @@ export function HomeGalaxyScreen(props: HomeGalaxyScreenProps) {
         </section>
 
         <section className="home-galaxy__lesson">
-          <p className="home-galaxy__lesson-kicker">{t("home.bannerTitle")}</p>
           <h2 className={`home-galaxy__lesson-title ${displayFontClass}`}>
-            {t("home.galaxyLessonTitle")}
+            {t("home.bannerTitle")}
           </h2>
           <div className="home-galaxy__lesson-meta">
             <div>

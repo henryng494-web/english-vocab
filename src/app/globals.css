@@ -2158,9 +2158,11 @@ body {
 
 .home-scroll--galaxy {
   padding: 0;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
   height: 100%;
   min-height: 0;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* ── Galaxy home (hero · progress · week · lesson) ── */
@@ -2207,13 +2209,13 @@ body {
 }
 
 .home-galaxy__sheet {
-  flex: 1;
+  flex: 1 1 auto;
   min-height: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.875rem;
-  margin-top: -1.125rem;
-  padding: 1.125rem 1rem calc(0.75rem + env(safe-area-inset-bottom, 0px));
+  gap: 1rem;
+  margin-top: -0.75rem;
+  padding: 1rem 1rem calc(0.75rem + env(safe-area-inset-bottom, 0px));
   border-radius: 1.5rem 1.5rem 0 0;
   background: #f4f6fb;
   box-shadow: 0 -8px 32px rgb(15 23 42 / 0.12);
@@ -2224,8 +2226,8 @@ body {
 }
 
 .home-galaxy__progress-msg {
-  font-size: 0.9375rem;
-  line-height: 1.4;
+  font-size: 0.875rem;
+  line-height: 1.35;
   font-weight: 600;
   color: var(--foreground);
 }
@@ -2279,9 +2281,12 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.8125rem;
+  padding: 0 0.25rem;
+  font-size: clamp(0.625rem, 2.8vw, 0.8125rem);
   font-weight: 800;
   color: var(--foreground);
+  text-align: center;
+  line-height: 1.1;
 }
 
 .home-galaxy-stat__label {
@@ -2292,10 +2297,11 @@ body {
 }
 
 .home-galaxy__week {
-  flex-shrink: 0;
+  flex: 0 0 auto;
   padding: 0.75rem 0.625rem;
   border-radius: 1rem;
-  background: rgb(255 255 255 / 0.72);
+  background: #fff;
+  box-shadow: 0 4px 16px rgb(15 23 42 / 0.06);
 }
 
 .home-galaxy__week-head {
@@ -2399,30 +2405,19 @@ body {
 }
 
 .home-galaxy__lesson {
-  flex: 1 1 auto;
-  min-height: 0;
+  flex: 0 0 auto;
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
   gap: 0.625rem;
-  margin-top: auto;
   padding: 1rem;
   border-radius: 1.125rem;
   background: #fff;
   box-shadow: 0 8px 28px rgb(15 23 42 / 0.08);
 }
 
-.home-galaxy__lesson-kicker {
-  font-size: 0.6875rem;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--header-muted);
-}
-
 .home-galaxy__lesson-title {
-  font-size: 1.375rem;
-  line-height: 1.2;
+  font-size: 1.25rem;
+  line-height: 1.25;
   color: var(--foreground);
 }
 
@@ -2443,9 +2438,11 @@ body {
 .home-galaxy__lesson-meta-value {
   display: block;
   margin-top: 0.125rem;
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   font-weight: 700;
+  line-height: 1.25;
   color: var(--foreground);
+  overflow-wrap: anywhere;
 }
 
 .home-galaxy__lesson-cta {
