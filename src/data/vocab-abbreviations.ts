@@ -8,6 +8,7 @@ export const ABBREV_TO_CANONICAL: Readonly<Record<string, string>> = {
   auto: "automobile",
   bio: "biology",
   chem: "chemistry",
+  cos: "because",
   demo: "demonstration",
   doc: "document",
   dorm: "dormitory",
