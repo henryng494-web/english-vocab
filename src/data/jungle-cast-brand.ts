@@ -13,13 +13,13 @@ export const APP_MASCOT_BRAND = {
 
 /** Splash: official Jungle Jokers welcome splash illustration. */
 export const WELCOME_SPLASH_ART = {
-  path: "/mascot/welcome/welcome-splash.png?v=jungle9",
+  path: "/mascot/welcome/welcome-galaxy-hero.jpg?v=galaxy1",
   mode: "illustration" as const,
 } as const;
 
 /** @deprecated use WELCOME_SPLASH_ART */
 export const WELCOME_SPLASH_IMAGE = {
-  path: "/mascot/welcome/welcome-splash.png?v=jungle9",
+  path: "/mascot/welcome/welcome-galaxy-hero.jpg?v=galaxy1",
   alt: "Jungle Jokers mascots welcome illustration",
   mode: "illustration" as const,
 } as const;
