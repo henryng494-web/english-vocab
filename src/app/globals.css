@@ -360,19 +360,26 @@ body {
 
 .card-details__face--family {
   transform: rotateY(180deg);
-  display: flex;
-  flex-direction: row;
-  align-items: flex-start;
-  gap: 1rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  column-gap: 1.25rem;
+  align-items: start;
   margin: 0;
   padding: 0.1rem 0;
 }
 
-.card-family__column,
-.card-similar__column {
+.card-family__column {
+  grid-column: 1;
   display: flex;
   min-width: 0;
-  flex: 1 1 0;
+  flex-direction: column;
+  gap: var(--chunk-label-gap, 0.28rem);
+}
+
+.card-similar__column {
+  grid-column: 2;
+  display: flex;
+  min-width: 0;
   flex-direction: column;
   gap: var(--chunk-label-gap, 0.28rem);
 }

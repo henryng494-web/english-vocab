@@ -137,39 +137,43 @@ export function WordCardDetails({
 
           {canFlip ? (
             <div className="card-details__face card-details__face--family">
-              {rows.length > 0 ? (
-                <section className="card-family__column">
-                  <h3 className="word-learning-chunks__label">{t("card.wordForms")}</h3>
-                  <ul className="card-family__list">
-                    {rows.map((item) => {
-                      const pos =
-                        POS_ABBREV[item.pos] ?? (item.pos ? `${item.pos}.` : "");
-                      return (
-                        <li key={item.word} className="card-family__row">
-                          <span className="card-family__word">
-                            {capitalizeFirst(item.word)}
-                          </span>
-                          {pos ? (
-                            <span className="card-family__meta"> — {pos}</span>
-                          ) : null}
+              <section className="card-family__column">
+                {rows.length > 0 ? (
+                  <>
+                    <h3 className="word-learning-chunks__label">{t("card.wordForms")}</h3>
+                    <ul className="card-family__list">
+                      {rows.map((item) => {
+                        const pos =
+                          POS_ABBREV[item.pos] ?? (item.pos ? `${item.pos}.` : "");
+                        return (
+                          <li key={item.word} className="card-family__row">
+                            <span className="card-family__word">
+                              {capitalizeFirst(item.word)}
+                            </span>
+                            {pos ? (
+                              <span className="card-family__meta"> — {pos}</span>
+                            ) : null}
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </>
+                ) : null}
+              </section>
+              <section className="card-similar__column">
+                {similar.length > 0 ? (
+                  <>
+                    <h3 className="word-learning-chunks__label">{t("card.similarWords")}</h3>
+                    <ul className="card-similar__list">
+                      {similar.map((item) => (
+                        <li key={item} className="card-similar__row">
+                          {capitalizeFirst(item)}
                         </li>
-                      );
-                    })}
-                  </ul>
-                </section>
-              ) : null}
-              {similar.length > 0 ? (
-                <section className="card-similar__column">
-                  <h3 className="word-learning-chunks__label">{t("card.similarWords")}</h3>
-                  <ul className="card-similar__list">
-                    {similar.map((item) => (
-                      <li key={item} className="card-similar__row">
-                        {capitalizeFirst(item)}
-                      </li>
-                    ))}
-                  </ul>
-                </section>
-              ) : null}
+                      ))}
+                    </ul>
+                  </>
+                ) : null}
+              </section>
             </div>
           ) : null}
         </div>
