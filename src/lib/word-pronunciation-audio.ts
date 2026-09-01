@@ -207,7 +207,10 @@ export function getCachedWordAudioUrl(word: string): string | null {
 }
 
 /** Warm audio src while the card is visible (no play — iOS blocks that). */
-export function preloadWordAudioElement(word: string, _url?: string | null): void {
+export function preloadWordAudioElement(
+  word: string,
+  options?: { force?: boolean },
+): void {
   if (typeof window === "undefined") return;
   const key = cacheKey(word);
   if (!key) return;
@@ -215,8 +218,12 @@ export function preloadWordAudioElement(word: string, _url?: string | null): voi
   const audio = getAudioElement();
   if (!audio) return;
 
-  // Never hijack the shared element while another word is playing.
-  if (isSharedAudioPlaying() && audio.dataset.wordKey !== key) {
+  // Never hijack the shared element while another word is playing (unless forced).
+  if (
+    !options?.force &&
+    isSharedAudioPlaying() &&
+    audio.dataset.wordKey !== key
+  ) {
     return;
   }
 
@@ -224,6 +231,10 @@ export function preloadWordAudioElement(word: string, _url?: string | null): voi
   if (!src) return;
 
   if (audio.dataset.wordKey !== key || !audioSrcMatches(audio, src)) {
+    if (options?.force && isSharedAudioPlaying()) {
+      audio.pause();
+      audio.currentTime = 0;
+    }
     audio.dataset.wordKey = key;
     audio.src = src;
     audio.load();
@@ -426,7 +437,8 @@ export async function playWordAudioWhenReady(
 
   if (isWordAudioPlaying(word)) return true;
 
-  preloadWordAudioElement(word);
+  stopWordAudio();
+  preloadWordAudioElement(word, { force: true });
 
   if (!isWordAudioElementReady(word)) {
     const ready = await waitForAudioElementReady(word, timeoutMs);

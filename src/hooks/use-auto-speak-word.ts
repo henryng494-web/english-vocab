@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  cancelSpeech,
   preloadWordPronunciation,
   speakEnglishTextAuto,
 } from "@/lib/speak-word";
@@ -8,6 +9,9 @@ import { useAutoSpeakSetting } from "@/context/AppSettingsContext";
 import { useEffect } from "react";
 
 let autoSpeakGeneration = 0;
+
+/** Wait for card to settle before speaking — fast swipes only pronounce the last word. */
+const AUTO_SPEAK_SETTLE_MS = 140;
 
 /** Auto-pronounce when `text` changes (new word card). Respects menu setting. */
 export function useAutoSpeakWord(
@@ -18,23 +22,25 @@ export function useAutoSpeakWord(
   const active = enabled && autoSpeakEnabled;
 
   useEffect(() => {
-    if (!active) return;
+    if (!active) {
+      cancelSpeech();
+      return;
+    }
 
     const trimmed = text?.trim() ?? "";
     if (!trimmed) return;
 
     const generation = ++autoSpeakGeneration;
+    cancelSpeech();
     preloadWordPronunciation(trimmed);
 
-    // One animation frame — lets the card paint, then speak as soon as bytes are warm.
-    const frame = window.requestAnimationFrame(() => {
+    const timer = window.setTimeout(() => {
       if (generation !== autoSpeakGeneration) return;
       speakEnglishTextAuto(trimmed);
-    });
+    }, AUTO_SPEAK_SETTLE_MS);
 
-    // Intentionally no effect cleanup: Strict Mode re-runs bump generation above.
     return () => {
-      window.cancelAnimationFrame(frame);
+      window.clearTimeout(timer);
     };
   }, [text, active]);
 }

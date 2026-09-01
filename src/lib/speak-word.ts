@@ -16,9 +16,9 @@ let speakRequestId = 0;
 
 const DEDUPE_MS = 1800;
 const SPEECH_UNLOCK_KEY = "ev-speech-unlocked";
-const AUTO_MP3_WAIT_MS = 2200;
-const AUTO_MP3_WAIT_BLOB_MS = 600;
-const AUTO_MP3_RETRY_MS = 3200;
+const AUTO_MP3_WAIT_MS = 1600;
+const AUTO_MP3_WAIT_BLOB_MS = 450;
+const AUTO_MP3_RETRY_MS = 2400;
 
 let speechUnlocked = false;
 
@@ -78,10 +78,11 @@ async function speakMp3Auto(
   requestId: number,
 ): Promise<void> {
   const key = text.toLowerCase();
-  preloadWordAudioElement(text);
+  stopWordAudio();
+  preloadWordAudioElement(text, { force: true });
   await warmWordAudioBytes(text);
   if (!stillCurrentRequest(requestId, key)) return;
-  preloadWordAudioElement(text);
+  preloadWordAudioElement(text, { force: true });
   if (isWordAudioPlaying(text)) return;
 
   if (await playWordAudioWhenReady(text, autoSpeakWaitMs(text))) return;
@@ -90,7 +91,7 @@ async function speakMp3Auto(
 
   await warmWordAudioBytes(text, { bustCache: true });
   if (!stillCurrentRequest(requestId, key)) return;
-  preloadWordAudioElement(text);
+  preloadWordAudioElement(text, { force: true });
   await playWordAudioWhenReady(text, AUTO_MP3_RETRY_MS);
 }
 
@@ -101,6 +102,7 @@ export function speakEnglishTextAuto(text: string): void {
 
   if (isAppleWebKit() && !isSpeechUnlocked()) return;
 
+  stopWordAudio();
   const key = trimmed.toLowerCase();
   lastSpoken = { text: key, at: Date.now() };
   speakRequestId += 1;
