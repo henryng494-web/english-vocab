@@ -1,6 +1,6 @@
 "use client";
 
-import { WELCOME_SPLASH_ART } from "@/data/jungle-cast-brand";
+import { HOME_GALAXY_HERO_ART } from "@/data/jungle-cast-brand";
 import { displayFontClass } from "@/lib/fonts";
 import type { GoalType } from "@/lib/app-settings";
 import {
@@ -128,7 +128,7 @@ export function HomeGalaxyScreen(props: HomeGalaxyScreenProps) {
     <div className="home-galaxy">
       <header
         className="home-galaxy__hero"
-        style={{ backgroundImage: `url(${WELCOME_SPLASH_ART.path})` }}
+        style={{ backgroundImage: `url(${HOME_GALAXY_HERO_ART.path})` }}
       >
         <div className="home-galaxy__hero-overlay" />
         <p className={`home-galaxy__hero-text ${displayFontClass}`}>{t("home.galaxyHero")}</p>
