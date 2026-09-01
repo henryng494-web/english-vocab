@@ -1,6 +1,7 @@
 "use client";
 
-import { HOME_GALAXY_HERO_ART } from "@/data/jungle-cast-brand";
+import Image from "next/image";
+import { MASCOT_SPLASH_PATHS } from "@/data/jungle-cast-brand";
 import { displayFontClass } from "@/lib/fonts";
 import type { GoalType } from "@/lib/app-settings";
 import {
@@ -12,6 +13,13 @@ import {
 } from "@/lib/weekly-streak";
 import { useI18n } from "@/hooks/use-i18n";
 import { useSyncExternalStore } from "react";
+
+const HOME_HERO_MASCOTS = [
+  { id: "monkey", src: MASCOT_SPLASH_PATHS.monkey, width: 52, height: 64, className: "home-galaxy__hero-mascot home-galaxy__hero-mascot--monkey" },
+  { id: "elephant", src: MASCOT_SPLASH_PATHS.elephant, width: 56, height: 68, className: "home-galaxy__hero-mascot home-galaxy__hero-mascot--elephant" },
+  { id: "crocodile", src: MASCOT_SPLASH_PATHS.crocodile, width: 78, height: 30, className: "home-galaxy__hero-mascot home-galaxy__hero-mascot--crocodile" },
+  { id: "tiger", src: MASCOT_SPLASH_PATHS.tiger, width: 50, height: 48, className: "home-galaxy__hero-mascot home-galaxy__hero-mascot--tiger" },
+] as const;
 
 export type HomeGalaxyScreenProps = {
   rangeLabel: string;
@@ -126,12 +134,21 @@ export function HomeGalaxyScreen(props: HomeGalaxyScreenProps) {
 
   return (
     <div className="home-galaxy">
-      <header
-        className="home-galaxy__hero"
-        style={{ backgroundImage: `url(${HOME_GALAXY_HERO_ART.path})` }}
-      >
-        <div className="home-galaxy__hero-overlay" />
+      <header className="home-galaxy__hero">
         <p className={`home-galaxy__hero-text ${displayFontClass}`}>{t("home.galaxyHero")}</p>
+        <div className="home-galaxy__hero-cast" aria-hidden>
+          {HOME_HERO_MASCOTS.map((mascot) => (
+            <Image
+              key={mascot.id}
+              src={mascot.src}
+              alt=""
+              width={mascot.width}
+              height={mascot.height}
+              unoptimized
+              className={mascot.className}
+            />
+          ))}
+        </div>
       </header>
 
       <div className="home-galaxy__sheet">

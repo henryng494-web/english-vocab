@@ -24,10 +24,10 @@ export const WELCOME_SPLASH_IMAGE = {
   mode: "illustration" as const,
 } as const;
 
-/** Home galaxy hero banner — separate from boot welcome splash. */
+/** @deprecated Home galaxy uses inline mascot strip — kept for legacy references. */
 export const HOME_GALAXY_HERO_ART = {
-  path: "/mascot/welcome/welcome-galaxy-hero.jpg?v=galaxy1",
-  mode: "illustration" as const,
+  path: "/mascot/welcome/welcome-01-park.jpg",
+  mode: "photo" as const,
 } as const;
 
 /** Hex colors — use in UI theming. */
