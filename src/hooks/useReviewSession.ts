@@ -65,9 +65,20 @@ export type ReviewSessionState = {
   error: string | null;
 };
 
+const INITIAL_REVIEW_STATE: ReviewSessionState = {
+  ready: false,
+  loading: true,
+  enriching: false,
+  dueReady: false,
+  dueCount: 0,
+  queue: [],
+  pool: [],
+  error: null,
+};
+
 export function useReviewSession() {
   const enrichGenRef = useRef(0);
-  const [state, setState] = useState<ReviewSessionState>(readInstantReviewState);
+  const [state, setState] = useState<ReviewSessionState>(INITIAL_REVIEW_STATE);
 
   const apply = useCallback(
     (
@@ -133,7 +144,16 @@ export function useReviewSession() {
         dueReady: firstCardDueReady(instantQueue),
       });
     } else {
-      setState((prev) => ({ ...prev, loading: true, error: null }));
+      const cached = readInstantReviewState();
+      if (cached.queue.length > 0) {
+        apply(cached.dueCount, cached.queue, cached.pool, null, {
+          loading: false,
+          enriching: true,
+          dueReady: cached.dueReady,
+        });
+      } else {
+        setState((prev) => ({ ...prev, loading: true, error: null }));
+      }
     }
 
     const enrichGen = enrichGenRef.current + 1;

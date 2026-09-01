@@ -260,6 +260,7 @@ export function reviewQuizKindForIndex(index: number): ReviewQuizKind {
 
 type ReviewPoolWord = SenseSource & {
   family_head?: string | null;
+  examples?: string | null;
 };
 
 /** Build quiz kind + choices for a review slot (shared by UI and image prefetch). */
@@ -279,7 +280,15 @@ export function buildReviewQuestionPlan(
       choices = senseChoices;
     }
   } else if (wanted === "recall") {
-    kind = "recall";
+    const recallSentence = pickReviewRecallSentence(
+      word.word,
+      word.examples,
+      word.vietnamese_meaning,
+      word.word_type,
+    );
+    if (recallSentence.trim()) {
+      kind = "recall";
+    }
   }
 
   if (kind === "word") {

@@ -40,7 +40,6 @@ import {
 } from "@/lib/image-preload";
 import { preloadWordPronunciations } from "@/lib/pronunciation-preload";
 import { unlockSpeechFromUserGesture } from "@/lib/speak-word";
-import { getTodayReviewsCompleted } from "@/lib/daily-reviews";
 import { getGoalProgressSnapshot, subscribeGoalProgress } from "@/lib/goal-progress";
 import { getCurrentStreak, subscribeStreak, syncStreak } from "@/lib/streak";
 import {
@@ -64,7 +63,6 @@ import { useI18n } from "@/hooks/use-i18n";
 import {
   readDailySession,
   recordDailyNewWord,
-  type DailySession,
 } from "@/lib/daily-session";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -104,7 +102,6 @@ export default function DiscoverPage() {
   const isDailyJourney =
     inSession &&
     (searchParams.get("daily") === "1" || readDailySession()?.phase === "journey");
-  const [dailySession, setDailySession] = useState<DailySession | null>(null);
   const [rangeId, setRangeId] = useState(DEFAULT_BOOTSTRAP_RANGE);
   const [queue, setQueue] = useState<DiscoverListItem[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -116,7 +113,6 @@ export default function DiscoverPage() {
   const [wordsKnown, setWordsKnown] = useState(0);
   const [wordsReviewing, setWordsReviewing] = useState(0);
   const [todayLearned, setTodayLearned] = useState(0);
-  const [todayReviews, setTodayReviews] = useState(0);
   const goalProgress = useSyncExternalStore(
     subscribeGoalProgress,
     getGoalProgressSnapshot,
@@ -131,13 +127,6 @@ export default function DiscoverPage() {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const inflightSaves = useRef(new Set<string>());
   const onboardingChecked = useRef(false);
-
-  useEffect(() => {
-    const refreshSession = () => setDailySession(readDailySession());
-    refreshSession();
-    window.addEventListener("daily-session-changed", refreshSession);
-    return () => window.removeEventListener("daily-session-changed", refreshSession);
-  }, []);
 
   useEffect(() => {
     if (onboardingChecked.current) return;
@@ -167,7 +156,6 @@ export default function DiscoverPage() {
   useEffect(() => {
     const refreshCounts = () => {
       setTodayLearned(getTodayWordsLearned());
-      setTodayReviews(getTodayReviewsCompleted());
     };
     refreshCounts();
     window.addEventListener("daily-words-changed", refreshCounts);

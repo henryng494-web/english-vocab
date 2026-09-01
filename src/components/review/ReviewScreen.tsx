@@ -186,15 +186,6 @@ export function ReviewScreen() {
     router.replace("/journey?daily=1");
   }, [isDailySession, loading, queue.length, sessionDone, router]);
 
-  useEffect(() => {
-    if (!sessionDone || dailyRedirectRef.current) return;
-    if (!isDailySession || !isDailySessionPhase("review")) return;
-    if (queue.length === 0) return;
-    dailyRedirectRef.current = true;
-    finishReviewPhase(reviewInitialCountRef.current);
-    router.replace("/journey?daily=1");
-  }, [sessionDone, isDailySession, queue.length, router]);
-
   const mergePrefetchedSenseChoices = useCallback(
     (senseChoices: Map<number, ReviewChoice[]>) => {
       const q = queueRef.current;
