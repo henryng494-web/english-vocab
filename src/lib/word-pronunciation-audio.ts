@@ -66,7 +66,7 @@ function configureAudioElement(audio: HTMLAudioElement): void {
 
 function applyPlaybackRate(audio: HTMLAudioElement): void {
   const rate = getPronouncePlaybackRate();
-  audio.playbackRate = Number.isFinite(rate) && rate > 0 ? rate : 0.9;
+  audio.playbackRate = Number.isFinite(rate) && rate > 0 ? rate : 1;
 }
 
 function resolveAudioElement(): HTMLAudioElement | null {

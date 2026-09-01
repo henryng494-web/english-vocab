@@ -11,8 +11,8 @@ export const DEFAULT_PRONOUNCE_SPEED: PronounceSpeed = "medium";
 /** Client playback multiplier for MP3 pronunciation. */
 export const PRONOUNCE_SPEED_PLAYBACK: Record<PronounceSpeed, number> = {
   slow: 0.75,
-  medium: 0.9,
-  fast: 1,
+  medium: 1,
+  fast: 1.2,
 };
 
 export function isPronounceSpeed(value: unknown): value is PronounceSpeed {
