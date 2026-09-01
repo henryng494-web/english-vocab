@@ -1,4 +1,5 @@
 import { isDailyGoalMet } from "@/lib/goal-progress";
+import { markWeeklyGoalMetToday } from "@/lib/weekly-streak";
 
 const STORAGE_KEY = "vocab-streak-v1";
 
@@ -76,6 +77,7 @@ export function syncStreak(): number {
 
   if (goalMet) {
     if (state.lastGoalMetDate === today) {
+      markWeeklyGoalMetToday();
       return state.currentStreak;
     }
     const nextStreak =
@@ -86,6 +88,7 @@ export function syncStreak(): number {
       longestStreak: Math.max(state.longestStreak, nextStreak),
     };
     writeState(next);
+    markWeeklyGoalMetToday();
     return nextStreak;
   }
 

@@ -1,10 +1,23 @@
 "use client";
 
-import { HomeLayoutRenderer } from "@/components/discover/home-layouts/HomeLayoutRenderer";
-import type { HomeLayoutProps } from "@/components/discover/home-layouts/types";
+import type { GoalType } from "@/lib/app-settings";
+import { HomeGalaxyScreen } from "@/components/discover/HomeGalaxyScreen";
 
-type DiscoverDashboardProps = Omit<HomeLayoutProps, "rankProgress" | "preview"> & {
+type DiscoverDashboardProps = {
+  rangeLabel: string;
+  queueLength: number;
   currentIndex: number;
+  dueReviewCount: number;
+  wordsKnown: number;
+  wordsReviewing: number;
+  streakDays: number;
+  goalType: GoalType;
+  goalCurrent: number;
+  goalTarget: number;
+  todayWordsLearned: number;
+  onStartJourney: () => void;
+  onStartReview: () => void;
+  onOpenLibrary: () => void;
 };
 
 export function CoinBadge({
@@ -27,20 +40,14 @@ export function CoinBadge({
 export function DiscoverDashboard({
   currentIndex,
   queueLength,
-  ...layoutProps
+  ...props
 }: DiscoverDashboardProps) {
   const rankProgress =
     queueLength > 0 ? Math.round((currentIndex / queueLength) * 100) : 0;
 
   return (
-    <div className="home-scroll page-scroll home-scroll--fill">
-      <div className="home-content home-content--fill px-4">
-        <HomeLayoutRenderer
-          {...layoutProps}
-          queueLength={queueLength}
-          rankProgress={rankProgress}
-        />
-      </div>
+    <div className="home-scroll home-scroll--galaxy">
+      <HomeGalaxyScreen {...props} queueLength={queueLength} rankProgress={rankProgress} />
     </div>
   );
 }
