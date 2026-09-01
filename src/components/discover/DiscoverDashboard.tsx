@@ -1,27 +1,12 @@
 "use client";
 
-import { JungleMascot, JungleCastPill } from "@/components/mascot/JungleMascot";
+import { HomeLayoutRenderer } from "@/components/discover/home-layouts/HomeLayoutRenderer";
+import type { HomeLayoutProps } from "@/components/discover/home-layouts/types";
+import Link from "next/link";
 import { useI18n } from "@/hooks/use-i18n";
-import type { GoalType } from "@/lib/app-settings";
-import { displayFontClass } from "@/lib/fonts";
 
-type DiscoverDashboardProps = {
-  rangeLabel: string;
-  queueLength: number;
+type DiscoverDashboardProps = Omit<HomeLayoutProps, "rankProgress" | "preview"> & {
   currentIndex: number;
-  dueReviewCount: number;
-  wordsKnown: number;
-  wordsReviewing: number;
-  streakDays: number;
-  goalType: GoalType;
-  goalCurrent: number;
-  goalTarget: number;
-  todayWordsLearned: number;
-  sessionInProgress?: boolean;
-  onStartToday: () => void;
-  onStartJourney: () => void;
-  onStartReview: () => void;
-  onOpenLibrary: () => void;
 };
 
 export function CoinBadge({
@@ -41,197 +26,26 @@ export function CoinBadge({
   );
 }
 
-function ProgressBar({
-  value,
-  max,
-  colorClass = "bg-primary",
-}: {
-  value: number;
-  max: number;
-  colorClass?: string;
-}) {
-  const pct = max > 0 ? Math.min(100, Math.round((value / max) * 100)) : 0;
-  return (
-    <div className="ui-progress">
-      <div className={`ui-progress__fill ${colorClass}`} style={{ width: `${pct}%` }} />
-    </div>
-  );
-}
-
 export function DiscoverDashboard({
-  rangeLabel,
-  queueLength,
   currentIndex,
-  dueReviewCount,
-  wordsKnown,
-  wordsReviewing,
-  streakDays,
-  goalType,
-  goalCurrent,
-  goalTarget,
-  todayWordsLearned,
-  sessionInProgress = false,
-  onStartToday,
-  onStartJourney,
-  onStartReview,
-  onOpenLibrary,
+  queueLength,
+  ...layoutProps
 }: DiscoverDashboardProps) {
-  const { t, goalTypeLabel } = useI18n();
+  const { t } = useI18n();
   const rankProgress =
     queueLength > 0 ? Math.round((currentIndex / queueLength) * 100) : 0;
-  const goalMet = goalTarget > 0 && goalCurrent >= goalTarget;
-  const canStartToday = dueReviewCount > 0 || queueLength > 0 || sessionInProgress;
-
-  const progressLabel = (() => {
-    if (goalType === "new_words") {
-      return t("home.wordsProgress", { current: goalCurrent, goal: goalTarget });
-    }
-    if (goalType === "reviews") {
-      return t("home.reviewsProgress", { current: goalCurrent, goal: goalTarget });
-    }
-    return t("home.minutesProgress", { current: goalCurrent, goal: goalTarget });
-  })();
-
-  const todayStatus = (() => {
-    if (goalMet) {
-      if (goalType === "reviews") {
-        return t("home.todayGoalDoneReviews", { reviews: goalCurrent });
-      }
-      return t("home.todayGoalDoneWords", { learned: todayWordsLearned });
-    }
-    if (dueReviewCount > 0) {
-      return t("home.todayStatusDue", {
-        due: dueReviewCount,
-        learned: todayWordsLearned,
-      });
-    }
-    return t("home.todayStatusCalm", { learned: todayWordsLearned });
-  })();
-
-  const primaryCta = goalMet
-    ? t("home.continueLearning")
-    : canStartToday
-      ? t("home.startSession")
-      : t("home.doneToday");
-
-  const goalStatValue = goalMet ? "✓" : `${goalCurrent}/${goalTarget}`;
 
   return (
     <div className="home-scroll page-scroll">
       <div className="home-content px-4">
-        <section className="home-card home-today home-today--compact border-primary-200 bg-primary-50/30">
-          <div className="home-today__head">
-            <div>
-              <div className="mb-2">
-                <JungleCastPill size={20} />
-              </div>
-              <h2 className={`home-section-title ${displayFontClass}`}>{t("home.today")}</h2>
-              <p className="home-body-text mt-1">{todayStatus}</p>
-            </div>
-            <JungleMascot character="tiger" size={56} title="Jungle Jokers Tiger" />
-          </div>
-
-          <ProgressBar
-            value={goalCurrent}
-            max={goalTarget}
-            colorClass="bg-accent"
-          />
-          <p className="home-body-text mt-2 text-sm text-foreground/60">{progressLabel}</p>
-
-          <button
-            type="button"
-            onClick={onStartToday}
-            disabled={!canStartToday && !goalMet}
-            className="btn-pill-primary mt-4 w-full"
-          >
-            {primaryCta} →
-          </button>
-        </section>
-
-        <section>
-          <div className="home-section-header">
-            <h3 className="home-section-label">{t("home.flows")}</h3>
-          </div>
-          <div className="home-flow-grid">
-            <button
-              type="button"
-              onClick={onStartJourney}
-              disabled={queueLength === 0}
-              className="home-card home-flow-card home-flow-card--compact border-primary-200 bg-primary-50/40 hover:bg-primary-50 transition text-left"
-            >
-              <span className="home-stat-icon text-primary" aria-hidden>
-                📖
-              </span>
-              <p className="home-flow-card__title">{t("home.flowNew")}</p>
-              <p className="home-flow-card__meta">{rangeLabel}</p>
-              <p className="home-flow-card__detail">
-                {t("home.flowNewLeft", { count: queueLength })}
-              </p>
-              <ProgressBar value={rankProgress} max={100} colorClass="bg-primary" />
-            </button>
-
-            <button
-              type="button"
-              onClick={onStartReview}
-              className="home-card home-flow-card home-flow-card--compact border-secondary-200 bg-secondary-50/40 hover:bg-secondary-50 transition text-left"
-            >
-              <span className="home-stat-icon text-secondary" aria-hidden>
-                🔁
-              </span>
-              <p className="home-flow-card__title">{t("home.flowReview")}</p>
-              <p className="home-flow-card__meta">
-                {dueReviewCount > 0
-                  ? t("home.flowReviewDue", { count: dueReviewCount })
-                  : t("home.flowReviewNone")}
-              </p>
-              <p className="home-flow-card__detail">{t("home.flowReviewDetail")}</p>
-            </button>
-
-            <button
-              type="button"
-              onClick={onOpenLibrary}
-              className="home-card home-flow-card home-flow-card--compact border-pink-200 bg-pink-50/40 hover:bg-pink-50 transition text-left"
-            >
-              <span className="home-stat-icon text-pink-600" aria-hidden>
-                📚
-              </span>
-              <p className="home-flow-card__title">{t("home.flowLibrary")}</p>
-              <p className="home-flow-card__meta">
-                {t("home.flowLibraryKnown", { count: wordsKnown })}
-              </p>
-              <p className="home-flow-card__detail">
-                {t("home.flowLibraryReview", { count: wordsReviewing })}
-              </p>
-            </button>
-          </div>
-        </section>
-
-        <section>
-          <div className="home-section-header">
-            <h3 className="home-section-label">{t("home.progress")}</h3>
-          </div>
-          <div className="home-stat-grid home-stat-grid--duo">
-            <div className="home-card home-stat-card border-secondary-200 bg-secondary-50/50">
-              <span className="home-stat-icon text-xl" aria-hidden>
-                🔥
-              </span>
-              <p className="home-stat-label text-secondary-800">{t("home.streak")}</p>
-              <p className={`home-stat-value text-secondary-700 ${displayFontClass}`}>
-                {t("home.streakDays", { count: streakDays })}
-              </p>
-            </div>
-
-            <div className="home-card home-stat-card border-accent-200 bg-accent-50/50">
-              <span className="home-stat-icon text-xl" aria-hidden>
-                🎯
-              </span>
-              <p className="home-stat-label text-accent-800">{goalTypeLabel(goalType)}</p>
-              <p className={`home-stat-value text-accent-700 ${displayFontClass}`}>
-                {goalStatValue}
-              </p>
-            </div>
-          </div>
-        </section>
+        <HomeLayoutRenderer
+          {...layoutProps}
+          queueLength={queueLength}
+          rankProgress={rankProgress}
+        />
+        <p className="home-layout-gallery-link">
+          <Link href="/discover/layouts">{t("home.layoutGalleryLink")}</Link>
+        </p>
       </div>
     </div>
   );

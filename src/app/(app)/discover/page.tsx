@@ -60,16 +60,10 @@ import {
   subscribeReviewDueCount,
 } from "@/lib/review-due-store";
 import { OnboardingModal } from "@/components/onboarding/OnboardingModal";
-import {
-  DailySessionSummary,
-} from "@/components/study/DailySessionSummary";
 import { useI18n } from "@/hooks/use-i18n";
 import {
-  dailySessionQuery,
-  dailySessionRoute,
   readDailySession,
   recordDailyNewWord,
-  resumeOrStartDailySession,
   type DailySession,
 } from "@/lib/daily-session";
 import Link from "next/link";
@@ -648,8 +642,6 @@ export default function DiscoverPage() {
           <div className="flex flex-1 items-center justify-center">
             <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary-100 border-t-primary" />
           </div>
-        ) : dailySession?.phase === "summary" ? (
-          <DailySessionSummary session={dailySession} />
         ) : (
           <DiscoverDashboard
             rangeLabel={rangeLabel}
@@ -663,11 +655,6 @@ export default function DiscoverPage() {
             goalCurrent={goalProgress.current}
             goalTarget={goalProgress.target}
             todayWordsLearned={todayLearned}
-            sessionInProgress={dailySession != null}
-            onStartToday={() => {
-              const session = resumeOrStartDailySession(dueReviewCount);
-              router.push(`${dailySessionRoute(session)}${dailySessionQuery(session)}`);
-            }}
             onStartJourney={() => router.push("/journey")}
             onStartReview={() => router.push("/learn")}
             onOpenLibrary={() => router.push("/words")}
