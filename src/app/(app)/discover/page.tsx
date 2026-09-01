@@ -21,10 +21,12 @@ import {
   fetchDiscoverWordDetail,
   filterDiscoverQueue,
   listItemToDiscoverData,
+  repairDiscoverWordDetail,
   type DiscoverListItem,
 } from "@/lib/discover-fetch";
 import {
   isCacheEntryValid,
+  isCardContentReady,
   isWordDetailComplete,
   loadPersistedWordCache,
   persistWordCache,
@@ -237,7 +239,7 @@ export default function DiscoverPage() {
   const fetchWordFromApi = useCallback(
     async (item: DiscoverListItem): Promise<DiscoverWordData> => {
       const loaded = await fetchDiscoverWordDetail(item);
-      if (isCacheEntryValid(loaded, item.word)) {
+      if (isCardContentReady(loaded, item.word)) {
         return loaded;
       }
       if (loaded.vietnamese_meaning?.trim()) {
@@ -250,13 +252,34 @@ export default function DiscoverPage() {
     [],
   );
 
+  const scheduleBackgroundRepair = useCallback(
+    (item: DiscoverListItem, loaded: DiscoverWordData) => {
+      if (isCardContentReady(loaded, item.word)) return;
+      void repairDiscoverWordDetail(item)
+        .then((repaired) => {
+          if (!isCardContentReady(repaired, item.word)) return;
+          wordCache.current.set(item.word, repaired);
+          persistWordCache(wordCache.current);
+          if (activeWordRef.current !== item.word) return;
+          setCurrentWord(repaired);
+          setLoadingWord(false);
+        })
+        .catch(() => {
+          /* keep partial card visible */
+        });
+    },
+    [],
+  );
+
   const ensureWordFetched = useCallback(
     async (item: DiscoverListItem): Promise<DiscoverWordData> => {
       const cached = wordCache.current.get(item.word);
-      if (isWordDetailComplete(cached, item.word)) {
-        return cached!;
+      if (cached && isCardContentReady(cached, item.word)) {
+        return cached;
       }
-      wordCache.current.delete(item.word);
+      if (cached && !isCardContentReady(cached, item.word)) {
+        wordCache.current.delete(item.word);
+      }
 
       const pending = inflight.current.get(item.word);
       if (pending) return pending;
@@ -264,7 +287,7 @@ export default function DiscoverPage() {
       const promise = fetchWordFromApi(item)
         .then((loaded) => {
           if (
-            !isCacheEntryValid(loaded, item.word) &&
+            !isCardContentReady(loaded, item.word) &&
             !loaded.vietnamese_meaning?.trim()
           ) {
             throw new Error(`Data mismatch for "${item.word}"`);
@@ -272,6 +295,7 @@ export default function DiscoverPage() {
           wordCache.current.set(item.word, loaded);
           persistWordCache(wordCache.current);
           preloadImageUrl(loaded.image_url);
+          scheduleBackgroundRepair(item, loaded);
           inflight.current.delete(item.word);
           return loaded;
         })
@@ -283,7 +307,7 @@ export default function DiscoverPage() {
       inflight.current.set(item.word, promise);
       return promise;
     },
-    [fetchWordFromApi],
+    [fetchWordFromApi, scheduleBackgroundRepair],
   );
 
   const preloadWords = useCallback(
@@ -315,21 +339,28 @@ export default function DiscoverPage() {
       activeWordRef.current = item.word;
 
       const cleanStub = listItemToDiscoverData(item);
-      setCurrentWord(cleanStub);
-      const hasTextPreview = Boolean(cleanStub.vietnamese_meaning?.trim());
-      setLoadingWord(!hasTextPreview);
-
       const cached = wordCache.current.get(item.word);
-      if (cached && !isCacheEntryValid(cached, item.word)) {
+      if (
+        cached &&
+        !isCacheEntryValid(cached, item.word) &&
+        !isCardContentReady(cached, item.word)
+      ) {
         wordCache.current.delete(item.word);
       }
 
-      if (isWordDetailComplete(cached, item.word)) {
-        setCurrentWord(cached!);
+      const readyCached = wordCache.current.get(item.word);
+      if (readyCached && isCardContentReady(readyCached, item.word)) {
+        setCurrentWord(readyCached);
         setLoadingWord(false);
-        preloadImageUrl(cached!.image_url);
+        preloadImageUrl(readyCached.image_url);
         return;
       }
+
+      setCurrentWord(cleanStub);
+      setLoadingWord(
+        Boolean(options?.fetchIfNeeded) &&
+          !isCardContentReady(cleanStub, item.word),
+      );
 
       if (options?.fetchIfNeeded) {
         ensureWordFetched(item)

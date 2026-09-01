@@ -1,13 +1,14 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { VocabExampleList } from "@/components/flashcard/VocabExampleList";
 import { WordLearningChunks } from "@/components/flashcard/WordLearningChunks";
 import { useI18n } from "@/hooks/use-i18n";
 import { useCardSimilarWords } from "@/hooks/use-card-similar-words";
 import { capitalizeFirst } from "@/lib/format-text";
-import { hasLearningChunks } from "@/lib/learning-chunks";
+import { resolveLearningChunks } from "@/lib/learning-chunks";
 import { parseExamples } from "@/lib/parse-examples";
+import { keepNaturalExamples } from "@/lib/example-quality";
 import type { WordFamilyMember } from "@/types/database";
 import type { WordRegister } from "@/lib/word-meanings";
 
@@ -61,8 +62,15 @@ export function WordCardDetails({
   loading = false,
 }: WordCardDetailsProps) {
   const { t } = useI18n();
+  const chunkEntry = useMemo(
+    () => resolveLearningChunks(word, { examples, wordType, meaning }),
+    [word, examples, wordType, meaning],
+  );
+  const chunksOnly = Boolean(
+    (chunkEntry?.collocations.length ?? 0) > 0 ||
+      (chunkEntry?.chunks.length ?? 0) > 0,
+  );
   const parsed = loading ? [] : parseExamples(examples);
-  const chunksOnly = hasLearningChunks(word, { examples, wordType, meaning });
   const rows = (family ?? []).filter((item) => item.word.trim());
   const similar = useCardSimilarWords({
     word,
@@ -79,6 +87,15 @@ export function WordCardDetails({
   useEffect(() => {
     setShowFamily(false);
   }, [word]);
+
+  useEffect(() => {
+    if (loading) return;
+    const hasMeaningContent =
+      chunksOnly || keepNaturalExamples(word, parsed, wordType, meaning).length > 0;
+    if (!hasMeaningContent && canFlip) {
+      setShowFamily(true);
+    }
+  }, [word, loading, chunksOnly, parsed, wordType, meaning, canFlip]);
 
   if (loading) {
     return <DetailsLoadingSkeleton />;

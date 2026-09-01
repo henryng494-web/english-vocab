@@ -1,5 +1,6 @@
 import type { DiscoverWordData } from "@/components/discover/DiscoverCard";
-import { hasQualityExamples } from "@/lib/example-quality";
+import { hasQualityExamples, keepNaturalExamples } from "@/lib/example-quality";
+import { hasLearningChunks } from "@/lib/learning-chunks";
 import { hasQualityMeanings } from "@/lib/meaning-quality";
 import { parseExamples } from "@/lib/parse-examples";
 import {
@@ -132,6 +133,36 @@ export function isWordDetailComplete(
   if (isLegacyRegisterCollocation(data.collocations)) return false;
   if (hasEmbeddedRegisterHints(data.vietnamese_meaning)) return false;
   return true;
+}
+
+/** True when the card body can render meaning + examples/chunks (not an empty shell). */
+export function isCardContentReady(
+  data: DiscoverWordData | undefined,
+  expectedWord?: string,
+): boolean {
+  if (!data?.vietnamese_meaning?.trim()) return false;
+  if (expectedWord && data.word.toLowerCase() !== expectedWord.toLowerCase()) {
+    return false;
+  }
+  if (isWordDetailComplete(data, expectedWord)) return true;
+
+  const parsed = parseExamples(data.examples);
+  if (
+    keepNaturalExamples(
+      data.word,
+      parsed,
+      data.word_type,
+      data.vietnamese_meaning,
+    ).length > 0
+  ) {
+    return true;
+  }
+
+  return hasLearningChunks(data.word, {
+    examples: data.examples,
+    wordType: data.word_type,
+    meaning: data.vietnamese_meaning,
+  });
 }
 
 export function isCacheEntryValid(

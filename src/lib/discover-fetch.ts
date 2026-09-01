@@ -1,4 +1,5 @@
 import type { DiscoverWordData } from "@/components/discover/DiscoverCard";
+import { isCardContentReady } from "@/lib/discover-word-cache";
 import { resolveWordRegister } from "@/lib/word-meanings";
 import { DISCOVER_WORD_CACHE_VERSION, stubFromListItem } from "@/lib/discover-word-cache";
 import { meaningsNeedRegeneration } from "@/lib/meaning-quality";
@@ -132,6 +133,11 @@ export async function fetchDiscoverRange(
 }
 
 const DISCOVER_WORD_FETCH_TIMEOUT_MS = 25000;
+const DISCOVER_WORD_MAX_ATTEMPTS = 3;
+
+function wait(ms: number): Promise<void> {
+  return new Promise((resolve) => window.setTimeout(resolve, ms));
+}
 
 async function fetchDiscoverWordResponse(
   params: URLSearchParams,
@@ -149,6 +155,27 @@ async function fetchDiscoverWordResponse(
   } finally {
     window.clearTimeout(timer);
   }
+}
+
+function needsContentRepair(
+  word: string,
+  loaded: DiscoverWordData,
+): boolean {
+  return (
+    examplesNeedRegeneration(
+      word,
+      loaded.examples,
+      loaded.word_type,
+      loaded.vietnamese_meaning,
+    ) ||
+    meaningsNeedRegeneration(
+      word,
+      loaded.vietnamese_meaning,
+      loaded.word_type,
+      loaded.examples,
+      loaded.english_definition,
+    )
+  );
 }
 
 export async function fetchDiscoverWordDetail(
@@ -173,28 +200,39 @@ export async function fetchDiscoverWordDetail(
     return mapApiWordToDiscoverData(item, data.word);
   };
 
-  const loaded = await fetchOnce(options?.forceRepair ?? false);
-  const needsRepair =
-    !options?.bootstrap &&
-    !options?.forceRepair &&
-    (examplesNeedRegeneration(
-      item.word,
-      loaded.examples,
-      loaded.word_type,
-      loaded.vietnamese_meaning,
-    ) ||
-      meaningsNeedRegeneration(
-        item.word,
-        loaded.vietnamese_meaning,
-        loaded.word_type,
-        loaded.examples,
-        loaded.english_definition,
-      ));
+  let lastError: Error | null = null;
+  for (let attempt = 0; attempt < DISCOVER_WORD_MAX_ATTEMPTS; attempt += 1) {
+    try {
+      const forceRepair = (options?.forceRepair ?? false) || attempt > 0;
+      const loaded = await fetchOnce(forceRepair);
+      const needsRepair =
+        !options?.bootstrap &&
+        !forceRepair &&
+        needsContentRepair(item.word, loaded);
 
-  // Show the card as soon as we have a gloss — don't block on a second repair round-trip.
-  if (needsRepair && !loaded.vietnamese_meaning?.trim()) {
-    return fetchOnce(true);
+      if (!needsRepair || options?.forceRepair) {
+        return loaded;
+      }
+
+      if (isCardContentReady(loaded, item.word)) {
+        return loaded;
+      }
+
+      return fetchOnce(true);
+    } catch (error) {
+      lastError =
+        error instanceof Error ? error : new Error("Failed to load word");
+      if (attempt + 1 >= DISCOVER_WORD_MAX_ATTEMPTS) break;
+      await wait(400 * (attempt + 1));
+    }
   }
 
-  return loaded;
+  throw lastError ?? new Error(`Failed to load "${item.word}"`);
+}
+
+/** Repair examples/meanings in the background; resolves when enriched or unchanged. */
+export async function repairDiscoverWordDetail(
+  item: DiscoverListItem,
+): Promise<DiscoverWordData> {
+  return fetchDiscoverWordDetail(item, { forceRepair: true });
 }
