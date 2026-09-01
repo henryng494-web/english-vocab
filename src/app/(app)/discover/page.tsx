@@ -3,7 +3,6 @@
 import { VocabWordCard } from "@/components/discover/VocabWordCard";
 import type { DiscoverWordData } from "@/components/discover/DiscoverCard";
 import {
-  CoinBadge,
   DiscoverDashboard,
 } from "@/components/discover/DiscoverDashboard";
 import { AppHeader } from "@/components/layout/AppHeader";
@@ -630,7 +629,6 @@ export default function DiscoverPage() {
               <Link href="/search" className="app-header__icon-btn" aria-label={t("home.searchAria")}>
                 🔍
               </Link>
-              <CoinBadge value={wordsKnown} label={t("home.coinBadge")} />
             </div>
           }
         />
@@ -654,16 +652,13 @@ export default function DiscoverPage() {
           <DiscoverDashboard
             rangeLabel={rangeLabel}
             queueLength={queue.length}
-            currentIndex={currentIndex}
             dueReviewCount={dueReviewCount}
             wordsKnown={wordsKnown}
-            wordsReviewing={wordsReviewing}
             streakDays={streakDays}
             goalType={goalProgress.goalType}
             goalCurrent={goalProgress.current}
             goalTarget={goalProgress.target}
             todayWordsLearned={todayLearned}
-            todayReviewsCompleted={todayReviews}
             sessionInProgress={dailySession != null}
             onStartToday={() => {
               const session = resumeOrStartDailySession(dueReviewCount);
