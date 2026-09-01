@@ -39,7 +39,7 @@ import {
 import { preloadWordPronunciations } from "@/lib/pronunciation-preload";
 import { unlockSpeechFromUserGesture } from "@/lib/speak-word";
 import { getTodayReviewsCompleted } from "@/lib/daily-reviews";
-import { getGoalProgress, getGoalProgressSnapshot, subscribeGoalProgress } from "@/lib/goal-progress";
+import { getGoalProgressSnapshot, subscribeGoalProgress } from "@/lib/goal-progress";
 import { getCurrentStreak, subscribeStreak, syncStreak } from "@/lib/streak";
 import {
   getTodayWordsLearned,
@@ -90,6 +90,13 @@ function listItemImageTarget(item: DiscoverListItem): WordImagePrefetchTarget {
   };
 }
 
+const SERVER_GOAL_PROGRESS = {
+  goalType: "minutes" as const,
+  current: 0,
+  target: 20,
+  met: false,
+};
+
 export default function DiscoverPage() {
   const pathname = usePathname();
   const router = useRouter();
@@ -117,7 +124,7 @@ export default function DiscoverPage() {
   const goalProgress = useSyncExternalStore(
     subscribeGoalProgress,
     getGoalProgressSnapshot,
-    () => ({ goalType: "minutes" as const, current: 0, target: 20, met: false }),
+    () => SERVER_GOAL_PROGRESS,
   );
   const streakDays = useSyncExternalStore(subscribeStreak, getCurrentStreak, () => 0);
   const dueReviewCount = useSyncExternalStore(
@@ -142,6 +149,23 @@ export default function DiscoverPage() {
     const state = readOnboarding();
     setShowOnboarding(shouldShowOnboarding());
     if (state.completed) setRangeId(state.preferredRangeId);
+  }, []);
+
+  useEffect(() => {
+    const sync = () => syncStreak();
+    sync();
+    window.addEventListener("study-time-changed", sync);
+    window.addEventListener("daily-words-changed", sync);
+    window.addEventListener("daily-reviews-changed", sync);
+    window.addEventListener("app-settings-changed", sync);
+    window.addEventListener("focus", sync);
+    return () => {
+      window.removeEventListener("study-time-changed", sync);
+      window.removeEventListener("daily-words-changed", sync);
+      window.removeEventListener("daily-reviews-changed", sync);
+      window.removeEventListener("app-settings-changed", sync);
+      window.removeEventListener("focus", sync);
+    };
   }, []);
 
   useEffect(() => {

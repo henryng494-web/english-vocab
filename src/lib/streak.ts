@@ -52,7 +52,22 @@ function writeState(state: StreakState): void {
   window.dispatchEvent(new CustomEvent("streak-changed", { detail: state }));
 }
 
-/** Reconcile streak with today's goal progress and return active streak count. */
+/** Read-only streak for React snapshots — never writes during render. */
+export function getCurrentStreak(): number {
+  const state = readState();
+  const today = todayKey();
+  const yesterday = yesterdayKey();
+
+  if (state.lastGoalMetDate === today) {
+    return state.currentStreak;
+  }
+  if (state.lastGoalMetDate === yesterday) {
+    return state.currentStreak;
+  }
+  return 0;
+}
+
+/** Persist streak when daily goal progress changes (call from write paths only). */
 export function syncStreak(): number {
   const state = readState();
   const today = todayKey();
@@ -83,10 +98,6 @@ export function syncStreak(): number {
   return 0;
 }
 
-export function getCurrentStreak(): number {
-  return syncStreak();
-}
-
 export function subscribeStreak(onStoreChange: () => void): () => void {
   if (typeof window === "undefined") return () => {};
   const refresh = () => onStoreChange();
@@ -100,6 +111,7 @@ export function subscribeStreak(onStoreChange: () => void): () => void {
     window.removeEventListener("streak-changed", refresh);
     window.removeEventListener("study-time-changed", refresh);
     window.removeEventListener("daily-reviews-changed", refresh);
+    window.removeEventListener("daily-words-changed", refresh);
     window.removeEventListener("app-settings-changed", refresh);
     window.removeEventListener("focus", refresh);
   };

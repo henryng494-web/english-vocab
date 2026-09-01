@@ -57,9 +57,23 @@ export function isDailyGoalMet(settings?: AppSettings): boolean {
   return getGoalProgress(settings).met;
 }
 
+let cachedGoalProgress: GoalProgress | null = null;
+
+function goalProgressEqual(a: GoalProgress, b: GoalProgress): boolean {
+  return (
+    a.goalType === b.goalType &&
+    a.current === b.current &&
+    a.target === b.target &&
+    a.met === b.met
+  );
+}
+
 export function subscribeGoalProgress(onStoreChange: () => void): () => void {
   if (typeof window === "undefined") return () => {};
-  const refresh = () => onStoreChange();
+  const refresh = () => {
+    cachedGoalProgress = null;
+    onStoreChange();
+  };
   window.addEventListener("study-time-changed", refresh);
   window.addEventListener("daily-words-changed", refresh);
   window.addEventListener("daily-reviews-changed", refresh);
@@ -74,6 +88,12 @@ export function subscribeGoalProgress(onStoreChange: () => void): () => void {
   };
 }
 
+/** Stable snapshot reference for useSyncExternalStore. */
 export function getGoalProgressSnapshot(): GoalProgress {
-  return getGoalProgress();
+  const next = getGoalProgress();
+  if (cachedGoalProgress && goalProgressEqual(cachedGoalProgress, next)) {
+    return cachedGoalProgress;
+  }
+  cachedGoalProgress = next;
+  return next;
 }
