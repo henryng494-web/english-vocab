@@ -15,6 +15,7 @@ import {
   readHomeLayoutVariant,
   writeHomeLayoutVariant,
 } from "@/lib/home-layout-preference";
+import { LayoutWireframe } from "@/components/discover/home-layouts/LayoutWireframe";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -95,6 +96,8 @@ export function HomeLayoutGallery(props: HomeLayoutGalleryProps) {
             const isSelected = selected === variant;
             return (
               <div key={variant} className="home-layout-gallery__item">
+                <LayoutWireframe variant={variant} />
+                <p className="home-layout-gallery__preview-label">{t("home.layoutLivePreview")}</p>
                 <Layout {...layoutProps} variant={variant} />
                 <button
                   type="button"
