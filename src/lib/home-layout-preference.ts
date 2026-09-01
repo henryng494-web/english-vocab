@@ -1,8 +1,8 @@
 import type { HomeLayoutVariant } from "@/components/discover/home-layouts/types";
 import { HOME_LAYOUT_VARIANTS } from "@/components/discover/home-layouts/types";
 
-const STORAGE_KEY = "english-vocab-home-layout-v2";
-const DEFAULT_VARIANT: HomeLayoutVariant = "3";
+const STORAGE_KEY = "english-vocab-home-layout-v3";
+const DEFAULT_VARIANT: HomeLayoutVariant = "1";
 
 export function readHomeLayoutVariant(): HomeLayoutVariant {
   if (typeof window === "undefined") return DEFAULT_VARIANT;

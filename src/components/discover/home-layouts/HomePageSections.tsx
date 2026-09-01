@@ -1,462 +1,307 @@
 "use client";
 
-import { JungleMascot } from "@/components/mascot/JungleMascot";
+import { JungleCastPill, JungleMascot, type JungleMascotName } from "@/components/mascot/JungleMascot";
 import { displayFontClass } from "@/lib/fonts";
 import type { HomeLayoutProps } from "@/components/discover/home-layouts/types";
 import { ProgressBar, useHomeBannerCopy } from "@/components/discover/home-layouts/shared";
 
-type SectionProps = HomeLayoutProps & {
-  copy: ReturnType<typeof useHomeBannerCopy>;
-};
-
-export function HomeStatsBar({
-  streakDays,
-  wordsKnown,
-  onOpenLibrary,
-  t,
-}: Pick<HomeLayoutProps, "streakDays" | "wordsKnown" | "onOpenLibrary"> & {
-  t: ReturnType<typeof useHomeBannerCopy>["t"];
-}) {
-  return (
-    <div className="home-stats-bar">
-      <div className="home-stats-bar__item">
-        <span className="home-stats-bar__icon" aria-hidden>
-          🔥
-        </span>
-        <span className="home-stats-bar__label">{t("home.streak")}</span>
-        <span className={`home-stats-bar__value ${displayFontClass}`}>
-          {t("home.streakDays", { count: streakDays })}
-        </span>
-      </div>
-      <button
-        type="button"
-        className="home-stats-bar__item home-stats-bar__item--link"
-        onClick={onOpenLibrary}
-        title={t("home.coinBadge")}
-        aria-label={t("home.coinBadge")}
-      >
-        <span className="home-stats-bar__icon" aria-hidden>
-          🪙
-        </span>
-        <span className="home-stats-bar__label">{t("home.masteredShort")}</span>
-        <span className={`home-stats-bar__value ${displayFontClass}`}>
-          {wordsKnown.toLocaleString()}
-        </span>
-      </button>
-    </div>
-  );
-}
-
-export function HomeGoalBlock({ copy, goalCurrent, goalTarget }: Pick<SectionProps, "copy" | "goalCurrent" | "goalTarget">) {
-  return (
-    <section className="home-card home-today home-today--compact border-accent-200 bg-accent-50/30">
-      <h3 className="home-section-label">{copy.t("home.progress")}</h3>
-      <ProgressBar value={goalCurrent} max={goalTarget} colorClass="bg-accent" />
-      <p className="home-body-text mt-2 text-sm text-foreground/70">{copy.goalProgressLabel}</p>
-      <p className="home-body-text mt-1 text-sm text-foreground/60">{copy.bannerMeta}</p>
-    </section>
-  );
-}
-
-export function HomeNextReviewRow({
-  dueReviewCount,
-  onStartReview,
-  t,
-}: Pick<HomeLayoutProps, "dueReviewCount" | "onStartReview"> & {
-  t: ReturnType<typeof useHomeBannerCopy>["t"];
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onStartReview}
-      className="home-next-row border-secondary-200 bg-secondary-50/40 hover:bg-secondary-50 transition"
-    >
-      <span className="home-next-row__icon text-secondary" aria-hidden>
-        🔁
-      </span>
-      <span className="home-next-row__copy">
-        <span className="home-next-row__title">
-          {dueReviewCount > 0
-            ? t("home.nextReview", { count: dueReviewCount })
-            : t("home.flowReviewNone")}
-        </span>
-        <span className="home-next-row__meta">{t("home.flowReviewDetail")}</span>
-      </span>
-      <span className="home-next-row__chev" aria-hidden>
-        →
-      </span>
-    </button>
-  );
-}
-
-export function HomeNextLibraryRow({
-  wordsKnown,
-  wordsReviewing,
-  onOpenLibrary,
-  t,
-}: Pick<HomeLayoutProps, "wordsKnown" | "wordsReviewing" | "onOpenLibrary"> & {
-  t: ReturnType<typeof useHomeBannerCopy>["t"];
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onOpenLibrary}
-      className="home-next-row border-pink-200 bg-pink-50/40 hover:bg-pink-50 transition"
-    >
-      <span className="home-next-row__icon text-pink-600" aria-hidden>
-        📚
-      </span>
-      <span className="home-next-row__copy">
-        <span className="home-next-row__title">{t("home.flowLibrary")}</span>
-        <span className="home-next-row__meta">
-          {t("home.flowLibraryKnown", { count: wordsKnown })} ·{" "}
-          {t("home.flowLibraryReview", { count: wordsReviewing })}
-        </span>
-      </span>
-      <span className="home-next-row__chev" aria-hidden>
-        →
-      </span>
-    </button>
-  );
-}
-
-export function HomeNextSection({
-  props,
-  copy,
-  showReview = true,
-  showLibrary = true,
-}: {
-  props: HomeLayoutProps;
-  copy: ReturnType<typeof useHomeBannerCopy>;
-  showReview?: boolean;
-  showLibrary?: boolean;
-}) {
-  if (!showReview && !showLibrary) return null;
-  return (
-    <section className="home-next">
-      <h3 className="home-section-label">{copy.t("home.next")}</h3>
-      <div className="home-next-list">
-        {showReview ? (
-          <HomeNextReviewRow
-            dueReviewCount={props.dueReviewCount}
-            onStartReview={props.onStartReview}
-            t={copy.t}
-          />
-        ) : null}
-        {showLibrary ? (
-          <HomeNextLibraryRow
-            wordsKnown={props.wordsKnown}
-            wordsReviewing={props.wordsReviewing}
-            onOpenLibrary={props.onOpenLibrary}
-            t={copy.t}
-          />
-        ) : null}
-      </div>
-    </section>
-  );
-}
-
-export function HomeFlowReviewCard({
-  dueReviewCount,
-  onStartReview,
-  t,
-}: Pick<HomeLayoutProps, "dueReviewCount" | "onStartReview"> & {
-  t: ReturnType<typeof useHomeBannerCopy>["t"];
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onStartReview}
-      className="home-card home-flow-card home-flow-card--compact border-secondary-200 bg-secondary-50/40 hover:bg-secondary-50 transition text-left"
-    >
-      <span className="home-stat-icon text-secondary" aria-hidden>
-        🔁
-      </span>
-      <p className="home-flow-card__title">{t("home.flowReview")}</p>
-      <p className="home-flow-card__meta">
-        {dueReviewCount > 0
-          ? t("home.flowReviewDue", { count: dueReviewCount })
-          : t("home.flowReviewNone")}
-      </p>
-      <p className="home-flow-card__detail">{t("home.flowReviewDetail")}</p>
-    </button>
-  );
-}
-
-export function HomeFlowLibraryCard({
-  wordsKnown,
-  wordsReviewing,
-  onOpenLibrary,
-  t,
-}: Pick<HomeLayoutProps, "wordsKnown" | "wordsReviewing" | "onOpenLibrary"> & {
-  t: ReturnType<typeof useHomeBannerCopy>["t"];
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onOpenLibrary}
-      className="home-card home-flow-card home-flow-card--compact border-pink-200 bg-pink-50/40 hover:bg-pink-50 transition text-left"
-    >
-      <span className="home-stat-icon text-pink-600" aria-hidden>
-        📚
-      </span>
-      <p className="home-flow-card__title">{t("home.flowLibrary")}</p>
-      <p className="home-flow-card__meta">{t("home.flowLibraryKnown", { count: wordsKnown })}</p>
-      <p className="home-flow-card__detail">
-        {t("home.flowLibraryReview", { count: wordsReviewing })}
-      </p>
-    </button>
-  );
-}
-
-export function HomeFlowRankCard({
-  rangeLabel,
-  queueLength,
-  rankProgress,
-  t,
-}: Pick<HomeLayoutProps, "rangeLabel" | "queueLength" | "rankProgress"> & {
-  t: ReturnType<typeof useHomeBannerCopy>["t"];
-}) {
-  return (
-    <div className="home-card home-flow-card home-flow-card--compact border-primary-200 bg-primary-50/40 text-left">
-      <span className="home-stat-icon text-primary" aria-hidden>
-        📊
-      </span>
-      <p className="home-flow-card__title">{t("home.rankProgress")}</p>
-      <p className="home-flow-card__meta">{rangeLabel}</p>
-      <p className="home-flow-card__detail">{t("home.flowNewLeft", { count: queueLength })}</p>
-      <ProgressBar value={rankProgress} max={100} colorClass="bg-primary" />
-    </div>
-  );
-}
-
-export function HomeProgressDuo({
-  streakDays,
-  goalType,
-  goalCurrent,
-  goalTarget,
-  goalMet,
-  copy,
-}: Pick<SectionProps, "streakDays" | "goalType" | "goalCurrent" | "goalTarget" | "copy"> & {
-  goalMet: boolean;
-}) {
-  const goalStatValue = goalMet ? "✓" : `${goalCurrent}/${goalTarget}`;
-  return (
-    <section>
-      <div className="home-section-header">
-        <h3 className="home-section-label">{copy.t("home.progress")}</h3>
-      </div>
-      <div className="home-stat-grid home-stat-grid--duo">
-        <div className="home-card home-stat-card border-secondary-200 bg-secondary-50/50">
-          <span className="home-stat-icon text-xl" aria-hidden>
-            🔥
-          </span>
-          <p className="home-stat-label text-secondary-800">{copy.t("home.streak")}</p>
-          <p className={`home-stat-value text-secondary-700 ${displayFontClass}`}>
-            {copy.t("home.streakDays", { count: streakDays })}
-          </p>
-        </div>
-        <div className="home-card home-stat-card border-accent-200 bg-accent-50/50">
-          <span className="home-stat-icon text-xl" aria-hidden>
-            🎯
-          </span>
-          <p className="home-stat-label text-accent-800">{copy.goalTypeLabel(goalType)}</p>
-          <p className={`home-stat-value text-accent-700 ${displayFontClass}`}>{goalStatValue}</p>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-export function HomeStatQuad({
-  props,
-  copy,
-}: {
-  props: HomeLayoutProps;
-  copy: ReturnType<typeof useHomeBannerCopy>;
-}) {
+export function useHomePageCopy(props: HomeLayoutProps) {
   const goalMet = props.goalTarget > 0 && props.goalCurrent >= props.goalTarget;
-  const goalStatValue = goalMet ? "✓" : `${props.goalCurrent}/${props.goalTarget}`;
+  return useHomeBannerCopy({ ...props, goalMet });
+}
+
+function GoalRing({
+  current,
+  target,
+  label,
+}: {
+  current: number;
+  target: number;
+  label: string;
+}) {
+  const pct = target > 0 ? Math.min(100, Math.round((current / target) * 100)) : 0;
+  const dash = `${pct} 100`;
   return (
-    <div className="home-stat-grid home-stat-grid--quad">
-      <div className="home-card home-stat-card border-secondary-200 bg-secondary-50/50">
-        <span className="home-stat-icon text-xl" aria-hidden>
-          🔥
-        </span>
-        <p className="home-stat-label text-secondary-800">{copy.t("home.streak")}</p>
-        <p className={`home-stat-value text-secondary-700 ${displayFontClass}`}>
-          {copy.t("home.streakDays", { count: props.streakDays })}
-        </p>
-      </div>
-      <div className="home-card home-stat-card border-accent-200 bg-accent-50/50">
-        <span className="home-stat-icon text-xl" aria-hidden>
-          🎯
-        </span>
-        <p className="home-stat-label text-accent-800">{copy.goalTypeLabel(props.goalType)}</p>
-        <p className={`home-stat-value text-accent-700 ${displayFontClass}`}>{goalStatValue}</p>
-      </div>
-      <button
-        type="button"
-        onClick={props.onStartReview}
-        className="home-card home-stat-card home-stat-card--link border-primary-200 bg-primary-50/50"
-      >
-        <span className="home-stat-icon text-xl" aria-hidden>
-          🔁
-        </span>
-        <p className="home-stat-label text-primary-800">{copy.t("home.flowReview")}</p>
-        <p className={`home-stat-value text-primary-700 ${displayFontClass}`}>
-          {props.dueReviewCount}
-        </p>
-      </button>
-      <button
-        type="button"
-        onClick={props.onOpenLibrary}
-        className="home-card home-stat-card home-stat-card--link border-pink-200 bg-pink-50/50"
-      >
-        <span className="home-stat-icon text-xl" aria-hidden>
-          🪙
-        </span>
-        <p className="home-stat-label text-pink-800">{copy.t("home.masteredShort")}</p>
-        <p className={`home-stat-value text-pink-700 ${displayFontClass}`}>
-          {props.wordsKnown.toLocaleString()}
-        </p>
-      </button>
+    <div className="home-ins-ring" title={label}>
+      <svg viewBox="0 0 36 36" className="home-ins-ring__svg" aria-hidden>
+        <path
+          className="home-ins-ring__track"
+          d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+        />
+        <path
+          className="home-ins-ring__fill"
+          strokeDasharray={dash}
+          d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+        />
+      </svg>
+      <span className="home-ins-ring__label">{pct}%</span>
     </div>
   );
 }
 
-export function MonkeyBannerHero({ props, copy }: { props: HomeLayoutProps; copy: ReturnType<typeof useHomeBannerCopy> }) {
+function MascotCorner({
+  character,
+  size = 72,
+}: {
+  character: JungleMascotName;
+  size?: number;
+}) {
+  return <JungleMascot character={character} size={size} className="home-ins-mascot-corner" priority />;
+}
+
+/** 1 · Duolingo — streak nổi, vòng mục tiêu, thẻ bài xanh, hổ */
+export function InspiredHome1(props: HomeLayoutProps) {
+  const copy = useHomePageCopy(props);
+
   return (
-    <section className="home-layout-banner home-layout-banner--hero">
-      <div className="home-layout-banner__copy">
-        <p className="home-layout-banner__eyebrow">{copy.bannerSubtitle}</p>
-        <h2 className={`home-layout-banner__title ${displayFontClass}`}>{copy.bannerTitle}</h2>
-        <p className="home-layout-banner__meta">{copy.bannerMeta}</p>
-        <button
-          type="button"
-          className="btn-pill-primary home-layout-banner__cta"
-          disabled={props.queueLength === 0}
-          onClick={props.onStartJourney}
-        >
-          {copy.bannerCta} →
+    <div className="home-ins home-ins--duo">
+      <div className="home-ins-duo__top">
+        <div className="home-ins-streak-pill">
+          <span aria-hidden>🔥</span>
+          <span className={`home-ins-streak-pill__value ${displayFontClass}`}>
+            {copy.t("home.streakDays", { count: props.streakDays })}
+          </span>
+        </div>
+        <GoalRing
+          current={props.goalCurrent}
+          target={props.goalTarget}
+          label={copy.goalProgressLabel}
+        />
+      </div>
+
+      <button
+        type="button"
+        className="home-ins-lesson-card home-ins-lesson-card--duo"
+        disabled={props.queueLength === 0}
+        onClick={props.onStartJourney}
+      >
+        <MascotCorner character="tiger" size={80} />
+        <p className="home-ins-lesson-card__eyebrow">{copy.t("home.insTodayLesson")}</p>
+        <h2 className={`home-ins-lesson-card__title ${displayFontClass}`}>{copy.bannerTitle}</h2>
+        <p className="home-ins-lesson-card__meta">{copy.bannerSubtitle}</p>
+        <span className="home-ins-lesson-card__cta">{copy.bannerCta} →</span>
+      </button>
+
+      <div className="home-ins-duo__bottom">
+        <button type="button" className="home-ins-mini-card" onClick={props.onStartReview}>
+          <span className="home-ins-mini-card__icon">🔁</span>
+          <span className="home-ins-mini-card__title">{copy.t("home.flowReview")}</span>
+          <span className="home-ins-mini-card__meta">
+            {props.dueReviewCount > 0
+              ? copy.t("home.flowReviewDue", { count: props.dueReviewCount })
+              : copy.t("home.flowReviewNone")}
+          </span>
+        </button>
+        <button type="button" className="home-ins-mini-card" onClick={props.onOpenLibrary}>
+          <span className="home-ins-mini-card__icon">📚</span>
+          <span className="home-ins-mini-card__title">{copy.t("home.flowLibrary")}</span>
+          <span className="home-ins-mini-card__meta">
+            {copy.t("home.flowLibraryKnown", { count: props.wordsKnown })}
+          </span>
         </button>
       </div>
-      <JungleMascot character="monkey" size={96} className="home-layout-banner__mascot" priority />
-    </section>
+    </div>
   );
 }
 
-export function MonkeyBannerFloat({ props, copy }: { props: HomeLayoutProps; copy: ReturnType<typeof useHomeBannerCopy> }) {
+/** 2 · Babbel — bài học sạch, voi, danh sách hành động */
+export function InspiredHome2(props: HomeLayoutProps) {
+  const copy = useHomePageCopy(props);
+
   return (
-    <div className="home-layout-float-wrap">
-      <JungleMascot character="monkey" size={88} className="home-layout-float__mascot" />
-      <section className="home-layout-float-card">
-        <h2 className={`home-layout-float-card__title ${displayFontClass}`}>{copy.bannerTitle}</h2>
-        <p className="home-layout-float-card__sub">{copy.bannerSubtitle}</p>
-        <p className="home-layout-float-card__meta">{copy.bannerMeta}</p>
+    <div className="home-ins home-ins--babbel">
+      <p className="home-ins-section-kicker">{copy.t("home.insTodayFocus")}</p>
+      <section className="home-ins-babbel-card">
+        <MascotCorner character="elephant" size={64} />
+        <h2 className={`home-ins-babbel-card__title ${displayFontClass}`}>{copy.bannerTitle}</h2>
+        <p className="home-ins-babbel-card__sub">{copy.bannerSubtitle}</p>
+        <ProgressBar value={props.goalCurrent} max={props.goalTarget} colorClass="bg-accent" />
+        <p className="home-ins-babbel-card__progress">{copy.goalProgressLabel}</p>
         <button
           type="button"
           className="btn-pill-primary w-full mt-3"
           disabled={props.queueLength === 0}
           onClick={props.onStartJourney}
         >
-          {copy.bannerCta} →
+          {copy.bannerCta}
         </button>
       </section>
+
+      <div className="home-ins-babbel-list">
+        <button type="button" className="home-ins-babbel-row" onClick={props.onStartReview}>
+          <span className="home-ins-babbel-row__icon">🔁</span>
+          <span className="home-ins-babbel-row__copy">
+            <span className="home-ins-babbel-row__title">{copy.t("home.flowReview")}</span>
+            <span className="home-ins-babbel-row__meta">
+              {props.dueReviewCount > 0
+                ? copy.t("home.flowReviewDue", { count: props.dueReviewCount })
+                : copy.t("home.flowReviewDetail")}
+            </span>
+          </span>
+          <span className="home-ins-babbel-row__chev">→</span>
+        </button>
+        <button type="button" className="home-ins-babbel-row" onClick={props.onOpenLibrary}>
+          <span className="home-ins-babbel-row__icon">📚</span>
+          <span className="home-ins-babbel-row__copy">
+            <span className="home-ins-babbel-row__title">{copy.t("home.flowLibrary")}</span>
+            <span className="home-ins-babbel-row__meta">
+              {copy.t("home.flowLibraryKnown", { count: props.wordsKnown })} ·{" "}
+              {copy.t("home.streakDays", { count: props.streakDays })}
+            </span>
+          </span>
+          <span className="home-ins-babbel-row__chev">→</span>
+        </button>
+      </div>
     </div>
   );
 }
 
-export function MonkeyBannerStage({ props, copy }: { props: HomeLayoutProps; copy: ReturnType<typeof useHomeBannerCopy> }) {
+/** 3 · Memrise — chồng thẻ, số từ lớn, cá sấu */
+export function InspiredHome3(props: HomeLayoutProps) {
+  const copy = useHomePageCopy(props);
+
   return (
-    <section className="home-layout-stage">
-      <p className="home-layout-stage__eyebrow">{copy.bannerSubtitle}</p>
-      <JungleMascot character="monkey" size={80} className="mx-auto" />
-      <h2 className={`home-layout-stage__title ${displayFontClass}`}>{copy.bannerTitle}</h2>
-      <p className="home-layout-stage__meta">{copy.bannerMeta}</p>
+    <div className="home-ins home-ins--memrise">
+      <div className="home-ins-memrise-stack" aria-hidden>
+        <div className="home-ins-memrise-stack__card home-ins-memrise-stack__card--3" />
+        <div className="home-ins-memrise-stack__card home-ins-memrise-stack__card--2" />
+        <div className="home-ins-memrise-stack__card home-ins-memrise-stack__card--1">
+          <JungleMascot character="crocodile" size={56} className="mx-auto" />
+          <p className={`home-ins-memrise-stack__count ${displayFontClass}`}>
+            {props.queueLength.toLocaleString()}
+          </p>
+          <p className="home-ins-memrise-stack__label">{copy.t("home.insWordsWaiting")}</p>
+        </div>
+      </div>
+
       <button
         type="button"
-        className="btn-pill-primary home-layout-stage__cta"
+        className="btn-pill-primary home-ins-memrise-cta"
         disabled={props.queueLength === 0}
         onClick={props.onStartJourney}
       >
         {copy.bannerCta}
       </button>
-    </section>
-  );
-}
+      <p className="home-ins-memrise-sub text-center text-sm text-foreground/60">{copy.bannerSubtitle}</p>
 
-export function MonkeyBannerMagazine({ props, copy }: { props: HomeLayoutProps; copy: ReturnType<typeof useHomeBannerCopy> }) {
-  return (
-    <section className="home-layout-magazine">
-      <JungleMascot character="monkey" size={100} className="home-layout-magazine__mascot" />
-      <div className="home-layout-magazine__body">
-        <h2 className={`home-layout-magazine__title ${displayFontClass}`}>{copy.bannerTitle}</h2>
-        <p className="home-layout-magazine__sub">{copy.bannerSubtitle}</p>
-        <ProgressBar value={props.goalCurrent} max={props.goalTarget} colorClass="bg-accent" />
-        <p className="home-body-text text-xs text-foreground/60 mt-1">{copy.goalProgressLabel}</p>
-        <button
-          type="button"
-          className="btn-pill-primary w-full mt-3"
-          disabled={props.queueLength === 0}
-          onClick={props.onStartJourney}
-        >
-          {copy.bannerCta} →
+      <div className="home-ins-memrise-stats">
+        <button type="button" className="home-ins-memrise-stat" onClick={props.onStartReview}>
+          <span className="home-ins-memrise-stat__value">{props.dueReviewCount}</span>
+          <span className="home-ins-memrise-stat__label">{copy.t("home.flowReview")}</span>
         </button>
-      </div>
-    </section>
-  );
-}
-
-export function MonkeyBannerBubble({ props, copy }: { props: HomeLayoutProps; copy: ReturnType<typeof useHomeBannerCopy> }) {
-  return (
-    <section className="home-layout-bubble">
-      <div className="home-layout-bubble__inner">
-        <div>
-          <h2 className={`home-layout-bubble__title ${displayFontClass}`}>{copy.bannerTitle}</h2>
-          <p className="home-layout-bubble__sub">{copy.bannerSubtitle}</p>
-          <p className="home-layout-bubble__count">{props.queueLength.toLocaleString()}</p>
-          <p className="home-layout-bubble__meta">{copy.bannerMeta}</p>
+        <div className="home-ins-memrise-stat home-ins-memrise-stat--static">
+          <span className="home-ins-memrise-stat__value">{props.streakDays}</span>
+          <span className="home-ins-memrise-stat__label">{copy.t("home.streak")}</span>
         </div>
-        <JungleMascot character="monkey" size={92} className="home-layout-bubble__mascot" />
-      </div>
-      <button
-        type="button"
-        className="home-layout-bubble__cta"
-        disabled={props.queueLength === 0}
-        onClick={props.onStartJourney}
-      >
-        {copy.bannerCta} →
-      </button>
-    </section>
-  );
-}
-
-export function HomeStageTiles({ props, copy }: { props: HomeLayoutProps; copy: ReturnType<typeof useHomeBannerCopy> }) {
-  return (
-    <div className="home-layout-tile-row">
-      <button type="button" className="home-layout-tile" onClick={props.onStartReview}>
-        <span className="home-layout-tile__icon">🔁</span>
-        <span className="home-layout-tile__label">{copy.t("home.flowReview")}</span>
-        <span className="home-layout-tile__value">{props.dueReviewCount}</span>
-      </button>
-      <button type="button" className="home-layout-tile" onClick={props.onOpenLibrary}>
-        <span className="home-layout-tile__icon">📚</span>
-        <span className="home-layout-tile__label">{copy.t("home.flowLibrary")}</span>
-        <span className="home-layout-tile__value">{props.wordsKnown}</span>
-      </button>
-      <div className="home-layout-tile home-layout-tile--static">
-        <span className="home-layout-tile__icon">🎯</span>
-        <span className="home-layout-tile__label">{copy.goalTypeLabel(props.goalType)}</span>
-        <span className="home-layout-tile__value">
-          {props.goalCurrent}/{props.goalTarget}
-        </span>
+        <button type="button" className="home-ins-memrise-stat" onClick={props.onOpenLibrary}>
+          <span className="home-ins-memrise-stat__value">{props.wordsKnown}</span>
+          <span className="home-ins-memrise-stat__label">{copy.t("home.masteredShort")}</span>
+        </button>
       </div>
     </div>
   );
 }
 
-export function useHomePageCopy(props: HomeLayoutProps) {
-  const goalMet = props.goalTarget > 0 && props.goalCurrent >= props.goalTarget;
-  return useHomeBannerCopy({ ...props, goalMet });
+/** 4 · Busuu — lưới module màu, cast pill */
+export function InspiredHome4(props: HomeLayoutProps) {
+  const copy = useHomePageCopy(props);
+
+  return (
+    <div className="home-ins home-ins--busuu">
+      <div className="home-ins-busuu-header">
+        <div>
+          <JungleCastPill size={24} />
+          <p className="home-ins-busuu-header__streak">
+            🔥 {copy.t("home.streakDays", { count: props.streakDays })}
+          </p>
+        </div>
+        <div className="home-ins-busuu-header__goal">
+          <p className="home-ins-busuu-header__goal-label">{copy.goalTypeLabel(props.goalType)}</p>
+          <ProgressBar value={props.goalCurrent} max={props.goalTarget} colorClass="bg-secondary" />
+          <p className="home-ins-busuu-header__goal-meta">{copy.goalProgressLabel}</p>
+        </div>
+      </div>
+
+      <p className="home-ins-section-kicker">{copy.t("home.insStudyPlan")}</p>
+      <div className="home-ins-busuu-grid">
+        <button
+          type="button"
+          className="home-ins-busuu-tile home-ins-busuu-tile--learn"
+          disabled={props.queueLength === 0}
+          onClick={props.onStartJourney}
+        >
+          <JungleMascot character="tiger" size={48} />
+          <span className="home-ins-busuu-tile__title">{copy.bannerTitle}</span>
+          <span className="home-ins-busuu-tile__meta">{copy.bannerSubtitle}</span>
+          <span className="home-ins-busuu-tile__cta">{copy.bannerCta} →</span>
+        </button>
+        <button
+          type="button"
+          className="home-ins-busuu-tile home-ins-busuu-tile--review"
+          onClick={props.onStartReview}
+        >
+          <span className="home-ins-busuu-tile__emoji">🔁</span>
+          <span className="home-ins-busuu-tile__title">{copy.t("home.flowReview")}</span>
+          <span className="home-ins-busuu-tile__count">{props.dueReviewCount}</span>
+        </button>
+        <button
+          type="button"
+          className="home-ins-busuu-tile home-ins-busuu-tile--vocab"
+          onClick={props.onOpenLibrary}
+        >
+          <span className="home-ins-busuu-tile__emoji">📚</span>
+          <span className="home-ins-busuu-tile__title">{copy.t("home.flowLibrary")}</span>
+          <span className="home-ins-busuu-tile__count">{props.wordsKnown}</span>
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/** 5 · Quizlet — tối giản, ưu tiên ôn, voi nhỏ */
+export function InspiredHome5(props: HomeLayoutProps) {
+  const copy = useHomePageCopy(props);
+
+  return (
+    <div className="home-ins home-ins--quizlet">
+      {props.dueReviewCount > 0 ? (
+        <button type="button" className="home-ins-quizlet-due" onClick={props.onStartReview}>
+          <span className="home-ins-quizlet-due__count">{props.dueReviewCount}</span>
+          <span className="home-ins-quizlet-due__copy">
+            <span className="home-ins-quizlet-due__title">{copy.t("home.insDueNow")}</span>
+            <span className="home-ins-quizlet-due__meta">{copy.t("home.flowReviewDetail")}</span>
+          </span>
+          <span className="home-ins-quizlet-due__chev">→</span>
+        </button>
+      ) : null}
+
+      <section className="home-ins-quizlet-deck">
+        <div className="home-ins-quizlet-deck__head">
+          <div>
+            <p className="home-ins-quizlet-deck__label">{copy.t("home.insYourDeck")}</p>
+            <h2 className={`home-ins-quizlet-deck__title ${displayFontClass}`}>{copy.bannerTitle}</h2>
+            <p className="home-ins-quizlet-deck__meta">{copy.bannerSubtitle}</p>
+          </div>
+          <JungleMascot character="elephant" size={52} />
+        </div>
+        <ProgressBar value={props.rankProgress} max={100} colorClass="bg-primary" />
+        <button
+          type="button"
+          className="home-ins-quizlet-deck__btn"
+          disabled={props.queueLength === 0}
+          onClick={props.onStartJourney}
+        >
+          {copy.bannerCta}
+        </button>
+      </section>
+
+      <div className="home-ins-quizlet-footer">
+        <span>🔥 {props.streakDays}</span>
+        <span>🎯 {props.goalCurrent}/{props.goalTarget}</span>
+        <button type="button" onClick={props.onOpenLibrary}>
+          🪙 {props.wordsKnown.toLocaleString()}
+        </button>
+      </div>
+    </div>
+  );
 }
