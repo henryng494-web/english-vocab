@@ -4,8 +4,9 @@ import { WELCOME_SPLASH_ART } from "@/data/jungle-cast-brand";
 import { displayFontClass } from "@/lib/fonts";
 import type { GoalType } from "@/lib/app-settings";
 import {
-  countWeeklyMetDays,
-  getWeeklyStreakDays,
+  EMPTY_WEEK_DAYS,
+  getWeeklyMetCountSnapshot,
+  getWeeklyStreakDaysSnapshot,
   subscribeWeeklyStreak,
   type WeekDayStatus,
 } from "@/lib/weekly-streak";
@@ -102,15 +103,16 @@ function WeekDayCell({
 
 export function HomeGalaxyScreen(props: HomeGalaxyScreenProps) {
   const { t, goalTypeLabel } = useI18n();
-  const weekDays = useSyncExternalStore(subscribeWeeklyStreak, getWeeklyStreakDays, () => []);
-  const weeklyMet = useSyncExternalStore(subscribeWeeklyStreak, countWeeklyMetDays, () => 0);
-
-  const goalStatLabel =
-    props.goalType === "new_words"
-      ? t("home.galaxyGoalWords", { current: props.goalCurrent, goal: props.goalTarget })
-      : props.goalType === "reviews"
-        ? t("home.galaxyGoalReviews", { current: props.goalCurrent, goal: props.goalTarget })
-        : t("home.galaxyGoalMinutes", { current: props.goalCurrent, goal: props.goalTarget });
+  const weekDays = useSyncExternalStore(
+    subscribeWeeklyStreak,
+    getWeeklyStreakDaysSnapshot,
+    () => EMPTY_WEEK_DAYS,
+  );
+  const weeklyMet = useSyncExternalStore(
+    subscribeWeeklyStreak,
+    getWeeklyMetCountSnapshot,
+    () => 0,
+  );
 
   const weekdayLabels: Record<WeekDayStatus["weekdayKey"], string> = {
     mon: t("home.weekMon"),

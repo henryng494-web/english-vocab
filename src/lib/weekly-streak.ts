@@ -60,12 +60,41 @@ function formatShortDate(date: Date): string {
 
 const WEEKDAY_KEYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as const;
 
+/** Stable empty snapshot for SSR / useSyncExternalStore. */
+export const EMPTY_WEEK_DAYS: WeekDayStatus[] = [];
+
+let cachedWeekSnapshot: WeekDayStatus[] | null = null;
+let cachedMetCount: number | null = null;
+
+function weekDaysEqual(a: WeekDayStatus[], b: WeekDayStatus[]): boolean {
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) {
+    const x = a[i]!;
+    const y = b[i]!;
+    if (
+      x.dateKey !== y.dateKey ||
+      x.met !== y.met ||
+      x.isToday !== y.isToday ||
+      x.isFuture !== y.isFuture
+    ) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function invalidateWeeklyCache(): void {
+  cachedWeekSnapshot = null;
+  cachedMetCount = null;
+}
+
 /** Mark today when daily goal is met (call from syncStreak). */
 export function markWeeklyGoalMetToday(): void {
   if (!isDailyGoalMet()) return;
   const map = readWeeklyMet();
   map[todayKey()] = true;
   writeWeeklyMet(map);
+  invalidateWeeklyCache();
 }
 
 export function getWeeklyStreakDays(): WeekDayStatus[] {
@@ -94,9 +123,31 @@ export function countWeeklyMetDays(): number {
   return getWeeklyStreakDays().filter((d) => d.met).length;
 }
 
+/** Stable snapshot for useSyncExternalStore (avoids infinite re-render). */
+export function getWeeklyStreakDaysSnapshot(): WeekDayStatus[] {
+  if (typeof window === "undefined") return EMPTY_WEEK_DAYS;
+  const next = getWeeklyStreakDays();
+  if (cachedWeekSnapshot && weekDaysEqual(cachedWeekSnapshot, next)) {
+    return cachedWeekSnapshot;
+  }
+  cachedWeekSnapshot = next;
+  return next;
+}
+
+export function getWeeklyMetCountSnapshot(): number {
+  if (typeof window === "undefined") return 0;
+  const next = countWeeklyMetDays();
+  if (cachedMetCount === next) return cachedMetCount;
+  cachedMetCount = next;
+  return next;
+}
+
 export function subscribeWeeklyStreak(onStoreChange: () => void): () => void {
   if (typeof window === "undefined") return () => {};
-  const handler = () => onStoreChange();
+  const handler = () => {
+    invalidateWeeklyCache();
+    onStoreChange();
+  };
   window.addEventListener("weekly-streak-changed", handler);
   window.addEventListener("streak-changed", handler);
   window.addEventListener("app-settings-changed", handler);
