@@ -389,6 +389,11 @@ body {
   text-align: right;
 }
 
+.card-similar__column .word-learning-chunks__label {
+  width: 100%;
+  text-align: right;
+}
+
 .card-family__list,
 .card-similar__list {
   display: flex;
