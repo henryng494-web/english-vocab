@@ -89,5 +89,6 @@ export type VocabWord = WordDetail & {
   search_keyword?: string | null;
   word_family?: WordFamilyMember[];
   family_head?: string;
+  similar_words?: string[];
   register?: import("@/lib/word-meanings").WordRegister | null;
 };

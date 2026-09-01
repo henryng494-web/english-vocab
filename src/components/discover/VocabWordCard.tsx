@@ -31,6 +31,7 @@ export function vocabWordToDiscoverData(word: VocabWord): DiscoverWordData {
     register: resolveWordRegister(word),
     search_keyword: word.search_keyword,
     word_family: word.word_family,
+    similar_words: word.similar_words,
   };
 }
 

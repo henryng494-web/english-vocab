@@ -211,5 +211,6 @@ export function stubFromListItem(item: {
     collocations: null,
     search_keyword: null,
     word_family: null,
+    similar_words: null,
   };
 }

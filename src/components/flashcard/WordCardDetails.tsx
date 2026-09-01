@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { VocabExampleList } from "@/components/flashcard/VocabExampleList";
 import { WordLearningChunks } from "@/components/flashcard/WordLearningChunks";
 import { useI18n } from "@/hooks/use-i18n";
+import { useCardSimilarWords } from "@/hooks/use-card-similar-words";
 import { capitalizeFirst } from "@/lib/format-text";
 import { hasLearningChunks } from "@/lib/learning-chunks";
 import { parseExamples } from "@/lib/parse-examples";
@@ -51,7 +52,13 @@ export function WordCardDetails({
   const parsed = loading ? [] : parseExamples(examples);
   const chunksOnly = hasLearningChunks(word, { examples, wordType, meaning });
   const rows = (family ?? []).filter((item) => item.word.trim());
-  const similar = (similarWords ?? []).filter((item) => item.trim());
+  const similar = useCardSimilarWords({
+    word,
+    preset: similarWords,
+    wordType,
+    meaning,
+    englishDefinition,
+  }).filter((item) => item.trim());
   const canFlip = rows.length > 1 || similar.length > 0;
   const [showFamily, setShowFamily] = useState(false);
   const startX = useRef<number | null>(null);
