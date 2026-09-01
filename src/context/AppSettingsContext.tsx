@@ -6,7 +6,9 @@ import {
   patchAppSettings,
   readAppSettings,
   type AppSettings,
+  type CountGoalTarget,
   type DailyGoalMinutes,
+  type GoalType,
   type PronounceSpeed,
 } from "@/lib/app-settings";
 import {
@@ -21,6 +23,8 @@ import {
 type AppSettingsContextValue = AppSettings & {
   setAutoSpeakEnabled: (enabled: boolean) => void;
   setDailyGoalMinutes: (minutes: DailyGoalMinutes) => void;
+  setGoalType: (goalType: GoalType) => void;
+  setGoalTargetCount: (count: CountGoalTarget) => void;
   setReminderEnabled: (enabled: boolean) => void;
   setReminderTime: (time: string) => void;
   setAppLanguage: (language: AppLocale) => void;
@@ -55,6 +59,10 @@ export function AppSettingsProvider({ children }: { children: React.ReactNode })
         setSettings(patchAppSettings({ autoSpeakEnabled: enabled })),
       setDailyGoalMinutes: (minutes) =>
         setSettings(patchAppSettings({ dailyGoalMinutes: minutes })),
+      setGoalType: (goalType) =>
+        setSettings(patchAppSettings({ goalType })),
+      setGoalTargetCount: (count) =>
+        setSettings(patchAppSettings({ goalTargetCount: count })),
       setReminderEnabled: (enabled) =>
         setSettings(patchAppSettings({ reminderEnabled: enabled })),
       setReminderTime: (time) =>

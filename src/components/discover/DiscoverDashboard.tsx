@@ -2,6 +2,7 @@
 
 import { JungleMascot, JungleCastPill } from "@/components/mascot/JungleMascot";
 import { useI18n } from "@/hooks/use-i18n";
+import type { GoalType } from "@/lib/app-settings";
 import { displayFontClass } from "@/lib/fonts";
 
 type DiscoverDashboardProps = {
@@ -12,9 +13,11 @@ type DiscoverDashboardProps = {
   wordsKnown: number;
   wordsReviewing: number;
   streakDays: number;
-  todayStudySeconds: number;
-  todayGoalMinutes: number;
+  goalType: GoalType;
+  goalCurrent: number;
+  goalTarget: number;
   todayWordsLearned: number;
+  todayReviewsCompleted: number;
   sessionInProgress?: boolean;
   onStartToday: () => void;
   onStartJourney: () => void;
@@ -22,9 +25,15 @@ type DiscoverDashboardProps = {
   onOpenLibrary: () => void;
 };
 
-export function CoinBadge({ value }: { value: number }) {
+export function CoinBadge({
+  value,
+  label,
+}: {
+  value: number;
+  label: string;
+}) {
   return (
-    <span className="coin-badge">
+    <span className="coin-badge" title={label} aria-label={label}>
       <span className="coin-badge__icon" aria-hidden>
         🪙
       </span>
@@ -58,9 +67,11 @@ export function DiscoverDashboard({
   wordsKnown,
   wordsReviewing,
   streakDays,
-  todayStudySeconds,
-  todayGoalMinutes,
+  goalType,
+  goalCurrent,
+  goalTarget,
   todayWordsLearned,
+  todayReviewsCompleted,
   sessionInProgress = false,
   onStartToday,
   onStartJourney,
@@ -70,19 +81,41 @@ export function DiscoverDashboard({
   const { t } = useI18n();
   const rankProgress =
     queueLength > 0 ? Math.round((currentIndex / queueLength) * 100) : 0;
-  const todayStudyMinutes = Math.floor(todayStudySeconds / 60);
-  const minutesLeft = Math.max(0, todayGoalMinutes - todayStudyMinutes);
+  const goalLeft = Math.max(0, goalTarget - goalCurrent);
+  const goalMet = goalTarget > 0 && goalCurrent >= goalTarget;
   const canStartToday = dueReviewCount > 0 || queueLength > 0 || sessionInProgress;
 
-  const todaySummary =
-    dueReviewCount > 0
-      ? t("home.todayDueGoal", { due: dueReviewCount, minutes: minutesLeft })
-      : minutesLeft > 0
-        ? t("home.todayGoalLeft", {
-            minutes: minutesLeft,
-            learned: todayWordsLearned,
-          })
-        : t("home.todayGoalDone", { learned: todayWordsLearned });
+  const todaySummary = (() => {
+    if (dueReviewCount > 0 && goalType === "minutes" && !goalMet) {
+      return t("home.todayDueGoal", { due: dueReviewCount, minutes: goalLeft });
+    }
+    if (goalMet) {
+      if (goalType === "reviews") {
+        return t("home.todayGoalDoneReviews", { reviews: todayReviewsCompleted });
+      }
+      return t("home.todayGoalDoneWords", { learned: todayWordsLearned });
+    }
+    if (goalType === "new_words") {
+      return t("home.todayGoalLeftWords", { left: goalLeft });
+    }
+    if (goalType === "reviews") {
+      return t("home.todayGoalLeftReviews", { left: goalLeft });
+    }
+    return t("home.todayGoalLeft", {
+      minutes: goalLeft,
+      learned: todayWordsLearned,
+    });
+  })();
+
+  const progressLabel = (() => {
+    if (goalType === "new_words") {
+      return t("home.wordsProgress", { current: goalCurrent, goal: goalTarget });
+    }
+    if (goalType === "reviews") {
+      return t("home.reviewsProgress", { current: goalCurrent, goal: goalTarget });
+    }
+    return t("home.minutesProgress", { current: goalCurrent, goal: goalTarget });
+  })();
 
   const primaryCta = canStartToday ? t("home.startSession") : t("home.doneToday");
 
@@ -102,15 +135,12 @@ export function DiscoverDashboard({
           </div>
 
           <ProgressBar
-            value={todayStudyMinutes}
-            max={todayGoalMinutes}
+            value={goalCurrent}
+            max={goalTarget}
             colorClass="bg-accent"
           />
           <p className="home-body-text mt-2 text-sm text-foreground/60">
-            {t("home.minutesProgress", {
-              current: todayStudyMinutes,
-              goal: todayGoalMinutes,
-            })}
+            {progressLabel}
           </p>
 
           <button

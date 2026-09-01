@@ -11,9 +11,17 @@ export { PRONOUNCE_SPEED_OPTIONS } from "@/lib/pronounce-speed";
 
 export type DailyGoalMinutes = 10 | 20 | 30 | 60 | 90 | 120;
 
+export type GoalType = "minutes" | "new_words" | "reviews";
+
+export type CountGoalTarget = 5 | 10 | 15 | 20 | 30;
+
 export type AppSettings = {
   autoSpeakEnabled: boolean;
   dailyGoalMinutes: DailyGoalMinutes;
+  /** Primary daily goal metric — drives progress bar and streak. */
+  goalType: GoalType;
+  /** Target count when goalType is new_words or reviews. */
+  goalTargetCount: CountGoalTarget;
   reminderEnabled: boolean;
   /** 24h local time HH:MM */
   reminderTime: string;
@@ -25,6 +33,16 @@ export type AppSettings = {
 
 export const DAILY_GOAL_OPTIONS: readonly DailyGoalMinutes[] = [
   10, 20, 30, 60, 90, 120,
+];
+
+export const COUNT_GOAL_OPTIONS: readonly CountGoalTarget[] = [
+  5, 10, 15, 20, 30,
+];
+
+export const GOAL_TYPE_OPTIONS: readonly GoalType[] = [
+  "minutes",
+  "new_words",
+  "reviews",
 ];
 
 export const DAILY_GOAL_LABELS: Record<DailyGoalMinutes, string> = {
@@ -41,6 +59,8 @@ const STORAGE_KEY = "vocab-app-settings-v1";
 const DEFAULT_SETTINGS: AppSettings = {
   autoSpeakEnabled: true,
   dailyGoalMinutes: 20,
+  goalType: "minutes",
+  goalTargetCount: 10,
   reminderEnabled: false,
   reminderTime: "19:00",
   appLanguage: DEFAULT_APP_LOCALE,
@@ -49,6 +69,14 @@ const DEFAULT_SETTINGS: AppSettings = {
 
 function isDailyGoalMinutes(value: number): value is DailyGoalMinutes {
   return DAILY_GOAL_OPTIONS.includes(value as DailyGoalMinutes);
+}
+
+function isCountGoalTarget(value: number): value is CountGoalTarget {
+  return COUNT_GOAL_OPTIONS.includes(value as CountGoalTarget);
+}
+
+function isGoalType(value: unknown): value is GoalType {
+  return value === "minutes" || value === "new_words" || value === "reviews";
 }
 
 function normalizeReminderTime(value: unknown): string {
@@ -71,6 +99,12 @@ export function readAppSettings(): AppSettings {
       dailyGoalMinutes: isDailyGoalMinutes(parsed.dailyGoalMinutes ?? NaN)
         ? (parsed.dailyGoalMinutes as DailyGoalMinutes)
         : DEFAULT_SETTINGS.dailyGoalMinutes,
+      goalType: isGoalType(parsed.goalType)
+        ? parsed.goalType
+        : DEFAULT_SETTINGS.goalType,
+      goalTargetCount: isCountGoalTarget(parsed.goalTargetCount ?? NaN)
+        ? (parsed.goalTargetCount as CountGoalTarget)
+        : DEFAULT_SETTINGS.goalTargetCount,
       reminderEnabled:
         typeof parsed.reminderEnabled === "boolean"
           ? parsed.reminderEnabled

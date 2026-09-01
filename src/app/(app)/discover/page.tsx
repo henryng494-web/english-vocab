@@ -38,8 +38,9 @@ import {
 } from "@/lib/image-preload";
 import { preloadWordPronunciations } from "@/lib/pronunciation-preload";
 import { unlockSpeechFromUserGesture } from "@/lib/speak-word";
-import { getTodayStudySeconds } from "@/lib/study-time";
-import { useAppSettings } from "@/context/AppSettingsContext";
+import { getTodayReviewsCompleted } from "@/lib/daily-reviews";
+import { getGoalProgress, getGoalProgressSnapshot, subscribeGoalProgress } from "@/lib/goal-progress";
+import { getCurrentStreak, subscribeStreak, syncStreak } from "@/lib/streak";
 import {
   getTodayWordsLearned,
   incrementTodayWordsLearned,
@@ -112,8 +113,13 @@ export default function DiscoverPage() {
   const [wordsKnown, setWordsKnown] = useState(0);
   const [wordsReviewing, setWordsReviewing] = useState(0);
   const [todayLearned, setTodayLearned] = useState(0);
-  const { dailyGoalMinutes } = useAppSettings();
-  const [todayStudySeconds, setTodayStudySeconds] = useState(0);
+  const [todayReviews, setTodayReviews] = useState(0);
+  const goalProgress = useSyncExternalStore(
+    subscribeGoalProgress,
+    getGoalProgressSnapshot,
+    () => ({ goalType: "minutes" as const, current: 0, target: 20, met: false }),
+  );
+  const streakDays = useSyncExternalStore(subscribeStreak, getCurrentStreak, () => 0);
   const dueReviewCount = useSyncExternalStore(
     subscribeReviewDueCount,
     getReviewDueCount,
@@ -122,8 +128,6 @@ export default function DiscoverPage() {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const inflightSaves = useRef(new Set<string>());
   const onboardingChecked = useRef(false);
-
-  const todayGoalMinutes = dailyGoalMinutes;
 
   useEffect(() => {
     const refreshSession = () => setDailySession(readDailySession());
@@ -141,15 +145,21 @@ export default function DiscoverPage() {
   }, []);
 
   useEffect(() => {
-    const refreshStudyTime = () => setTodayStudySeconds(getTodayStudySeconds());
-    refreshStudyTime();
-    window.addEventListener("study-time-changed", refreshStudyTime);
-    window.addEventListener("focus", refreshStudyTime);
+    const refreshCounts = () => {
+      setTodayLearned(getTodayWordsLearned());
+      setTodayReviews(getTodayReviewsCompleted());
+    };
+    refreshCounts();
+    window.addEventListener("daily-words-changed", refreshCounts);
+    window.addEventListener("daily-reviews-changed", refreshCounts);
+    window.addEventListener("focus", refreshCounts);
     return () => {
-      window.removeEventListener("study-time-changed", refreshStudyTime);
-      window.removeEventListener("focus", refreshStudyTime);
+      window.removeEventListener("daily-words-changed", refreshCounts);
+      window.removeEventListener("daily-reviews-changed", refreshCounts);
+      window.removeEventListener("focus", refreshCounts);
     };
   }, []);
+
   const rangeMeta = useMemo(
     () => WORD_RANGES.find((r) => r.id === rangeId),
     [rangeId],
@@ -486,6 +496,7 @@ export default function DiscoverPage() {
     }));
     if (status === "new") {
       setTodayLearned(incrementTodayWordsLearned());
+      syncStreak();
       if (isDailyJourney) {
         const result = recordDailyNewWord();
         if (result.reached) {
@@ -564,7 +575,7 @@ export default function DiscoverPage() {
               <Link href="/search" className="app-header__icon-btn" aria-label={t("home.searchAria")}>
                 🔍
               </Link>
-              <CoinBadge value={wordsKnown + wordsReviewing} />
+              <CoinBadge value={wordsKnown} label={t("home.coinBadge")} />
             </div>
           }
         />
@@ -592,10 +603,12 @@ export default function DiscoverPage() {
             dueReviewCount={dueReviewCount}
             wordsKnown={wordsKnown}
             wordsReviewing={wordsReviewing}
-            streakDays={todayStudySeconds >= todayGoalMinutes * 60 ? 1 : 0}
-            todayStudySeconds={todayStudySeconds}
-            todayGoalMinutes={todayGoalMinutes}
+            streakDays={streakDays}
+            goalType={goalProgress.goalType}
+            goalCurrent={goalProgress.current}
+            goalTarget={goalProgress.target}
             todayWordsLearned={todayLearned}
+            todayReviewsCompleted={todayReviews}
             sessionInProgress={dailySession != null}
             onStartToday={() => {
               const session = resumeOrStartDailySession(dueReviewCount);

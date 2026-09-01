@@ -31,7 +31,16 @@ export const messages: Record<AppLocale, MessageTree> = {
     "menu.pronounceMedium": "Vừa",
     "menu.pronounceFast": "Nhanh",
     "menu.dailyGoal": "Mục tiêu học mỗi ngày",
-    "menu.dailyGoalHint": "Bạn muốn học bao lâu mỗi ngày?",
+    "menu.dailyGoalHint": "Chọn loại mục tiêu và mức đạt được mỗi ngày (ảnh hưởng streak).",
+    "menu.goalType": "Loại mục tiêu",
+    "menu.goalMinutes": "Phút học",
+    "menu.goalNewWords": "Từ mới",
+    "menu.goalReviews": "Lượt ôn",
+    "menu.count5": "5",
+    "menu.count10": "10",
+    "menu.count15": "15",
+    "menu.count20": "20",
+    "menu.count30": "30",
     "menu.goal10": "10 phút",
     "menu.goal20": "20 phút",
     "menu.goal30": "30 phút",
@@ -55,7 +64,14 @@ export const messages: Record<AppLocale, MessageTree> = {
     "home.todayDueGoal": "{due} từ cần ôn · còn {minutes} phút đến mục tiêu",
     "home.todayGoalLeft": "Còn {minutes} phút đến mục tiêu · {learned} từ mới hôm nay",
     "home.todayGoalDone": "Đã đạt mục tiêu · {learned} từ mới hôm nay",
+    "home.todayGoalDoneWords": "Đã đạt mục tiêu · {learned} từ mới hôm nay",
+    "home.todayGoalDoneReviews": "Đã đạt mục tiêu · {reviews} lượt ôn hôm nay",
+    "home.todayGoalLeftWords": "Còn {left} từ mới đến mục tiêu",
+    "home.todayGoalLeftReviews": "Còn {left} lượt ôn đến mục tiêu",
     "home.minutesProgress": "{current} / {goal} phút",
+    "home.wordsProgress": "{current} / {goal} từ mới",
+    "home.reviewsProgress": "{current} / {goal} lượt ôn",
+    "home.coinBadge": "1 đồng = 1 từ đã thuộc",
     "home.startSession": "Bắt đầu buổi học",
     "home.startReview": "Bắt đầu ôn tập",
     "home.startLearn": "Bắt đầu học mới",
@@ -214,7 +230,16 @@ export const messages: Record<AppLocale, MessageTree> = {
     "menu.pronounceMedium": "Medium",
     "menu.pronounceFast": "Fast",
     "menu.dailyGoal": "Daily study goal",
-    "menu.dailyGoalHint": "How long do you want to study each day?",
+    "menu.dailyGoalHint": "Choose goal type and daily target (drives your streak).",
+    "menu.goalType": "Goal type",
+    "menu.goalMinutes": "Study minutes",
+    "menu.goalNewWords": "New words",
+    "menu.goalReviews": "Reviews",
+    "menu.count5": "5",
+    "menu.count10": "10",
+    "menu.count15": "15",
+    "menu.count20": "20",
+    "menu.count30": "30",
     "menu.goal10": "10 min",
     "menu.goal20": "20 min",
     "menu.goal30": "30 min",
@@ -238,7 +263,14 @@ export const messages: Record<AppLocale, MessageTree> = {
     "home.todayDueGoal": "{due} words due · {minutes} min left to goal",
     "home.todayGoalLeft": "{minutes} min left to goal · {learned} new words today",
     "home.todayGoalDone": "Goal reached · {learned} new words today",
+    "home.todayGoalDoneWords": "Goal reached · {learned} new words today",
+    "home.todayGoalDoneReviews": "Goal reached · {reviews} reviews today",
+    "home.todayGoalLeftWords": "{left} new words left to goal",
+    "home.todayGoalLeftReviews": "{left} reviews left to goal",
     "home.minutesProgress": "{current} / {goal} min",
+    "home.wordsProgress": "{current} / {goal} new words",
+    "home.reviewsProgress": "{current} / {goal} reviews",
+    "home.coinBadge": "1 coin = 1 word mastered",
     "home.startSession": "Start today's session",
     "home.startReview": "Start review",
     "home.startLearn": "Learn new words",
@@ -404,6 +436,17 @@ export function dailyGoalMessageKey(minutes: number): MessageKey | null {
     120: "menu.goal120",
   };
   return map[minutes] ?? null;
+}
+
+export function countGoalMessageKey(count: number): MessageKey | null {
+  const map: Record<number, MessageKey> = {
+    5: "menu.count5",
+    10: "menu.count10",
+    15: "menu.count15",
+    20: "menu.count20",
+    30: "menu.count30",
+  };
+  return map[count] ?? null;
 }
 
 export function pronounceSpeedMessageKey(

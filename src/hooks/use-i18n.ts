@@ -3,6 +3,7 @@
 import { useAppSettings } from "@/context/AppSettingsContext";
 import { capitalizeFirst } from "@/lib/format-text";
 import {
+  countGoalMessageKey,
   dailyGoalMessageKey,
   pronounceSpeedMessageKey,
   translate,
@@ -15,7 +16,7 @@ import {
   type WordRegister,
 } from "@/lib/word-meanings";
 import { useCallback, useMemo } from "react";
-import type { DailyGoalMinutes, PronounceSpeed } from "@/lib/app-settings";
+import type { CountGoalTarget, DailyGoalMinutes, GoalType, PronounceSpeed } from "@/lib/app-settings";
 import type { ReviewIntervalDays } from "@/lib/review-schedule";
 
 export function useI18n() {
@@ -32,6 +33,26 @@ export function useI18n() {
     (minutes: DailyGoalMinutes) => {
       const key = dailyGoalMessageKey(minutes);
       return key ? t(key) : `${minutes} min`;
+    },
+    [t],
+  );
+
+  const countGoalLabel = useCallback(
+    (count: CountGoalTarget) => {
+      const key = countGoalMessageKey(count);
+      return key ? t(key) : String(count);
+    },
+    [t],
+  );
+
+  const goalTypeLabel = useCallback(
+    (goalType: GoalType) => {
+      const map: Record<GoalType, MessageKey> = {
+        minutes: "menu.goalMinutes",
+        new_words: "menu.goalNewWords",
+        reviews: "menu.goalReviews",
+      };
+      return t(map[goalType]);
     },
     [t],
   );
@@ -95,6 +116,8 @@ export function useI18n() {
       locale,
       t,
       dailyGoalLabel,
+      countGoalLabel,
+      goalTypeLabel,
       pronounceSpeedLabel,
       registerLabel,
       wordTypeLabel,
@@ -106,6 +129,8 @@ export function useI18n() {
       locale,
       t,
       dailyGoalLabel,
+      countGoalLabel,
+      goalTypeLabel,
       pronounceSpeedLabel,
       registerLabel,
       wordTypeLabel,

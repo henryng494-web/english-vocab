@@ -1,7 +1,7 @@
 import { countLearningWords } from "@/lib/learning-storage";
+import { readAppSettings } from "@/lib/app-settings";
 
 const DAILY_GOAL_KEY = "vocab-journey-daily-goal-v1";
-const DEFAULT_GOAL = 10;
 
 type DailyGoalState = {
   date: string;
@@ -28,7 +28,7 @@ function readState(): DailyGoalState {
 }
 
 export function getDailyGoalTarget(): number {
-  return DEFAULT_GOAL;
+  return readAppSettings().goalTargetCount;
 }
 
 export function getTodayWordsLearned(): number {
@@ -39,6 +39,7 @@ export function incrementTodayWordsLearned(): number {
   if (typeof window === "undefined") return 0;
   const next = { date: todayKey(), count: readState().count + 1 };
   localStorage.setItem(DAILY_GOAL_KEY, JSON.stringify(next));
+  window.dispatchEvent(new CustomEvent("daily-words-changed", { detail: next }));
   return next.count;
 }
 

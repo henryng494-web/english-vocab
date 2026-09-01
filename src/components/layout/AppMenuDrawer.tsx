@@ -1,9 +1,13 @@
 "use client";
 
 import {
+  COUNT_GOAL_OPTIONS,
   DAILY_GOAL_OPTIONS,
+  GOAL_TYPE_OPTIONS,
   PRONOUNCE_SPEED_OPTIONS,
+  type CountGoalTarget,
   type DailyGoalMinutes,
+  type GoalType,
 } from "@/lib/app-settings";
 import { APP_LOCALES } from "@/lib/i18n/messages";
 import { useAppSettings } from "@/context/AppSettingsContext";
@@ -57,6 +61,10 @@ export function AppMenuDrawer({ open, onClose }: AppMenuDrawerProps) {
     setPronounceSpeed,
     dailyGoalMinutes,
     setDailyGoalMinutes,
+    goalType,
+    setGoalType,
+    goalTargetCount,
+    setGoalTargetCount,
     reminderEnabled,
     setReminderEnabled,
     reminderTime,
@@ -64,7 +72,7 @@ export function AppMenuDrawer({ open, onClose }: AppMenuDrawerProps) {
     appLanguage,
     setAppLanguage,
   } = useAppSettings();
-  const { t, dailyGoalLabel, pronounceSpeedLabel } = useI18n();
+  const { t, dailyGoalLabel, countGoalLabel, goalTypeLabel, pronounceSpeedLabel } = useI18n();
 
   useEffect(() => {
     if (!open) return;
@@ -149,34 +157,66 @@ export function AppMenuDrawer({ open, onClose }: AppMenuDrawerProps) {
           <section className="app-menu__section">
             <h3 className="app-menu__section-title">{t("menu.dailyGoal")}</h3>
             <p className="app-menu__hint">{t("menu.dailyGoalHint")}</p>
+            <p className="app-menu__subblock-title">{t("menu.goalType")}</p>
             <div className="app-menu__chips">
-              {goalRowOne.map((minutes) => (
+              {GOAL_TYPE_OPTIONS.map((type) => (
                 <button
-                  key={minutes}
+                  key={type}
                   type="button"
-                  className={`app-menu__chip${
-                    dailyGoalMinutes === minutes ? " is-active" : ""
-                  }`}
-                  onClick={() => setDailyGoalMinutes(minutes as DailyGoalMinutes)}
+                  className={`app-menu__chip${goalType === type ? " is-active" : ""}`}
+                  onClick={() => setGoalType(type as GoalType)}
                 >
-                  {dailyGoalLabel(minutes as DailyGoalMinutes)}
+                  {goalTypeLabel(type)}
                 </button>
               ))}
             </div>
-            <div className="app-menu__chips app-menu__chips--secondary">
-              {goalRowTwo.map((minutes) => (
-                <button
-                  key={minutes}
-                  type="button"
-                  className={`app-menu__chip${
-                    dailyGoalMinutes === minutes ? " is-active" : ""
-                  }`}
-                  onClick={() => setDailyGoalMinutes(minutes as DailyGoalMinutes)}
-                >
-                  {dailyGoalLabel(minutes as DailyGoalMinutes)}
-                </button>
-              ))}
-            </div>
+            {goalType === "minutes" ? (
+              <>
+                <div className="app-menu__chips">
+                  {goalRowOne.map((minutes) => (
+                    <button
+                      key={minutes}
+                      type="button"
+                      className={`app-menu__chip${
+                        dailyGoalMinutes === minutes ? " is-active" : ""
+                      }`}
+                      onClick={() => setDailyGoalMinutes(minutes as DailyGoalMinutes)}
+                    >
+                      {dailyGoalLabel(minutes as DailyGoalMinutes)}
+                    </button>
+                  ))}
+                </div>
+                <div className="app-menu__chips app-menu__chips--secondary">
+                  {goalRowTwo.map((minutes) => (
+                    <button
+                      key={minutes}
+                      type="button"
+                      className={`app-menu__chip${
+                        dailyGoalMinutes === minutes ? " is-active" : ""
+                      }`}
+                      onClick={() => setDailyGoalMinutes(minutes as DailyGoalMinutes)}
+                    >
+                      {dailyGoalLabel(minutes as DailyGoalMinutes)}
+                    </button>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <div className="app-menu__chips">
+                {COUNT_GOAL_OPTIONS.map((count) => (
+                  <button
+                    key={count}
+                    type="button"
+                    className={`app-menu__chip${
+                      goalTargetCount === count ? " is-active" : ""
+                    }`}
+                    onClick={() => setGoalTargetCount(count as CountGoalTarget)}
+                  >
+                    {countGoalLabel(count as CountGoalTarget)}
+                  </button>
+                ))}
+              </div>
+            )}
           </section>
 
           <section className="app-menu__section">

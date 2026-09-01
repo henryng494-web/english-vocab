@@ -7,7 +7,9 @@ import { ReviewRecallQuestion } from "@/components/review/ReviewRecallQuestion";
 import { ReviewReveal } from "@/components/review/ReviewReveal";
 import { ReviewSenseQuestion } from "@/components/review/ReviewSenseQuestion";
 import { JungleMascot } from "@/components/mascot/JungleMascot";
+import { incrementTodayReviewsCompleted } from "@/lib/daily-reviews";
 import { writeLocalLearning } from "@/lib/learning-storage";
+import { syncStreak } from "@/lib/streak";
 import {
   buildReviewChoices,
   buildReviewQuestionPlan,
@@ -922,6 +924,8 @@ export function ReviewScreen() {
       const remaining = queue.slice(index + 1);
       markReviewSessionCompleted(currentWord.word, remaining);
       patchQueue(remaining);
+      incrementTodayReviewsCompleted();
+      syncStreak();
 
       if (remaining.length === 0) {
         setSessionDone(true);
