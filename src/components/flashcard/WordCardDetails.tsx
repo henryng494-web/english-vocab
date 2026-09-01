@@ -139,6 +139,7 @@ export function WordCardDetails({
             <div className="card-details__face card-details__face--family">
               {rows.length > 0 ? (
                 <section className="card-family__column">
+                  <h3 className="word-learning-chunks__label">{t("card.wordForms")}</h3>
                   <ul className="card-family__list">
                     {rows.map((item) => {
                       const pos =
@@ -159,7 +160,7 @@ export function WordCardDetails({
               ) : null}
               {similar.length > 0 ? (
                 <section className="card-similar__column">
-                  <h3 className="card-similar__label">{t("card.similarWords")}</h3>
+                  <h3 className="word-learning-chunks__label">{t("card.similarWords")}</h3>
                   <ul className="card-similar__list">
                     {similar.map((item) => (
                       <li key={item} className="card-similar__row">
