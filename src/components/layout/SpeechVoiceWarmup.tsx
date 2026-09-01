@@ -21,9 +21,9 @@ export function SpeechVoiceWarmup() {
       }
     };
 
-    document.addEventListener("touchend", onFirstTouch, {
+    document.addEventListener("touchstart", onFirstTouch, {
       capture: true,
-      passive: false,
+      passive: true,
       once: true,
     });
     document.addEventListener("click", onFirstTouch, {
@@ -32,7 +32,7 @@ export function SpeechVoiceWarmup() {
     });
 
     return () => {
-      document.removeEventListener("touchend", onFirstTouch, { capture: true });
+      document.removeEventListener("touchstart", onFirstTouch, { capture: true });
       document.removeEventListener("click", onFirstTouch, { capture: true });
     };
   }, []);

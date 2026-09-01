@@ -25,6 +25,18 @@ function absoluteAudioUrl(relativePath: string): string {
   return new URL(relativePath, window.location.origin).href;
 }
 
+/** Compare resolved audio.src with an expected absolute URL. */
+function audioSrcMatches(audio: HTMLAudioElement, expectedSrc: string): boolean {
+  if (!expectedSrc) return false;
+  const current = audio.currentSrc || audio.src;
+  if (!current) return false;
+  try {
+    return new URL(current).href === new URL(expectedSrc).href;
+  } catch {
+    return current === expectedSrc;
+  }
+}
+
 function configureAudioElement(audio: HTMLAudioElement): void {
   audio.preload = "auto";
   audio.setAttribute("playsinline", "");
@@ -38,7 +50,8 @@ function applyPlaybackRate(audio: HTMLAudioElement): void {
 }
 
 function resolveAudioElement(): HTMLAudioElement | null {
-  if (pronounceAudioElement) return pronounceAudioElement;
+  if (pronounceAudioElement?.isConnected) return pronounceAudioElement;
+  pronounceAudioElement = null;
   if (typeof document === "undefined") return null;
   const found = document.getElementById("ev-pronounce-audio");
   if (!(found instanceof HTMLAudioElement)) return null;
@@ -51,12 +64,16 @@ function resolveAudioElement(): HTMLAudioElement | null {
 function startPlayback(audio: HTMLAudioElement): void {
   applyPlaybackRate(audio);
   currentAudio = audio;
-  audio.currentTime = 0;
+  try {
+    audio.currentTime = 0;
+  } catch {
+    /* media not seekable yet — play() still queues playback */
+  }
 
   const playAttempt = () => {
     const playPromise = audio.play();
     if (!playPromise || typeof playPromise.catch !== "function") return;
-    playPromise.catch(() => {
+    playPromise.catch((err: unknown) => {
       if (audio.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
         void audio.play().catch(() => {
           if (currentAudio === audio) currentAudio = null;
@@ -92,7 +109,11 @@ function bindPlaybackRateListener(): void {
 let playbackRateListenerBound = false;
 
 /** Register the layout `<audio>` element (required for iOS Safari + PWA). */
-export function registerPronounceAudioElement(element: HTMLAudioElement): void {
+export function registerPronounceAudioElement(element: HTMLAudioElement | null): void {
+  if (!element) {
+    pronounceAudioElement = null;
+    return;
+  }
   pronounceAudioElement = element;
   configureAudioElement(element);
   bindPlaybackRateListener();
@@ -182,7 +203,7 @@ export function preloadWordAudioElement(word: string, _url?: string | null): voi
   const src = absoluteAudioUrl(resolvePlayableUrl(word));
   if (!src) return;
 
-  if (audio.dataset.wordKey !== key || audio.src !== src) {
+  if (audio.dataset.wordKey !== key || !audioSrcMatches(audio, src)) {
     audio.dataset.wordKey = key;
     audio.src = src;
     audio.load();
@@ -338,7 +359,8 @@ export function playWordAudioInUserGesture(word: string): boolean {
   const src = absoluteAudioUrl(resolvePlayableUrl(word));
   if (!src) return false;
 
-  if (audio.dataset.wordKey !== key || audio.src !== src) {
+  if (audio.dataset.wordKey !== key || !audioSrcMatches(audio, src)) {
+    audio.pause();
     audio.dataset.wordKey = key;
     audio.src = src;
     audio.load();

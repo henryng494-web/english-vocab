@@ -42,7 +42,7 @@ export function SpeakButton({
   className = "",
 }: SpeakButtonProps) {
   const { t } = useI18n();
-  const touchHandledRef = useRef(false);
+  const touchSpokeRef = useRef(false);
 
   const speak = useCallback(() => {
     if (!text) return;
@@ -50,11 +50,10 @@ export function SpeakButton({
     speakEnglishText(text, { force: true });
   }, [text]);
 
-  const handleTouchEnd = useCallback(
+  const handleTouchStart = useCallback(
     (event: React.TouchEvent<HTMLButtonElement>) => {
-      event.preventDefault();
       event.stopPropagation();
-      touchHandledRef.current = true;
+      touchSpokeRef.current = true;
       speak();
     },
     [speak],
@@ -64,8 +63,8 @@ export function SpeakButton({
     (event: React.MouseEvent<HTMLButtonElement>) => {
       event.preventDefault();
       event.stopPropagation();
-      if (touchHandledRef.current) {
-        touchHandledRef.current = false;
+      if (touchSpokeRef.current) {
+        touchSpokeRef.current = false;
         return;
       }
       speak();
@@ -85,9 +84,10 @@ export function SpeakButton({
     <button
       type="button"
       data-pronounce-speak
-      onTouchEnd={handleTouchEnd}
+      onTouchStart={handleTouchStart}
       onClick={handleClick}
       className={`${toneClass} ${className}`.trim()}
+      style={{ touchAction: "manipulation" }}
       aria-label={t("speak.aria")}
     >
       <SpeakerIcon className={iconOnly ? "h-4 w-4" : "h-5 w-5"} />

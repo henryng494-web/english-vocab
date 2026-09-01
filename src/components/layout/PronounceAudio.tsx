@@ -6,7 +6,7 @@ import { useCallback } from "react";
 /** Persistent DOM audio node — iOS Safari/PWA ignores dynamically created Audio(). */
 export function PronounceAudio() {
   const audioRef = useCallback((element: HTMLAudioElement | null) => {
-    if (element) registerPronounceAudioElement(element);
+    registerPronounceAudioElement(element);
   }, []);
 
   return (
