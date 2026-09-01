@@ -914,6 +914,25 @@ const CURATED: Record<string, RawEntry> = {
     ],
     keyword: "aspirin painkiller pills",
   },
+  aside: {
+    pos: "adverb",
+    ipa: "/əˈsaɪd/",
+    meaning: "Sang một bên\nLời nói phụ",
+    register: "neutral",
+    definition:
+      "Trạng từ: sang một bên, riêng ra; danh từ: lời nói phụ với khán giả hoặc nói lẻ.",
+    examples: [
+      {
+        en: "Please step aside and let her through.",
+        vi: "Hãy sang một bên và nhường đường cho cô ấy.",
+      },
+      {
+        en: "The actor made a humorous aside to the audience.",
+        vi: "Nam diễn viên thốt một lời nói phụ hài hước với khán giả.",
+      },
+    ],
+    keyword: "theater actor audience stage",
+  },
   cynthia: {
     pos: "noun",
     ipa: "/ˈsɪnθiə/",

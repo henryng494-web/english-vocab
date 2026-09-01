@@ -16,6 +16,20 @@ export type LearningChunkEntry = {
 };
 
 export const LEARNING_CHUNK_OVERRIDES: Record<string, LearningChunkEntry> = {
+  aside: {
+    collocations: [
+      { en: "step aside", vi: "sang một bên", sense: 1 },
+      { en: "put aside", vi: "dành riêng / gác lại", sense: 1 },
+      { en: "humorous aside", vi: "lời nói phụ hài hước", sense: 2 },
+    ],
+    chunks: [
+      {
+        en: "The actor made a humorous aside to the audience.",
+        vi: "Nam diễn viên thốt một lời nói phụ hài hước với khán giả.",
+        sense: 2,
+      },
+    ],
+  },
   hole: {
     collocations: [
       { en: "a hole in my pocket", vi: "lỗ trong túi quần" },
