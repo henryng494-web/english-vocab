@@ -72,11 +72,3 @@ export function useHomeBannerCopy(args: {
     goalMet,
   };
 }
-
-export function LayoutPreviewBadge({ variant }: { variant: string }) {
-  return (
-    <div className="home-layout-preview-badge" aria-hidden>
-      Layout {variant}
-    </div>
-  );
-}

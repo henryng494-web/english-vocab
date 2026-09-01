@@ -9,12 +9,20 @@ import {
   type DailyGoalMinutes,
   type GoalType,
 } from "@/lib/app-settings";
+import { HOME_LAYOUT_VARIANTS } from "@/components/discover/home-layouts/types";
+import type { HomeLayoutVariant } from "@/components/discover/home-layouts/types";
+import {
+  getDefaultHomeLayoutVariant,
+  readHomeLayoutVariant,
+  subscribeHomeLayout,
+  writeHomeLayoutVariant,
+} from "@/lib/home-layout-preference";
 import { APP_LOCALES } from "@/lib/i18n/messages";
 import { useAppSettings } from "@/context/AppSettingsContext";
 import { useI18n } from "@/hooks/use-i18n";
 import { displayFontClass } from "@/lib/fonts";
 import Link from "next/link";
-import { useEffect, useId } from "react";
+import { useEffect, useId, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 
 type AppMenuDrawerProps = {
@@ -73,6 +81,14 @@ export function AppMenuDrawer({ open, onClose }: AppMenuDrawerProps) {
     setAppLanguage,
   } = useAppSettings();
   const { t, dailyGoalLabel, countGoalLabel, goalTypeLabel, pronounceSpeedLabel } = useI18n();
+  const homeLayout = useSyncExternalStore(
+    subscribeHomeLayout,
+    readHomeLayoutVariant,
+    getDefaultHomeLayoutVariant,
+  );
+
+  const homeLayoutLabel = (variant: HomeLayoutVariant) =>
+    t(`menu.homeLayout${variant}` as "menu.homeLayout1");
 
   useEffect(() => {
     if (!open) return;
@@ -121,6 +137,41 @@ export function AppMenuDrawer({ open, onClose }: AppMenuDrawerProps) {
                   onClick={() => setAppLanguage(locale)}
                 >
                   {locale === "vi" ? t("menu.langVi") : t("menu.langEn")}
+                </button>
+              ))}
+            </div>
+          </section>
+
+          <section className="app-menu__section">
+            <h3 className="app-menu__section-title">{t("menu.homeLayout")}</h3>
+            <p className="app-menu__hint">{t("menu.homeLayoutHint")}</p>
+            <div className="app-menu__layout-list">
+              {HOME_LAYOUT_VARIANTS.map((variant) => (
+                <button
+                  key={variant}
+                  type="button"
+                  className={`app-menu__layout-option${
+                    homeLayout === variant ? " is-active" : ""
+                  }`}
+                  onClick={() => {
+                    writeHomeLayoutVariant(variant);
+                    onClose();
+                  }}
+                >
+                  <span className="app-menu__layout-option-num">{variant}</span>
+                  <span className="app-menu__layout-option-copy">
+                    <span className="app-menu__layout-option-title">
+                      {homeLayoutLabel(variant)}
+                    </span>
+                    <span className="app-menu__layout-option-desc">
+                      {t(`menu.homeLayout${variant}Desc` as "menu.homeLayout1Desc")}
+                    </span>
+                  </span>
+                  {homeLayout === variant ? (
+                    <span className="app-menu__layout-option-check" aria-hidden>
+                      ✓
+                    </span>
+                  ) : null}
                 </button>
               ))}
             </div>

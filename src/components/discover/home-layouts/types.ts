@@ -12,8 +12,6 @@ export const HOME_LAYOUT_VARIANTS: readonly HomeLayoutVariant[] = [
 
 export type HomeLayoutProps = {
   variant?: HomeLayoutVariant;
-  /** Gallery preview — shows layout number badge */
-  preview?: boolean;
   rangeLabel: string;
   queueLength: number;
   rankProgress: number;
