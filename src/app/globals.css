@@ -363,7 +363,9 @@ body {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   column-gap: 1.25rem;
+  align-content: center;
   align-items: start;
+  height: 100%;
   margin: 0;
   padding: 0.1rem 0;
 }
@@ -482,7 +484,8 @@ body {
 }
 
 .card-details--flow .card-details__flip.is-family .card-details__face--family {
-  display: flex;
+  display: grid;
+  align-content: center;
   min-height: 0;
   overflow-y: auto;
 }
