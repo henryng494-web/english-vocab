@@ -187,6 +187,7 @@ export async function runAppBootstrap(
   seedWordImageCacheFromEntries(wordCache.entries());
 
   preloadAsset("/mascot/welcome/welcome-splash.png?v=jungle9");
+  preloadAsset("/mascot/welcome/welcome-02-classroom.jpg?v=home2");
 
   const reviewPromise = fetchWithTimeout(
     loadReviewSessionFast(),

@@ -24,11 +24,10 @@ export function InstallAppHint() {
 
   return (
     <section className="rounded-2xl border border-primary-200 bg-surface p-4 shadow-sm">
-      <h2 className="text-base font-bold text-foreground">Install demo app</h2>
+      <h2 className="text-base font-bold text-foreground">Install Jungle Jokers</h2>
       <p className="mt-1 text-sm text-foreground/70">
-        For full-screen layout without the browser bar overlapping the bottom
-        menu, add this site to your home screen. It works like a native demo
-        app — no App Store required.
+        Add this app to your home screen for full-screen layout without the browser
+        bar covering the bottom menu — the best experience on iPhone and iPad.
       </p>
 
       {isIos ? (

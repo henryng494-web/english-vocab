@@ -1,7 +1,6 @@
 "use client";
 
-import Image from "next/image";
-import { MASCOT_SPLASH_PATHS } from "@/data/jungle-cast-brand";
+import { HOME_GALAXY_HERO_ART } from "@/data/jungle-cast-brand";
 import { displayFontClass } from "@/lib/fonts";
 import type { GoalType } from "@/lib/app-settings";
 import {
@@ -13,13 +12,6 @@ import {
 } from "@/lib/weekly-streak";
 import { useI18n } from "@/hooks/use-i18n";
 import { useSyncExternalStore } from "react";
-
-const HOME_HERO_MASCOTS = [
-  { id: "monkey", src: MASCOT_SPLASH_PATHS.monkey, width: 52, height: 64, className: "home-galaxy__hero-mascot home-galaxy__hero-mascot--monkey" },
-  { id: "elephant", src: MASCOT_SPLASH_PATHS.elephant, width: 56, height: 68, className: "home-galaxy__hero-mascot home-galaxy__hero-mascot--elephant" },
-  { id: "crocodile", src: MASCOT_SPLASH_PATHS.crocodile, width: 78, height: 30, className: "home-galaxy__hero-mascot home-galaxy__hero-mascot--crocodile" },
-  { id: "tiger", src: MASCOT_SPLASH_PATHS.tiger, width: 50, height: 48, className: "home-galaxy__hero-mascot home-galaxy__hero-mascot--tiger" },
-] as const;
 
 export type HomeGalaxyScreenProps = {
   rangeLabel: string;
@@ -134,25 +126,18 @@ export function HomeGalaxyScreen(props: HomeGalaxyScreenProps) {
 
   return (
     <div className="home-galaxy">
-      <header className="home-galaxy__hero">
-        <p className={`home-galaxy__hero-text ${displayFontClass}`}>{t("home.galaxyHero")}</p>
-        <div className="home-galaxy__hero-cast" aria-hidden>
-          {HOME_HERO_MASCOTS.map((mascot) => (
-            <Image
-              key={mascot.id}
-              src={mascot.src}
-              alt=""
-              width={mascot.width}
-              height={mascot.height}
-              unoptimized
-              className={mascot.className}
-            />
-          ))}
+      <header
+        className="home-galaxy__hero"
+        style={{ backgroundImage: `url(${HOME_GALAXY_HERO_ART.path})` }}
+      >
+        <div className="home-galaxy__hero-overlay" aria-hidden />
+        <div className="home-galaxy__hero-caption">
+          <p className={`home-galaxy__hero-text ${displayFontClass}`}>{t("home.galaxyHero")}</p>
         </div>
       </header>
 
       <div className="home-galaxy__sheet">
-        <section className="home-galaxy__progress">
+        <section className="home-galaxy__progress home-galaxy-card">
           <p className="home-galaxy__progress-msg">
             {t("home.galaxyProgressMsg", { band: props.rangeLabel })}
           </p>
@@ -172,7 +157,7 @@ export function HomeGalaxyScreen(props: HomeGalaxyScreenProps) {
           </div>
         </section>
 
-        <section className="home-galaxy__week">
+        <section className="home-galaxy__week home-galaxy-card">
           <div className="home-galaxy__week-head">
             <p className="home-galaxy__week-title">
               {t("home.galaxyWeekTitle", { count: weeklyMet })}
@@ -201,24 +186,32 @@ export function HomeGalaxyScreen(props: HomeGalaxyScreenProps) {
           </div>
         </section>
 
-        <section className="home-galaxy__lesson">
+        <section className="home-galaxy__lesson home-galaxy-card home-galaxy-card--featured">
           <h2 className={`home-galaxy__lesson-title ${displayFontClass}`}>
             {t("home.bannerTitle")}
           </h2>
+          <p className="home-galaxy__lesson-subtitle">
+            {t("home.bannerSubtitle", {
+              count: props.queueLength,
+              range: props.rangeLabel,
+            })}
+          </p>
           <div className="home-galaxy__lesson-meta">
-            <div>
-              <span className="home-galaxy__lesson-meta-label">{t("home.galaxyMetaLeft")}</span>
-              <span className="home-galaxy__lesson-meta-value">
-                {t("home.flowNewLeft", { count: props.queueLength })}
-              </span>
-            </div>
-            <div>
-              <span className="home-galaxy__lesson-meta-label">{t("home.galaxyMetaBand")}</span>
-              <span className="home-galaxy__lesson-meta-value">{props.rangeLabel}</span>
-            </div>
             <div>
               <span className="home-galaxy__lesson-meta-label">{t("home.galaxyMetaToday")}</span>
               <span className="home-galaxy__lesson-meta-value">{props.todayWordsLearned}</span>
+            </div>
+            <div>
+              <span className="home-galaxy__lesson-meta-label">{t("home.flowReview")}</span>
+              <span className="home-galaxy__lesson-meta-value">
+                {props.dueReviewCount > 0 ? props.dueReviewCount : "—"}
+              </span>
+            </div>
+            <div>
+              <span className="home-galaxy__lesson-meta-label">{t("home.masteredShort")}</span>
+              <span className="home-galaxy__lesson-meta-value">
+                {props.wordsKnown.toLocaleString()}
+              </span>
             </div>
           </div>
           <button
@@ -228,9 +221,6 @@ export function HomeGalaxyScreen(props: HomeGalaxyScreenProps) {
             onClick={props.onStartJourney}
           >
             {t("home.bannerCta")}
-          </button>
-          <button type="button" className="home-galaxy__library-link" onClick={props.onOpenLibrary}>
-            {t("home.flowLibrary")} · {t("home.flowLibraryKnown", { count: props.wordsKnown })}
           </button>
         </section>
       </div>

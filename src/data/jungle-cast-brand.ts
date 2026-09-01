@@ -24,9 +24,9 @@ export const WELCOME_SPLASH_IMAGE = {
   mode: "illustration" as const,
 } as const;
 
-/** @deprecated Home galaxy uses inline mascot strip — kept for legacy references. */
+/** Home galaxy hero — curated classroom scene (separate from boot splash). */
 export const HOME_GALAXY_HERO_ART = {
-  path: "/mascot/welcome/welcome-01-park.jpg",
+  path: "/mascot/welcome/welcome-02-classroom.jpg?v=home2",
   mode: "photo" as const,
 } as const;
 
