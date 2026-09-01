@@ -33,8 +33,8 @@ export function DiscoverDashboard({
     queueLength > 0 ? Math.round((currentIndex / queueLength) * 100) : 0;
 
   return (
-    <div className="home-scroll page-scroll">
-      <div className="home-content px-4">
+    <div className="home-scroll page-scroll home-scroll--fill">
+      <div className="home-content home-content--fill px-4">
         <HomeLayoutRenderer
           {...layoutProps}
           queueLength={queueLength}

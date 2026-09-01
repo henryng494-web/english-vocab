@@ -49,13 +49,13 @@ function MascotCorner({
   return <JungleMascot character={character} size={size} className="home-ins-mascot-corner" priority />;
 }
 
-/** 1 · Duolingo — streak nổi, vòng mục tiêu, thẻ bài xanh, hổ */
+/** 1 · Duolingo — streak, vòng mục tiêu, thẻ bài full-height */
 export function InspiredHome1(props: HomeLayoutProps) {
   const copy = useHomePageCopy(props);
 
   return (
     <div className="home-ins home-ins--duo">
-      <div className="home-ins-duo__top">
+      <div className="home-ins-duo__top home-ins__base">
         <div className="home-ins-streak-pill">
           <span aria-hidden>🔥</span>
           <span className={`home-ins-streak-pill__value ${displayFontClass}`}>
@@ -71,18 +71,20 @@ export function InspiredHome1(props: HomeLayoutProps) {
 
       <button
         type="button"
-        className="home-ins-lesson-card home-ins-lesson-card--duo"
+        className="home-ins-lesson-card home-ins-lesson-card--duo home-ins__grow"
         disabled={props.queueLength === 0}
         onClick={props.onStartJourney}
       >
-        <MascotCorner character="tiger" size={80} />
-        <p className="home-ins-lesson-card__eyebrow">{copy.t("home.insTodayLesson")}</p>
-        <h2 className={`home-ins-lesson-card__title ${displayFontClass}`}>{copy.bannerTitle}</h2>
-        <p className="home-ins-lesson-card__meta">{copy.bannerSubtitle}</p>
-        <span className="home-ins-lesson-card__cta">{copy.bannerCta} →</span>
+        <MascotCorner character="tiger" size={96} />
+        <div className="home-ins-lesson-card__body">
+          <p className="home-ins-lesson-card__eyebrow">{copy.t("home.insTodayLesson")}</p>
+          <h2 className={`home-ins-lesson-card__title ${displayFontClass}`}>{copy.bannerTitle}</h2>
+          <p className="home-ins-lesson-card__meta">{copy.bannerSubtitle}</p>
+          <span className="home-ins-lesson-card__cta">{copy.bannerCta} →</span>
+        </div>
       </button>
 
-      <div className="home-ins-duo__bottom">
+      <div className="home-ins-duo__bottom home-ins__base">
         <button type="button" className="home-ins-mini-card" onClick={props.onStartReview}>
           <span className="home-ins-mini-card__icon">🔁</span>
           <span className="home-ins-mini-card__title">{copy.t("home.flowReview")}</span>
@@ -104,22 +106,24 @@ export function InspiredHome1(props: HomeLayoutProps) {
   );
 }
 
-/** 2 · Babbel — bài học sạch, voi, danh sách hành động */
+/** 2 · Babbel — bài học chiếm phần lớn, hàng động tải cuối */
 export function InspiredHome2(props: HomeLayoutProps) {
   const copy = useHomePageCopy(props);
 
   return (
     <div className="home-ins home-ins--babbel">
-      <p className="home-ins-section-kicker">{copy.t("home.insTodayFocus")}</p>
-      <section className="home-ins-babbel-card">
-        <MascotCorner character="elephant" size={64} />
-        <h2 className={`home-ins-babbel-card__title ${displayFontClass}`}>{copy.bannerTitle}</h2>
-        <p className="home-ins-babbel-card__sub">{copy.bannerSubtitle}</p>
-        <ProgressBar value={props.goalCurrent} max={props.goalTarget} colorClass="bg-accent" />
-        <p className="home-ins-babbel-card__progress">{copy.goalProgressLabel}</p>
+      <section className="home-ins-babbel-card home-ins__grow">
+        <p className="home-ins-section-kicker home-ins__base">{copy.t("home.insTodayFocus")}</p>
+        <MascotCorner character="elephant" size={72} />
+        <div className="home-ins-babbel-card__body home-ins__grow">
+          <h2 className={`home-ins-babbel-card__title ${displayFontClass}`}>{copy.bannerTitle}</h2>
+          <p className="home-ins-babbel-card__sub">{copy.bannerSubtitle}</p>
+          <ProgressBar value={props.goalCurrent} max={props.goalTarget} colorClass="bg-accent" />
+          <p className="home-ins-babbel-card__progress">{copy.goalProgressLabel}</p>
+        </div>
         <button
           type="button"
-          className="btn-pill-primary w-full mt-3"
+          className="btn-pill-primary w-full home-ins__base"
           disabled={props.queueLength === 0}
           onClick={props.onStartJourney}
         >
@@ -127,7 +131,7 @@ export function InspiredHome2(props: HomeLayoutProps) {
         </button>
       </section>
 
-      <div className="home-ins-babbel-list">
+      <div className="home-ins-babbel-list home-ins__base">
         <button type="button" className="home-ins-babbel-row" onClick={props.onStartReview}>
           <span className="home-ins-babbel-row__icon">🔁</span>
           <span className="home-ins-babbel-row__copy">
@@ -156,17 +160,17 @@ export function InspiredHome2(props: HomeLayoutProps) {
   );
 }
 
-/** 3 · Memrise — chồng thẻ, số từ lớn, cá sấu */
+/** 3 · Memrise — chồng thẻ giữa trang, stats dính đáy */
 export function InspiredHome3(props: HomeLayoutProps) {
   const copy = useHomePageCopy(props);
 
   return (
     <div className="home-ins home-ins--memrise">
-      <div className="home-ins-memrise-stack" aria-hidden>
+      <div className="home-ins-memrise-stack home-ins__grow" aria-hidden>
         <div className="home-ins-memrise-stack__card home-ins-memrise-stack__card--3" />
         <div className="home-ins-memrise-stack__card home-ins-memrise-stack__card--2" />
         <div className="home-ins-memrise-stack__card home-ins-memrise-stack__card--1">
-          <JungleMascot character="crocodile" size={56} className="mx-auto" />
+          <JungleMascot character="crocodile" size={64} className="mx-auto" />
           <p className={`home-ins-memrise-stack__count ${displayFontClass}`}>
             {props.queueLength.toLocaleString()}
           </p>
@@ -174,17 +178,19 @@ export function InspiredHome3(props: HomeLayoutProps) {
         </div>
       </div>
 
-      <button
-        type="button"
-        className="btn-pill-primary home-ins-memrise-cta"
-        disabled={props.queueLength === 0}
-        onClick={props.onStartJourney}
-      >
-        {copy.bannerCta}
-      </button>
-      <p className="home-ins-memrise-sub text-center text-sm text-foreground/60">{copy.bannerSubtitle}</p>
+      <div className="home-ins-memrise-actions home-ins__base">
+        <button
+          type="button"
+          className="btn-pill-primary home-ins-memrise-cta"
+          disabled={props.queueLength === 0}
+          onClick={props.onStartJourney}
+        >
+          {copy.bannerCta}
+        </button>
+        <p className="home-ins-memrise-sub text-center text-sm text-foreground/60">{copy.bannerSubtitle}</p>
+      </div>
 
-      <div className="home-ins-memrise-stats">
+      <div className="home-ins-memrise-stats home-ins__base">
         <button type="button" className="home-ins-memrise-stat" onClick={props.onStartReview}>
           <span className="home-ins-memrise-stat__value">{props.dueReviewCount}</span>
           <span className="home-ins-memrise-stat__label">{copy.t("home.flowReview")}</span>
@@ -202,13 +208,13 @@ export function InspiredHome3(props: HomeLayoutProps) {
   );
 }
 
-/** 4 · Busuu — lưới module màu, cast pill */
+/** 4 · Busuu — lưới module kéo giãn full trang */
 export function InspiredHome4(props: HomeLayoutProps) {
   const copy = useHomePageCopy(props);
 
   return (
     <div className="home-ins home-ins--busuu">
-      <div className="home-ins-busuu-header">
+      <div className="home-ins-busuu-header home-ins__base">
         <div>
           <JungleCastPill size={24} />
           <p className="home-ins-busuu-header__streak">
@@ -222,15 +228,15 @@ export function InspiredHome4(props: HomeLayoutProps) {
         </div>
       </div>
 
-      <p className="home-ins-section-kicker">{copy.t("home.insStudyPlan")}</p>
-      <div className="home-ins-busuu-grid">
+      <p className="home-ins-section-kicker home-ins__base">{copy.t("home.insStudyPlan")}</p>
+      <div className="home-ins-busuu-grid home-ins__grow">
         <button
           type="button"
           className="home-ins-busuu-tile home-ins-busuu-tile--learn"
           disabled={props.queueLength === 0}
           onClick={props.onStartJourney}
         >
-          <JungleMascot character="tiger" size={48} />
+          <JungleMascot character="tiger" size={56} />
           <span className="home-ins-busuu-tile__title">{copy.bannerTitle}</span>
           <span className="home-ins-busuu-tile__meta">{copy.bannerSubtitle}</span>
           <span className="home-ins-busuu-tile__cta">{copy.bannerCta} →</span>
@@ -258,14 +264,14 @@ export function InspiredHome4(props: HomeLayoutProps) {
   );
 }
 
-/** 5 · Quizlet — tối giản, ưu tiên ôn, voi nhỏ */
+/** 5 · Quizlet — deck full-height, footer dính đáy */
 export function InspiredHome5(props: HomeLayoutProps) {
   const copy = useHomePageCopy(props);
 
   return (
     <div className="home-ins home-ins--quizlet">
       {props.dueReviewCount > 0 ? (
-        <button type="button" className="home-ins-quizlet-due" onClick={props.onStartReview}>
+        <button type="button" className="home-ins-quizlet-due home-ins__base" onClick={props.onStartReview}>
           <span className="home-ins-quizlet-due__count">{props.dueReviewCount}</span>
           <span className="home-ins-quizlet-due__copy">
             <span className="home-ins-quizlet-due__title">{copy.t("home.insDueNow")}</span>
@@ -275,19 +281,22 @@ export function InspiredHome5(props: HomeLayoutProps) {
         </button>
       ) : null}
 
-      <section className="home-ins-quizlet-deck">
+      <section className="home-ins-quizlet-deck home-ins__grow">
         <div className="home-ins-quizlet-deck__head">
           <div>
             <p className="home-ins-quizlet-deck__label">{copy.t("home.insYourDeck")}</p>
             <h2 className={`home-ins-quizlet-deck__title ${displayFontClass}`}>{copy.bannerTitle}</h2>
             <p className="home-ins-quizlet-deck__meta">{copy.bannerSubtitle}</p>
           </div>
-          <JungleMascot character="elephant" size={52} />
+          <JungleMascot character="elephant" size={64} />
         </div>
-        <ProgressBar value={props.rankProgress} max={100} colorClass="bg-primary" />
+        <div className="home-ins-quizlet-deck__middle home-ins__grow">
+          <ProgressBar value={props.rankProgress} max={100} colorClass="bg-primary" />
+          <p className="home-ins-quizlet-deck__progress">{copy.goalProgressLabel}</p>
+        </div>
         <button
           type="button"
-          className="home-ins-quizlet-deck__btn"
+          className="home-ins-quizlet-deck__btn home-ins__base"
           disabled={props.queueLength === 0}
           onClick={props.onStartJourney}
         >
@@ -295,7 +304,7 @@ export function InspiredHome5(props: HomeLayoutProps) {
         </button>
       </section>
 
-      <div className="home-ins-quizlet-footer">
+      <div className="home-ins-quizlet-footer home-ins__base">
         <span>🔥 {props.streakDays}</span>
         <span>🎯 {props.goalCurrent}/{props.goalTarget}</span>
         <button type="button" onClick={props.onOpenLibrary}>
