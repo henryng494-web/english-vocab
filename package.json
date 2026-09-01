@@ -48,7 +48,8 @@
     "backfill:register": "npx tsx scripts/backfill-register-offline.ts",
     "audit:meanings": "npx tsx scripts/audit-meaning-quality.ts",
     "re-enrich:formal": "npx tsx scripts/re-enrich-stale-words.ts -- --formal-only",
-    "audit:subtlex-noise": "npx tsx scripts/audit-subtlex-noise.ts"
+    "audit:subtlex-noise": "npx tsx scripts/audit-subtlex-noise.ts",
+    "audit:vocab-abbreviations": "npx tsx scripts/audit-vocab-abbreviations.ts"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.0",

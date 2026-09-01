@@ -26,6 +26,14 @@ export const INVALID_VOCAB_WORDS: ReadonlySet<string> = new Set([
   // Mis-parsed or truncated SUBTLEX tokens (3+ chars)
   "abit",
   "alot",
+
+  // Informal verb clippings (not headwords)
+  "finna",
+  "gon",
+  "gotcha",
+  "ima",
+  "prolly",
+  "tryna",
 ]);
 
 export function isInvalidVocabWord(word: string): boolean {
