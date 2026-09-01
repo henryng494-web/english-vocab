@@ -1,4 +1,5 @@
 import { getPresetRank } from "@/data/preset-word-details";
+import { enrichReviewQueueClues } from "@/lib/review-word-hydrate";
 import {
   hydrateLocalLearningFromApi,
   mergeLocalLearning,
@@ -241,11 +242,15 @@ async function enrichDueWordsOnly(
   const enrichedQueue = applySnapshot(
     buildQueueFromKeys(dueKeys, pool, extraWords),
   );
+  const withClues = await enrichReviewQueueClues(
+    enrichedQueue.length > 0 ? enrichedQueue : queue,
+    12,
+  );
 
-  void prefetchReviewQuestionRange(enrichedQueue, pool, 0, 20);
+  void prefetchReviewQuestionRange(withClues, pool, 0, 20);
 
   return {
-    queue: enrichedQueue.length > 0 ? enrichedQueue : queue,
+    queue: withClues.length > 0 ? withClues : queue,
     pool,
   };
 }

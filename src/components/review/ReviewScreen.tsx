@@ -663,18 +663,47 @@ export function ReviewScreen() {
       }
 
       let cancelled = false;
-      void fetchReviewWordDetails(currentWord.word).then((details) => {
-        if (cancelled || !details || !hasReviewClueFields(details)) return;
+      void fetchReviewWordDetails(currentWord.word).then(async (details) => {
+        if (cancelled) return;
+        if (details && hasReviewClueFields(details)) {
+          const patch = {
+            vietnamese_meaning:
+              details.vietnamese_meaning ?? currentWord.vietnamese_meaning,
+            english_definition:
+              details.english_definition ?? currentWord.english_definition,
+            phonetic: details.phonetic ?? currentWord.phonetic,
+            word_type: details.word_type ?? currentWord.word_type,
+            examples: details.examples ?? currentWord.examples,
+            search_keyword: details.search_keyword ?? currentWord.search_keyword,
+            image_url: details.image_url ?? currentWord.image_url,
+          };
+          setQueue((prev) =>
+            prev.map((word) =>
+              word.word === currentWord.word ? { ...word, ...patch } : word,
+            ),
+          );
+          setAllWords((prev) =>
+            prev.map((word) =>
+              word.word === currentWord.word ? { ...word, ...patch } : word,
+            ),
+          );
+          return;
+        }
+        const { fetchDiscoverWordEnrichment } = await import(
+          "@/lib/review-word-hydrate"
+        );
+        const discovered = await fetchDiscoverWordEnrichment(currentWord);
+        if (cancelled || !discovered || !hasReviewClueFields(discovered)) return;
         const patch = {
           vietnamese_meaning:
-            details.vietnamese_meaning ?? currentWord.vietnamese_meaning,
+            discovered.vietnamese_meaning ?? currentWord.vietnamese_meaning,
           english_definition:
-            details.english_definition ?? currentWord.english_definition,
-          phonetic: details.phonetic ?? currentWord.phonetic,
-          word_type: details.word_type ?? currentWord.word_type,
-          examples: details.examples ?? currentWord.examples,
-          search_keyword: details.search_keyword ?? currentWord.search_keyword,
-          image_url: details.image_url ?? currentWord.image_url,
+            discovered.english_definition ?? currentWord.english_definition,
+          phonetic: discovered.phonetic ?? currentWord.phonetic,
+          word_type: discovered.word_type ?? currentWord.word_type,
+          examples: discovered.examples ?? currentWord.examples,
+          search_keyword: discovered.search_keyword ?? currentWord.search_keyword,
+          image_url: discovered.image_url ?? currentWord.image_url,
         };
         setQueue((prev) =>
           prev.map((word) =>
@@ -724,7 +753,13 @@ export function ReviewScreen() {
     if (!missingImage && !badVi && !missingExamples && !badExamples) return;
 
     let cancelled = false;
-    if (missingImage && !badVi && !missingExamples && !badExamples) {
+    if (
+      missingImage &&
+      !badVi &&
+      !missingExamples &&
+      !badExamples &&
+      hasReviewClueFields(currentWord)
+    ) {
       const params = new URLSearchParams({ word: currentWord.word });
       if (currentWord.vietnamese_meaning?.trim()) {
         params.set("meaning", currentWord.vietnamese_meaning.trim());

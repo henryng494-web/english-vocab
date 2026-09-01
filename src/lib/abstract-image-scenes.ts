@@ -276,6 +276,8 @@ const NOUN_HINTS: Readonly<Record<string, string>> = {
   park: "city park bench trees green relaxing",
   part: "puzzle part piece connecting teamwork closeup",
   party: "birthday party balloons cake celebration friends",
+  congratulation: "people celebrating congratulations applause happy event",
+  congratulations: "celebration confetti friends cheering congratulations party",
   pass: "mountain pass road winding scenic drive",
   past: "old photo album memories vintage nostalgic",
   peace: "dove peace symbol white bird sky",

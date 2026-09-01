@@ -410,7 +410,12 @@ export function shouldRefreshImageUrl(
     return !trimmed || trimmed.startsWith("http") || isUnsafeImageUrl(trimmed);
   }
   if (!trimmed) return true;
-  if (isPlaceholderIllustrationUrl(trimmed)) return false;
+  if (isPlaceholderIllustrationUrl(trimmed)) {
+    if (word && !isClosedClassWord(word, pos) && !requiresSafeImageOnly(word)) {
+      return true;
+    }
+    return false;
+  }
   if (isUnsafeImageUrl(trimmed)) return true;
   if (word && isClosedClassWord(word, pos) && isStockImageUrl(trimmed)) {
     return !isApprovedFunctionWordStockUrl(trimmed, word);

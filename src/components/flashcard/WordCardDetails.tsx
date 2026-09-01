@@ -91,11 +91,14 @@ export function WordCardDetails({
   useEffect(() => {
     if (loading) return;
     const hasMeaningContent =
-      chunksOnly || keepNaturalExamples(word, parsed, wordType, meaning).length > 0;
+      Boolean(meaning?.trim()) ||
+      Boolean(englishDefinition?.trim()) ||
+      chunksOnly ||
+      keepNaturalExamples(word, parsed, wordType, meaning).length > 0;
     if (!hasMeaningContent && canFlip) {
       setShowFamily(true);
     }
-  }, [word, loading, chunksOnly, parsed, wordType, meaning, canFlip]);
+  }, [word, loading, chunksOnly, parsed, wordType, meaning, englishDefinition, canFlip]);
 
   if (loading) {
     return <DetailsLoadingSkeleton />;

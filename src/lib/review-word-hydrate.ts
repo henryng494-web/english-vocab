@@ -1,9 +1,13 @@
-import { getStaticWordDetail } from "@/data/preset-word-details";
+import { getStaticWordDetail, getPresetRank } from "@/data/preset-word-details";
 import { hasQualityStandardVocab } from "@/data/standard-vocab";
 import { loadPersistedWordCache } from "@/lib/discover-word-cache";
 import { standardToDiscoverFields } from "@/lib/enrichment-helpers";
 import { resolveImageSearchKeyword } from "@/lib/image-keyword";
 import { serializeExamples } from "@/lib/parse-examples";
+import {
+  isPlaceholderIllustrationUrl,
+  isRealCardImageUrl,
+} from "@/lib/unsplash";
 import type { VocabWord } from "@/types/database";
 
 let discoverCache: ReturnType<typeof loadPersistedWordCache> | null = null;
@@ -44,8 +48,17 @@ function mergeHydratedFields(
   if (!next.examples?.trim() && patch.examples?.trim()) {
     next.examples = patch.examples;
   }
-  if (!next.image_url?.trim() && patch.image_url?.trim()) {
-    next.image_url = patch.image_url;
+  if (patch.image_url?.trim()) {
+    const nextUrl = patch.image_url.trim();
+    const currentUrl = next.image_url?.trim();
+    if (
+      !currentUrl ||
+      isPlaceholderIllustrationUrl(currentUrl) ||
+      (isRealCardImageUrl(nextUrl, next.word) &&
+        !isRealCardImageUrl(currentUrl, next.word))
+    ) {
+      next.image_url = nextUrl;
+    }
   }
   if (!next.search_keyword?.trim() && patch.search_keyword?.trim()) {
     next.search_keyword = patch.search_keyword;
@@ -142,13 +155,79 @@ export function hydrateReviewWordLocal(word: VocabWord): VocabWord {
   return word;
 }
 
-/** Local hydrate, then one fast DB lookup — for the active review card. */
+/** Gemini enrich via discover API when DB/local cache has no clue text. */
+export async function fetchDiscoverWordEnrichment(
+  word: VocabWord,
+): Promise<Partial<VocabWord> | null> {
+  const key = word.word.trim().toLowerCase();
+  if (!key) return null;
+  try {
+    const params = new URLSearchParams({
+      word: key,
+      rank: String(word.rank ?? getPresetRank(key) ?? 10000),
+      skipGemini: "false",
+    });
+    const res = await fetch(`/api/discover/word?${params}`, {
+      cache: "no-store",
+    });
+    if (!res.ok) return null;
+    const data = (await res.json()) as { word?: VocabWord };
+    const enriched = data.word;
+    if (!enriched || !hasReviewClueFields(enriched)) return null;
+    return {
+      phonetic: enriched.phonetic,
+      word_type: enriched.word_type,
+      vietnamese_meaning: enriched.vietnamese_meaning,
+      english_definition: enriched.english_definition,
+      examples: enriched.examples,
+      image_url: enriched.image_url,
+      search_keyword: enriched.search_keyword,
+    };
+  } catch {
+    return null;
+  }
+}
+
+/** Enrich due queue slots missing meanings via discover (limited concurrency). */
+export async function enrichReviewQueueClues(
+  queue: VocabWord[],
+  limit = 12,
+): Promise<VocabWord[]> {
+  const enriched = [...queue];
+  const targets: { index: number; word: VocabWord }[] = [];
+
+  for (let index = 0; index < enriched.length && targets.length < limit; index++) {
+    const word = enriched[index]!;
+    if (!hasReviewClueFields(hydrateReviewWordLocal(word))) {
+      targets.push({ index, word });
+    }
+  }
+
+  const concurrency = 3;
+  for (let offset = 0; offset < targets.length; offset += concurrency) {
+    const batch = targets.slice(offset, offset + concurrency);
+    await Promise.all(
+      batch.map(async ({ index, word }) => {
+        const discovered = await fetchDiscoverWordEnrichment(word);
+        if (discovered) {
+          enriched[index] = mergeHydratedFields(word, discovered);
+        }
+      }),
+    );
+  }
+
+  return enriched;
+}
+
+/** Local hydrate, then DB, then discover enrich — for the active review card. */
 export async function ensureReviewWordClue(word: VocabWord): Promise<VocabWord> {
   const local = hydrateReviewWordLocal(word);
   if (hasReviewClueFields(local)) return local;
   const details = await fetchReviewWordDetails(word.word);
-  if (!details) return local;
-  return mergeHydratedFields(local, details);
+  const merged = details ? mergeHydratedFields(local, details) : local;
+  if (hasReviewClueFields(merged)) return merged;
+  const discovered = await fetchDiscoverWordEnrichment(word);
+  return discovered ? mergeHydratedFields(merged, discovered) : merged;
 }
 
 export async function fetchReviewWordDetails(
@@ -212,6 +291,21 @@ export async function prefetchReviewClues(
   } catch {
     /* best-effort */
   }
+
+  const stillPending = unique.filter(
+    (key) => !updates[key] || !hasReviewClueFields(updates[key] as VocabWord),
+  );
+  const queueByKey = new Map(
+    queue.map((word) => [word.word.trim().toLowerCase(), word]),
+  );
+  await Promise.all(
+    stillPending.slice(0, 4).map(async (key) => {
+      const source = queueByKey.get(key);
+      if (!source) return;
+      const discovered = await fetchDiscoverWordEnrichment(source);
+      if (discovered) updates[key] = discovered;
+    }),
+  );
 
   return updates;
 }
