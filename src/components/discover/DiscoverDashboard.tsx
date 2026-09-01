@@ -1,5 +1,6 @@
 "use client";
 
+import { JungleMascot, JungleCastPill } from "@/components/mascot/JungleMascot";
 import { useI18n } from "@/hooks/use-i18n";
 import type { GoalType } from "@/lib/app-settings";
 import { displayFontClass } from "@/lib/fonts";
@@ -7,8 +8,10 @@ import { displayFontClass } from "@/lib/fonts";
 type DiscoverDashboardProps = {
   rangeLabel: string;
   queueLength: number;
+  currentIndex: number;
   dueReviewCount: number;
   wordsKnown: number;
+  wordsReviewing: number;
   streakDays: number;
   goalType: GoalType;
   goalCurrent: number;
@@ -20,6 +23,23 @@ type DiscoverDashboardProps = {
   onStartReview: () => void;
   onOpenLibrary: () => void;
 };
+
+export function CoinBadge({
+  value,
+  label,
+}: {
+  value: number;
+  label: string;
+}) {
+  return (
+    <span className="coin-badge" title={label} aria-label={label}>
+      <span className="coin-badge__icon" aria-hidden>
+        🪙
+      </span>
+      {value.toLocaleString()}
+    </span>
+  );
+}
 
 function ProgressBar({
   value,
@@ -41,8 +61,10 @@ function ProgressBar({
 export function DiscoverDashboard({
   rangeLabel,
   queueLength,
+  currentIndex,
   dueReviewCount,
   wordsKnown,
+  wordsReviewing,
   streakDays,
   goalType,
   goalCurrent,
@@ -54,7 +76,9 @@ export function DiscoverDashboard({
   onStartReview,
   onOpenLibrary,
 }: DiscoverDashboardProps) {
-  const { t } = useI18n();
+  const { t, goalTypeLabel } = useI18n();
+  const rankProgress =
+    queueLength > 0 ? Math.round((currentIndex / queueLength) * 100) : 0;
   const goalMet = goalTarget > 0 && goalCurrent >= goalTarget;
   const canStartToday = dueReviewCount > 0 || queueLength > 0 || sessionInProgress;
 
@@ -90,48 +114,29 @@ export function DiscoverDashboard({
       ? t("home.startSession")
       : t("home.doneToday");
 
+  const goalStatValue = goalMet ? "✓" : `${goalCurrent}/${goalTarget}`;
+
   return (
     <div className="home-scroll page-scroll">
       <div className="home-content px-4">
-        <div className="home-stats-bar">
-          <div className="home-stats-bar__item">
-            <span className="home-stats-bar__icon" aria-hidden>
-              🔥
-            </span>
-            <span className="home-stats-bar__label">{t("home.streak")}</span>
-            <span className={`home-stats-bar__value ${displayFontClass}`}>
-              {t("home.streakDays", { count: streakDays })}
-            </span>
-          </div>
-          <button
-            type="button"
-            className="home-stats-bar__item home-stats-bar__item--link"
-            onClick={onOpenLibrary}
-            title={t("home.coinBadge")}
-            aria-label={t("home.coinBadge")}
-          >
-            <span className="home-stats-bar__icon" aria-hidden>
-              🪙
-            </span>
-            <span className="home-stats-bar__label">{t("home.masteredShort")}</span>
-            <span className={`home-stats-bar__value ${displayFontClass}`}>
-              {wordsKnown.toLocaleString()}
-            </span>
-          </button>
-        </div>
-
         <section className="home-card home-today home-today--compact border-primary-200 bg-primary-50/30">
-          <h2 className={`home-section-title ${displayFontClass}`}>{t("home.today")}</h2>
+          <div className="home-today__head">
+            <div>
+              <div className="mb-2">
+                <JungleCastPill size={20} />
+              </div>
+              <h2 className={`home-section-title ${displayFontClass}`}>{t("home.today")}</h2>
+              <p className="home-body-text mt-1">{todayStatus}</p>
+            </div>
+            <JungleMascot character="tiger" size={56} title="Jungle Jokers Tiger" />
+          </div>
 
           <ProgressBar
             value={goalCurrent}
             max={goalTarget}
             colorClass="bg-accent"
           />
-          <p className="home-body-text mt-2 text-sm font-semibold text-foreground/80">
-            {progressLabel}
-          </p>
-          <p className="home-body-text mt-1 text-sm text-foreground/60">{todayStatus}</p>
+          <p className="home-body-text mt-2 text-sm text-foreground/60">{progressLabel}</p>
 
           <button
             type="button"
@@ -143,49 +148,88 @@ export function DiscoverDashboard({
           </button>
         </section>
 
-        <section className="home-next">
-          <h3 className="home-section-label">{t("home.next")}</h3>
-          <div className="home-next-list">
-            <button
-              type="button"
-              onClick={onStartReview}
-              className="home-next-row border-secondary-200 bg-secondary-50/40 hover:bg-secondary-50 transition"
-            >
-              <span className="home-next-row__icon text-secondary" aria-hidden>
-                🔁
-              </span>
-              <span className="home-next-row__copy">
-                <span className="home-next-row__title">
-                  {dueReviewCount > 0
-                    ? t("home.nextReview", { count: dueReviewCount })
-                    : t("home.flowReviewNone")}
-                </span>
-                <span className="home-next-row__meta">{t("home.flowReviewDetail")}</span>
-              </span>
-              <span className="home-next-row__chev" aria-hidden>
-                →
-              </span>
-            </button>
-
+        <section>
+          <div className="home-section-header">
+            <h3 className="home-section-label">{t("home.flows")}</h3>
+          </div>
+          <div className="home-flow-grid">
             <button
               type="button"
               onClick={onStartJourney}
               disabled={queueLength === 0}
-              className="home-next-row border-primary-200 bg-primary-50/40 hover:bg-primary-50 transition"
+              className="home-card home-flow-card home-flow-card--compact border-primary-200 bg-primary-50/40 hover:bg-primary-50 transition text-left"
             >
-              <span className="home-next-row__icon text-primary" aria-hidden>
+              <span className="home-stat-icon text-primary" aria-hidden>
                 📖
               </span>
-              <span className="home-next-row__copy">
-                <span className="home-next-row__title">
-                  {t("home.nextJourney", { count: queueLength })}
-                </span>
-                <span className="home-next-row__meta">{rangeLabel}</span>
-              </span>
-              <span className="home-next-row__chev" aria-hidden>
-                →
-              </span>
+              <p className="home-flow-card__title">{t("home.flowNew")}</p>
+              <p className="home-flow-card__meta">{rangeLabel}</p>
+              <p className="home-flow-card__detail">
+                {t("home.flowNewLeft", { count: queueLength })}
+              </p>
+              <ProgressBar value={rankProgress} max={100} colorClass="bg-primary" />
             </button>
+
+            <button
+              type="button"
+              onClick={onStartReview}
+              className="home-card home-flow-card home-flow-card--compact border-secondary-200 bg-secondary-50/40 hover:bg-secondary-50 transition text-left"
+            >
+              <span className="home-stat-icon text-secondary" aria-hidden>
+                🔁
+              </span>
+              <p className="home-flow-card__title">{t("home.flowReview")}</p>
+              <p className="home-flow-card__meta">
+                {dueReviewCount > 0
+                  ? t("home.flowReviewDue", { count: dueReviewCount })
+                  : t("home.flowReviewNone")}
+              </p>
+              <p className="home-flow-card__detail">{t("home.flowReviewDetail")}</p>
+            </button>
+
+            <button
+              type="button"
+              onClick={onOpenLibrary}
+              className="home-card home-flow-card home-flow-card--compact border-pink-200 bg-pink-50/40 hover:bg-pink-50 transition text-left"
+            >
+              <span className="home-stat-icon text-pink-600" aria-hidden>
+                📚
+              </span>
+              <p className="home-flow-card__title">{t("home.flowLibrary")}</p>
+              <p className="home-flow-card__meta">
+                {t("home.flowLibraryKnown", { count: wordsKnown })}
+              </p>
+              <p className="home-flow-card__detail">
+                {t("home.flowLibraryReview", { count: wordsReviewing })}
+              </p>
+            </button>
+          </div>
+        </section>
+
+        <section>
+          <div className="home-section-header">
+            <h3 className="home-section-label">{t("home.progress")}</h3>
+          </div>
+          <div className="home-stat-grid home-stat-grid--duo">
+            <div className="home-card home-stat-card border-secondary-200 bg-secondary-50/50">
+              <span className="home-stat-icon text-xl" aria-hidden>
+                🔥
+              </span>
+              <p className="home-stat-label text-secondary-800">{t("home.streak")}</p>
+              <p className={`home-stat-value text-secondary-700 ${displayFontClass}`}>
+                {t("home.streakDays", { count: streakDays })}
+              </p>
+            </div>
+
+            <div className="home-card home-stat-card border-accent-200 bg-accent-50/50">
+              <span className="home-stat-icon text-xl" aria-hidden>
+                🎯
+              </span>
+              <p className="home-stat-label text-accent-800">{goalTypeLabel(goalType)}</p>
+              <p className={`home-stat-value text-accent-700 ${displayFontClass}`}>
+                {goalStatValue}
+              </p>
+            </div>
           </div>
         </section>
       </div>
