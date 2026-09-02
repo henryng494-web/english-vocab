@@ -280,6 +280,7 @@ export async function prefetchReviewClues(
     if (hasReviewClueFields(hydrated)) {
       const key = word.word.trim().toLowerCase();
       updates[key] = hydrated;
+      prefetchLearningChunkContent(hydrated);
       continue;
     }
     pending.push(word.word.trim().toLowerCase());
@@ -299,6 +300,7 @@ export async function prefetchReviewClues(
       const key = item.word.trim().toLowerCase();
       if (!hasReviewClueFields(item)) continue;
       updates[key] = item;
+      prefetchLearningChunkContent(item);
     }
   } catch {
     /* best-effort */
@@ -315,7 +317,10 @@ export async function prefetchReviewClues(
       const source = queueByKey.get(key);
       if (!source) return;
       const discovered = await fetchDiscoverWordEnrichment(source);
-      if (discovered) updates[key] = discovered;
+      if (discovered) {
+        updates[key] = discovered;
+        prefetchLearningChunkContent({ ...source, ...discovered });
+      }
     }),
   );
 

@@ -5,6 +5,9 @@ import { AppMenuButton } from "@/components/layout/AppMenuButton";
 import { ReviewQuestion } from "@/components/review/ReviewQuestion";
 import { ReviewRecallQuestion } from "@/components/review/ReviewRecallQuestion";
 import { ReviewReveal } from "@/components/review/ReviewReveal";
+import {
+  vocabWordToDiscoverData,
+} from "@/components/discover/VocabWordCard";
 import { ReviewSenseQuestion } from "@/components/review/ReviewSenseQuestion";
 import { JungleMascot } from "@/components/mascot/JungleMascot";
 import { incrementTodayReviewsCompleted } from "@/lib/daily-reviews";
@@ -45,6 +48,7 @@ import {
 } from "@/lib/review-session-storage";
 import { shouldRefreshImageUrl } from "@/lib/unsplash";
 import { refreshAllStaleWordImages } from "@/lib/refresh-stale-word-images";
+import { prefetchLearningChunkContent } from "@/lib/learning-chunk-prefetch";
 import {
   ensureReviewWordClue,
   fetchReviewWordDetails,
@@ -347,6 +351,8 @@ export function ReviewScreen() {
     setTimesReviewed(schedule.timesReviewed);
     activeQuestionRef.current = { word: word.word, index: questionIndex };
 
+    void prefetchLearningChunkContent(vocabWordToDiscoverData(word));
+
     const { targets } = collectReviewQuestionImageTargets(word, pool, questionIndex);
     if (kind === "sense") {
       const senseTargets = nextChoices.map((choice) => ({
@@ -466,7 +472,7 @@ export function ReviewScreen() {
         });
       });
 
-      void prefetchReviewClues(sessionQueue, 1, 16).then((clueUpdates) => {
+      void prefetchReviewClues(sessionQueue, 0, 16).then((clueUpdates) => {
         if (Object.keys(clueUpdates).length === 0) return;
         patchWordFields((item) => {
           const key = item.word.trim().toLowerCase();
@@ -864,6 +870,7 @@ export function ReviewScreen() {
       },
       queueRef.current,
     );
+    void prefetchLearningChunkContent(vocabWordToDiscoverData(currentWord));
     revealDelayRef.current = immediate ? 0 : REVEAL_DELAY_MS;
     if (immediate) {
       setPhase("reveal");

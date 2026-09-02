@@ -8,35 +8,27 @@ import {
   type LearningChunkPhrase,
 } from "@/data/demo-learning-chunks";
 import {
+  prefetchLearningChunkContent,
+  resolveHydratedCollocations,
+} from "@/lib/learning-chunk-prefetch";
+import {
   getCachedCollocationTranslations,
-  setCachedCollocationTranslations,
 } from "@/lib/learning-chunk-vi-cache";
 import {
   getCachedSupplementCollocations,
   setCachedSupplementCollocations,
 } from "@/lib/learning-chunk-supplement-cache";
+import type { WordRegister } from "@/lib/word-meanings";
 
 type UseLearningChunkTranslationsArgs = {
   word: string;
+  examples?: string | null;
   wordType?: string | null;
   meaning?: string | null;
-  register?: string | null;
+  register?: WordRegister | null;
   englishDefinition?: string | null;
   entry: LearningChunkEntry | null;
-  /** Full example sentences for context when translating collocations. */
-  contextExamples?: LearningChunkPhrase[];
 };
-
-function findContextForCollocation(
-  collocationEn: string,
-  examples: LearningChunkPhrase[],
-): LearningChunkPhrase | null {
-  const key = collocationEn.trim().toLowerCase();
-  for (const ex of examples) {
-    if (ex.en.trim().toLowerCase().includes(key)) return ex;
-  }
-  return examples[0] ?? null;
-}
 
 function mergeCollocationVi(
   base: LearningChunkPhrase[],
@@ -60,30 +52,35 @@ function entrySeedKey(word: string, entry: LearningChunkEntry | null): string {
 
 export function useLearningChunkTranslations({
   word,
+  examples,
   wordType,
   meaning,
   register,
   englishDefinition,
   entry,
-  contextExamples = [],
 }: UseLearningChunkTranslationsArgs): LearningChunkEntry | null {
   const seedKey = useMemo(() => entrySeedKey(word, entry), [word, entry]);
-  const [collocations, setCollocations] = useState<LearningChunkPhrase[]>(
-    entry?.collocations ?? [],
-  );
-  const hydratedKeyRef = useRef<string | null>(null);
-  const supplementedKeyRef = useRef<string | null>(null);
 
   const isOverride = useMemo(() => {
     const key = word.trim().toLowerCase();
     return Boolean(key && LEARNING_CHUNK_OVERRIDES[key]);
   }, [word]);
 
+  const cachedCollocations = useMemo(
+    () => resolveHydratedCollocations(word, entry, isOverride),
+    [word, entry, isOverride, seedKey],
+  );
+
+  const [collocations, setCollocations] =
+    useState<LearningChunkPhrase[]>(cachedCollocations);
+  const hydratedKeyRef = useRef<string | null>(null);
+  const supplementedKeyRef = useRef<string | null>(null);
+
   useEffect(() => {
-    setCollocations(entry?.collocations ?? []);
+    setCollocations(resolveHydratedCollocations(word, entry, isOverride));
     hydratedKeyRef.current = null;
     supplementedKeyRef.current = null;
-  }, [seedKey, entry]);
+  }, [seedKey, word, entry, isOverride]);
 
   useEffect(() => {
     if (!entry || isOverride) return;
@@ -158,8 +155,10 @@ export function useLearningChunkTranslations({
     if (!entry || isOverride) return;
     if (hydratedKeyRef.current === seedKey) return;
 
+    const baseCollocations = resolveHydratedCollocations(word, entry, false);
     const pending = entry.collocations.filter((item) => !item.vi.trim());
     if (!pending.length) {
+      setCollocations(baseCollocations);
       hydratedKeyRef.current = seedKey;
       return;
     }
@@ -173,51 +172,28 @@ export function useLearningChunkTranslations({
 
     let cancelled = false;
 
-    (async () => {
-      try {
-        const contextPool = [...contextExamples, ...entry.chunks];
-        const response = await fetch("/api/learning-chunks/translate", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            word,
-            wordType,
-            meaning,
-            register,
-            englishDefinition,
-            phrases: pending.map((item) => {
-              const context = findContextForCollocation(item.en, contextPool);
-              return {
-                en: item.en,
-                sense: item.sense,
-                contextEn: context?.en,
-                contextVi: context?.vi,
-              };
-            }),
-          }),
-        });
-
-        if (!response.ok || cancelled) return;
-
-        const data = (await response.json()) as {
-          translations?: LearningChunkPhrase[];
-        };
-        const translated = data.translations?.filter((item) => item.vi?.trim());
-        if (!translated?.length || cancelled) return;
-
-        setCachedCollocationTranslations(word, pending, translated);
-        setCollocations(mergeCollocationVi(entry.collocations, translated));
-        hydratedKeyRef.current = seedKey;
-      } catch {
-        // keep EN-only collocations on failure
-      }
-    })();
+    void prefetchLearningChunkContent({
+      word,
+      word_type: wordType,
+      vietnamese_meaning: meaning,
+      english_definition: englishDefinition,
+      examples,
+      register,
+      collocations: null,
+    }).then(() => {
+      if (cancelled) return;
+      const warmed = getCachedCollocationTranslations(word, pending);
+      if (!warmed?.length) return;
+      setCollocations(mergeCollocationVi(entry.collocations, warmed));
+      hydratedKeyRef.current = seedKey;
+    });
 
     return () => {
       cancelled = true;
     };
   }, [
     word,
+    examples,
     wordType,
     meaning,
     register,
@@ -225,7 +201,6 @@ export function useLearningChunkTranslations({
     entry,
     seedKey,
     isOverride,
-    contextExamples,
   ]);
 
   if (!entry) return null;

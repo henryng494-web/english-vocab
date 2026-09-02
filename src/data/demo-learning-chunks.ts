@@ -169,6 +169,19 @@ export const LEARNING_CHUNK_OVERRIDES: Record<string, LearningChunkEntry> = {
       },
     ],
   },
+  plead: {
+    collocations: [
+      { en: "plead with", vi: "cầu xin với", sense: 1 },
+      { en: "to plead", vi: "cầu xin", sense: 1 },
+    ],
+    chunks: [
+      {
+        en: "I plead with you to stay here.",
+        vi: "Tôi cầu xin bạn hãy ở lại đây.",
+        sense: 1,
+      },
+    ],
+  },
 };
 
 export const MAX_LEARNING_COLLOCATIONS = 2;

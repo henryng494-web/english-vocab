@@ -26,6 +26,43 @@ type ChunkPrefetchInput = Pick<
   | "collocations"
 >;
 
+function mergeCollocationVi(
+  base: LearningChunkPhrase[],
+  translated: LearningChunkPhrase[],
+): LearningChunkPhrase[] {
+  const byEn = new Map(
+    translated.map((item) => [item.en.trim().toLowerCase(), item.vi]),
+  );
+  return base.map((item) => {
+    const vi = item.vi.trim() || byEn.get(item.en.trim().toLowerCase()) || "";
+    return vi ? { ...item, vi } : item;
+  });
+}
+
+/** Read supplement + translate caches synchronously (no EN-only flash on warm cache). */
+export function resolveHydratedCollocations(
+  word: string,
+  entry: { collocations: LearningChunkPhrase[]; chunks: LearningChunkPhrase[] } | null,
+  isOverride = false,
+): LearningChunkPhrase[] {
+  if (!entry) return [];
+  if (isOverride) return entry.collocations;
+
+  let collocations = entry.collocations;
+  if (!collocations.length && entry.chunks.length) {
+    const supplemented = getCachedSupplementCollocations(word, []);
+    if (supplemented?.length) collocations = supplemented;
+  }
+
+  const pending = collocations.filter((item) => !item.vi.trim());
+  if (!pending.length) return collocations;
+
+  const cached = getCachedCollocationTranslations(word, pending);
+  if (cached?.length) return mergeCollocationVi(collocations, cached);
+
+  return collocations;
+}
+
 function findContextForCollocation(
   collocationEn: string,
   examples: LearningChunkPhrase[],
@@ -131,23 +168,25 @@ async function prefetchCollocationTranslations(
 /** Warm sessionStorage caches for Goes-with / phrase VI before the card opens. */
 export function prefetchLearningChunkContent(
   data: ChunkPrefetchInput | null | undefined,
-): void {
-  if (!data?.word?.trim() || !data.vietnamese_meaning?.trim()) return;
+): Promise<void> {
+  if (!data?.word?.trim() || !data.vietnamese_meaning?.trim()) {
+    return Promise.resolve();
+  }
 
   const key = data.word.trim().toLowerCase();
-  if (LEARNING_CHUNK_OVERRIDES[key]) return;
+  if (LEARNING_CHUNK_OVERRIDES[key]) return Promise.resolve();
 
   const entry = resolveLearningChunks(data.word, {
     examples: data.examples,
     wordType: data.word_type,
     meaning: data.vietnamese_meaning,
   });
-  if (!entry) return;
-  if (!entry.collocations.length && !entry.chunks.length) return;
+  if (!entry) return Promise.resolve();
+  if (!entry.collocations.length && !entry.chunks.length) return Promise.resolve();
 
   const dedupeKey = prefetchKey(data.word, entry);
   const existing = inflight.get(dedupeKey);
-  if (existing) return;
+  if (existing) return existing;
 
   const promise = (async () => {
     try {
@@ -176,4 +215,5 @@ export function prefetchLearningChunkContent(
       inflight.delete(dedupeKey);
     }
   });
+  return promise;
 }

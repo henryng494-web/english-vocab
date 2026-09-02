@@ -10,13 +10,14 @@ import {
 } from "@/data/demo-learning-chunks";
 import { capitalizeFirst } from "@/lib/format-text";
 import { resolveLearningChunks } from "@/lib/learning-chunks";
+import type { WordRegister } from "@/lib/word-meanings";
 
 type WordLearningChunksProps = {
   word: string;
   examples?: string | null;
   wordType?: string | null;
   meaning?: string | null;
-  register?: string | null;
+  register?: WordRegister | null;
   englishDefinition?: string | null;
   compact?: boolean;
 };
@@ -87,12 +88,12 @@ export function WordLearningChunks({
   );
   const entry = useLearningChunkTranslations({
     word,
+    examples,
     wordType,
     meaning,
     register,
     englishDefinition,
     entry: baseEntry,
-    contextExamples: baseEntry?.chunks,
   });
   if (!entry) return null;
 
