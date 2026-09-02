@@ -1,4 +1,5 @@
 import { readLocalLearning } from "@/lib/learning-storage";
+import { resolveLearnableWordKey } from "@/data/vocab-abbreviations";
 import { isExcludedVocabWord } from "@/lib/proper-noun";
 import {
   localReviewDateKey,
@@ -55,14 +56,36 @@ export function readReviewSchedule(): ScheduleMap {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return {};
     const parsed = JSON.parse(raw) as ScheduleMap;
-    return parsed && typeof parsed === "object" ? parsed : {};
+    if (!parsed || typeof parsed !== "object") return {};
+
+    const normalized: ScheduleMap = {};
+    let changed = false;
+    for (const [key, entry] of Object.entries(parsed)) {
+      const word = resolveLearnableWordKey(key);
+      if (!word) {
+        changed = true;
+        continue;
+      }
+      if (word !== key.trim().toLowerCase()) changed = true;
+      const existing = normalized[word];
+      if (
+        !existing ||
+        (entry.timesReviewed ?? 0) > (existing.timesReviewed ?? 0)
+      ) {
+        normalized[word] = entry;
+      }
+    }
+    if (changed) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(normalized));
+    }
+    return normalized;
   } catch {
     return {};
   }
 }
 
 export function getReviewSchedule(word: string): ReviewScheduleEntry {
-  const key = word.trim().toLowerCase();
+  const key = resolveLearnableWordKey(word) ?? word.trim().toLowerCase();
   const stored = readReviewSchedule()[key];
   if (
     stored &&
@@ -270,7 +293,7 @@ export function writeReviewSchedule(
   timesReviewed: number,
   now = new Date(),
 ): ReviewScheduleEntry {
-  const key = word.trim().toLowerCase();
+  const key = resolveLearnableWordKey(word) ?? word.trim().toLowerCase();
   const map = readReviewSchedule();
   const nextReviewAt = new Date(
     now.getTime() + intervalDays * 24 * 60 * 60 * 1000,

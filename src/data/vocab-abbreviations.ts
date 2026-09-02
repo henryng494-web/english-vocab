@@ -24,6 +24,8 @@ export const ABBREV_TO_CANONICAL: Readonly<Record<string, string>> = {
   inf: "information",
   intro: "introduction",
   lab: "laboratory",
+  med: "medicine",
+  meds: "medicine",
   misc: "miscellaneous",
   msg: "message",
   nav: "navigation",
@@ -135,4 +137,33 @@ export function isVocabAbbreviation(word: string): boolean {
   if (!key) return false;
   if (isSubtitleAbbrevToken(key)) return true;
   return key in ABBREV_TO_CANONICAL;
+}
+
+/** Map subtitle clippings to full learnable headwords (e.g. med → medicine). */
+export function resolveLearnableWordKey(word: string): string | null {
+  const key = word.trim().toLowerCase();
+  if (!key) return null;
+  if (isVocabAbbreviation(key)) {
+    const canonical = getAbbrevCanonical(key);
+    if (!canonical) return null;
+    return canonical;
+  }
+  return key;
+}
+
+const ABBREV_WORD_PATTERN = new RegExp(
+  `\\b(${Object.keys(ABBREV_TO_CANONICAL).join("|")})\\b`,
+  "gi",
+);
+
+/** Expand known clippings inside example/collocation text (daily med → daily medicine). */
+export function expandAbbreviationsInText(text: string): string {
+  if (!text?.trim()) return text;
+  return text.replace(ABBREV_WORD_PATTERN, (match) => {
+    const canonical = getAbbrevCanonical(match);
+    if (!canonical) return match;
+    const isCapitalized = match[0] === match[0]?.toUpperCase();
+    if (!isCapitalized) return canonical;
+    return canonical.charAt(0).toUpperCase() + canonical.slice(1);
+  });
 }

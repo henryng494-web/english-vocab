@@ -1,4 +1,5 @@
 import { getPresetRank } from "@/data/preset-word-details";
+import { resolveLearnableWordKey } from "@/data/vocab-abbreviations";
 import { enrichReviewQueueClues } from "@/lib/review-word-hydrate";
 import {
   hydrateLocalLearningFromApi,
@@ -33,10 +34,17 @@ const SUMMARY_RETRY_DELAYS_MS = [0, 400, 900];
 const DETAILS_BATCH = 100;
 
 function normalizeVocabWord(word: VocabWord): VocabWord {
+  const key = normalizeReviewWordKey(word.word);
   return {
     ...word,
+    word: key,
+    id: key,
     importance_tier: word.importance_tier ?? getImportanceTier(word.rank),
   };
+}
+
+function normalizeReviewWordKey(word: string): string {
+  return resolveLearnableWordKey(word) ?? word.trim().toLowerCase();
 }
 
 function stubVocabWord(
@@ -44,7 +52,7 @@ function stubVocabWord(
   status: LearningStatus,
   lastReviewedAt: string | null | undefined,
 ): VocabWord {
-  const key = word.trim().toLowerCase();
+  const key = normalizeReviewWordKey(word);
   const rank = getPresetRank(key) ?? 10000;
   return {
     id: key,
@@ -209,7 +217,7 @@ async function fetchReviewPool(
     poolKeys.add(word.trim().toLowerCase());
   }
   for (const row of extraWords) {
-    const key = row.word.trim().toLowerCase();
+    const key = normalizeReviewWordKey(row.word);
     if (isExcludedVocabWord(key) || row.status === "mastered") continue;
     poolKeys.add(key);
   }

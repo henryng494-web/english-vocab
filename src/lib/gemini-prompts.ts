@@ -81,6 +81,7 @@ export const EXAMPLE_RULES = (word: string) => `STEP 3 — Examples (EXACTLY 2):
 - Do NOT substitute a different Vietnamese synonym (gloss "Rút ra" → use "rút ra"/"rút", NEVER "thu hút")
 - Match register (informal → conversational; neutral → everyday natural; formal → workplace/news/legal)
 - Vietnamese: natural, not word-by-word
+- Use full words in English — never clipped subtitle forms (medicine not med, laboratory not lab, examination not exam)
 - NEVER meta lines ("I learned the word...", "Please use ... in a sentence")`;
 
 export const SHARED_OUTPUT_RULES = `- Vietnamese: Latin quốc ngữ only — never Chinese/Japanese/Korean characters

@@ -1,6 +1,7 @@
 import { getPresetRank } from "@/data/preset-vocabulary";
 import type { LearningStatus } from "@/types/database";
 import { isExcludedVocabWord } from "@/lib/proper-noun";
+import { resolveLearnableWordKey } from "@/data/vocab-abbreviations";
 
 const STORAGE_KEY = "english-vocab-learning";
 
@@ -16,6 +17,34 @@ function isCountableWord(word: string): boolean {
   return !isExcludedVocabWord(word);
 }
 
+function mergeLearningEntry(
+  left: LocalLearningEntry,
+  right: LocalLearningEntry,
+): LocalLearningEntry {
+  const statusRank: Record<LearningStatus, number> = {
+    mastered: 4,
+    need_review: 3,
+    learning: 2,
+    new: 1,
+  };
+  const pick =
+    statusRank[left.status] >= statusRank[right.status] ? left : right;
+  const other = pick === left ? right : left;
+  return {
+    status: pick.status,
+    last_reviewed_at:
+      pick.last_reviewed_at.localeCompare(other.last_reviewed_at) >= 0
+        ? pick.last_reviewed_at
+        : other.last_reviewed_at,
+    added_at:
+      (pick.added_at ?? pick.last_reviewed_at).localeCompare(
+        other.added_at ?? other.last_reviewed_at,
+      ) <= 0
+        ? pick.added_at ?? pick.last_reviewed_at
+        : other.added_at ?? other.last_reviewed_at,
+  };
+}
+
 export function readLocalLearning(): LocalLearningMap {
   if (typeof window === "undefined") return {};
   try {
@@ -25,12 +54,14 @@ export function readLocalLearning(): LocalLearningMap {
     const normalized: LocalLearningMap = {};
     let changed = false;
     for (const [key, entry] of Object.entries(parsed)) {
-      const word = key.trim().toLowerCase();
+      const word = resolveLearnableWordKey(key);
       if (!word || !isCountableWord(word)) {
         changed = true;
         continue;
       }
-      normalized[word] = entry;
+      if (word !== key.trim().toLowerCase()) changed = true;
+      const existing = normalized[word];
+      normalized[word] = existing ? mergeLearningEntry(existing, entry) : entry;
     }
     if (changed) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(normalized));
@@ -56,7 +87,7 @@ export function hydrateLocalLearningFromApi(
   const now = new Date().toISOString();
 
   for (const row of rows) {
-    const key = row.word.trim().toLowerCase();
+    const key = resolveLearnableWordKey(row.word);
     if (!key || !isCountableWord(key) || map[key]) continue;
     if (row.status === "mastered") continue;
     map[key] = {
@@ -76,7 +107,7 @@ export function hydrateLocalLearningFromApi(
 
 export function writeLocalLearning(word: string, status: LearningStatus) {
   if (typeof window === "undefined") return;
-  const key = word.trim().toLowerCase();
+  const key = resolveLearnableWordKey(word);
   if (!key) return;
   const map = readLocalLearning();
   const now = new Date().toISOString();
