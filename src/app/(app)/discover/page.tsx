@@ -52,7 +52,7 @@ import {
   writeLocalLearning,
 } from "@/lib/learning-storage";
 import { seedWordImageCacheFromEntries } from "@/lib/word-image-cache";
-import { prefetchLearningChunkContent } from "@/lib/learning-chunk-prefetch";
+import { prefetchCardContent } from "@/lib/card-content-prefetch";
 import { readOnboarding, shouldShowOnboarding } from "@/lib/onboarding";
 import { useSyncExternalStore } from "react";
 import {
@@ -278,7 +278,7 @@ export default function DiscoverPage() {
           wordCache.current.set(item.word, loaded);
           persistWordCache(wordCache.current);
           preloadImageUrl(loaded.image_url);
-          prefetchLearningChunkContent(loaded);
+          prefetchCardContent(loaded);
           scheduleBackgroundRepair(item, loaded);
           inflight.current.delete(item.word);
           return loaded;
@@ -306,7 +306,7 @@ export default function DiscoverPage() {
 
         const cached = wordCache.current.get(item.word);
         if (isWordDetailComplete(cached, item.word)) {
-          prefetchLearningChunkContent(cached);
+          prefetchCardContent(cached);
           continue;
         }
         ensureWordFetched(item).catch(() => {});
@@ -337,7 +337,7 @@ export default function DiscoverPage() {
         setCurrentWord(readyCached);
         setLoadingWord(false);
         preloadImageUrl(readyCached.image_url);
-        prefetchLearningChunkContent(readyCached);
+        prefetchCardContent(readyCached);
         return;
       }
 
@@ -346,7 +346,7 @@ export default function DiscoverPage() {
         Boolean(options?.fetchIfNeeded) &&
           !isCardContentReady(cleanStub, item.word),
       );
-      prefetchLearningChunkContent(cleanStub);
+      prefetchCardContent(cleanStub);
 
       if (options?.fetchIfNeeded) {
         ensureWordFetched(item)

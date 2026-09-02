@@ -48,7 +48,7 @@ import {
 } from "@/lib/review-session-storage";
 import { shouldRefreshImageUrl } from "@/lib/unsplash";
 import { refreshAllStaleWordImages } from "@/lib/refresh-stale-word-images";
-import { prefetchLearningChunkContent } from "@/lib/learning-chunk-prefetch";
+import { prefetchCardContent } from "@/lib/card-content-prefetch";
 import {
   ensureReviewWordClue,
   fetchReviewWordDetails,
@@ -351,7 +351,7 @@ export function ReviewScreen() {
     setTimesReviewed(schedule.timesReviewed);
     activeQuestionRef.current = { word: word.word, index: questionIndex };
 
-    void prefetchLearningChunkContent(vocabWordToDiscoverData(word));
+    prefetchCardContent(vocabWordToDiscoverData(word));
 
     const { targets } = collectReviewQuestionImageTargets(word, pool, questionIndex);
     if (kind === "sense") {
@@ -870,7 +870,7 @@ export function ReviewScreen() {
       },
       queueRef.current,
     );
-    void prefetchLearningChunkContent(vocabWordToDiscoverData(currentWord));
+    prefetchCardContent(vocabWordToDiscoverData(currentWord));
     revealDelayRef.current = immediate ? 0 : REVEAL_DELAY_MS;
     if (immediate) {
       setPhase("reveal");

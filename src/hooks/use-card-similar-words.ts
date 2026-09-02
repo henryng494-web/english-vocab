@@ -1,18 +1,12 @@
 "use client";
 
 import { getFamilyDisplayWords } from "@/lib/word-family";
+import {
+  getCachedCardSimilarWords,
+  prefetchCardSimilarWords,
+} from "@/lib/card-similar-prefetch";
 import { normalizeSimilarWords } from "@/lib/word-synonyms";
 import { useEffect, useMemo, useState } from "react";
-
-const clientSimilarCache = new Map<string, string[]>();
-
-function cacheKey(
-  word: string,
-  pos?: string | null,
-  meaning?: string | null,
-): string {
-  return `${word.trim().toLowerCase()}:${pos?.trim().toLowerCase() ?? ""}:${meaning?.trim() ?? ""}`;
-}
 
 type UseCardSimilarWordsOptions = {
   word: string;
@@ -31,6 +25,17 @@ export function useCardSimilarWords({
   englishDefinition,
 }: UseCardSimilarWordsOptions): string[] {
   const headword = word.trim().toLowerCase();
+  const input = useMemo(
+    () => ({
+      word: headword,
+      preset,
+      wordType,
+      meaning,
+      englishDefinition,
+    }),
+    [headword, preset, wordType, meaning, englishDefinition],
+  );
+
   const presetNormalized = useMemo(
     () =>
       headword
@@ -45,7 +50,7 @@ export function useCardSimilarWords({
 
   const [similar, setSimilar] = useState<string[]>(() => {
     if (presetNormalized.length) return presetNormalized;
-    return clientSimilarCache.get(cacheKey(headword, wordType, meaning)) ?? [];
+    return getCachedCardSimilarWords(input) ?? [];
   });
 
   useEffect(() => {
@@ -56,59 +61,24 @@ export function useCardSimilarWords({
 
     if (presetNormalized.length) {
       setSimilar(presetNormalized);
-      clientSimilarCache.set(
-        cacheKey(headword, wordType, meaning),
-        presetNormalized,
-      );
       return;
     }
 
-    const key = cacheKey(headword, wordType, meaning);
-    const cached = clientSimilarCache.get(key);
+    const cached = getCachedCardSimilarWords(input);
     if (cached) {
       setSimilar(cached);
       return;
     }
 
     let cancelled = false;
-    const params = new URLSearchParams({ word: headword });
-    if (wordType?.trim()) params.set("pos", wordType.trim());
-    if (meaning?.trim()) params.set("meaning", meaning.trim());
-    if (englishDefinition?.trim()) {
-      params.set("definition", englishDefinition.trim());
-    }
-
-    void fetch(`/api/word/similar?${params.toString()}`, { cache: "no-store" })
-      .then(async (response) => {
-        if (!response.ok) return { similar_words: [] as string[] };
-        return (await response.json()) as { similar_words?: string[] };
-      })
-      .then((payload) => {
-        if (cancelled) return;
-        const resolved = normalizeSimilarWords(
-          payload.similar_words,
-          headword,
-          getFamilyDisplayWords(headword),
-        );
-        clientSimilarCache.set(key, resolved);
-        setSimilar(resolved);
-      })
-      .catch(() => {
-        if (cancelled) return;
-        clientSimilarCache.set(key, []);
-        setSimilar([]);
-      });
+    void prefetchCardSimilarWords(input).then((resolved) => {
+      if (!cancelled) setSimilar(resolved);
+    });
 
     return () => {
       cancelled = true;
     };
-  }, [
-    headword,
-    wordType,
-    meaning,
-    englishDefinition,
-    presetNormalized,
-  ]);
+  }, [headword, input, presetNormalized]);
 
   return similar;
 }

@@ -3,7 +3,7 @@ import { hasQualityStandardVocab } from "@/data/standard-vocab";
 import { loadPersistedWordCache } from "@/lib/discover-word-cache";
 import { standardToDiscoverFields } from "@/lib/enrichment-helpers";
 import { resolveImageSearchKeyword } from "@/lib/image-keyword";
-import { prefetchLearningChunkContent } from "@/lib/learning-chunk-prefetch";
+import { prefetchCardContent } from "@/lib/card-content-prefetch";
 import { serializeExamples } from "@/lib/parse-examples";
 import {
   isPlaceholderIllustrationUrl,
@@ -212,7 +212,7 @@ export async function enrichReviewQueueClues(
         const discovered = await fetchDiscoverWordEnrichment(word);
         if (discovered) {
           enriched[index] = mergeHydratedFields(word, discovered);
-          prefetchLearningChunkContent(enriched[index]!);
+          prefetchCardContent(enriched[index]!);
         }
       }),
     );
@@ -225,19 +225,19 @@ export async function enrichReviewQueueClues(
 export async function ensureReviewWordClue(word: VocabWord): Promise<VocabWord> {
   const local = hydrateReviewWordLocal(word);
   if (hasReviewClueFields(local)) {
-    prefetchLearningChunkContent(local);
+    prefetchCardContent(local);
     return local;
   }
   const details = await fetchReviewWordDetails(word.word);
   let merged = details ? mergeHydratedFields(local, details) : local;
   if (hasReviewClueFields(merged)) {
-    prefetchLearningChunkContent(merged);
+    prefetchCardContent(merged);
     return merged;
   }
   const discovered = await fetchDiscoverWordEnrichment(word);
   merged = discovered ? mergeHydratedFields(merged, discovered) : merged;
   if (hasReviewClueFields(merged)) {
-    prefetchLearningChunkContent(merged);
+    prefetchCardContent(merged);
   }
   return merged;
 }
@@ -280,7 +280,7 @@ export async function prefetchReviewClues(
     if (hasReviewClueFields(hydrated)) {
       const key = word.word.trim().toLowerCase();
       updates[key] = hydrated;
-      prefetchLearningChunkContent(hydrated);
+      prefetchCardContent(hydrated);
       continue;
     }
     pending.push(word.word.trim().toLowerCase());
@@ -300,7 +300,7 @@ export async function prefetchReviewClues(
       const key = item.word.trim().toLowerCase();
       if (!hasReviewClueFields(item)) continue;
       updates[key] = item;
-      prefetchLearningChunkContent(item);
+      prefetchCardContent(item);
     }
   } catch {
     /* best-effort */
@@ -319,7 +319,7 @@ export async function prefetchReviewClues(
       const discovered = await fetchDiscoverWordEnrichment(source);
       if (discovered) {
         updates[key] = discovered;
-        prefetchLearningChunkContent({ ...source, ...discovered });
+        prefetchCardContent({ ...source, ...discovered });
       }
     }),
   );
