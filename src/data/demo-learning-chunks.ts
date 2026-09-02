@@ -156,6 +156,19 @@ export const LEARNING_CHUNK_OVERRIDES: Record<string, LearningChunkEntry> = {
       },
     ],
   },
+  "go with": {
+    collocations: [
+      { en: "go with friends", vi: "đi cùng bạn bè", sense: 1 },
+      { en: "go with rice", vi: "ăn kèm cơm", sense: 2 },
+    ],
+    chunks: [
+      {
+        en: "Does this tie go with my shirt?",
+        vi: "Chiếc cà vạt này có hợp với áo sơ mi của tôi không?",
+        sense: 2,
+      },
+    ],
+  },
 };
 
 export const MAX_LEARNING_COLLOCATIONS = 2;

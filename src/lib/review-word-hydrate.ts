@@ -3,6 +3,7 @@ import { hasQualityStandardVocab } from "@/data/standard-vocab";
 import { loadPersistedWordCache } from "@/lib/discover-word-cache";
 import { standardToDiscoverFields } from "@/lib/enrichment-helpers";
 import { resolveImageSearchKeyword } from "@/lib/image-keyword";
+import { prefetchLearningChunkContent } from "@/lib/learning-chunk-prefetch";
 import { serializeExamples } from "@/lib/parse-examples";
 import {
   isPlaceholderIllustrationUrl,
@@ -211,6 +212,7 @@ export async function enrichReviewQueueClues(
         const discovered = await fetchDiscoverWordEnrichment(word);
         if (discovered) {
           enriched[index] = mergeHydratedFields(word, discovered);
+          prefetchLearningChunkContent(enriched[index]!);
         }
       }),
     );
@@ -222,12 +224,22 @@ export async function enrichReviewQueueClues(
 /** Local hydrate, then DB, then discover enrich — for the active review card. */
 export async function ensureReviewWordClue(word: VocabWord): Promise<VocabWord> {
   const local = hydrateReviewWordLocal(word);
-  if (hasReviewClueFields(local)) return local;
+  if (hasReviewClueFields(local)) {
+    prefetchLearningChunkContent(local);
+    return local;
+  }
   const details = await fetchReviewWordDetails(word.word);
-  const merged = details ? mergeHydratedFields(local, details) : local;
-  if (hasReviewClueFields(merged)) return merged;
+  let merged = details ? mergeHydratedFields(local, details) : local;
+  if (hasReviewClueFields(merged)) {
+    prefetchLearningChunkContent(merged);
+    return merged;
+  }
   const discovered = await fetchDiscoverWordEnrichment(word);
-  return discovered ? mergeHydratedFields(merged, discovered) : merged;
+  merged = discovered ? mergeHydratedFields(merged, discovered) : merged;
+  if (hasReviewClueFields(merged)) {
+    prefetchLearningChunkContent(merged);
+  }
+  return merged;
 }
 
 export async function fetchReviewWordDetails(

@@ -158,11 +158,18 @@ export function isCardContentReady(
     return true;
   }
 
-  return hasLearningChunks(data.word, {
-    examples: data.examples,
-    wordType: data.word_type,
-    meaning: data.vietnamese_meaning,
-  });
+  if (
+    hasLearningChunks(data.word, {
+      examples: data.examples,
+      wordType: data.word_type,
+      meaning: data.vietnamese_meaning,
+    })
+  ) {
+    return true;
+  }
+
+  // Meaning is enough to show the card; examples and chunks hydrate after open.
+  return true;
 }
 
 export function isCacheEntryValid(

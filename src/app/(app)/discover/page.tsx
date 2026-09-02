@@ -52,6 +52,7 @@ import {
   writeLocalLearning,
 } from "@/lib/learning-storage";
 import { seedWordImageCacheFromEntries } from "@/lib/word-image-cache";
+import { prefetchLearningChunkContent } from "@/lib/learning-chunk-prefetch";
 import { readOnboarding, shouldShowOnboarding } from "@/lib/onboarding";
 import { useSyncExternalStore } from "react";
 import {
@@ -277,6 +278,7 @@ export default function DiscoverPage() {
           wordCache.current.set(item.word, loaded);
           persistWordCache(wordCache.current);
           preloadImageUrl(loaded.image_url);
+          prefetchLearningChunkContent(loaded);
           scheduleBackgroundRepair(item, loaded);
           inflight.current.delete(item.word);
           return loaded;
@@ -304,9 +306,9 @@ export default function DiscoverPage() {
 
         const cached = wordCache.current.get(item.word);
         if (isWordDetailComplete(cached, item.word)) {
+          prefetchLearningChunkContent(cached);
           continue;
         }
-        if (offset === 0) continue;
         ensureWordFetched(item).catch(() => {});
       }
       preloadWordImagesFromCache(imageTargets);
@@ -335,6 +337,7 @@ export default function DiscoverPage() {
         setCurrentWord(readyCached);
         setLoadingWord(false);
         preloadImageUrl(readyCached.image_url);
+        prefetchLearningChunkContent(readyCached);
         return;
       }
 
@@ -343,6 +346,7 @@ export default function DiscoverPage() {
         Boolean(options?.fetchIfNeeded) &&
           !isCardContentReady(cleanStub, item.word),
       );
+      prefetchLearningChunkContent(cleanStub);
 
       if (options?.fetchIfNeeded) {
         ensureWordFetched(item)

@@ -26,6 +26,7 @@ import {
   type ReviewSession,
 } from "@/lib/review-session";
 import { refreshAllStaleWordImages } from "@/lib/refresh-stale-word-images";
+import { prefetchLearningChunkContent } from "@/lib/learning-chunk-prefetch";
 import { seedWordImageCacheFromEntries } from "@/lib/word-image-cache";
 
 export const DEFAULT_BOOTSTRAP_RANGE = "1-100";
@@ -152,6 +153,7 @@ async function loadBootstrapWordDetail(
   const cached = wordCache.get(item.word);
   if (isWordDetailComplete(cached, item.word)) {
     preloadImageUrl(cached!.image_url);
+    prefetchLearningChunkContent(cached);
     return;
   }
 
@@ -163,6 +165,7 @@ async function loadBootstrapWordDetail(
     if (loaded && isCacheEntryValid(loaded, item.word)) {
       wordCache.set(item.word, loaded);
       preloadImageUrl(loaded.image_url);
+      prefetchLearningChunkContent(loaded);
       return;
     }
   } catch {
@@ -173,6 +176,7 @@ async function loadBootstrapWordDetail(
   if (preview.vietnamese_meaning?.trim()) {
     wordCache.set(item.word, preview);
     preloadImageUrl(preview.image_url);
+    prefetchLearningChunkContent(preview);
   }
 }
 
