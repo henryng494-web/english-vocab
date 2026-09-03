@@ -81,10 +81,16 @@ export function WordCardDetails({
   const canFlip = rows.length > 1 || similar.length > 0;
   const [showFamily, setShowFamily] = useState(false);
   const startX = useRef<number | null>(null);
+  const canFlipAtPointerDown = useRef(false);
   const swiped = useRef(false);
+  const openedAtRef = useRef(0);
 
   useEffect(() => {
     setShowFamily(false);
+    openedAtRef.current = Date.now();
+    startX.current = null;
+    canFlipAtPointerDown.current = false;
+    swiped.current = false;
   }, [word]);
 
   if (loading) {
@@ -100,21 +106,29 @@ export function WordCardDetails({
     <div className="card-details card-details--compact">
       <div
         className="card-details__scene"
-        onClick={() => {
-          if (swiped.current) {
-            swiped.current = false;
+        onPointerDown={(event) => {
+          if (!canFlip) {
+            startX.current = null;
+            canFlipAtPointerDown.current = false;
             return;
           }
-          toggle();
-        }}
-        onPointerDown={(event) => {
           startX.current = event.clientX;
+          canFlipAtPointerDown.current = true;
         }}
         onPointerUp={(event) => {
-          if (startX.current == null || !canFlip) return;
+          if (
+            startX.current == null ||
+            !canFlipAtPointerDown.current ||
+            Date.now() - openedAtRef.current < 450
+          ) {
+            startX.current = null;
+            canFlipAtPointerDown.current = false;
+            return;
+          }
           const delta = event.clientX - startX.current;
           startX.current = null;
-          if (Math.abs(delta) < 40) return;
+          canFlipAtPointerDown.current = false;
+          if (Math.abs(delta) < 56) return;
           swiped.current = true;
           setShowFamily(delta < 0);
         }}
@@ -205,6 +219,7 @@ export function WordCardDetails({
           className="card-details__hint"
           onClick={(event) => {
             event.stopPropagation();
+            swiped.current = false;
             toggle();
           }}
         >
