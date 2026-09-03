@@ -8,7 +8,6 @@ import { useCardSimilarWords } from "@/hooks/use-card-similar-words";
 import { capitalizeFirst } from "@/lib/format-text";
 import { resolveLearningChunks } from "@/lib/learning-chunks";
 import { parseExamples } from "@/lib/parse-examples";
-import { keepNaturalExamples } from "@/lib/example-quality";
 import type { WordFamilyMember } from "@/types/database";
 import type { WordRegister } from "@/lib/word-meanings";
 
@@ -87,18 +86,6 @@ export function WordCardDetails({
   useEffect(() => {
     setShowFamily(false);
   }, [word]);
-
-  useEffect(() => {
-    if (loading) return;
-    const hasMeaningContent =
-      Boolean(meaning?.trim()) ||
-      Boolean(englishDefinition?.trim()) ||
-      chunksOnly ||
-      keepNaturalExamples(word, parsed, wordType, meaning).length > 0;
-    if (!hasMeaningContent && canFlip) {
-      setShowFamily(true);
-    }
-  }, [word, loading, chunksOnly, parsed, wordType, meaning, englishDefinition, canFlip]);
 
   if (loading) {
     return <DetailsLoadingSkeleton />;
