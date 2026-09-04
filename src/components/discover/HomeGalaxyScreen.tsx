@@ -1,6 +1,5 @@
 "use client";
 
-import { HOME_GALAXY_HERO_ART } from "@/data/jungle-cast-brand";
 import { displayFontClass } from "@/lib/fonts";
 import type { GoalType } from "@/lib/app-settings";
 import {
@@ -124,18 +123,13 @@ export function HomeGalaxyScreen(props: HomeGalaxyScreenProps) {
     sun: t("home.weekSun"),
   };
 
+  const reviewRingMax =
+    props.goalType === "reviews"
+      ? Math.max(props.goalTarget, 1)
+      : Math.max(props.dueReviewCount, 20);
+
   return (
     <div className="home-galaxy">
-      <header
-        className="home-galaxy__hero"
-        style={{ backgroundImage: `url(${HOME_GALAXY_HERO_ART.path})` }}
-      >
-        <div className="home-galaxy__hero-overlay" aria-hidden />
-        <div className="home-galaxy__hero-caption">
-          <p className={`home-galaxy__hero-text ${displayFontClass}`}>{t("home.galaxyHero")}</p>
-        </div>
-      </header>
-
       <div className="home-galaxy__sheet">
         <section className="home-galaxy__progress home-galaxy-card">
           <p className="home-galaxy__progress-msg">
@@ -149,10 +143,10 @@ export function HomeGalaxyScreen(props: HomeGalaxyScreenProps) {
               sublabel={goalTypeLabel(props.goalType)}
             />
             <StatRing
-              value={props.wordsKnown}
-              max={Math.max(props.wordsKnown, 100)}
-              label={props.wordsKnown.toLocaleString()}
-              sublabel={t("home.masteredShort")}
+              value={props.dueReviewCount}
+              max={reviewRingMax}
+              label={props.dueReviewCount.toLocaleString()}
+              sublabel={t("home.dueReviewsShort")}
             />
           </div>
         </section>

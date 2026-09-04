@@ -2165,52 +2165,12 @@ body {
   -webkit-overflow-scrolling: touch;
 }
 
-/* ── Galaxy home (hero · progress · week · lesson) ── */
+/* ── Galaxy home (progress · week · lesson) ── */
 .home-galaxy {
   display: flex;
   flex-direction: column;
   min-height: 100%;
   background: var(--primary-50);
-}
-
-.home-galaxy__hero {
-  position: relative;
-  flex: 0 0 clamp(10.5rem, 30vh, 13rem);
-  background-size: cover;
-  background-position: center 42%;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  overflow: hidden;
-}
-
-.home-galaxy__hero-overlay {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    180deg,
-    rgb(91 33 182 / 0.06) 0%,
-    rgb(91 33 182 / 0.02) 40%,
-    rgb(250 245 255 / 0.55) 72%,
-    var(--primary-50) 100%
-  );
-}
-
-.home-galaxy__hero-caption {
-  position: relative;
-  z-index: 1;
-  width: 100%;
-  padding: 0 1.25rem 0.875rem;
-}
-
-.home-galaxy__hero-text {
-  max-width: 20rem;
-  margin: 0 auto;
-  text-align: center;
-  font-size: 0.9375rem;
-  line-height: 1.35;
-  font-weight: 700;
-  color: var(--primary-800);
 }
 
 .home-galaxy__sheet {
@@ -2219,8 +2179,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  margin-top: -0.25rem;
-  padding: 0 1rem calc(0.75rem + env(safe-area-inset-bottom, 0px));
+  padding: 0.75rem 1rem calc(0.75rem + env(safe-area-inset-bottom, 0px));
 }
 
 .home-galaxy-card {
@@ -2241,10 +2200,12 @@ body {
 }
 
 .home-galaxy__progress-msg {
+  margin: 0;
   font-size: 0.875rem;
   line-height: 1.35;
   font-weight: 600;
   color: var(--foreground);
+  text-align: center;
 }
 
 .home-galaxy__stats {
@@ -2278,13 +2239,13 @@ body {
 
 .home-galaxy-stat__track {
   fill: none;
-  stroke: color-mix(in srgb, var(--primary-200) 80%, #e2e8f0);
+  stroke: color-mix(in srgb, var(--mascot-crocodile) 28%, #e2e8f0);
   stroke-width: 3;
 }
 
 .home-galaxy-stat__fill {
   fill: none;
-  stroke: var(--primary);
+  stroke: var(--mascot-crocodile);
   stroke-width: 3;
   stroke-linecap: round;
 }
@@ -2312,7 +2273,7 @@ body {
 
 .home-galaxy__week {
   flex: 0 0 auto;
-  padding: 0.875rem 0.75rem;
+  padding: 1rem;
 }
 
 .home-galaxy__week-head {
