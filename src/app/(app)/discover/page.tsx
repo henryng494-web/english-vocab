@@ -3,12 +3,9 @@
 import { VocabWordCard } from "@/components/discover/VocabWordCard";
 import type { DiscoverWordData } from "@/components/discover/DiscoverCard";
 import {
-  CoinBadge,
   DiscoverDashboard,
-  StreakBadge,
 } from "@/components/discover/DiscoverDashboard";
 import { AppHeader } from "@/components/layout/AppHeader";
-import { AppMenuButton } from "@/components/layout/AppMenuButton";
 import { HeaderSelect } from "@/components/layout/HeaderSelect";
 import { JungleMascot } from "@/components/mascot/JungleMascot";
 import { useAppBootstrap } from "@/context/AppBootstrapContext";
@@ -607,22 +604,7 @@ export default function DiscoverPage() {
 
   if (!inSession) {
     return (
-      <div className="app-screen app-screen--home">
-        <AppHeader
-          title={t("home.title")}
-          hideTitle
-          leading={
-            <div className="app-header__actions">
-              <AppMenuButton />
-              <Link href="/search" className="app-header__icon-btn" aria-label={t("home.searchAria")}>
-                🔍
-              </Link>
-              <StreakBadge days={streakDays} />
-              <CoinBadge value={wordsKnown} label={t("home.coinBadge")} />
-            </div>
-          }
-        />
-
+      <div className="app-screen app-screen--home app-screen--home-minimal">
         {showOnboarding ? (
           <OnboardingModal
             onComplete={(preferredRangeId) => {

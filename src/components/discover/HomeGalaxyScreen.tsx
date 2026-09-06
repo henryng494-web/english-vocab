@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { displayFontClass } from "@/lib/fonts";
 import type { GoalType } from "@/lib/app-settings";
 import {
@@ -14,7 +15,9 @@ import {
   getTodayReviewsCompletedSnapshot,
   subscribeTodayReviewsCompleted,
 } from "@/lib/daily-reviews";
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { AppMenuButton } from "@/components/layout/AppMenuButton";
+import { CoinBadge, StreakBadge } from "@/components/discover/DiscoverDashboard";
+import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 
 export type HomeGalaxyScreenProps = {
   rangeLabel: string;
@@ -41,13 +44,15 @@ function StatRing({
   complete = false,
   value,
   max,
+  hideSublabel = false,
 }: {
   displayValue: string;
-  sublabel: string;
+  sublabel?: string;
   variant?: "goal" | "due";
   complete?: boolean;
   value: number;
   max: number;
+  hideSublabel?: boolean;
 }) {
   const pctRaw = max > 0 ? Math.min(100, (value / max) * 100) : 0;
   const pctRounded = Math.round(pctRaw);
@@ -80,17 +85,13 @@ function StatRing({
             d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
           />
         </svg>
-        <span
-          className={
-            variant === "due"
-              ? "home-galaxy-stat__value home-galaxy-stat__value--fraction"
-              : "home-galaxy-stat__value"
-          }
-        >
+        <span className="home-galaxy-stat__value home-galaxy-stat__value--compact">
           {displayValue}
         </span>
       </div>
-      <p className="home-galaxy-stat__label">{sublabel}</p>
+      {!hideSublabel && sublabel ? (
+        <p className="home-galaxy-stat__label">{sublabel}</p>
+      ) : null}
     </div>
   );
 }
@@ -146,7 +147,7 @@ function WordsLeftProgressBar({ learned, total }: { learned: number; total: numb
 }
 
 export function HomeGalaxyScreen(props: HomeGalaxyScreenProps) {
-  const { t, goalTypeLabel } = useI18n();
+  const { t } = useI18n();
   const [greetingName, setGreetingName] = useState(() => t("home.greetingDefault"));
 
   useEffect(() => {
@@ -157,6 +158,12 @@ export function HomeGalaxyScreen(props: HomeGalaxyScreenProps) {
       /* ignore */
     }
   }, [t]);
+
+  const avatarInitial = useMemo(() => {
+    const trimmed = greetingName.trim();
+    if (!trimmed) return "?";
+    return trimmed.charAt(0).toUpperCase();
+  }, [greetingName]);
 
   const weekDays = useSyncExternalStore(
     subscribeWeeklyStreak,
@@ -189,10 +196,17 @@ export function HomeGalaxyScreen(props: HomeGalaxyScreenProps) {
   const reviewsComplete = totalDueCount > 0 && reviewedCount >= totalDueCount;
   const reviewDisplay =
     totalDueCount > 0
-      ? `${reviewedCount}/${totalDueCount}`
+      ? `${reviewedCount} / ${totalDueCount} ${t("home.statWordsUnit")}`
       : reviewedCount > 0
-        ? `${reviewedCount}/${reviewedCount}`
-        : "0/0";
+        ? `${reviewedCount} / ${reviewedCount} ${t("home.statWordsUnit")}`
+        : `0 / 0 ${t("home.statWordsUnit")}`;
+
+  const goalDisplay =
+    props.goalType === "minutes"
+      ? `${props.goalCurrent} / ${props.goalTarget} ${t("home.statMinutesUnit")}`
+      : props.goalType === "reviews"
+        ? `${props.goalCurrent} / ${props.goalTarget} ${t("home.statReviewsUnit")}`
+        : `${props.goalCurrent} / ${props.goalTarget} ${t("home.statWordsUnit")}`;
 
   const bandTotal = Math.max(props.bandTotalWords, props.queueLength, 1);
   const wordsLearnedInBand = Math.max(0, bandTotal - props.queueLength);
@@ -202,19 +216,28 @@ export function HomeGalaxyScreen(props: HomeGalaxyScreenProps) {
       ? t("home.galaxyWeekTitle", { count: weeklyMet })
       : t("home.galaxyWeekTitleEmpty");
 
-  const goalDisplay =
-    props.goalType === "minutes"
-      ? String(props.goalCurrent)
-      : `${props.goalCurrent}/${props.goalTarget}`;
-
   return (
     <div className="home-galaxy">
       <div className="home-galaxy__sheet">
-        <header className="home-galaxy__greeting">
-          <p className={`home-galaxy__greeting-title ${displayFontClass}`}>
-            {t("home.greeting", { name: greetingName })}
-          </p>
-          <p className="home-galaxy__greeting-sub">{t("home.greetingSub")}</p>
+        <header className="home-galaxy__topbar">
+          <div className="home-galaxy__topbar-left">
+            <AppMenuButton />
+            <span className="home-galaxy__avatar" aria-hidden>{avatarInitial}</span>
+            <p className={`home-galaxy__topbar-greeting ${displayFontClass}`}>
+              {t("home.greeting", { name: greetingName })}
+            </p>
+          </div>
+          <div className="home-galaxy__topbar-right">
+            <Link
+              href="/search"
+              className="home-galaxy__topbar-icon"
+              aria-label={t("home.searchAria")}
+            >
+              🔍
+            </Link>
+            <StreakBadge days={props.streakDays} />
+            <CoinBadge value={props.wordsKnown} label={t("home.coinBadge")} />
+          </div>
         </header>
 
         <section className="home-galaxy__stats-card home-galaxy-card">
@@ -223,29 +246,22 @@ export function HomeGalaxyScreen(props: HomeGalaxyScreenProps) {
               value={props.goalCurrent}
               max={props.goalTarget}
               displayValue={goalDisplay}
-              sublabel={goalTypeLabel(props.goalType)}
               variant="goal"
+              hideSublabel
             />
             <StatRing
               value={reviewedCount}
               max={totalDueCount}
               displayValue={reviewDisplay}
-              sublabel={t("home.dueReviewsRingLabel")}
               variant="due"
               complete={reviewsComplete}
+              hideSublabel
             />
           </div>
         </section>
 
         <section className="home-galaxy__week home-galaxy-card">
-          <div className="home-galaxy__week-head">
-            <p className="home-galaxy__week-title">{weekTitle}</p>
-            <button type="button" className="home-galaxy__week-link" onClick={props.onStartReview}>
-              {props.dueReviewCount > 0
-                ? t("home.nextReview", { count: props.dueReviewCount })
-                : t("home.flowReview")}
-            </button>
-          </div>
+          <p className="home-galaxy__week-title">{weekTitle}</p>
           <div className="home-galaxy__week-row">
             {weekDays.map((day) => (
               <WeekDayCell
@@ -267,7 +283,6 @@ export function HomeGalaxyScreen(props: HomeGalaxyScreenProps) {
               range: props.rangeLabel,
             })}
           </p>
-          <WordsLeftProgressBar learned={wordsLearnedInBand} total={bandTotal} />
           <button
             type="button"
             className="home-galaxy__lesson-cta"
@@ -277,16 +292,11 @@ export function HomeGalaxyScreen(props: HomeGalaxyScreenProps) {
             <span className="home-galaxy__lesson-cta-label">{t("home.bannerCta")}</span>
             <span className="home-galaxy__lesson-cta-icon" aria-hidden>⚡</span>
           </button>
+          <WordsLeftProgressBar learned={wordsLearnedInBand} total={bandTotal} />
           <div className="home-galaxy__lesson-meta">
             <div>
               <span className="home-galaxy__lesson-meta-label">{t("home.galaxyMetaToday")}</span>
               <span className="home-galaxy__lesson-meta-value">{props.todayWordsLearned}</span>
-            </div>
-            <div>
-              <span className="home-galaxy__lesson-meta-label">{t("home.flowReview")}</span>
-              <span className="home-galaxy__lesson-meta-value">
-                {props.dueReviewCount > 0 ? props.dueReviewCount : "—"}
-              </span>
             </div>
             <div>
               <span className="home-galaxy__lesson-meta-label">{t("home.masteredShort")}</span>
@@ -299,7 +309,7 @@ export function HomeGalaxyScreen(props: HomeGalaxyScreenProps) {
 
         <button
           type="button"
-          className="home-galaxy__challenge home-galaxy__challenge--reward"
+          className="home-galaxy__challenge home-galaxy__challenge--clean"
           onClick={props.onStartReview}
         >
           <span className="home-galaxy__challenge-trophy" aria-hidden>🏆</span>
