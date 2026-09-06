@@ -44,15 +44,13 @@ function StatRing({
   complete = false,
   value,
   max,
-  hideSublabel = false,
 }: {
   displayValue: string;
-  sublabel?: string;
+  sublabel: string;
   variant?: "goal" | "due";
   complete?: boolean;
   value: number;
   max: number;
-  hideSublabel?: boolean;
 }) {
   const pctRaw = max > 0 ? Math.min(100, (value / max) * 100) : 0;
   const pctRounded = Math.round(pctRaw);
@@ -71,7 +69,7 @@ function StatRing({
       aria-valuenow={pctRounded}
       aria-valuemin={0}
       aria-valuemax={100}
-      aria-label={sublabel ?? displayValue}
+      aria-label={`${sublabel}: ${displayValue}`}
     >
       <div className="home-galaxy-stat__ring" aria-hidden>
         <svg viewBox="0 0 36 36">
@@ -89,9 +87,7 @@ function StatRing({
           {displayValue}
         </span>
       </div>
-      {!hideSublabel && sublabel ? (
-        <p className="home-galaxy-stat__label">{sublabel}</p>
-      ) : null}
+      <p className="home-galaxy-stat__label">{sublabel}</p>
     </div>
   );
 }
@@ -147,7 +143,7 @@ function WordsLeftProgressBar({ learned, total }: { learned: number; total: numb
 }
 
 export function HomeGalaxyScreen(props: HomeGalaxyScreenProps) {
-  const { t } = useI18n();
+  const { t, goalTypeLabel } = useI18n();
   const [greetingName, setGreetingName] = useState(() => t("home.greetingDefault"));
 
   useEffect(() => {
@@ -196,17 +192,12 @@ export function HomeGalaxyScreen(props: HomeGalaxyScreenProps) {
   const reviewsComplete = totalDueCount > 0 && reviewedCount >= totalDueCount;
   const reviewDisplay =
     totalDueCount > 0
-      ? `${reviewedCount} / ${totalDueCount} ${t("home.statWordsUnit")}`
+      ? `${reviewedCount}/${totalDueCount}`
       : reviewedCount > 0
-        ? `${reviewedCount} / ${reviewedCount} ${t("home.statWordsUnit")}`
-        : `0 / 0 ${t("home.statWordsUnit")}`;
+        ? `${reviewedCount}/${reviewedCount}`
+        : "0/0";
 
-  const goalDisplay =
-    props.goalType === "minutes"
-      ? `${props.goalCurrent} / ${props.goalTarget} ${t("home.statMinutesUnit")}`
-      : props.goalType === "reviews"
-        ? `${props.goalCurrent} / ${props.goalTarget} ${t("home.statReviewsUnit")}`
-        : `${props.goalCurrent} / ${props.goalTarget} ${t("home.statWordsUnit")}`;
+  const goalDisplay = `${props.goalCurrent}/${props.goalTarget}`;
 
   const bandTotal = Math.max(props.bandTotalWords, props.queueLength, 1);
   const wordsLearnedInBand = Math.max(0, bandTotal - props.queueLength);
@@ -246,16 +237,16 @@ export function HomeGalaxyScreen(props: HomeGalaxyScreenProps) {
               value={props.goalCurrent}
               max={props.goalTarget}
               displayValue={goalDisplay}
+              sublabel={goalTypeLabel(props.goalType)}
               variant="goal"
-              hideSublabel
             />
             <StatRing
               value={reviewedCount}
               max={totalDueCount}
               displayValue={reviewDisplay}
+              sublabel={t("home.dueReviewsShort")}
               variant="due"
               complete={reviewsComplete}
-              hideSublabel
             />
           </div>
         </section>

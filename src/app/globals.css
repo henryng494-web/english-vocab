@@ -2372,14 +2372,19 @@ body {
 }
 
 .home-galaxy-stat__value--compact {
-  font-size: clamp(0.5625rem, 2.6vw, 0.6875rem);
-  font-weight: 800;
+  font-size: 1rem;
+  font-weight: 500;
   letter-spacing: -0.02em;
-  line-height: 1.15;
-  padding: 0 0.125rem;
+  line-height: 1;
+  padding: 0 0.25rem;
   text-align: center;
-  white-space: normal;
-  word-break: break-word;
+  white-space: nowrap;
+}
+
+@media (min-width: 380px) {
+  .home-galaxy-stat__value--compact {
+    font-size: 1.125rem;
+  }
 }
 
 .home-galaxy-stat__value {
@@ -2398,12 +2403,14 @@ body {
 }
 
 .home-galaxy-stat__label {
+  margin: 0.125rem 0 0;
   font-size: 0.6875rem;
-  font-weight: 800;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
   color: #64748b;
   text-align: center;
+  line-height: 1.25;
 }
 
 .home-galaxy__week {
@@ -2600,7 +2607,7 @@ body {
 
 .home-galaxy__lesson-cta-label,
 .home-galaxy__lesson-cta-icon {
-  color: #0f172a;
+  color: #fff;
   font-weight: 700;
 }
 
