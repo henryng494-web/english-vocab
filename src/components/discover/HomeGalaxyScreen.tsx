@@ -71,7 +71,7 @@ function StatRing({
       aria-valuenow={pctRounded}
       aria-valuemin={0}
       aria-valuemax={100}
-      aria-label={sublabel}
+      aria-label={sublabel ?? displayValue}
     >
       <div className="home-galaxy-stat__ring" aria-hidden>
         <svg viewBox="0 0 36 36">
