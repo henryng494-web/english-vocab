@@ -1414,41 +1414,45 @@ body {
   align-items: center;
   gap: 0.3rem;
   border-radius: 9999px;
-  background: linear-gradient(135deg, #fff 0%, var(--primary-50) 100%);
-  border: 1px solid color-mix(in srgb, var(--secondary-200) 80%, var(--primary-200));
+  background: #fff;
+  border: 1px solid #e9d5ff;
   padding: 0.35rem 0.65rem;
   font-size: 0.8125rem;
-  font-weight: 700;
-  color: var(--foreground);
-  box-shadow: 0 4px 14px rgb(91 33 182 / 0.08);
-  transition: box-shadow 0.2s ease, transform 0.15s ease;
-}
-
-.coin-badge--streak {
-  border-color: color-mix(in srgb, var(--secondary) 45%, var(--primary-200));
-  box-shadow:
-    0 4px 16px color-mix(in srgb, var(--secondary) 28%, transparent),
-    0 0 0 1px color-mix(in srgb, var(--secondary) 12%, transparent);
-}
-
-.coin-badge__flame {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.1rem;
-  font-size: 0.75rem;
-  line-height: 1;
-  filter: drop-shadow(0 0 4px rgb(249 115 22 / 0.55));
-}
-
-.coin-badge__flame-count {
-  font-size: 0.6875rem;
   font-weight: 800;
-  color: var(--secondary-700);
+  color: #1e1b4b;
+  box-shadow: 0 8px 24px rgb(139 92 246 / 0.12);
 }
 
 .coin-badge__icon {
   font-size: 0.875rem;
   line-height: 1;
+}
+
+.streak-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+  border-radius: 9999px;
+  border: 1px solid #fdba74;
+  background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
+  padding: 0.3rem 0.55rem;
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #c2410c;
+  box-shadow:
+    0 0 0 1px rgb(251 146 60 / 0.2),
+    0 6px 18px rgb(249 115 22 / 0.28);
+}
+
+.streak-badge__flame {
+  font-size: 0.875rem;
+  line-height: 1;
+  filter: drop-shadow(0 0 6px rgb(249 115 22 / 0.65));
+}
+
+.streak-badge__count {
+  font-size: 0.8125rem;
+  font-weight: 900;
 }
 
 .home-scroll {
@@ -2209,14 +2213,14 @@ body {
   -webkit-overflow-scrolling: touch;
 }
 
-/* ── Galaxy home (progress · week · lesson) ── */
+/* ── Galaxy home (high-contrast gamification) ── */
 .home-galaxy {
   display: flex;
   flex-direction: column;
   min-height: 100%;
   background:
-    radial-gradient(ellipse 120% 80% at 50% -10%, rgb(196 181 253 / 0.35), transparent 55%),
-    var(--primary-50);
+    radial-gradient(ellipse 100% 60% at 50% -5%, rgb(196 181 253 / 0.45), transparent 58%),
+    linear-gradient(180deg, #f8fafc 0%, #ede9fe 42%, #f1f5f9 100%);
 }
 
 .home-galaxy__sheet {
@@ -2235,10 +2239,10 @@ body {
 
 .home-galaxy__greeting-title {
   margin: 0;
-  font-size: 1.25rem;
-  line-height: 1.25;
-  font-weight: 800;
-  color: var(--foreground);
+  font-size: 1.375rem;
+  line-height: 1.2;
+  font-weight: 900;
+  color: #1e1b4b;
 }
 
 .home-galaxy__greeting-sub {
@@ -2246,93 +2250,45 @@ body {
   font-size: 0.8125rem;
   line-height: 1.35;
   font-weight: 600;
-  color: var(--header-muted);
+  color: #64748b;
 }
 
 .home-galaxy-card {
-  border-radius: 1.125rem;
+  border-radius: 1.25rem;
   background: #fff;
-  box-shadow: 0 4px 20px rgb(91 33 182 / 0.06);
-  border: 1px solid color-mix(in srgb, var(--primary-200) 65%, transparent);
-}
-
-.home-galaxy-card--glass {
-  background: linear-gradient(
-    145deg,
-    rgb(255 255 255 / 0.94) 0%,
-    rgb(250 245 255 / 0.88) 48%,
-    rgb(237 233 254 / 0.82) 100%
-  );
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid #e9d5ff;
   box-shadow:
-    0 8px 28px rgb(91 33 182 / 0.08),
-    inset 0 1px 0 rgb(255 255 255 / 0.75);
+    0 20px 40px -12px rgb(139 92 246 / 0.18),
+    0 4px 12px rgb(15 23 42 / 0.04);
 }
 
-.home-galaxy-card--featured {
-  border-color: color-mix(in srgb, var(--primary) 28%, transparent);
-  box-shadow:
-    0 10px 32px color-mix(in srgb, var(--primary) 14%, transparent),
-    inset 0 1px 0 rgb(255 255 255 / 0.8);
-}
-
-.home-galaxy__progress {
-  flex-shrink: 0;
-  padding: 1rem;
-}
-
-.home-galaxy__progress-msg {
-  margin: 0;
-  font-size: 0.875rem;
-  line-height: 1.35;
-  font-weight: 600;
-  color: var(--foreground);
-  text-align: center;
+.home-galaxy__stats-card {
+  padding: 0.875rem;
+  background: linear-gradient(145deg, #fff 0%, #faf5ff 100%);
 }
 
 .home-galaxy__stats {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.625rem;
-  margin-top: 0.75rem;
 }
 
 .home-galaxy-stat {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.375rem;
-  padding: 0.75rem 0.5rem;
-  border-radius: 0.875rem;
-  background: rgb(255 255 255 / 0.55);
-  border: 1px solid rgb(255 255 255 / 0.65);
-  transition: box-shadow 0.2s ease, transform 0.15s ease;
-}
-
-.home-galaxy-stat:hover,
-.home-galaxy-stat:focus-within {
-  transform: translateY(-1px);
-}
-
-.home-galaxy-stat--goal:hover .home-galaxy-stat__ring,
-.home-galaxy-stat--goal:focus-within .home-galaxy-stat__ring {
-  filter: drop-shadow(0 0 6px rgb(132 204 22 / 0.45));
-}
-
-.home-galaxy-stat--due.is-urgent:hover .home-galaxy-stat__ring,
-.home-galaxy-stat--due.is-urgent:focus-within .home-galaxy-stat__ring {
-  filter: drop-shadow(0 0 8px rgb(249 115 22 / 0.55));
-}
-
-.home-galaxy-stat--due.is-urgent .home-galaxy-stat__ring {
-  filter: drop-shadow(0 0 5px rgb(239 68 68 / 0.35));
+  gap: 0.25rem;
+  padding: 0.625rem 0.375rem;
+  border-radius: 1rem;
+  background: #fff;
+  border: 1px solid #f3e8ff;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.9);
 }
 
 .home-galaxy-stat__ring {
   position: relative;
-  width: 4.25rem;
-  height: 4.25rem;
+  width: 5rem;
+  height: 5rem;
 }
 
 .home-galaxy-stat__ring svg {
@@ -2343,26 +2299,28 @@ body {
 
 .home-galaxy-stat__track {
   fill: none;
-  stroke: color-mix(in srgb, var(--mascot-crocodile) 28%, #e2e8f0);
-  stroke-width: 3;
+  stroke: #e2e8f0;
+  stroke-width: 3.5;
 }
 
 .home-galaxy-stat__fill--goal {
   fill: none;
-  stroke: var(--mascot-crocodile);
-  stroke-width: 3;
+  stroke: #84cc16;
+  stroke-width: 4;
   stroke-linecap: round;
+  filter: drop-shadow(0 0 4px rgb(132 204 22 / 0.45));
 }
 
 .home-galaxy-stat__fill--due {
   fill: none;
   stroke: #f97316;
-  stroke-width: 3.25;
+  stroke-width: 4;
   stroke-linecap: round;
 }
 
 .home-galaxy-stat--due.is-urgent .home-galaxy-stat__fill--due {
   stroke: #ef4444;
+  filter: drop-shadow(0 0 6px rgb(239 68 68 / 0.5));
 }
 
 .home-galaxy-stat__value {
@@ -2372,17 +2330,20 @@ body {
   align-items: center;
   justify-content: center;
   padding: 0 0.25rem;
-  font-size: clamp(0.625rem, 2.8vw, 0.8125rem);
-  font-weight: 800;
-  color: var(--foreground);
+  font-size: clamp(1rem, 4.5vw, 1.25rem);
+  font-weight: 900;
+  color: #0f172a;
   text-align: center;
-  line-height: 1.1;
+  line-height: 1;
+  letter-spacing: -0.02em;
 }
 
 .home-galaxy-stat__label {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--header-muted);
+  font-size: 0.6875rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: #64748b;
   text-align: center;
 }
 
@@ -2401,19 +2362,20 @@ body {
 
 .home-galaxy__week-title {
   font-size: 0.8125rem;
-  font-weight: 700;
-  color: var(--foreground);
+  font-weight: 800;
+  color: #1e293b;
 }
 
 .home-galaxy__week-link {
   flex-shrink: 0;
   border-radius: 9999px;
-  border: 1px solid color-mix(in srgb, var(--primary) 22%, transparent);
-  background: var(--primary-50);
+  border: 1px solid #c4b5fd;
+  background: #f5f3ff;
   padding: 0.3125rem 0.625rem;
   font-size: 0.6875rem;
-  font-weight: 700;
-  color: var(--primary-700);
+  font-weight: 800;
+  color: #6d28d9;
+  box-shadow: 0 4px 12px rgb(139 92 246 / 0.12);
 }
 
 .home-galaxy__week-row {
@@ -2462,10 +2424,10 @@ body {
 }
 
 .home-galaxy-weekday.is-today .home-galaxy-weekday__bubble {
-  border-color: var(--primary);
+  border-color: #8b5cf6;
   background: #fff;
-  color: var(--primary-700);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 22%, transparent);
+  color: #6d28d9;
+  box-shadow: 0 0 0 3px rgb(139 92 246 / 0.2);
 }
 
 .home-galaxy-weekday.is-future .home-galaxy-weekday__bubble {
@@ -2501,44 +2463,55 @@ body {
   color: var(--header-muted);
 }
 
+/* Hero learn card */
+.home-galaxy-card--hero {
+  border: none;
+  background: linear-gradient(145deg, #7c3aed 0%, #5b21b6 48%, #312e81 100%);
+  box-shadow:
+    0 24px 48px -12px rgb(91 33 182 / 0.55),
+    0 8px 20px rgb(49 46 129 / 0.35),
+    inset 0 1px 0 rgb(255 255 255 / 0.15);
+}
+
 .home-galaxy__lesson {
   flex: 0 0 auto;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  padding: 1rem;
+  padding: 1.125rem;
 }
 
 .home-galaxy__lesson-title {
-  font-size: 1.25rem;
-  line-height: 1.25;
-  color: var(--foreground);
+  font-size: 1.375rem;
+  line-height: 1.2;
+  font-weight: 900;
+  color: #fff;
 }
 
 .home-galaxy__lesson-subtitle {
   font-size: 0.8125rem;
   line-height: 1.35;
   font-weight: 600;
-  color: var(--header-muted);
+  color: rgb(255 255 255 / 0.82);
 }
 
-.home-galaxy__words-progress {
+.home-galaxy__words-progress--hero {
   margin-top: 0.375rem;
 }
 
-.home-galaxy__words-progress-track {
+.home-galaxy__words-progress--hero .home-galaxy__words-progress-track {
   height: 0.5rem;
   border-radius: 9999px;
-  background: color-mix(in srgb, var(--mascot-crocodile) 12%, #e2e8f0);
+  background: rgb(255 255 255 / 0.2);
   overflow: hidden;
-  box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.06);
+  box-shadow: inset 0 1px 3px rgb(0 0 0 / 0.15);
 }
 
-.home-galaxy__words-progress-fill {
+.home-galaxy__words-progress--hero .home-galaxy__words-progress-fill {
   height: 100%;
   border-radius: inherit;
-  background: linear-gradient(90deg, #65a30d 0%, var(--mascot-crocodile) 55%, #a3e635 100%);
-  box-shadow: 0 0 10px rgb(132 204 22 / 0.35);
+  background: linear-gradient(90deg, #bef264 0%, #a3e635 55%, #84cc16 100%);
+  box-shadow: 0 0 12px rgb(190 242 100 / 0.55);
   transition: width 0.35s ease;
 }
 
@@ -2546,28 +2519,34 @@ body {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.375rem;
-  margin-top: 0.25rem;
+  margin-top: 0.375rem;
+  padding: 0.625rem 0.5rem;
+  border-radius: 0.875rem;
+  background: rgb(255 255 255 / 0.1);
+  border: 1px solid rgb(255 255 255 / 0.12);
 }
 
-.home-galaxy__lesson-meta-label {
+.home-galaxy-card--hero .home-galaxy__lesson-meta-label {
   display: block;
-  font-size: 0.625rem;
-  font-weight: 600;
-  color: var(--header-muted);
+  font-size: 0.5625rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgb(255 255 255 / 0.65);
 }
 
-.home-galaxy__lesson-meta-value {
+.home-galaxy-card--hero .home-galaxy__lesson-meta-value {
   display: block;
   margin-top: 0.125rem;
-  font-size: 0.75rem;
-  font-weight: 700;
+  font-size: 0.875rem;
+  font-weight: 900;
   line-height: 1.25;
-  color: var(--foreground);
+  color: #fff;
   overflow-wrap: anywhere;
 }
 
 .home-galaxy__lesson-cta {
-  margin-top: 0.375rem;
+  margin-top: 0.5rem;
   width: 100%;
   display: inline-flex;
   align-items: center;
@@ -2575,70 +2554,76 @@ body {
   gap: 0.5rem;
   border-radius: 9999px;
   border: none;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--primary) 92%, #fff) 0%, var(--primary) 55%, var(--primary-hover) 100%);
+  border-bottom: 4px solid #65a30d;
+  background: linear-gradient(180deg, #ecfccb 0%, #bef264 35%, #a3e635 100%);
   padding: 0.9rem 1rem;
-  font-size: 1rem;
-  font-weight: 700;
-  color: #fff;
+  font-size: 1.0625rem;
+  font-weight: 900;
+  color: #1a2e05;
   box-shadow:
-    0 1px 0 rgb(255 255 255 / 0.22) inset,
-    0 8px 0 color-mix(in srgb, var(--primary-hover) 85%, #000),
-    0 12px 24px color-mix(in srgb, var(--primary) 35%, transparent);
-  transition: transform 0.12s ease, box-shadow 0.12s ease;
+    0 1px 0 rgb(255 255 255 / 0.55) inset,
+    0 10px 24px rgb(0 0 0 / 0.22);
+  transition: transform 0.1s ease, border-width 0.1s ease, box-shadow 0.1s ease;
 }
 
 .home-galaxy__lesson-cta-icon {
-  font-size: 1.05rem;
+  font-size: 1.125rem;
   line-height: 1;
-  filter: drop-shadow(0 1px 2px rgb(0 0 0 / 0.2));
 }
 
 .home-galaxy__lesson-cta:not(:disabled):active {
-  transform: translateY(3px);
+  transform: translateY(2px);
+  border-bottom-width: 2px;
   box-shadow:
-    0 1px 0 rgb(255 255 255 / 0.18) inset,
-    0 3px 0 color-mix(in srgb, var(--primary-hover) 85%, #000),
-    0 6px 14px color-mix(in srgb, var(--primary) 28%, transparent);
+    0 1px 0 rgb(255 255 255 / 0.4) inset,
+    0 4px 12px rgb(0 0 0 / 0.18);
 }
 
 .home-galaxy__lesson-cta:disabled {
-  opacity: 0.55;
+  opacity: 0.5;
   cursor: not-allowed;
   box-shadow: none;
   transform: none;
+  border-bottom-width: 4px;
 }
 
-.home-galaxy__challenge {
+/* Daily challenge reward banner */
+.home-galaxy__challenge--reward {
   flex-shrink: 0;
   display: flex;
   align-items: center;
   gap: 0.75rem;
   width: 100%;
   margin-top: 0.125rem;
-  padding: 0.875rem 1rem;
-  border-radius: 1rem;
-  border: 1px solid color-mix(in srgb, var(--secondary) 35%, var(--primary-200));
-  background: linear-gradient(135deg, #fff7ed 0%, #fff 42%, var(--primary-50) 100%);
-  box-shadow: 0 6px 20px rgb(249 115 22 / 0.1);
+  padding: 0.9rem 1rem;
+  border-radius: 1.125rem;
+  border: 1px solid #fcd34d;
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 38%, #fbbf24 100%);
+  box-shadow:
+    0 16px 32px -8px rgb(245 158 11 / 0.35),
+    inset 0 1px 0 rgb(255 255 255 / 0.65);
   text-align: left;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition: transform 0.12s ease;
 }
 
-.home-galaxy__challenge:active {
-  transform: scale(0.99);
+.home-galaxy__challenge--reward:active {
+  transform: scale(0.98);
 }
 
-.home-galaxy__challenge-icon {
+.home-galaxy__challenge-trophy {
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 2.25rem;
-  height: 2.25rem;
-  border-radius: 0.75rem;
-  background: linear-gradient(145deg, #fdba74, #f97316);
-  font-size: 1.125rem;
-  box-shadow: 0 4px 10px rgb(249 115 22 / 0.3);
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.875rem;
+  background: linear-gradient(145deg, #fff 0%, #fef3c7 100%);
+  font-size: 1.375rem;
+  box-shadow:
+    0 4px 0 #d97706,
+    0 8px 16px rgb(217 119 6 / 0.35);
+  transform: translateY(-1px);
 }
 
 .home-galaxy__challenge-copy {
@@ -2650,22 +2635,22 @@ body {
 }
 
 .home-galaxy__challenge-title {
-  font-size: 0.875rem;
-  font-weight: 800;
-  color: var(--foreground);
+  font-size: 0.9375rem;
+  font-weight: 900;
+  color: #78350f;
 }
 
 .home-galaxy__challenge-desc {
   font-size: 0.6875rem;
-  font-weight: 600;
-  color: var(--header-muted);
+  font-weight: 700;
+  color: #92400e;
 }
 
 .home-galaxy__challenge-cta {
   flex-shrink: 0;
-  font-size: 1.125rem;
-  font-weight: 800;
-  color: var(--secondary-700);
+  font-size: 1.25rem;
+  font-weight: 900;
+  color: #b45309;
 }
 
 .app-menu__layout-list {
@@ -2821,6 +2806,7 @@ body {
 
 .app-screen--home {
   grid-template-rows: auto minmax(0, 1fr);
+  background: linear-gradient(180deg, #f8fafc 0%, #ede9fe 100%);
 }
 
 /* —— Review quiz (definition → 4 choices → card + interval) —— */

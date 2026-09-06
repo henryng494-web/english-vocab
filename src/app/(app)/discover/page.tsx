@@ -5,6 +5,7 @@ import type { DiscoverWordData } from "@/components/discover/DiscoverCard";
 import {
   CoinBadge,
   DiscoverDashboard,
+  StreakBadge,
 } from "@/components/discover/DiscoverDashboard";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { AppMenuButton } from "@/components/layout/AppMenuButton";
@@ -616,7 +617,8 @@ export default function DiscoverPage() {
               <Link href="/search" className="app-header__icon-btn" aria-label={t("home.searchAria")}>
                 🔍
               </Link>
-              <CoinBadge value={wordsKnown} label={t("home.coinBadge")} streakDays={streakDays} />
+              <StreakBadge days={streakDays} />
+              <CoinBadge value={wordsKnown} label={t("home.coinBadge")} />
             </div>
           }
         />

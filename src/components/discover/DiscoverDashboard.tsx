@@ -21,28 +21,25 @@ type DiscoverDashboardProps = {
   onOpenLibrary: () => void;
 };
 
+export function StreakBadge({ days }: { days: number }) {
+  if (days <= 0) return null;
+  return (
+    <span className="streak-badge" aria-label={`${days} day streak`}>
+      <span className="streak-badge__flame" aria-hidden>🔥</span>
+      <span className="streak-badge__count">{days}</span>
+    </span>
+  );
+}
+
 export function CoinBadge({
   value,
   label,
-  streakDays = 0,
 }: {
   value: number;
   label: string;
-  streakDays?: number;
 }) {
-  const hasStreak = streakDays > 0;
   return (
-    <span
-      className={`coin-badge${hasStreak ? " coin-badge--streak" : ""}`}
-      title={label}
-      aria-label={label}
-    >
-      {hasStreak ? (
-        <span className="coin-badge__flame" aria-hidden>
-          🔥
-          <span className="coin-badge__flame-count">{streakDays}</span>
-        </span>
-      ) : null}
+    <span className="coin-badge" title={label} aria-label={label}>
       <span className="coin-badge__icon" aria-hidden>🪙</span>
       {value.toLocaleString()}
     </span>

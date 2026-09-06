@@ -31,19 +31,19 @@ export type HomeGalaxyScreenProps = {
 };
 
 function StatRing({
-  value,
-  max,
-  label,
+  displayValue,
   sublabel,
   variant = "goal",
   urgent = false,
+  value,
+  max,
 }: {
-  value: number;
-  max: number;
-  label: string;
+  displayValue: string;
   sublabel: string;
   variant?: "goal" | "due";
   urgent?: boolean;
+  value: number;
+  max: number;
 }) {
   const pct = max > 0 ? Math.min(100, Math.round((value / max) * 100)) : 0;
   const dash = `${pct} 100`;
@@ -66,7 +66,7 @@ function StatRing({
             d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
           />
         </svg>
-        <span className="home-galaxy-stat__value">{label}</span>
+        <span className="home-galaxy-stat__value">{displayValue}</span>
       </div>
       <p className="home-galaxy-stat__label">{sublabel}</p>
     </div>
@@ -109,7 +109,13 @@ function WeekDayCell({
 function WordsLeftProgressBar({ learned, total }: { learned: number; total: number }) {
   const pct = total > 0 ? Math.min(100, Math.round((learned / total) * 100)) : 0;
   return (
-    <div className="home-galaxy__words-progress" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
+    <div
+      className="home-galaxy__words-progress home-galaxy__words-progress--hero"
+      role="progressbar"
+      aria-valuenow={pct}
+      aria-valuemin={0}
+      aria-valuemax={100}
+    >
       <div className="home-galaxy__words-progress-track">
         <div className="home-galaxy__words-progress-fill" style={{ width: `${pct}%` }} />
       </div>
@@ -129,6 +135,7 @@ export function HomeGalaxyScreen(props: HomeGalaxyScreenProps) {
       /* ignore */
     }
   }, [t]);
+
   const weekDays = useSyncExternalStore(
     subscribeWeeklyStreak,
     getWeeklyStreakDaysSnapshot,
@@ -163,6 +170,11 @@ export function HomeGalaxyScreen(props: HomeGalaxyScreenProps) {
       ? t("home.galaxyWeekTitle", { count: weeklyMet })
       : t("home.galaxyWeekTitleEmpty");
 
+  const goalDisplay =
+    props.goalType === "minutes"
+      ? String(props.goalCurrent)
+      : `${props.goalCurrent}/${props.goalTarget}`;
+
   return (
     <div className="home-galaxy">
       <div className="home-galaxy__sheet">
@@ -173,22 +185,19 @@ export function HomeGalaxyScreen(props: HomeGalaxyScreenProps) {
           <p className="home-galaxy__greeting-sub">{t("home.greetingSub")}</p>
         </header>
 
-        <section className="home-galaxy__progress home-galaxy-card home-galaxy-card--glass">
-          <p className="home-galaxy__progress-msg">
-            {t("home.galaxyProgressMsg", { band: props.rangeLabel })}
-          </p>
+        <section className="home-galaxy__stats-card home-galaxy-card">
           <div className="home-galaxy__stats">
             <StatRing
               value={props.goalCurrent}
               max={props.goalTarget}
-              label={`${props.goalCurrent}/${props.goalTarget}`}
+              displayValue={goalDisplay}
               sublabel={goalTypeLabel(props.goalType)}
               variant="goal"
             />
             <StatRing
               value={props.dueReviewCount}
               max={reviewRingMax}
-              label={props.dueReviewCount.toLocaleString()}
+              displayValue={props.dueReviewCount.toLocaleString()}
               sublabel={t("home.dueReviewsShort")}
               variant="due"
               urgent={props.dueReviewCount > 0}
@@ -196,7 +205,7 @@ export function HomeGalaxyScreen(props: HomeGalaxyScreenProps) {
           </div>
         </section>
 
-        <section className="home-galaxy__week home-galaxy-card home-galaxy-card--glass">
+        <section className="home-galaxy__week home-galaxy-card">
           <div className="home-galaxy__week-head">
             <p className="home-galaxy__week-title">{weekTitle}</p>
             <button type="button" className="home-galaxy__week-link" onClick={props.onStartReview}>
@@ -216,7 +225,7 @@ export function HomeGalaxyScreen(props: HomeGalaxyScreenProps) {
           </div>
         </section>
 
-        <section className="home-galaxy__lesson home-galaxy-card home-galaxy-card--featured home-galaxy-card--glass">
+        <section className="home-galaxy__lesson home-galaxy-card home-galaxy-card--hero">
           <h2 className={`home-galaxy__lesson-title ${displayFontClass}`}>
             {t("home.bannerTitle")}
           </h2>
@@ -258,10 +267,10 @@ export function HomeGalaxyScreen(props: HomeGalaxyScreenProps) {
 
         <button
           type="button"
-          className="home-galaxy__challenge"
+          className="home-galaxy__challenge home-galaxy__challenge--reward"
           onClick={props.onStartReview}
         >
-          <span className="home-galaxy__challenge-icon" aria-hidden>⚡</span>
+          <span className="home-galaxy__challenge-trophy" aria-hidden>🏆</span>
           <span className="home-galaxy__challenge-copy">
             <span className="home-galaxy__challenge-title">{t("home.dailyChallengeTitle")}</span>
             <span className="home-galaxy__challenge-desc">{t("home.dailyChallengeDesc")}</span>
