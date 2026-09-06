@@ -10,6 +10,10 @@ import {
   type WeekDayStatus,
 } from "@/lib/weekly-streak";
 import { useI18n } from "@/hooks/use-i18n";
+import {
+  getTodayReviewsCompletedSnapshot,
+  subscribeTodayReviewsCompleted,
+} from "@/lib/daily-reviews";
 import { useEffect, useState, useSyncExternalStore } from "react";
 
 export type HomeGalaxyScreenProps = {
@@ -32,30 +36,38 @@ export type HomeGalaxyScreenProps = {
 
 function StatRing({
   displayValue,
-  centerUnit,
   sublabel,
   variant = "goal",
-  urgent = false,
+  complete = false,
   value,
   max,
 }: {
   displayValue: string;
-  centerUnit?: string;
   sublabel: string;
   variant?: "goal" | "due";
-  urgent?: boolean;
+  complete?: boolean;
   value: number;
   max: number;
 }) {
-  const pct = max > 0 ? Math.min(100, Math.round((value / max) * 100)) : 0;
-  const dash = `${pct} 100`;
+  const pctRaw = max > 0 ? Math.min(100, (value / max) * 100) : 0;
+  const pctRounded = Math.round(pctRaw);
+  const dashPct =
+    pctRounded === 0 && max > 0 ? 1.5 : pctRounded >= 100 ? 100 : pctRounded;
+  const dash = `${dashPct} 100`;
   const statClass =
     variant === "due"
-      ? `home-galaxy-stat home-galaxy-stat--due${urgent ? " is-urgent" : ""}`
+      ? `home-galaxy-stat home-galaxy-stat--due${complete ? " is-complete" : ""}`
       : "home-galaxy-stat home-galaxy-stat--goal";
 
   return (
-    <div className={statClass}>
+    <div
+      className={statClass}
+      role="progressbar"
+      aria-valuenow={pctRounded}
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-label={sublabel}
+    >
       <div className="home-galaxy-stat__ring" aria-hidden>
         <svg viewBox="0 0 36 36">
           <path
@@ -68,14 +80,15 @@ function StatRing({
             d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
           />
         </svg>
-        {centerUnit ? (
-          <span className="home-galaxy-stat__value home-galaxy-stat__value--stacked">
-            <span className="home-galaxy-stat__value-num">{displayValue}</span>
-            <span className="home-galaxy-stat__value-unit">{centerUnit}</span>
-          </span>
-        ) : (
-          <span className="home-galaxy-stat__value">{displayValue}</span>
-        )}
+        <span
+          className={
+            variant === "due"
+              ? "home-galaxy-stat__value home-galaxy-stat__value--fraction"
+              : "home-galaxy-stat__value"
+          }
+        >
+          {displayValue}
+        </span>
       </div>
       <p className="home-galaxy-stat__label">{sublabel}</p>
     </div>
@@ -155,6 +168,11 @@ export function HomeGalaxyScreen(props: HomeGalaxyScreenProps) {
     getWeeklyMetCountSnapshot,
     () => 0,
   );
+  const todayReviewsCompleted = useSyncExternalStore(
+    subscribeTodayReviewsCompleted,
+    getTodayReviewsCompletedSnapshot,
+    () => 0,
+  );
 
   const weekdayLabels: Record<WeekDayStatus["weekdayKey"], string> = {
     mon: t("home.weekMon"),
@@ -166,10 +184,15 @@ export function HomeGalaxyScreen(props: HomeGalaxyScreenProps) {
     sun: t("home.weekSun"),
   };
 
-  const reviewRingMax =
-    props.goalType === "reviews"
-      ? Math.max(props.goalTarget, 1)
-      : Math.max(props.dueReviewCount, 20);
+  const totalDueCount = props.dueReviewCount + todayReviewsCompleted;
+  const reviewedCount = todayReviewsCompleted;
+  const reviewsComplete = totalDueCount > 0 && reviewedCount >= totalDueCount;
+  const reviewDisplay =
+    totalDueCount > 0
+      ? `${reviewedCount}/${totalDueCount}`
+      : reviewedCount > 0
+        ? `${reviewedCount}/${reviewedCount}`
+        : "0/0";
 
   const bandTotal = Math.max(props.bandTotalWords, props.queueLength, 1);
   const wordsLearnedInBand = Math.max(0, bandTotal - props.queueLength);
@@ -204,13 +227,12 @@ export function HomeGalaxyScreen(props: HomeGalaxyScreenProps) {
               variant="goal"
             />
             <StatRing
-              value={props.dueReviewCount}
-              max={reviewRingMax}
-              displayValue={props.dueReviewCount.toLocaleString()}
-              centerUnit={t("home.dueReviewsRingUnit")}
-              sublabel={t("home.dueReviewsShort")}
+              value={reviewedCount}
+              max={totalDueCount}
+              displayValue={reviewDisplay}
+              sublabel={t("home.dueReviewsRingLabel")}
               variant="due"
-              urgent={props.dueReviewCount > 0}
+              complete={reviewsComplete}
             />
           </div>
         </section>

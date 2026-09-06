@@ -35,6 +35,33 @@ export function getTodayReviewsCompleted(): number {
   return readState().count;
 }
 
+let cachedTodayReviews = -1;
+
+function todayReviewsSnapshot(): number {
+  const next = getTodayReviewsCompleted();
+  if (next === cachedTodayReviews) return cachedTodayReviews;
+  cachedTodayReviews = next;
+  return next;
+}
+
+export function subscribeTodayReviewsCompleted(onStoreChange: () => void): () => void {
+  if (typeof window === "undefined") return () => {};
+  const refresh = () => {
+    cachedTodayReviews = -1;
+    onStoreChange();
+  };
+  window.addEventListener("daily-reviews-changed", refresh);
+  window.addEventListener("focus", refresh);
+  return () => {
+    window.removeEventListener("daily-reviews-changed", refresh);
+    window.removeEventListener("focus", refresh);
+  };
+}
+
+export function getTodayReviewsCompletedSnapshot(): number {
+  return todayReviewsSnapshot();
+}
+
 export function incrementTodayReviewsCompleted(): number {
   if (typeof window === "undefined") return 0;
   const next = { date: todayKey(), count: readState().count + 1 };

@@ -2313,14 +2313,38 @@ body {
 
 .home-galaxy-stat__fill--due {
   fill: none;
-  stroke: #f97316;
+  stroke: #a855f7;
   stroke-width: 4;
   stroke-linecap: round;
+  filter: drop-shadow(0 0 4px rgb(168 85 247 / 0.45));
+  transition: stroke-dasharray 0.35s ease, stroke 0.35s ease, filter 0.35s ease;
 }
 
-.home-galaxy-stat--due.is-urgent .home-galaxy-stat__fill--due {
-  stroke: #ef4444;
-  filter: drop-shadow(0 0 6px rgb(239 68 68 / 0.5));
+.home-galaxy-stat--due.is-complete .home-galaxy-stat__fill--due {
+  stroke: #84cc16;
+  filter: drop-shadow(0 0 8px rgb(132 204 22 / 0.55));
+}
+
+.home-galaxy-stat--due.is-complete .home-galaxy-stat__ring {
+  animation: home-galaxy-ring-pop 0.55s ease;
+}
+
+@keyframes home-galaxy-ring-pop {
+  0% {
+    transform: scale(1);
+  }
+  45% {
+    transform: scale(1.06);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.home-galaxy-stat__value--fraction {
+  font-size: clamp(0.6875rem, 3.2vw, 0.875rem);
+  font-weight: 900;
+  letter-spacing: -0.03em;
 }
 
 .home-galaxy-stat__value {
@@ -2336,27 +2360,6 @@ body {
   text-align: center;
   line-height: 1;
   letter-spacing: -0.02em;
-}
-
-.home-galaxy-stat__value--stacked {
-  flex-direction: column;
-  gap: 0.0625rem;
-}
-
-.home-galaxy-stat__value-num {
-  font-size: clamp(0.9375rem, 4vw, 1.125rem);
-  font-weight: 900;
-  line-height: 1;
-  letter-spacing: -0.02em;
-}
-
-.home-galaxy-stat__value-unit {
-  font-size: clamp(0.4375rem, 2.2vw, 0.5625rem);
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: #64748b;
-  line-height: 1;
 }
 
 .home-galaxy-stat__label {
