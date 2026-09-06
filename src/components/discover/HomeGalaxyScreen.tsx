@@ -16,7 +16,7 @@ import {
   subscribeTodayReviewsCompleted,
 } from "@/lib/daily-reviews";
 import { AppMenuButton } from "@/components/layout/AppMenuButton";
-import { CoinBadge, StreakBadge } from "@/components/discover/DiscoverDashboard";
+import { StreakBadge } from "@/components/discover/DiscoverDashboard";
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 
 export type HomeGalaxyScreenProps = {
@@ -227,7 +227,6 @@ export function HomeGalaxyScreen(props: HomeGalaxyScreenProps) {
               🔍
             </Link>
             <StreakBadge days={props.streakDays} />
-            <CoinBadge value={props.wordsKnown} label={t("home.coinBadge")} />
           </div>
         </header>
 
@@ -288,6 +287,12 @@ export function HomeGalaxyScreen(props: HomeGalaxyScreenProps) {
             <div>
               <span className="home-galaxy__lesson-meta-label">{t("home.galaxyMetaToday")}</span>
               <span className="home-galaxy__lesson-meta-value">{props.todayWordsLearned}</span>
+            </div>
+            <div>
+              <span className="home-galaxy__lesson-meta-label">{t("home.galaxyMetaLearning")}</span>
+              <span className="home-galaxy__lesson-meta-value">
+                {props.wordsReviewing.toLocaleString()}
+              </span>
             </div>
             <div>
               <span className="home-galaxy__lesson-meta-label">{t("home.masteredShort")}</span>

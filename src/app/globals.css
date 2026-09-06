@@ -2372,19 +2372,13 @@ body {
 }
 
 .home-galaxy-stat__value--compact {
-  font-size: 1rem;
-  font-weight: 500;
+  font-size: 0.75rem;
+  font-weight: 600;
   letter-spacing: -0.02em;
   line-height: 1;
-  padding: 0 0.25rem;
+  padding: 0 0.375rem;
   text-align: center;
   white-space: nowrap;
-}
-
-@media (min-width: 380px) {
-  .home-galaxy-stat__value--compact {
-    font-size: 1.125rem;
-  }
 }
 
 .home-galaxy-stat__value {
@@ -2560,7 +2554,7 @@ body {
 
 .home-galaxy__lesson-meta {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.375rem;
   margin-top: 0.5rem;
   padding: 0.5rem 0.625rem;
