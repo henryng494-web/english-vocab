@@ -16,7 +16,7 @@ import {
   subscribeTodayReviewsCompleted,
 } from "@/lib/daily-reviews";
 import { AppMenuButton } from "@/components/layout/AppMenuButton";
-import { JungleMascot } from "@/components/mascot/JungleMascot";
+import { HomeMascotBanner } from "@/components/discover/HomeMascotBanner";
 import { StreakBadge } from "@/components/discover/DiscoverDashboard";
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 
@@ -84,7 +84,7 @@ function StatRing({
             d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
           />
         </svg>
-        <span className="home-galaxy-stat__value home-galaxy-stat__value--compact">
+        <span className="home-galaxy-stat__center text-[10px] font-semibold text-slate-600">
           {displayValue}
         </span>
       </div>
@@ -265,17 +265,9 @@ export function HomeGalaxyScreen(props: HomeGalaxyScreenProps) {
         </section>
 
         <section className="home-galaxy__lesson home-galaxy-card home-galaxy-card--hero">
-          <div className="home-galaxy__lesson-head">
-            <h2 className={`home-galaxy__lesson-title ${displayFontClass}`}>
-              {t("home.bannerTitle")}
-            </h2>
-            <JungleMascot
-              character="monkey"
-              size={52}
-              className="home-galaxy__lesson-mascot"
-              priority
-            />
-          </div>
+          <h2 className={`home-galaxy__lesson-title ${displayFontClass}`}>
+            {t("home.bannerTitle")}
+          </h2>
           <p className="home-galaxy__lesson-subtitle">
             {t("home.bannerSubtitle", {
               count: props.queueLength,
@@ -311,6 +303,8 @@ export function HomeGalaxyScreen(props: HomeGalaxyScreenProps) {
             </div>
           </div>
         </section>
+
+        <HomeMascotBanner />
 
         <button
           type="button"
