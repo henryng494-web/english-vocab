@@ -616,7 +616,7 @@ export default function DiscoverPage() {
               <Link href="/search" className="app-header__icon-btn" aria-label={t("home.searchAria")}>
                 🔍
               </Link>
-              <CoinBadge value={wordsKnown} label={t("home.coinBadge")} />
+              <CoinBadge value={wordsKnown} label={t("home.coinBadge")} streakDays={streakDays} />
             </div>
           }
         />
@@ -639,6 +639,7 @@ export default function DiscoverPage() {
             rangeLabel={rangeLabel}
             queueLength={queue.length}
             currentIndex={currentIndex}
+            bandTotalWords={queue.length + stats.hidden}
             dueReviewCount={dueReviewCount}
             wordsKnown={wordsKnown}
             wordsReviewing={wordsReviewing}

@@ -151,6 +151,15 @@ export function BottomTabBar() {
                   ? "bg-pink-50"
                   : "bg-primary-50";
 
+          const pillTone =
+            tab.href.startsWith("/journey")
+              ? "journey"
+              : tab.href.startsWith("/learn")
+                ? "review"
+                : tab.href.startsWith("/words")
+                  ? "library"
+                  : "home";
+
           return (
             <Link
               key={tab.href}
@@ -159,7 +168,11 @@ export function BottomTabBar() {
                 active ? `tab-bar-link--active ${activeColorClass}` : "tab-bar-link--inactive"
               }`}
             >
-              <span className={`tab-bar-link__pill ${active ? activeBgClass : ""}`}>
+              <span
+                className={`tab-bar-link__pill tab-bar-link__pill--${pillTone}${
+                  active ? ` ${activeBgClass}` : ""
+                }`}
+              >
                 <span className="tab-bar-link__icon">
                   {tab.icon(active)}
                   {tab.showBadge && dueCount > 0 ? (
