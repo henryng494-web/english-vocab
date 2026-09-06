@@ -32,6 +32,7 @@ export type HomeGalaxyScreenProps = {
 
 function StatRing({
   displayValue,
+  centerUnit,
   sublabel,
   variant = "goal",
   urgent = false,
@@ -39,6 +40,7 @@ function StatRing({
   max,
 }: {
   displayValue: string;
+  centerUnit?: string;
   sublabel: string;
   variant?: "goal" | "due";
   urgent?: boolean;
@@ -66,7 +68,14 @@ function StatRing({
             d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
           />
         </svg>
-        <span className="home-galaxy-stat__value">{displayValue}</span>
+        {centerUnit ? (
+          <span className="home-galaxy-stat__value home-galaxy-stat__value--stacked">
+            <span className="home-galaxy-stat__value-num">{displayValue}</span>
+            <span className="home-galaxy-stat__value-unit">{centerUnit}</span>
+          </span>
+        ) : (
+          <span className="home-galaxy-stat__value">{displayValue}</span>
+        )}
       </div>
       <p className="home-galaxy-stat__label">{sublabel}</p>
     </div>
@@ -198,6 +207,7 @@ export function HomeGalaxyScreen(props: HomeGalaxyScreenProps) {
               value={props.dueReviewCount}
               max={reviewRingMax}
               displayValue={props.dueReviewCount.toLocaleString()}
+              centerUnit={t("home.dueReviewsRingUnit")}
               sublabel={t("home.dueReviewsShort")}
               variant="due"
               urgent={props.dueReviewCount > 0}
@@ -236,6 +246,15 @@ export function HomeGalaxyScreen(props: HomeGalaxyScreenProps) {
             })}
           </p>
           <WordsLeftProgressBar learned={wordsLearnedInBand} total={bandTotal} />
+          <button
+            type="button"
+            className="home-galaxy__lesson-cta"
+            disabled={props.queueLength === 0}
+            onClick={props.onStartJourney}
+          >
+            <span className="home-galaxy__lesson-cta-label">{t("home.bannerCta")}</span>
+            <span className="home-galaxy__lesson-cta-icon" aria-hidden>⚡</span>
+          </button>
           <div className="home-galaxy__lesson-meta">
             <div>
               <span className="home-galaxy__lesson-meta-label">{t("home.galaxyMetaToday")}</span>
@@ -254,15 +273,6 @@ export function HomeGalaxyScreen(props: HomeGalaxyScreenProps) {
               </span>
             </div>
           </div>
-          <button
-            type="button"
-            className="home-galaxy__lesson-cta"
-            disabled={props.queueLength === 0}
-            onClick={props.onStartJourney}
-          >
-            <span>{t("home.bannerCta")}</span>
-            <span className="home-galaxy__lesson-cta-icon" aria-hidden>⚡</span>
-          </button>
         </section>
 
         <button
