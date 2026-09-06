@@ -16,6 +16,7 @@ import {
   subscribeTodayReviewsCompleted,
 } from "@/lib/daily-reviews";
 import { AppMenuButton } from "@/components/layout/AppMenuButton";
+import { JungleMascot } from "@/components/mascot/JungleMascot";
 import { StreakBadge } from "@/components/discover/DiscoverDashboard";
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 
@@ -264,9 +265,17 @@ export function HomeGalaxyScreen(props: HomeGalaxyScreenProps) {
         </section>
 
         <section className="home-galaxy__lesson home-galaxy-card home-galaxy-card--hero">
-          <h2 className={`home-galaxy__lesson-title ${displayFontClass}`}>
-            {t("home.bannerTitle")}
-          </h2>
+          <div className="home-galaxy__lesson-head">
+            <h2 className={`home-galaxy__lesson-title ${displayFontClass}`}>
+              {t("home.bannerTitle")}
+            </h2>
+            <JungleMascot
+              character="monkey"
+              size={52}
+              className="home-galaxy__lesson-mascot"
+              priority
+            />
+          </div>
           <p className="home-galaxy__lesson-subtitle">
             {t("home.bannerSubtitle", {
               count: props.queueLength,
