@@ -84,7 +84,7 @@ function StatRing({
             d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
           />
         </svg>
-        <span className="home-galaxy-stat__center text-[11px] font-semibold text-slate-500">
+        <span className="home-galaxy-stat__center text-[10px] font-semibold text-slate-500">
           {displayValue}
         </span>
       </div>
