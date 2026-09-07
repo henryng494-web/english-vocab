@@ -16,7 +16,7 @@ import {
   subscribeTodayReviewsCompleted,
 } from "@/lib/daily-reviews";
 import { AppMenuButton } from "@/components/layout/AppMenuButton";
-import { HomeMascotBanner } from "@/components/discover/HomeMascotBanner";
+import { JungleMascot } from "@/components/mascot/JungleMascot";
 import { StreakBadge } from "@/components/discover/DiscoverDashboard";
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 
@@ -265,9 +265,17 @@ export function HomeGalaxyScreen(props: HomeGalaxyScreenProps) {
         </section>
 
         <section className="home-galaxy__lesson home-galaxy-card home-galaxy-card--hero">
-          <h2 className={`home-galaxy__lesson-title ${displayFontClass}`}>
-            {t("home.bannerTitle")}
-          </h2>
+          <div className="home-galaxy__lesson-head">
+            <h2 className={`home-galaxy__lesson-title ${displayFontClass}`}>
+              {t("home.bannerTitle")}
+            </h2>
+            <JungleMascot
+              character="tiger"
+              size={44}
+              className="home-galaxy__lesson-mascot"
+              priority
+            />
+          </div>
           <p className="home-galaxy__lesson-subtitle">
             {t("home.bannerSubtitle", {
               count: props.queueLength,
@@ -304,21 +312,18 @@ export function HomeGalaxyScreen(props: HomeGalaxyScreenProps) {
           </div>
         </section>
 
-        <div className="home-galaxy__dock">
-          <button
-            type="button"
-            className="home-galaxy__challenge home-galaxy__challenge--clean"
-            onClick={props.onStartReview}
-          >
-            <span className="home-galaxy__challenge-trophy" aria-hidden>🏆</span>
-            <span className="home-galaxy__challenge-copy">
-              <span className="home-galaxy__challenge-title">{t("home.dailyChallengeTitle")}</span>
-              <span className="home-galaxy__challenge-desc">{t("home.dailyChallengeDesc")}</span>
-            </span>
-            <span className="home-galaxy__challenge-cta" aria-hidden>→</span>
-          </button>
-          <HomeMascotBanner />
-        </div>
+        <button
+          type="button"
+          className="home-galaxy__challenge home-galaxy__challenge--clean"
+          onClick={props.onStartReview}
+        >
+          <span className="home-galaxy__challenge-trophy" aria-hidden>🏆</span>
+          <span className="home-galaxy__challenge-copy">
+            <span className="home-galaxy__challenge-title">{t("home.dailyChallengeTitle")}</span>
+            <span className="home-galaxy__challenge-desc">{t("home.dailyChallengeDesc")}</span>
+          </span>
+          <span className="home-galaxy__challenge-cta" aria-hidden>→</span>
+        </button>
       </div>
     </div>
   );

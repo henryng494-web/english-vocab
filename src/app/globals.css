@@ -2381,6 +2381,9 @@ body {
   text-align: center;
   line-height: 1;
   white-space: nowrap;
+  font-size: 10px;
+  font-weight: 600;
+  color: #64748b;
 }
 
 .home-galaxy-stat__value {
@@ -2520,12 +2523,27 @@ body {
   padding: 0.875rem;
 }
 
+.home-galaxy__lesson-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
 .home-galaxy__lesson-title {
+  flex: 1;
+  min-width: 0;
   margin: 0;
   font-size: 1.125rem;
   line-height: 1.2;
   font-weight: 800;
   color: #fff;
+}
+
+.home-galaxy__lesson-mascot {
+  flex-shrink: 0;
+  filter: drop-shadow(0 4px 8px rgb(0 0 0 / 0.18));
+  pointer-events: none;
 }
 
 .home-galaxy__lesson-subtitle {
@@ -2636,179 +2654,13 @@ body {
   font-weight: 800;
 }
 
-/* Dock: daily challenge + floating mascots */
-.home-galaxy__dock {
-  position: relative;
-  flex: 1 0 auto;
-  min-height: 6.75rem;
-  margin-top: auto;
-  padding-bottom: 0.25rem;
-}
-
-/* Floating mascots — static TEAMWORK scene, hover/tap only */
-.home-galaxy__mascot-float {
-  position: absolute;
-  left: -0.25rem;
-  right: -0.25rem;
-  bottom: 0;
-  height: 6.25rem;
-  margin-top: -2.75rem;
-  pointer-events: none;
-  z-index: 5;
-}
-
-.home-galaxy__mascot-actor {
-  position: absolute;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  transition: transform 0.2s ease, filter 0.2s ease;
-  pointer-events: auto;
-  cursor: default;
-  filter: drop-shadow(0 8px 10px rgb(15 23 42 / 0.12));
-}
-
-.home-galaxy__mascot-actor:hover,
-.home-galaxy__mascot-actor:active {
-  transform: scale(1.08);
-  filter: drop-shadow(0 10px 14px rgb(15 23 42 / 0.18));
-}
-
-.home-galaxy__mascot-actor--tiger {
-  left: 0.125rem;
-  bottom: 0;
-  transform-origin: bottom center;
-}
-
-.home-galaxy__mascot-actor--monkey {
-  left: 50%;
-  bottom: 1.25rem;
-  transform: translateX(-50%);
-  transform-origin: bottom center;
-}
-
-.home-galaxy__mascot-actor--monkey:hover,
-.home-galaxy__mascot-actor--monkey:active {
-  transform: translateX(-50%) scale(1.08);
-}
-
-.home-galaxy__mascot-bubble {
-  position: absolute;
-  z-index: 2;
-  max-width: 4.5rem;
-  padding: 0.1875rem 0.4375rem;
-  border-radius: 0.625rem;
-  background: #fff;
-  border: 1px solid #e2e8f0;
-  font-size: 0.5625rem;
-  font-weight: 800;
-  line-height: 1.2;
-  color: #6d28d9;
-  text-align: center;
-  box-shadow: 0 2px 8px rgb(15 23 42 / 0.08);
-  white-space: nowrap;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.home-galaxy__mascot-actor:hover .home-galaxy__mascot-bubble,
-.home-galaxy__mascot-actor:active .home-galaxy__mascot-bubble {
-  transform: scale(1.06);
-  box-shadow: 0 4px 12px rgb(109 40 217 / 0.15);
-}
-
-.home-galaxy__mascot-bubble--team {
-  top: -1.375rem;
-  right: -0.25rem;
-}
-
-.home-galaxy__mascot-bubble--work {
-  top: -1.5rem;
-  left: 50%;
-  transform: translateX(-50%);
-}
-
-.home-galaxy__mascot-actor--monkey:hover .home-galaxy__mascot-bubble--work,
-.home-galaxy__mascot-actor--monkey:active .home-galaxy__mascot-bubble--work {
-  transform: translateX(-50%) scale(1.06);
-}
-
-.home-galaxy__mascot-point {
-  position: absolute;
-  top: 0.625rem;
-  right: -0.625rem;
-  font-size: 0.875rem;
-  line-height: 1;
-  pointer-events: none;
-}
-
-.home-galaxy__mascot-tease {
-  position: absolute;
-  top: 0.5rem;
-  right: -0.5rem;
-  font-size: 0.8125rem;
-  line-height: 1;
-  pointer-events: none;
-  transform: rotate(12deg);
-}
-
-.home-galaxy__mascot-duo {
-  position: absolute;
-  right: 0.125rem;
-  bottom: 0;
-  display: flex;
-  align-items: flex-end;
-  pointer-events: auto;
-  cursor: default;
-  transition: transform 0.2s ease;
-}
-
-.home-galaxy__mascot-duo:hover,
-.home-galaxy__mascot-duo:active {
-  transform: scale(1.06);
-}
-
-.home-galaxy__mascot-duo .home-galaxy__mascot-actor {
-  position: relative;
-  left: auto;
-  right: auto;
-  bottom: auto;
-}
-
-.home-galaxy__mascot-duo .home-galaxy__mascot-actor--elephant {
-  margin-right: -0.875rem;
-  z-index: 1;
-}
-
-.home-galaxy__mascot-duo .home-galaxy__mascot-actor--crocodile {
-  z-index: 2;
-}
-
-.home-galaxy__mascot-duo .home-galaxy__mascot-actor:hover,
-.home-galaxy__mascot-duo .home-galaxy__mascot-actor:active {
-  transform: none;
-}
-
-.home-galaxy__mascot-highfive {
-  position: absolute;
-  top: 0.125rem;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 0.6875rem;
-  line-height: 1;
-  z-index: 3;
-  pointer-events: none;
-}
-
 /* Daily challenge — clean card */
 .home-galaxy__challenge--clean {
   position: relative;
   z-index: 2;
   flex-shrink: 0;
+  margin-top: auto;
   display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  width: 100%;
-  margin-top: 0.125rem;
   padding: 0.75rem 0.875rem;
   border-radius: 1rem;
   border: 1px solid #e2e8f0;
