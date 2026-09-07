@@ -2381,8 +2381,8 @@ body {
   text-align: center;
   line-height: 1;
   white-space: nowrap;
-  font-size: 10px;
-  font-weight: 600;
+  font-size: 0.75rem;
+  font-weight: 700;
   color: #64748b;
 }
 
@@ -2622,13 +2622,12 @@ body {
 
 .home-galaxy__lesson-cta-label,
 .home-galaxy__lesson-cta-icon {
-  color: #fff;
+  color: #6d28d9;
 }
 
 .home-galaxy__lesson-cta-icon {
   font-size: 1.125rem;
   line-height: 1;
-  filter: brightness(0) invert(1);
 }
 
 .home-galaxy__lesson-cta:not(:disabled):active {
@@ -2650,7 +2649,7 @@ body {
 .home-galaxy__lesson-cta-label {
   font-size: 1.0625rem;
   line-height: 1.2;
-  color: #fff;
+  color: #6d28d9;
   font-weight: 800;
 }
 

@@ -3,7 +3,13 @@
 import Image from "next/image";
 import { MASCOT_PUBLIC_PATHS } from "@/data/jungle-cast-brand";
 
-export type JungleMascotName = "monkey" | "elephant" | "crocodile" | "tiger" | "lineup";
+export type JungleMascotName =
+  | "monkey"
+  | "elephant"
+  | "crocodile"
+  | "tiger"
+  | "tigerHero"
+  | "lineup";
 
 type JungleMascotProps = {
   character?: JungleMascotName;
@@ -20,6 +26,7 @@ const MASCOT_DEFAULT_TITLES: Record<JungleMascotName, string> = {
   elephant: "Jungle Elephant",
   crocodile: "Jungle Crocodile",
   tiger: "Jungle Tiger",
+  tigerHero: "Jungle Tiger",
   lineup: "Jungle Jokers Cast",
 };
 

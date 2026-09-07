@@ -84,7 +84,7 @@ function StatRing({
             d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
           />
         </svg>
-        <span className="home-galaxy-stat__center text-[10px] font-semibold text-slate-500">
+        <span className="home-galaxy-stat__center text-xs font-bold text-slate-500">
           {displayValue}
         </span>
       </div>
@@ -270,8 +270,8 @@ export function HomeGalaxyScreen(props: HomeGalaxyScreenProps) {
               {t("home.bannerTitle")}
             </h2>
             <JungleMascot
-              character="tiger"
-              size={44}
+              character="tigerHero"
+              size={64}
               className="home-galaxy__lesson-mascot"
               priority
             />
@@ -288,7 +288,7 @@ export function HomeGalaxyScreen(props: HomeGalaxyScreenProps) {
             disabled={props.queueLength === 0}
             onClick={props.onStartJourney}
           >
-            <span className="home-galaxy__lesson-cta-label text-white font-extrabold">{t("home.bannerCta")}</span>
+            <span className="home-galaxy__lesson-cta-label text-[#6D28D9] font-extrabold">{t("home.bannerCta")}</span>
             <span className="home-galaxy__lesson-cta-icon" aria-hidden>⚡</span>
           </button>
           <WordsLeftProgressBar learned={wordsLearnedInBand} total={bandTotal} />
