@@ -84,7 +84,7 @@ function StatRing({
             d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
           />
         </svg>
-        <span className="home-galaxy-stat__center text-[10px] font-semibold text-slate-600">
+        <span className="home-galaxy-stat__center text-[11px] font-semibold text-slate-500">
           {displayValue}
         </span>
       </div>
@@ -280,7 +280,7 @@ export function HomeGalaxyScreen(props: HomeGalaxyScreenProps) {
             disabled={props.queueLength === 0}
             onClick={props.onStartJourney}
           >
-            <span className="home-galaxy__lesson-cta-label">{t("home.bannerCta")}</span>
+            <span className="home-galaxy__lesson-cta-label text-white font-extrabold">{t("home.bannerCta")}</span>
             <span className="home-galaxy__lesson-cta-icon" aria-hidden>⚡</span>
           </button>
           <WordsLeftProgressBar learned={wordsLearnedInBand} total={bandTotal} />
@@ -304,20 +304,21 @@ export function HomeGalaxyScreen(props: HomeGalaxyScreenProps) {
           </div>
         </section>
 
-        <HomeMascotBanner />
-
-        <button
-          type="button"
-          className="home-galaxy__challenge home-galaxy__challenge--clean"
-          onClick={props.onStartReview}
-        >
-          <span className="home-galaxy__challenge-trophy" aria-hidden>🏆</span>
-          <span className="home-galaxy__challenge-copy">
-            <span className="home-galaxy__challenge-title">{t("home.dailyChallengeTitle")}</span>
-            <span className="home-galaxy__challenge-desc">{t("home.dailyChallengeDesc")}</span>
-          </span>
-          <span className="home-galaxy__challenge-cta" aria-hidden>→</span>
-        </button>
+        <div className="home-galaxy__dock">
+          <button
+            type="button"
+            className="home-galaxy__challenge home-galaxy__challenge--clean"
+            onClick={props.onStartReview}
+          >
+            <span className="home-galaxy__challenge-trophy" aria-hidden>🏆</span>
+            <span className="home-galaxy__challenge-copy">
+              <span className="home-galaxy__challenge-title">{t("home.dailyChallengeTitle")}</span>
+              <span className="home-galaxy__challenge-desc">{t("home.dailyChallengeDesc")}</span>
+            </span>
+            <span className="home-galaxy__challenge-cta" aria-hidden>→</span>
+          </button>
+          <HomeMascotBanner />
+        </div>
       </div>
     </div>
   );
