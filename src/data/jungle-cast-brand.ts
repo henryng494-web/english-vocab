@@ -60,7 +60,7 @@ export const MASCOT_PUBLIC_PATHS = {
   crocodile: "/mascot/jungle-jokers/header/crocodile.png?v=1",
   tiger: "/mascot/jungle-jokers/header/tiger.png?v=1",
   /** Hero card — both eyes open, friendly smile (home galaxy only). */
-  tigerHero: "/mascot/jungle-jokers/header/tiger-hero.png?v=1",
+  tigerHero: "/mascot/jungle-jokers/header/tiger-hero.png?v=2",
 } as const;
 
 /** Header branch scene — mascot + locked branch template (one character per tab). */
