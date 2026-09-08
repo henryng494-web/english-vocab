@@ -35,6 +35,8 @@ type WordCardDetailsProps = {
   family?: WordFamilyMember[] | null;
   similarWords?: string[] | null;
   loading?: boolean;
+  /** Block horizontal swipe-to-flip briefly after the word opens (review reveal). */
+  familySwipeGraceMs?: number;
 };
 
 function DetailsLoadingSkeleton() {
@@ -59,6 +61,7 @@ export function WordCardDetails({
   family,
   similarWords,
   loading = false,
+  familySwipeGraceMs = 0,
 }: WordCardDetailsProps) {
   const { t } = useI18n();
   const chunkEntry = useMemo(
@@ -106,6 +109,13 @@ export function WordCardDetails({
     <div className="card-details card-details--compact">
       <div
         className="card-details__scene"
+        onClick={() => {
+          if (swiped.current) {
+            swiped.current = false;
+            return;
+          }
+          toggle();
+        }}
         onPointerDown={(event) => {
           if (!canFlip) {
             startX.current = null;
@@ -116,10 +126,13 @@ export function WordCardDetails({
           canFlipAtPointerDown.current = true;
         }}
         onPointerUp={(event) => {
+          const withinGrace =
+            familySwipeGraceMs > 0 &&
+            Date.now() - openedAtRef.current < familySwipeGraceMs;
           if (
             startX.current == null ||
             !canFlipAtPointerDown.current ||
-            Date.now() - openedAtRef.current < 450
+            withinGrace
           ) {
             startX.current = null;
             canFlipAtPointerDown.current = false;
