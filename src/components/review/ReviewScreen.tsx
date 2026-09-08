@@ -34,8 +34,9 @@ import { useReviewSession } from "@/hooks/useReviewSession";
 import { hasQualityExamples } from "@/lib/example-quality";
 import { parseExamples } from "@/lib/parse-examples";
 import {
-  advanceReviewInterval,
   getReviewSchedule,
+  REVIEW_INTERVALS,
+  suggestedReviewIntervalAfterCorrect,
   writeReviewSchedule,
   type ReviewIntervalDays,
 } from "@/lib/review-schedule";
@@ -848,12 +849,15 @@ export function ReviewScreen() {
   ) {
     if (locked || !currentWord) return;
     const schedule = getReviewSchedule(currentWord.word);
-    const nextInterval = isCorrect
-      ? advanceReviewInterval(schedule.intervalDays)
-      : schedule.intervalDays;
     const nextTimes = isCorrect
       ? schedule.timesReviewed + 1
       : schedule.timesReviewed;
+    const nextInterval = isCorrect
+      ? suggestedReviewIntervalAfterCorrect({
+          ...schedule,
+          timesReviewed: nextTimes,
+        })
+      : REVIEW_INTERVALS[0];
     setLocked(true);
     setCorrect(isCorrect);
     setSelectedKey(key);
@@ -954,7 +958,17 @@ export function ReviewScreen() {
       }
 
       const nextStep = sessionStep + 1;
-      const remaining = queue.slice(index + 1);
+      let remaining = queue.slice(index + 1);
+      if (!markMastered && !correct) {
+        const wordKey = currentWord.word.trim().toLowerCase();
+        const alreadyQueued = remaining.some(
+          (item) => item.word.trim().toLowerCase() === wordKey,
+        );
+        if (!alreadyQueued) {
+          remaining = [...remaining, currentWord];
+          reviewInitialCountRef.current += 1;
+        }
+      }
       markReviewSessionCompleted(currentWord.word, remaining);
       patchQueue(remaining);
       incrementTodayReviewsCompleted();

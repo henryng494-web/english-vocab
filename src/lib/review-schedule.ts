@@ -7,9 +7,13 @@ import {
 } from "@/lib/review-session-storage";
 import type { LearningStatus } from "@/types/database";
 
-export const REVIEW_INTERVALS = [1, 2, 4, 7, 14, 30] as const;
+/** Spaced-repetition ladder — denser early steps so words get more reviews before long gaps. */
+export const REVIEW_INTERVALS = [1, 2, 3, 5, 7, 10, 14, 21, 30] as const;
 
 export type ReviewIntervalDays = (typeof REVIEW_INTERVALS)[number];
+
+/** Keep default "review tomorrow" until this many successful recalls. */
+export const REVIEW_EARLY_DAILY_CAP = 5;
 
 /** Mark word as fully known — no further scheduled reviews. */
 export const REVIEW_MASTERED_LABEL = "Already know";
@@ -43,6 +47,16 @@ export function advanceReviewInterval(current: ReviewIntervalDays): ReviewInterv
   const index = REVIEW_INTERVALS.indexOf(current);
   if (index < 0) return REVIEW_INTERVALS[0];
   return REVIEW_INTERVALS[Math.min(index + 1, REVIEW_INTERVALS.length - 1)];
+}
+
+/** Suggested next interval after a correct answer — stay on 1 day for early reviews. */
+export function suggestedReviewIntervalAfterCorrect(
+  schedule: ReviewScheduleEntry,
+): ReviewIntervalDays {
+  if (schedule.timesReviewed < REVIEW_EARLY_DAILY_CAP) {
+    return REVIEW_INTERVALS[0];
+  }
+  return advanceReviewInterval(schedule.intervalDays);
 }
 
 export function intervalLevelIndex(days: ReviewIntervalDays): number {

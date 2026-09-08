@@ -49,7 +49,7 @@ export function ReviewReveal({
   } = useI18n();
   const filled = markMastered
     ? REVIEW_INTERVALS.length
-    : intervalLevelIndex(intervalDays) + 1;
+    : Math.min(timesReviewed, REVIEW_INTERVALS.length);
   const timesLabel = reviewTimesLabel(timesReviewed);
   const [open, setOpen] = useState(false);
   const [menuBox, setMenuBox] = useState<{ bottom: number; right: number } | null>(
