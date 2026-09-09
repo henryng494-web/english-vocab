@@ -300,6 +300,30 @@ export function countDueReviewWords(
   ).length;
 }
 
+/**
+ * Badge / home due count: remaining words in today's active session queue when
+ * one exists; otherwise the next capped batch (max 50).
+ */
+export function getReviewBadgeDueCount(
+  extraWords: Array<{
+    word: string;
+    status?: LearningStatus | string;
+    last_reviewed_at?: string | null;
+  }> = [],
+  now = Date.now(),
+): number {
+  const snapshot = readReviewSessionSnapshot();
+  if (
+    snapshot &&
+    snapshot.date === localReviewDateKey(new Date(now)) &&
+    snapshot.queueWords.length > 0
+  ) {
+    const completed = new Set(snapshot.completedWords);
+    return snapshot.queueWords.filter((key) => !completed.has(key)).length;
+  }
+  return getActionableDueReviewKeys(extraWords, now).length;
+}
+
 /** Due word keys for today's review session (capped + prioritized). */
 export function getActionableDueReviewKeys(
   extraWords: Array<{

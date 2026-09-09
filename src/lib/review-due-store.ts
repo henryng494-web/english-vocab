@@ -1,6 +1,9 @@
 "use client";
 
-import { countDueReviewWordKeys } from "@/lib/review-schedule";
+import {
+  countDueReviewWordKeys,
+  getReviewBadgeDueCount,
+} from "@/lib/review-schedule";
 import {
   fetchLearningSummary,
   resolveReviewSession,
@@ -19,7 +22,7 @@ function emit() {
 
 export function getReviewDueCount(): number {
   if (typeof window === "undefined") return 0;
-  return resolveReviewSession(cachedSummary ?? []).dueCount;
+  return getReviewBadgeDueCount(cachedSummary ?? []);
 }
 
 export function getTotalDueReviewCount(): number {
@@ -68,7 +71,7 @@ export async function refreshReviewDueSummary(): Promise<number> {
   }
 
   cachedSummary = await summaryFetch;
-  const count = resolveReviewSession(cachedSummary).dueCount;
+  const count = getReviewBadgeDueCount(cachedSummary);
   emit();
   return count;
 }
