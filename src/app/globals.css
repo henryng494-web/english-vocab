@@ -332,13 +332,16 @@ body {
 .card-details__scene {
   min-height: 0;
   flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
   perspective: 900px;
 }
 
 .card-details__flip {
   position: relative;
-  height: 100%;
+  flex: 1 1 auto;
   min-height: 8.5rem;
+  height: 100%;
   transform-style: preserve-3d;
   transition: transform 0.45s ease;
 }
@@ -527,6 +530,13 @@ body {
   overflow: hidden;
 }
 
+.card-details--compact .card-details__face--family {
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
 .card-details--compact {
   --chunk-label-gap: 0.28rem;
 }
@@ -538,13 +548,15 @@ body {
   flex-direction: column;
   gap: 0.35rem;
   align-items: stretch;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  padding-bottom: 0.2rem;
 }
 
 .discover-card__examples--chunks-only {
-  justify-content: center;
-  justify-content: safe center;
-  overflow: hidden;
+  justify-content: flex-start;
 }
 
 .word-learning-chunks {
@@ -695,6 +707,17 @@ body {
   -webkit-line-clamp: 2;
   font-size: 0.933em;
   line-height: 1.4;
+}
+
+/* Journey / review cards: show full examples — scroll inside card body instead of clipping */
+.discover-card .vocab-examples__en,
+.discover-card .vocab-examples__vi,
+.journey-card-slot .vocab-examples__en,
+.journey-card-slot .vocab-examples__vi {
+  display: block;
+  overflow: visible;
+  -webkit-line-clamp: unset;
+  line-clamp: unset;
 }
 
 .discover-card .vocab-examples__en,
