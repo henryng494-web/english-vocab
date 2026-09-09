@@ -6,7 +6,6 @@ import {
 } from "@/lib/review-schedule";
 import {
   fetchLearningSummary,
-  resolveReviewSession,
   type LearningSummaryRow,
 } from "@/lib/review-session";
 
