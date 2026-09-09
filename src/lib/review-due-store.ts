@@ -44,11 +44,13 @@ export function subscribeReviewDueCount(listener: () => void): () => void {
   listeners.add(listener);
 
   const onChange = () => {
+    emit();
     void refreshReviewDueSummary();
   };
 
   if (typeof window !== "undefined") {
     window.addEventListener("vocab-learning-changed", onChange);
+    window.addEventListener("daily-reviews-changed", onChange);
     void refreshReviewDueSummary();
   }
 
@@ -56,6 +58,7 @@ export function subscribeReviewDueCount(listener: () => void): () => void {
     listeners.delete(listener);
     if (typeof window !== "undefined") {
       window.removeEventListener("vocab-learning-changed", onChange);
+      window.removeEventListener("daily-reviews-changed", onChange);
     }
   };
 }

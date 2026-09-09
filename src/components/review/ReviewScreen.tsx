@@ -55,6 +55,7 @@ import {
   markReviewSessionCompleted,
   readReviewSessionSnapshot,
   saveReviewSessionInProgress,
+  seedReviewSessionQueue,
 } from "@/lib/review-session-storage";
 import { shouldRefreshImageUrl } from "@/lib/unsplash";
 import { refreshAllStaleWordImages } from "@/lib/refresh-stale-word-images";
@@ -475,6 +476,7 @@ export function ReviewScreen() {
       if (reviewInitialCountRef.current === 0) {
         reviewInitialCountRef.current = sessionQueue.length;
       }
+      seedReviewSessionQueue(sessionQueue);
       const pool = sessionPool.length > 0 ? sessionPool : sessionQueue;
       warmReviewImages(sessionQueue, pool);
 

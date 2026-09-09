@@ -111,6 +111,24 @@ export function applyReviewSessionSnapshot<T extends { word: string }>(
   return ordered;
 }
 
+/** Persist today's session queue for badge + resume (once per day until cleared). */
+export function seedReviewSessionQueue(words: { word: string }[]): void {
+  const today = localReviewDateKey();
+  const prev = readReviewSessionSnapshot();
+  if (prev?.date === today && prev.queueWords.length > 0) {
+    return;
+  }
+  writeReviewSessionSnapshot(
+    {
+      date: today,
+      completedWords: prev?.date === today ? prev.completedWords : [],
+      queueWords: words.map((item) => item.word.trim().toLowerCase()),
+      inProgress: null,
+    },
+    { notify: true },
+  );
+}
+
 export function markReviewSessionCompleted(
   word: string,
   remainingQueue: { word: string }[],
@@ -139,11 +157,16 @@ export function saveReviewSessionInProgress(
   const prev = readReviewSessionSnapshot();
   const completed = prev?.date === today ? prev.completedWords : [];
 
+  const queueWords =
+    prev?.date === today && prev.queueWords.length > 0
+      ? prev.queueWords
+      : queue.map((item) => item.word.trim().toLowerCase());
+
   writeReviewSessionSnapshot(
     {
       date: today,
       completedWords: completed,
-      queueWords: queue.map((item) => item.word.trim().toLowerCase()),
+      queueWords,
       inProgress,
     },
     { notify: false },
