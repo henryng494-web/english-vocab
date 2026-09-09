@@ -36,10 +36,20 @@ import { parseExamples } from "@/lib/parse-examples";
 import {
   getReviewSchedule,
   REVIEW_INTERVALS,
-  suggestedReviewIntervalForTimes,
-  writeReviewSchedule,
+  writeReviewScheduleEntry,
   type ReviewIntervalDays,
+  type ReviewScheduleEntry,
 } from "@/lib/review-schedule";
+import {
+  applySrsGrade,
+  canMarkWordMastered,
+  entryWithManualInterval,
+  gradeFromAnswer,
+  IN_SESSION_REPEAT_GAP,
+  isLeechEntry,
+  normalizeScheduleEntry,
+  type ReviewGrade,
+} from "@/lib/review-srs";
 import {
   clearReviewSessionSnapshot,
   clearReviewSessionInProgress,
@@ -134,6 +144,9 @@ export function ReviewScreen() {
   const [intervalDays, setIntervalDays] = useState<ReviewIntervalDays>(1);
   const [markMastered, setMarkMastered] = useState(false);
   const [timesReviewed, setTimesReviewed] = useState(0);
+  const [grade, setGrade] = useState<ReviewGrade>("correct");
+  const [srsLevel, setSrsLevel] = useState(0);
+  const [pendingEntry, setPendingEntry] = useState<ReviewScheduleEntry | null>(null);
   const [confirming, setConfirming] = useState(false);
   const [newWord, setNewWord] = useState("");
   const [adding, setAdding] = useState(false);
@@ -347,9 +360,12 @@ export function ReviewScreen() {
     setUnsure(false);
     setLocked(false);
     setCorrect(false);
+    setGrade("correct");
     setIntervalDays(schedule.intervalDays);
     setMarkMastered(false);
     setTimesReviewed(schedule.timesReviewed);
+    setSrsLevel(schedule.srsLevel ?? 0);
+    setPendingEntry(null);
     activeQuestionRef.current = { word: word.word, index: questionIndex };
 
     prefetchCardContent(vocabWordToDiscoverData(word));
@@ -502,7 +518,6 @@ export function ReviewScreen() {
             inProgress.word.trim().toLowerCase(),
         );
         if (resumeIndex >= 0) {
-          clearReviewSessionInProgress();
           const resumeWord = await ensureReviewWordClue(
             sessionQueue[resumeIndex]!,
           );
@@ -513,7 +528,26 @@ export function ReviewScreen() {
           }
           setIndex(resumeIndex);
           setSessionStep(resumeIndex);
-          startQuestion(resumeWord, pool, resumeIndex);
+          const resumeGrade =
+            inProgress.grade ??
+            (inProgress.correct ? "correct" : "wrong");
+          const resumeEntry = normalizeScheduleEntry({
+            ...getReviewSchedule(inProgress.word),
+            intervalDays: inProgress.intervalDays,
+            timesReviewed: inProgress.timesReviewed,
+            srsLevel: inProgress.srsLevel,
+            lastResult: resumeGrade,
+            nextReviewAt: getReviewSchedule(inProgress.word).nextReviewAt,
+          });
+          setCorrect(inProgress.correct);
+          setGrade(resumeGrade);
+          setIntervalDays(inProgress.intervalDays);
+          setTimesReviewed(inProgress.timesReviewed);
+          setMarkMastered(inProgress.markMastered);
+          setSrsLevel(inProgress.srsLevel ?? resumeEntry.srsLevel ?? 0);
+          setPendingEntry(resumeEntry);
+          setLocked(true);
+          setPhase("reveal");
           prefetchQuestionsAhead(resumeIndex, resumeIndex);
           setSessionReady(true);
           return;
@@ -628,6 +662,8 @@ export function ReviewScreen() {
         intervalDays,
         timesReviewed,
         markMastered,
+        grade,
+        srsLevel,
       },
       queue,
     );
@@ -638,6 +674,8 @@ export function ReviewScreen() {
     intervalDays,
     timesReviewed,
     markMastered,
+    grade,
+    srsLevel,
     queue,
   ]);
 
@@ -849,25 +887,27 @@ export function ReviewScreen() {
   ) {
     if (locked || !currentWord) return;
     const schedule = getReviewSchedule(currentWord.word);
-    const nextTimes = isCorrect
-      ? schedule.timesReviewed + 1
-      : schedule.timesReviewed;
-    const nextInterval = isCorrect
-      ? suggestedReviewIntervalForTimes(nextTimes)
-      : REVIEW_INTERVALS[0];
+    const answerGrade = gradeFromAnswer(isCorrect, wasUnsure, key);
+    const nextEntry = applySrsGrade(schedule, answerGrade, quizKind);
     setLocked(true);
     setCorrect(isCorrect);
+    setGrade(answerGrade);
     setSelectedKey(key);
     setUnsure(wasUnsure);
-    setIntervalDays(nextInterval);
-    setTimesReviewed(nextTimes);
+    setPendingEntry(nextEntry);
+    setIntervalDays(nextEntry.intervalDays);
+    setTimesReviewed(nextEntry.timesReviewed);
+    setSrsLevel(nextEntry.srsLevel ?? 0);
+    setMarkMastered(false);
     saveReviewSessionInProgress(
       {
         word: currentWord.word,
         correct: isCorrect,
-        intervalDays: nextInterval,
-        timesReviewed: nextTimes,
+        intervalDays: nextEntry.intervalDays,
+        timesReviewed: nextEntry.timesReviewed,
         markMastered: false,
+        grade: answerGrade,
+        srsLevel: nextEntry.srsLevel,
       },
       queueRef.current,
     );
@@ -940,8 +980,21 @@ export function ReviewScreen() {
           /* local status already saved */
         }
       } else {
-        writeReviewSchedule(currentWord.word, intervalDays, timesReviewed);
-        const status: LearningStatus = correct ? "learning" : "need_review";
+        const baseEntry =
+          pendingEntry ??
+          normalizeScheduleEntry({
+            ...getReviewSchedule(currentWord.word),
+            intervalDays,
+            timesReviewed,
+            srsLevel,
+            lastResult: grade,
+            lastQuizKind: quizKind,
+            nextReviewAt: getReviewSchedule(currentWord.word).nextReviewAt,
+          });
+        const entry = entryWithManualInterval(baseEntry, intervalDays);
+        writeReviewScheduleEntry(currentWord.word, entry);
+        const status: LearningStatus =
+          grade === "correct" ? "learning" : "need_review";
         writeLocalLearning(currentWord.word, status);
         try {
           await fetch("/api/words/status", {
@@ -956,13 +1009,18 @@ export function ReviewScreen() {
 
       const nextStep = sessionStep + 1;
       let remaining = queue.slice(index + 1);
-      if (!markMastered && !correct) {
+      if (!markMastered && grade !== "correct") {
         const wordKey = currentWord.word.trim().toLowerCase();
         const alreadyQueued = remaining.some(
           (item) => item.word.trim().toLowerCase() === wordKey,
         );
         if (!alreadyQueued) {
-          remaining = [...remaining, currentWord];
+          const insertAt = Math.min(IN_SESSION_REPEAT_GAP, remaining.length);
+          remaining = [
+            ...remaining.slice(0, insertAt),
+            currentWord,
+            ...remaining.slice(insertAt),
+          ];
           reviewInitialCountRef.current += 1;
         }
       }
@@ -1084,10 +1142,21 @@ export function ReviewScreen() {
         <ReviewReveal
           word={currentWord}
           correct={correct}
+          grade={grade}
           timesReviewed={timesReviewed}
+          srsLevel={srsLevel}
           intervalDays={intervalDays}
           markMastered={markMastered}
-          onIntervalChange={setIntervalDays}
+          isLeech={pendingEntry ? isLeechEntry(pendingEntry) : false}
+          canMarkMastered={
+            pendingEntry ? canMarkWordMastered(pendingEntry) : false
+          }
+          onIntervalChange={(days) => {
+            setIntervalDays(days);
+            if (pendingEntry) {
+              setPendingEntry(entryWithManualInterval(pendingEntry, days));
+            }
+          }}
           onMarkMasteredChange={setMarkMastered}
           onConfirm={() => {
             void confirmReview();

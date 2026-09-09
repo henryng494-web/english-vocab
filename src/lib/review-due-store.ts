@@ -1,5 +1,6 @@
 "use client";
 
+import { countDueReviewWordKeys } from "@/lib/review-schedule";
 import {
   fetchLearningSummary,
   resolveReviewSession,
@@ -19,6 +20,11 @@ function emit() {
 export function getReviewDueCount(): number {
   if (typeof window === "undefined") return 0;
   return resolveReviewSession(cachedSummary ?? []).dueCount;
+}
+
+export function getTotalDueReviewCount(): number {
+  if (typeof window === "undefined") return 0;
+  return countDueReviewWordKeys(cachedSummary ?? []);
 }
 
 export function getCachedLearningSummary(): LearningSummaryRow[] {

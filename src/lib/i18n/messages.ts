@@ -194,6 +194,13 @@ export const messages: Record<AppLocale, MessageTree> = {
     "review.retryLoad": "Tải lại",
     "review.addWordPlaceholder": "Thêm từ mới…",
     "review.add": "Thêm",
+    "review.resultCorrect": "Đúng — tiếp tục lên cấp ôn",
+    "review.resultUnsure": "Không chắc — ôn lại sớm hơn",
+    "review.resultWrong": "Sai — quay về ôn gần",
+    "review.leechHint": "Từ khó — sẽ được ưu tiên ôn lại",
+    "review.masteredLocked": "Cần nhớ đúng 3 lần liên tiếp ở bài nhớ lại",
+    "home.dailyHub":
+      "{newWords} từ mới · {minutes} phút · {actionable}/{totalDue} cần ôn",
 
     "library.knownTitle": "Thư viện · Đã biết",
     "library.reviewTitle": "Thư viện · Đang ôn",
@@ -458,6 +465,13 @@ export const messages: Record<AppLocale, MessageTree> = {
     "review.retryLoad": "Retry",
     "review.addWordPlaceholder": "Add a new word…",
     "review.add": "Add",
+    "review.resultCorrect": "Correct — moving up the review ladder",
+    "review.resultUnsure": "Unsure — reviewing again sooner",
+    "review.resultWrong": "Wrong — back to shorter intervals",
+    "review.leechHint": "Tough word — prioritized in your queue",
+    "review.masteredLocked": "Need 3 correct recalls in a row first",
+    "home.dailyHub":
+      "{newWords} new words · {minutes} min · {actionable}/{totalDue} due",
 
     "library.knownTitle": "Library · Known",
     "library.reviewTitle": "Library · In review",

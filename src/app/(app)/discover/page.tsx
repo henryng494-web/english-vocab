@@ -41,11 +41,12 @@ import { unlockSpeechFromUserGesture } from "@/lib/speak-word";
 import { getGoalProgressSnapshot, subscribeGoalProgress } from "@/lib/goal-progress";
 import { getCurrentStreak, subscribeStreak, syncStreak } from "@/lib/streak";
 import {
-  canLearnNewWordToday,
   getMaxNewWordsPerDay,
   getTodayWordsLearned,
   incrementTodayWordsLearned,
 } from "@/lib/daily-goal";
+import { canLearnNewWordTodayWithReviewBonus } from "@/lib/review-srs";
+import { getTodayStudyMinutes } from "@/lib/study-time";
 import { readAppSettings } from "@/lib/app-settings";
 import {
   countLearningWords,
@@ -58,6 +59,7 @@ import { readOnboarding, shouldShowOnboarding } from "@/lib/onboarding";
 import { useSyncExternalStore } from "react";
 import {
   getReviewDueCount,
+  getTotalDueReviewCount,
   subscribeReviewDueCount,
 } from "@/lib/review-due-store";
 import { OnboardingModal } from "@/components/onboarding/OnboardingModal";
@@ -115,6 +117,7 @@ export default function DiscoverPage() {
   const [wordsKnown, setWordsKnown] = useState(0);
   const [wordsReviewing, setWordsReviewing] = useState(0);
   const [todayLearned, setTodayLearned] = useState(0);
+  const [todayStudyMinutes, setTodayStudyMinutes] = useState(0);
   const goalProgress = useSyncExternalStore(
     subscribeGoalProgress,
     getGoalProgressSnapshot,
@@ -124,6 +127,11 @@ export default function DiscoverPage() {
   const dueReviewCount = useSyncExternalStore(
     subscribeReviewDueCount,
     getReviewDueCount,
+    () => 0,
+  );
+  const totalDueReviewCount = useSyncExternalStore(
+    subscribeReviewDueCount,
+    getTotalDueReviewCount,
     () => 0,
   );
   const [showOnboarding, setShowOnboarding] = useState(false);
@@ -158,14 +166,17 @@ export default function DiscoverPage() {
   useEffect(() => {
     const refreshCounts = () => {
       setTodayLearned(getTodayWordsLearned());
+      setTodayStudyMinutes(getTodayStudyMinutes());
     };
     refreshCounts();
     window.addEventListener("daily-words-changed", refreshCounts);
     window.addEventListener("daily-reviews-changed", refreshCounts);
+    window.addEventListener("study-time-changed", refreshCounts);
     window.addEventListener("focus", refreshCounts);
     return () => {
       window.removeEventListener("daily-words-changed", refreshCounts);
       window.removeEventListener("daily-reviews-changed", refreshCounts);
+      window.removeEventListener("study-time-changed", refreshCounts);
       window.removeEventListener("focus", refreshCounts);
     };
   }, []);
@@ -515,7 +526,10 @@ export default function DiscoverPage() {
   function updateStatus(status: "mastered" | "new") {
     if (!currentItem) return;
 
-    if (status === "new" && !canLearnNewWordToday()) {
+    if (
+      status === "new" &&
+      !canLearnNewWordTodayWithReviewBonus(totalDueReviewCount)
+    ) {
       const max = getMaxNewWordsPerDay();
       const minutes = readAppSettings().dailyGoalMinutes;
       setError(
@@ -619,7 +633,9 @@ export default function DiscoverPage() {
   }
 
   const dailyNewWordMax = getMaxNewWordsPerDay();
-  const dailyQuotaReached = todayLearned >= dailyNewWordMax;
+  const dailyQuotaReached = !canLearnNewWordTodayWithReviewBonus(
+    totalDueReviewCount,
+  );
   const dailyGoalMinutes = readAppSettings().dailyGoalMinutes;
 
   if (!inSession) {
@@ -645,6 +661,8 @@ export default function DiscoverPage() {
             currentIndex={currentIndex}
             bandTotalWords={queue.length + stats.hidden}
             dueReviewCount={dueReviewCount}
+            totalDueReviewCount={totalDueReviewCount}
+            todayStudyMinutes={todayStudyMinutes}
             wordsKnown={wordsKnown}
             wordsReviewing={wordsReviewing}
             streakDays={streakDays}

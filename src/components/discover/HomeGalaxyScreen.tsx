@@ -26,6 +26,8 @@ export type HomeGalaxyScreenProps = {
   rankProgress: number;
   bandTotalWords: number;
   dueReviewCount: number;
+  totalDueReviewCount: number;
+  todayStudyMinutes: number;
   wordsKnown: number;
   wordsReviewing: number;
   streakDays: number;
@@ -232,6 +234,14 @@ export function HomeGalaxyScreen(props: HomeGalaxyScreenProps) {
         </header>
 
         <section className="home-galaxy__stats-card home-galaxy-card">
+          <p className="home-galaxy__daily-hub">
+            {t("home.dailyHub", {
+              newWords: props.todayWordsLearned,
+              minutes: props.todayStudyMinutes,
+              actionable: props.dueReviewCount,
+              totalDue: props.totalDueReviewCount,
+            })}
+          </p>
           <div className="home-galaxy__stats">
             <StatRing
               value={props.goalCurrent}

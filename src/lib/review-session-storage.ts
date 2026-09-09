@@ -8,6 +8,8 @@ export type ReviewSessionInProgress = {
   intervalDays: ReviewIntervalDays;
   timesReviewed: number;
   markMastered: boolean;
+  grade?: "correct" | "unsure" | "wrong";
+  srsLevel?: number;
 };
 
 export type ReviewSessionSnapshot = {

@@ -3341,12 +3341,40 @@ body {
   flex: 1;
 }
 
+.review-schedule__result {
+  margin: 0 0 0.15rem;
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.review-schedule__result.is-correct {
+  color: #15803d;
+}
+
+.review-schedule__result.is-unsure {
+  color: #b45309;
+}
+
+.review-schedule__result.is-wrong {
+  color: #b91c1c;
+}
+
 .review-schedule__times {
   margin: 0;
   font-family: var(--font-sans);
   font-size: 0.8125rem;
   font-weight: 600;
   color: var(--foreground);
+}
+
+.review-schedule__leech {
+  margin: 0.2rem 0 0;
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #b45309;
 }
 
 .review-schedule__bar {
@@ -3374,6 +3402,21 @@ body {
   border-radius: 0.85rem;
   background: var(--secondary);
   box-shadow: 0 4px 12px color-mix(in srgb, var(--secondary) 32%, transparent);
+}
+
+.review-schedule__action--correct {
+  background: #16a34a;
+  box-shadow: 0 4px 12px color-mix(in srgb, #16a34a 32%, transparent);
+}
+
+.review-schedule__action--unsure {
+  background: #d97706;
+  box-shadow: 0 4px 12px color-mix(in srgb, #d97706 32%, transparent);
+}
+
+.review-schedule__action--wrong {
+  background: #dc2626;
+  box-shadow: 0 4px 12px color-mix(in srgb, #dc2626 32%, transparent);
 }
 
 .review-schedule__confirm {
@@ -3442,6 +3485,32 @@ body {
 
 .review-schedule__option--mastered.is-active {
   color: var(--accent);
+}
+
+.review-schedule__option.is-disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.review-schedule__option-note {
+  display: block;
+  margin-top: 0.15rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--foreground);
+  opacity: 0.65;
+}
+
+.home-galaxy__daily-hub {
+  margin: 0 0 0.65rem;
+  padding: 0 0.15rem;
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.35;
+  color: color-mix(in srgb, var(--foreground) 72%, transparent);
+  text-align: center;
 }
 
 .app-header__actions {
