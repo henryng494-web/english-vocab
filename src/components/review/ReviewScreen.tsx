@@ -52,7 +52,6 @@ import {
 } from "@/lib/review-srs";
 import {
   clearReviewSessionSnapshot,
-  clearReviewSessionInProgress,
   markReviewSessionCompleted,
   readReviewSessionSnapshot,
   saveReviewSessionInProgress,
