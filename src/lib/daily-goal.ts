@@ -1,5 +1,5 @@
 import { countLearningWords } from "@/lib/learning-storage";
-import { readAppSettings } from "@/lib/app-settings";
+import { readAppSettings, type AppSettings } from "@/lib/app-settings";
 
 const DAILY_GOAL_KEY = "vocab-journey-daily-goal-v1";
 
@@ -27,12 +27,31 @@ function readState(): DailyGoalState {
   }
 }
 
+/** Max new words per day — synced with study-minutes target (2 min per word). */
+export function getMaxNewWordsPerDay(
+  settings: AppSettings = readAppSettings(),
+): number {
+  return Math.floor(settings.dailyGoalMinutes / 2);
+}
+
 export function getDailyGoalTarget(): number {
-  return readAppSettings().goalTargetCount;
+  return getMaxNewWordsPerDay();
 }
 
 export function getTodayWordsLearned(): number {
   return readState().count;
+}
+
+export function isDailyNewWordQuotaReached(
+  settings: AppSettings = readAppSettings(),
+): boolean {
+  return getTodayWordsLearned() >= getMaxNewWordsPerDay(settings);
+}
+
+export function canLearnNewWordToday(
+  settings: AppSettings = readAppSettings(),
+): boolean {
+  return !isDailyNewWordQuotaReached(settings);
 }
 
 export function incrementTodayWordsLearned(): number {

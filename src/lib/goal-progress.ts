@@ -17,7 +17,7 @@ export type GoalProgress = {
 export function getGoalTarget(settings: AppSettings = readAppSettings()): number {
   switch (settings.goalType) {
     case "new_words":
-      return settings.goalTargetCount;
+      return Math.floor(settings.dailyGoalMinutes / 2);
     case "reviews":
       return settings.goalTargetCount;
     case "minutes":

@@ -41,9 +41,12 @@ import { unlockSpeechFromUserGesture } from "@/lib/speak-word";
 import { getGoalProgressSnapshot, subscribeGoalProgress } from "@/lib/goal-progress";
 import { getCurrentStreak, subscribeStreak, syncStreak } from "@/lib/streak";
 import {
+  canLearnNewWordToday,
+  getMaxNewWordsPerDay,
   getTodayWordsLearned,
   incrementTodayWordsLearned,
 } from "@/lib/daily-goal";
+import { readAppSettings } from "@/lib/app-settings";
 import {
   countLearningWords,
   countMasteredWords,
@@ -512,6 +515,19 @@ export default function DiscoverPage() {
   function updateStatus(status: "mastered" | "new") {
     if (!currentItem) return;
 
+    if (status === "new" && !canLearnNewWordToday()) {
+      const max = getMaxNewWordsPerDay();
+      const minutes = readAppSettings().dailyGoalMinutes;
+      setError(
+        t("journey.dailyQuotaReached", {
+          count: getTodayWordsLearned(),
+          max,
+          minutes,
+        }),
+      );
+      return;
+    }
+
     unlockSpeechFromUserGesture();
 
     const word = currentItem.word.trim().toLowerCase();
@@ -602,6 +618,10 @@ export default function DiscoverPage() {
     })();
   }
 
+  const dailyNewWordMax = getMaxNewWordsPerDay();
+  const dailyQuotaReached = todayLearned >= dailyNewWordMax;
+  const dailyGoalMinutes = readAppSettings().dailyGoalMinutes;
+
   if (!inSession) {
     return (
       <div className="app-screen app-screen--home app-screen--home-minimal">
@@ -679,6 +699,16 @@ export default function DiscoverPage() {
           </p>
         )}
 
+        {!error && dailyQuotaReached && (
+          <p className="shrink-0 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+            {t("journey.dailyQuotaReached", {
+              count: todayLearned,
+              max: dailyNewWordMax,
+              minutes: dailyGoalMinutes,
+            })}
+          </p>
+        )}
+
         {loadingList ? (
           <div className="journey-main journey-main--center">
             <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary-100 border-t-primary" />
@@ -714,7 +744,8 @@ export default function DiscoverPage() {
               <button
                 type="button"
                 onClick={() => updateStatus("new")}
-                className="btn-pill-primary w-full"
+                disabled={dailyQuotaReached}
+                className="btn-pill-primary w-full disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {t("journey.learnThis")}
               </button>

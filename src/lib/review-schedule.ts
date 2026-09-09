@@ -7,13 +7,10 @@ import {
 } from "@/lib/review-session-storage";
 import type { LearningStatus } from "@/types/database";
 
-/** Spaced-repetition ladder — denser early steps so words get more reviews before long gaps. */
-export const REVIEW_INTERVALS = [1, 2, 3, 5, 7, 10, 14, 21, 30] as const;
+/** Standard SRS dropdown milestones (days). */
+export const REVIEW_INTERVALS = [1, 3, 7, 14, 30] as const;
 
 export type ReviewIntervalDays = (typeof REVIEW_INTERVALS)[number];
-
-/** Keep default "review tomorrow" until this many successful recalls. */
-export const REVIEW_EARLY_DAILY_CAP = 5;
 
 /** Mark word as fully known — no further scheduled reviews. */
 export const REVIEW_MASTERED_LABEL = "Already know";
@@ -32,6 +29,15 @@ function isInterval(value: number): value is ReviewIntervalDays {
   return (REVIEW_INTERVALS as readonly number[]).includes(value);
 }
 
+function normalizeIntervalDays(days: number): ReviewIntervalDays {
+  if (isInterval(days)) return days;
+  if (days <= 1) return 1;
+  if (days <= 3) return 3;
+  if (days <= 7) return 7;
+  if (days <= 14) return 14;
+  return 30;
+}
+
 export function formatReviewInLabel(days: number): string {
   return days === 1 ? "Review in 1 day" : `Review in ${days} days`;
 }
@@ -43,20 +49,15 @@ export function formatReviewConfirmLabel(
   return markMastered ? REVIEW_MASTERED_LABEL : formatReviewInLabel(days);
 }
 
-export function advanceReviewInterval(current: ReviewIntervalDays): ReviewIntervalDays {
-  const index = REVIEW_INTERVALS.indexOf(current);
-  if (index < 0) return REVIEW_INTERVALS[0];
-  return REVIEW_INTERVALS[Math.min(index + 1, REVIEW_INTERVALS.length - 1)];
-}
-
-/** Suggested next interval after a correct answer — stay on 1 day for early reviews. */
-export function suggestedReviewIntervalAfterCorrect(
-  schedule: ReviewScheduleEntry,
+/** Smart default interval from successful review count ("X times so far"). */
+export function suggestedReviewIntervalForTimes(
+  timesReviewed: number,
 ): ReviewIntervalDays {
-  if (schedule.timesReviewed < REVIEW_EARLY_DAILY_CAP) {
-    return REVIEW_INTERVALS[0];
-  }
-  return advanceReviewInterval(schedule.intervalDays);
+  if (timesReviewed <= 1) return 1;
+  if (timesReviewed === 2) return 3;
+  if (timesReviewed === 3) return 7;
+  if (timesReviewed === 4) return 14;
+  return 30;
 }
 
 export function intervalLevelIndex(days: ReviewIntervalDays): number {
@@ -98,22 +99,28 @@ export function readReviewSchedule(): ScheduleMap {
   }
 }
 
-export function getReviewSchedule(word: string): ReviewScheduleEntry {
-  const key = resolveLearnableWordKey(word) ?? word.trim().toLowerCase();
-  const stored = readReviewSchedule()[key];
+function parseScheduleEntry(stored: ReviewScheduleEntry | undefined): ReviewScheduleEntry {
   if (
     stored &&
-    isInterval(stored.intervalDays) &&
+    typeof stored.intervalDays === "number" &&
     typeof stored.nextReviewAt === "string" &&
     typeof stored.timesReviewed === "number"
   ) {
-    return stored;
+    return {
+      ...stored,
+      intervalDays: normalizeIntervalDays(stored.intervalDays),
+    };
   }
   return {
     intervalDays: 1,
     nextReviewAt: new Date(0).toISOString(),
     timesReviewed: 0,
   };
+}
+
+export function getReviewSchedule(word: string): ReviewScheduleEntry {
+  const key = resolveLearnableWordKey(word) ?? word.trim().toLowerCase();
+  return parseScheduleEntry(readReviewSchedule()[key]);
 }
 
 function endOfLocalDay(now = Date.now()): number {
@@ -143,20 +150,7 @@ function scheduleEntryForWord(
   schedule: ScheduleMap,
 ): ReviewScheduleEntry {
   const key = word.trim().toLowerCase();
-  const stored = schedule[key];
-  if (
-    stored &&
-    isInterval(stored.intervalDays) &&
-    typeof stored.nextReviewAt === "string" &&
-    typeof stored.timesReviewed === "number"
-  ) {
-    return stored;
-  }
-  return {
-    intervalDays: 1,
-    nextReviewAt: new Date(0).toISOString(),
-    timesReviewed: 0,
-  };
+  return parseScheduleEntry(schedule[key]);
 }
 
 function isReviewDueWithContext(word: string, ctx: DueReviewContext): boolean {

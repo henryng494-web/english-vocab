@@ -165,6 +165,8 @@ export const messages: Record<AppLocale, MessageTree> = {
       "Bạn đã hoàn thành mọi cấp từ. Từ đã học hoặc đánh dấu đã biết sẽ không hiện lại ở đây.",
     "journey.rangeFinished": "Bạn đã xong cấp này. Đang chuyển sang cấp gần nhất còn từ mới…",
     "journey.backHomeBtn": "Về trang chủ",
+    "journey.dailyQuotaReached":
+      "Bạn đã học {count}/{max} từ mới hôm nay (mục tiêu {minutes} phút). Hãy ôn lại các từ cũ trước nhé!",
 
     "review.title": "Ôn tập",
     "review.sessionTitle": "Ôn tập {current}/{total}",
@@ -428,6 +430,8 @@ export const messages: Record<AppLocale, MessageTree> = {
     "journey.rangeFinished":
       "You've finished this range. Jumping to the nearest rank with new words…",
     "journey.backHomeBtn": "Back to home",
+    "journey.dailyQuotaReached":
+      "You've learned {count}/{max} new words today ({minutes}-minute goal). Review existing words first!",
 
     "review.title": "Review",
     "review.sessionTitle": "Review {current}/{total}",

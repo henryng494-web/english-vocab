@@ -36,7 +36,7 @@ import { parseExamples } from "@/lib/parse-examples";
 import {
   getReviewSchedule,
   REVIEW_INTERVALS,
-  suggestedReviewIntervalAfterCorrect,
+  suggestedReviewIntervalForTimes,
   writeReviewSchedule,
   type ReviewIntervalDays,
 } from "@/lib/review-schedule";
@@ -853,10 +853,7 @@ export function ReviewScreen() {
       ? schedule.timesReviewed + 1
       : schedule.timesReviewed;
     const nextInterval = isCorrect
-      ? suggestedReviewIntervalAfterCorrect({
-          ...schedule,
-          timesReviewed: nextTimes,
-        })
+      ? suggestedReviewIntervalForTimes(nextTimes)
       : REVIEW_INTERVALS[0];
     setLocked(true);
     setCorrect(isCorrect);
