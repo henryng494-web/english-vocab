@@ -11,6 +11,7 @@ import {
   type WeekDayStatus,
 } from "@/lib/weekly-streak";
 import { useI18n } from "@/hooks/use-i18n";
+import { getDailyReviewPlan } from "@/lib/daily-goal";
 import {
   getTodayReviewsCompletedSnapshot,
   subscribeTodayReviewsCompleted,
@@ -188,7 +189,7 @@ export function HomeGalaxyScreen(props: HomeGalaxyScreenProps) {
     sun: t("home.weekSun"),
   };
 
-  const reviewPlan = Math.max(1, props.goalTarget);
+  const reviewPlan = getDailyReviewPlan();
   const reviewedCount = todayReviewsCompleted;
   const reviewsComplete = reviewedCount >= reviewPlan;
   const reviewDisplay = `${Math.min(reviewedCount, reviewPlan)}/${reviewPlan}`;

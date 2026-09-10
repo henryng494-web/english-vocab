@@ -41,13 +41,13 @@ export function getMaxNewWordsPerDay(
 }
 
 /**
- * Daily review rep target — one rep ≈ one minute in the study-minute goal.
+ * Daily review rep target — 2 reps per study-minute goal (≈30s each).
  * Drives home ring denominator and review tab badge (remaining reps).
  */
 export function getDailyReviewPlan(
   settings: AppSettings = readAppSettings(),
 ): number {
-  return Math.max(1, settings.dailyGoalMinutes);
+  return Math.max(1, settings.dailyGoalMinutes * 2);
 }
 
 export function getDailyReviewPlanRemaining(
