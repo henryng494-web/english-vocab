@@ -522,12 +522,37 @@ body {
 }
 
 .discover-card__body--compact {
-  flex: 1 1 auto;
+  flex: 1 1 0;
   min-height: 0;
+  overflow: hidden;
+}
+
+.journey-card-slot .word-card-header {
+  flex-shrink: 0;
+}
+
+.card-details--compact {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.card-details--compact .card-details__scene {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.card-details--compact .card-details__flip {
+  flex: 1 1 0;
+  min-height: 0;
+  height: auto;
 }
 
 .card-details--compact .card-details__face--meaning {
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .card-details--compact .card-details__face--family {
@@ -544,7 +569,7 @@ body {
 .discover-card__examples {
   display: flex;
   min-height: 0;
-  flex: 1 1 auto;
+  flex: 1 1 0;
   flex-direction: column;
   gap: 0.35rem;
   align-items: stretch;
@@ -552,11 +577,15 @@ body {
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
+  touch-action: pan-y;
   padding-bottom: 0.2rem;
 }
 
 .discover-card__examples--chunks-only {
   justify-content: flex-start;
+  margin-top: 0.45rem;
+  padding-top: 0.4rem;
+  border-top: 1px solid color-mix(in srgb, var(--card-border) 75%, transparent);
 }
 
 .word-learning-chunks {
@@ -573,9 +602,8 @@ body {
 }
 
 .word-learning-chunks--solo {
-  flex: 0 1 auto;
+  flex: 0 0 auto;
   width: 100%;
-  max-height: 100%;
 }
 
 .word-learning-chunks__section--collocations {
@@ -3324,6 +3352,13 @@ body {
   flex: 1 1 0;
   height: 100%;
   min-height: 0;
+  overflow: hidden;
+}
+
+.review-reveal__panel .discover-card--compact {
+  height: 100%;
+  min-height: 0;
+  max-height: 100%;
 }
 
 .review-schedule {
