@@ -1,4 +1,5 @@
 import { getDailyGoalTarget } from "@/lib/daily-goal";
+import { localDateKey } from "@/lib/local-date";
 
 const STORAGE_KEY = "english-vocab-daily-session-v1";
 
@@ -14,14 +15,10 @@ export type DailySession = {
   newWordsTarget: number;
 };
 
-function todayKey(): string {
-  return new Date().toISOString().slice(0, 10);
-}
-
 function defaultSession(reviewsDue: number): DailySession {
   const hasReview = reviewsDue > 0;
   return {
-    date: todayKey(),
+    date: localDateKey(),
     active: true,
     phase: hasReview ? "review" : "journey",
     reviewsCompleted: 0,
@@ -37,7 +34,7 @@ function readRaw(): DailySession | null {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as DailySession;
-    if (parsed.date !== todayKey() || parsed.active !== true) return null;
+    if (parsed.date !== localDateKey() || parsed.active !== true) return null;
     if (
       parsed.phase !== "review" &&
       parsed.phase !== "journey" &&

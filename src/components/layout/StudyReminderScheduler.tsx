@@ -1,6 +1,7 @@
 "use client";
 
 import { useAppSettings } from "@/context/AppSettingsContext";
+import { localDateKey } from "@/lib/local-date";
 import { useEffect, useRef } from "react";
 
 const REMINDER_TITLE = "Time to practice English!";
@@ -37,7 +38,7 @@ export function StudyReminderScheduler() {
 
     const check = () => {
       const now = new Date();
-      const dayKey = now.toISOString().slice(0, 10);
+      const dayKey = localDateKey(now);
       if (lastFiredRef.current === dayKey) return;
       if (!sameMinute(now, parsed)) return;
       if (typeof Notification === "undefined") return;

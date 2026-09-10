@@ -1,3 +1,5 @@
+import { localDateKey } from "@/lib/local-date";
+
 const STORAGE_KEY = "vocab-study-time-v1";
 
 type StudyTimeState = {
@@ -5,25 +7,21 @@ type StudyTimeState = {
   seconds: number;
 };
 
-function todayKey(): string {
-  return new Date().toISOString().slice(0, 10);
-}
-
 function readState(): StudyTimeState {
   if (typeof window === "undefined") {
-    return { date: todayKey(), seconds: 0 };
+    return { date: localDateKey(), seconds: 0 };
   }
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return { date: todayKey(), seconds: 0 };
+    if (!raw) return { date: localDateKey(), seconds: 0 };
     const parsed = JSON.parse(raw) as StudyTimeState;
-    if (parsed.date !== todayKey()) return { date: todayKey(), seconds: 0 };
+    if (parsed.date !== localDateKey()) return { date: localDateKey(), seconds: 0 };
     return {
-      date: todayKey(),
+      date: localDateKey(),
       seconds: Number.isFinite(parsed.seconds) ? Math.max(0, parsed.seconds) : 0,
     };
   } catch {
-    return { date: todayKey(), seconds: 0 };
+    return { date: localDateKey(), seconds: 0 };
   }
 }
 
@@ -47,7 +45,7 @@ export function getTodayStudyMinutes(): number {
 export function addStudySeconds(seconds: number): number {
   if (typeof window === "undefined" || seconds <= 0) return getTodayStudySeconds();
   const state = readState();
-  const next = { date: todayKey(), seconds: state.seconds + seconds };
+  const next = { date: localDateKey(), seconds: state.seconds + seconds };
   writeState(next);
   return next.seconds;
 }

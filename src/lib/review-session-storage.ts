@@ -1,4 +1,8 @@
+import { localDateKey } from "@/lib/local-date";
 import type { ReviewIntervalDays } from "@/lib/review-schedule";
+
+/** @deprecated Use `localDateKey` from `@/lib/local-date`. */
+export { localDateKey as localReviewDateKey };
 
 const STORAGE_KEY = "english-vocab-review-session-v1";
 
@@ -23,20 +27,13 @@ export type ReviewSessionSnapshot = {
   inProgress: ReviewSessionInProgress | null;
 };
 
-export function localReviewDateKey(now = new Date()): string {
-  const y = now.getFullYear();
-  const m = String(now.getMonth() + 1).padStart(2, "0");
-  const d = String(now.getDate()).padStart(2, "0");
-  return `${y}-${m}-${d}`;
-}
-
 export function readReviewSessionSnapshot(): ReviewSessionSnapshot | null {
   if (typeof window === "undefined") return null;
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as ReviewSessionSnapshot;
-    if (!parsed || parsed.date !== localReviewDateKey()) return null;
+    if (!parsed || parsed.date !== localDateKey()) return null;
     if (!Array.isArray(parsed.completedWords) || !Array.isArray(parsed.queueWords)) {
       return null;
     }
@@ -80,7 +77,7 @@ export function applyReviewSessionSnapshot<T extends { word: string }>(
   dueQueue: T[],
   snapshot: ReviewSessionSnapshot | null,
 ): T[] {
-  if (!snapshot || snapshot.date !== localReviewDateKey()) {
+  if (!snapshot || snapshot.date !== localDateKey()) {
     return dueQueue;
   }
 
@@ -113,7 +110,7 @@ export function applyReviewSessionSnapshot<T extends { word: string }>(
 
 /** Persist today's session queue for badge + resume (once per day until cleared). */
 export function seedReviewSessionQueue(words: { word: string }[]): void {
-  const today = localReviewDateKey();
+  const today = localDateKey();
   const prev = readReviewSessionSnapshot();
   if (prev?.date === today && prev.queueWords.length > 0) {
     return;
@@ -133,7 +130,7 @@ export function markReviewSessionCompleted(
   word: string,
   remainingQueue: { word: string }[],
 ): void {
-  const today = localReviewDateKey();
+  const today = localDateKey();
   const key = word.trim().toLowerCase();
   const prev = readReviewSessionSnapshot();
   const completed = new Set(
@@ -153,7 +150,7 @@ export function saveReviewSessionInProgress(
   inProgress: ReviewSessionInProgress,
   queue: { word: string }[],
 ): void {
-  const today = localReviewDateKey();
+  const today = localDateKey();
   const prev = readReviewSessionSnapshot();
   const completed = prev?.date === today ? prev.completedWords : [];
 
