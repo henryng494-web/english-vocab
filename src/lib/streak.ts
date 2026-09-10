@@ -1,4 +1,5 @@
 import { isDailyGoalMet } from "@/lib/goal-progress";
+import { localDateKey } from "@/lib/local-date";
 import { markWeeklyGoalMetToday } from "@/lib/weekly-streak";
 
 const STORAGE_KEY = "vocab-streak-v1";
@@ -10,14 +11,10 @@ export type StreakState = {
   longestStreak: number;
 };
 
-function todayKey(): string {
-  return new Date().toISOString().slice(0, 10);
-}
-
 function yesterdayKey(): string {
   const date = new Date();
   date.setDate(date.getDate() - 1);
-  return date.toISOString().slice(0, 10);
+  return localDateKey(date);
 }
 
 function readState(): StreakState {
@@ -56,7 +53,7 @@ function writeState(state: StreakState): void {
 /** Read-only streak for React snapshots — never writes during render. */
 export function getCurrentStreak(): number {
   const state = readState();
-  const today = todayKey();
+  const today = localDateKey();
   const yesterday = yesterdayKey();
 
   if (state.lastGoalMetDate === today) {
@@ -71,7 +68,7 @@ export function getCurrentStreak(): number {
 /** Persist streak when daily goal progress changes (call from write paths only). */
 export function syncStreak(): number {
   const state = readState();
-  const today = todayKey();
+  const today = localDateKey();
   const yesterday = yesterdayKey();
   const goalMet = isDailyGoalMet();
 

@@ -1,4 +1,5 @@
 import { isDailyGoalMet } from "@/lib/goal-progress";
+import { localDateKey } from "@/lib/local-date";
 
 const WEEKLY_KEY = "vocab-weekly-goal-days-v1";
 
@@ -12,7 +13,7 @@ export type WeekDayStatus = {
 };
 
 function todayKey(): string {
-  return new Date().toISOString().slice(0, 10);
+  return localDateKey();
 }
 
 function readWeeklyMet(): Record<string, boolean> {
@@ -105,7 +106,7 @@ export function getWeeklyStreakDays(): WeekDayStatus[] {
 
   return WEEKDAY_KEYS.map((weekdayKey, index) => {
     const date = addDays(monday, index);
-    const dateKey = date.toISOString().slice(0, 10);
+    const dateKey = localDateKey(date);
     const isToday = dateKey === todayStr;
     const isFuture = dateKey > todayStr;
     return {

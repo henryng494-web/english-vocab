@@ -1,3 +1,5 @@
+import { localDateKey } from "@/lib/local-date";
+
 const STORAGE_KEY = "vocab-daily-reviews-v1";
 
 type DailyReviewsState = {
@@ -5,22 +7,18 @@ type DailyReviewsState = {
   count: number;
 };
 
-function todayKey(): string {
-  return new Date().toISOString().slice(0, 10);
-}
-
 function readState(): DailyReviewsState {
   if (typeof window === "undefined") {
-    return { date: todayKey(), count: 0 };
+    return { date: localDateKey(), count: 0 };
   }
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return { date: todayKey(), count: 0 };
+    if (!raw) return { date: localDateKey(), count: 0 };
     const parsed = JSON.parse(raw) as DailyReviewsState;
-    if (parsed.date !== todayKey()) return { date: todayKey(), count: 0 };
+    if (parsed.date !== localDateKey()) return { date: localDateKey(), count: 0 };
     return parsed;
   } catch {
-    return { date: todayKey(), count: 0 };
+    return { date: localDateKey(), count: 0 };
   }
 }
 
@@ -64,7 +62,7 @@ export function getTodayReviewsCompletedSnapshot(): number {
 
 export function incrementTodayReviewsCompleted(): number {
   if (typeof window === "undefined") return 0;
-  const next = { date: todayKey(), count: readState().count + 1 };
+  const next = { date: localDateKey(), count: readState().count + 1 };
   writeState(next);
   return next.count;
 }
