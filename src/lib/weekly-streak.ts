@@ -155,6 +155,7 @@ export function subscribeWeeklyStreak(onStoreChange: () => void): () => void {
   window.addEventListener("study-time-changed", handler);
   window.addEventListener("daily-words-changed", handler);
   window.addEventListener("daily-reviews-changed", handler);
+  window.addEventListener("focus", handler);
   return () => {
     window.removeEventListener("weekly-streak-changed", handler);
     window.removeEventListener("streak-changed", handler);
@@ -162,5 +163,6 @@ export function subscribeWeeklyStreak(onStoreChange: () => void): () => void {
     window.removeEventListener("study-time-changed", handler);
     window.removeEventListener("daily-words-changed", handler);
     window.removeEventListener("daily-reviews-changed", handler);
+    window.removeEventListener("focus", handler);
   };
 }
