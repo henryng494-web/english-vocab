@@ -5,7 +5,10 @@ import {
   PRONOUNCE_SPEED_OPTIONS,
   type DailyGoalMinutes,
 } from "@/lib/app-settings";
-import { recommendedNewWordsForMinutes } from "@/lib/daily-goal";
+import {
+  recommendedNewWordsForMinutes,
+  recommendedReviewsForMinutes,
+} from "@/lib/daily-goal";
 import { APP_LOCALES } from "@/lib/i18n/messages";
 import { useAppSettings } from "@/context/AppSettingsContext";
 import { useI18n } from "@/hooks/use-i18n";
@@ -69,6 +72,10 @@ export function AppMenuDrawer({ open, onClose }: AppMenuDrawerProps) {
 
   const recommendedWords = useMemo(
     () => recommendedNewWordsForMinutes(dailyGoalMinutes),
+    [dailyGoalMinutes],
+  );
+  const recommendedReviews = useMemo(
+    () => recommendedReviewsForMinutes(dailyGoalMinutes),
     [dailyGoalMinutes],
   );
 
@@ -185,7 +192,10 @@ export function AppMenuDrawer({ open, onClose }: AppMenuDrawerProps) {
               ))}
             </div>
             <p className="app-menu__hint app-menu__hint--sync">
-              {t("menu.dailyGoalWordsSync", { count: recommendedWords })}
+              {t("menu.dailyGoalWordsSync", {
+                count: recommendedWords,
+                reviews: recommendedReviews,
+              })}
             </p>
           </section>
 

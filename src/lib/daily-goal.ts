@@ -26,8 +26,13 @@ function readState(): DailyGoalState {
 }
 
 /** ~2 study minutes per new word — drives daily word quota. */
+export const NEW_WORD_MINUTES_EACH = 2;
+
+/** Quiz review reps per study-minute goal (~10s/rep at normal pace). */
+export const REVIEW_REPS_PER_STUDY_MINUTE = 6;
+
 export function recommendedNewWordsForMinutes(minutes: number): number {
-  return Math.max(0, Math.floor(minutes / 2));
+  return Math.max(0, Math.floor(minutes / NEW_WORD_MINUTES_EACH));
 }
 
 /** Max new words per day — synced with study-minutes target (2 min per word). */
@@ -38,13 +43,17 @@ export function getMaxNewWordsPerDay(
 }
 
 /**
- * Daily review rep target — 2 reps per study-minute goal (≈30s each).
+ * Daily review rep target — scales with study-minute goal (~10s/rep).
  * Drives home ring denominator and review tab badge (remaining reps).
  */
+export function recommendedReviewsForMinutes(minutes: number): number {
+  return Math.max(1, minutes * REVIEW_REPS_PER_STUDY_MINUTE);
+}
+
 export function getDailyReviewPlan(
   settings: AppSettings = readAppSettings(),
 ): number {
-  return Math.max(1, settings.dailyGoalMinutes * 2);
+  return recommendedReviewsForMinutes(settings.dailyGoalMinutes);
 }
 
 export function getDailyReviewPlanRemaining(
