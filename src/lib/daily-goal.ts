@@ -1,3 +1,4 @@
+import { getTodayReviewsCompleted } from "@/lib/daily-reviews";
 import { countLearningWords } from "@/lib/learning-storage";
 import { readAppSettings, type AppSettings } from "@/lib/app-settings";
 
@@ -37,6 +38,22 @@ export function getMaxNewWordsPerDay(
   settings: AppSettings = readAppSettings(),
 ): number {
   return recommendedNewWordsForMinutes(settings.dailyGoalMinutes);
+}
+
+/**
+ * Daily review rep target — one rep ≈ one minute in the study-minute goal.
+ * Drives home ring denominator and review tab badge (remaining reps).
+ */
+export function getDailyReviewPlan(
+  settings: AppSettings = readAppSettings(),
+): number {
+  return Math.max(1, settings.dailyGoalMinutes);
+}
+
+export function getDailyReviewPlanRemaining(
+  settings: AppSettings = readAppSettings(),
+): number {
+  return Math.max(0, getDailyReviewPlan(settings) - getTodayReviewsCompleted());
 }
 
 export function getDailyGoalTarget(): number {

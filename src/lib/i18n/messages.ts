@@ -88,6 +88,7 @@ export const messages: Record<AppLocale, MessageTree> = {
     "home.coinBadge": "1 đồng = 1 từ đã thuộc",
     "home.masteredShort": "Đã thuộc",
     "home.dueReviewsShort": "Cần ôn",
+    "home.reviewPlanShort": "Lượt ôn",
     "home.dueReviewsRingLabel": "Từ",
     "home.statMinutesUnit": "phút",
     "home.statWordsUnit": "từ",
@@ -202,7 +203,7 @@ export const messages: Record<AppLocale, MessageTree> = {
     "review.leechHint": "Từ khó — sẽ được ưu tiên ôn lại",
     "review.masteredLocked": "Cần nhớ đúng 3 lần liên tiếp ở bài nhớ lại",
     "home.dailyHub":
-      "{newWords} từ mới · {minutes} phút · {actionable}/{totalDue} cần ôn",
+      "{newWords} từ mới · {minutes} phút · {learning} đang học",
 
     "library.knownTitle": "Thư viện · Đã biết",
     "library.reviewTitle": "Thư viện · Đang ôn",
@@ -361,6 +362,7 @@ export const messages: Record<AppLocale, MessageTree> = {
     "home.coinBadge": "1 coin = 1 word mastered",
     "home.masteredShort": "Mastered",
     "home.dueReviewsShort": "Due reviews",
+    "home.reviewPlanShort": "Reviews",
     "home.dueReviewsRingLabel": "Words",
     "home.statMinutesUnit": "min",
     "home.statWordsUnit": "words",
@@ -475,7 +477,7 @@ export const messages: Record<AppLocale, MessageTree> = {
     "review.leechHint": "Tough word — prioritized in your queue",
     "review.masteredLocked": "Need 3 correct recalls in a row first",
     "home.dailyHub":
-      "{newWords} new words · {minutes} min · {actionable}/{totalDue} due",
+      "{newWords} new words · {minutes} min · {learning} learning",
 
     "library.knownTitle": "Library · Known",
     "library.reviewTitle": "Library · In review",

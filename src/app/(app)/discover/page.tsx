@@ -58,6 +58,7 @@ import { prefetchCardContent } from "@/lib/card-content-prefetch";
 import { readOnboarding, shouldShowOnboarding } from "@/lib/onboarding";
 import { useSyncExternalStore } from "react";
 import {
+  getCachedLearningSummary,
   getReviewDueCount,
   getTotalDueReviewCount,
   subscribeReviewDueCount,
@@ -661,7 +662,6 @@ export default function DiscoverPage() {
             currentIndex={currentIndex}
             bandTotalWords={queue.length + stats.hidden}
             dueReviewCount={dueReviewCount}
-            totalDueReviewCount={totalDueReviewCount}
             todayStudyMinutes={todayStudyMinutes}
             wordsKnown={wordsKnown}
             wordsReviewing={wordsReviewing}

@@ -9,7 +9,6 @@ type DiscoverDashboardProps = {
   currentIndex: number;
   bandTotalWords: number;
   dueReviewCount: number;
-  totalDueReviewCount: number;
   todayStudyMinutes: number;
   wordsKnown: number;
   wordsReviewing: number;

@@ -1,9 +1,7 @@
 "use client";
 
-import {
-  countDueReviewWordKeys,
-  getReviewBadgeDueCount,
-} from "@/lib/review-schedule";
+import { getDailyReviewPlanRemaining } from "@/lib/daily-goal";
+import { countDueReviewWordKeys } from "@/lib/review-schedule";
 import {
   fetchLearningSummary,
   type LearningSummaryRow,
@@ -21,7 +19,7 @@ function emit() {
 
 export function getReviewDueCount(): number {
   if (typeof window === "undefined") return 0;
-  return getReviewBadgeDueCount(cachedSummary ?? []);
+  return getDailyReviewPlanRemaining();
 }
 
 export function getTotalDueReviewCount(): number {
@@ -51,6 +49,7 @@ export function subscribeReviewDueCount(listener: () => void): () => void {
   if (typeof window !== "undefined") {
     window.addEventListener("vocab-learning-changed", onChange);
     window.addEventListener("daily-reviews-changed", onChange);
+    window.addEventListener("app-settings-changed", onChange);
     void refreshReviewDueSummary();
   }
 
@@ -59,6 +58,7 @@ export function subscribeReviewDueCount(listener: () => void): () => void {
     if (typeof window !== "undefined") {
       window.removeEventListener("vocab-learning-changed", onChange);
       window.removeEventListener("daily-reviews-changed", onChange);
+      window.removeEventListener("app-settings-changed", onChange);
     }
   };
 }
@@ -73,7 +73,7 @@ export async function refreshReviewDueSummary(): Promise<number> {
   }
 
   cachedSummary = await summaryFetch;
-  const count = getReviewBadgeDueCount(cachedSummary);
+  const count = getDailyReviewPlanRemaining();
   emit();
   return count;
 }

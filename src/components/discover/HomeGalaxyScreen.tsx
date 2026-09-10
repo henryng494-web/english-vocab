@@ -25,8 +25,6 @@ export type HomeGalaxyScreenProps = {
   queueLength: number;
   rankProgress: number;
   bandTotalWords: number;
-  dueReviewCount: number;
-  totalDueReviewCount: number;
   todayStudyMinutes: number;
   wordsKnown: number;
   wordsReviewing: number;
@@ -190,15 +188,10 @@ export function HomeGalaxyScreen(props: HomeGalaxyScreenProps) {
     sun: t("home.weekSun"),
   };
 
-  const totalDueCount = props.dueReviewCount + todayReviewsCompleted;
+  const reviewPlan = Math.max(1, props.goalTarget);
   const reviewedCount = todayReviewsCompleted;
-  const reviewsComplete = totalDueCount > 0 && reviewedCount >= totalDueCount;
-  const reviewDisplay =
-    totalDueCount > 0
-      ? `${reviewedCount}/${totalDueCount}`
-      : reviewedCount > 0
-        ? `${reviewedCount}/${reviewedCount}`
-        : "0/0";
+  const reviewsComplete = reviewedCount >= reviewPlan;
+  const reviewDisplay = `${Math.min(reviewedCount, reviewPlan)}/${reviewPlan}`;
 
   const goalDisplay = `${props.goalCurrent}/${props.goalTarget}`;
 
@@ -238,8 +231,7 @@ export function HomeGalaxyScreen(props: HomeGalaxyScreenProps) {
             {t("home.dailyHub", {
               newWords: props.todayWordsLearned,
               minutes: props.todayStudyMinutes,
-              actionable: props.dueReviewCount,
-              totalDue: props.totalDueReviewCount,
+              learning: props.wordsReviewing.toLocaleString(),
             })}
           </p>
           <div className="home-galaxy__stats">
@@ -252,9 +244,9 @@ export function HomeGalaxyScreen(props: HomeGalaxyScreenProps) {
             />
             <StatRing
               value={reviewedCount}
-              max={totalDueCount}
+              max={reviewPlan}
               displayValue={reviewDisplay}
-              sublabel={t("home.dueReviewsShort")}
+              sublabel={t("home.reviewPlanShort")}
               variant="due"
               complete={reviewsComplete}
             />
