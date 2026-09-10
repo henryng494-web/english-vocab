@@ -85,26 +85,21 @@ function normalizeReminderTime(value: unknown): string {
   return match ? value.trim() : DEFAULT_SETTINGS.reminderTime;
 }
 
-export function readAppSettings(): AppSettings {
-  if (typeof window === "undefined") return DEFAULT_SETTINGS;
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return DEFAULT_SETTINGS;
-    const parsed = JSON.parse(raw) as Partial<AppSettings>;
-    return {
-      autoSpeakEnabled:
-        typeof parsed.autoSpeakEnabled === "boolean"
-          ? parsed.autoSpeakEnabled
-          : DEFAULT_SETTINGS.autoSpeakEnabled,
-      dailyGoalMinutes: isDailyGoalMinutes(parsed.dailyGoalMinutes ?? NaN)
-        ? (parsed.dailyGoalMinutes as DailyGoalMinutes)
-        : DEFAULT_SETTINGS.dailyGoalMinutes,
-      goalType: isGoalType(parsed.goalType)
-        ? parsed.goalType
-        : DEFAULT_SETTINGS.goalType,
-      goalTargetCount: isCountGoalTarget(parsed.goalTargetCount ?? NaN)
-        ? (parsed.goalTargetCount as CountGoalTarget)
-        : DEFAULT_SETTINGS.goalTargetCount,
+function normalizeAppSettings(parsed: Partial<AppSettings>): AppSettings {
+  const dailyGoalMinutes = isDailyGoalMinutes(parsed.dailyGoalMinutes ?? NaN)
+    ? (parsed.dailyGoalMinutes as DailyGoalMinutes)
+    : DEFAULT_SETTINGS.dailyGoalMinutes;
+
+  return {
+    autoSpeakEnabled:
+      typeof parsed.autoSpeakEnabled === "boolean"
+        ? parsed.autoSpeakEnabled
+        : DEFAULT_SETTINGS.autoSpeakEnabled,
+    dailyGoalMinutes,
+    goalType: "minutes",
+    goalTargetCount: isCountGoalTarget(parsed.goalTargetCount ?? NaN)
+      ? (parsed.goalTargetCount as CountGoalTarget)
+      : DEFAULT_SETTINGS.goalTargetCount,
       reminderEnabled:
         typeof parsed.reminderEnabled === "boolean"
           ? parsed.reminderEnabled
@@ -113,10 +108,23 @@ export function readAppSettings(): AppSettings {
       appLanguage: isAppLocale(parsed.appLanguage)
         ? parsed.appLanguage
         : DEFAULT_SETTINGS.appLanguage,
-      pronounceSpeed: isPronounceSpeed(parsed.pronounceSpeed)
-        ? parsed.pronounceSpeed
-        : DEFAULT_SETTINGS.pronounceSpeed,
-    };
+    pronounceSpeed: isPronounceSpeed(parsed.pronounceSpeed)
+      ? parsed.pronounceSpeed
+      : DEFAULT_SETTINGS.pronounceSpeed,
+  };
+}
+
+export function readAppSettings(): AppSettings {
+  if (typeof window === "undefined") return DEFAULT_SETTINGS;
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return DEFAULT_SETTINGS;
+    const parsed = JSON.parse(raw) as Partial<AppSettings>;
+    const normalized = normalizeAppSettings(parsed);
+    if (parsed.goalType && parsed.goalType !== "minutes") {
+      writeAppSettings(normalized);
+    }
+    return normalized;
   } catch {
     return DEFAULT_SETTINGS;
   }
@@ -129,7 +137,7 @@ export function writeAppSettings(next: AppSettings): void {
 }
 
 export function patchAppSettings(patch: Partial<AppSettings>): AppSettings {
-  const next = { ...readAppSettings(), ...patch };
+  const next = normalizeAppSettings({ ...readAppSettings(), ...patch, goalType: "minutes" });
   writeAppSettings(next);
   return next;
 }

@@ -27,11 +27,16 @@ function readState(): DailyGoalState {
   }
 }
 
+/** ~2 study minutes per new word — drives daily word quota. */
+export function recommendedNewWordsForMinutes(minutes: number): number {
+  return Math.max(0, Math.floor(minutes / 2));
+}
+
 /** Max new words per day — synced with study-minutes target (2 min per word). */
 export function getMaxNewWordsPerDay(
   settings: AppSettings = readAppSettings(),
 ): number {
-  return Math.floor(settings.dailyGoalMinutes / 2);
+  return recommendedNewWordsForMinutes(settings.dailyGoalMinutes);
 }
 
 export function getDailyGoalTarget(): number {

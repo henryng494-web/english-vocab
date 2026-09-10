@@ -1,5 +1,3 @@
-import { getTodayReviewsCompleted } from "@/lib/daily-reviews";
-import { getTodayWordsLearned } from "@/lib/daily-goal";
 import {
   readAppSettings,
   type AppSettings,
@@ -15,38 +13,17 @@ export type GoalProgress = {
 };
 
 export function getGoalTarget(settings: AppSettings = readAppSettings()): number {
-  switch (settings.goalType) {
-    case "new_words":
-      return Math.floor(settings.dailyGoalMinutes / 2);
-    case "reviews":
-      return settings.goalTargetCount;
-    case "minutes":
-    default:
-      return settings.dailyGoalMinutes;
-  }
+  return settings.dailyGoalMinutes;
 }
 
 export function getGoalProgress(
   settings: AppSettings = readAppSettings(),
 ): GoalProgress {
   const target = getGoalTarget(settings);
-  let current = 0;
-
-  switch (settings.goalType) {
-    case "new_words":
-      current = getTodayWordsLearned();
-      break;
-    case "reviews":
-      current = getTodayReviewsCompleted();
-      break;
-    case "minutes":
-    default:
-      current = Math.floor(getTodayStudySeconds() / 60);
-      break;
-  }
+  const current = Math.floor(getTodayStudySeconds() / 60);
 
   return {
-    goalType: settings.goalType,
+    goalType: "minutes",
     current,
     target,
     met: target > 0 && current >= target,

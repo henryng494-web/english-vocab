@@ -31,7 +31,9 @@ export const messages: Record<AppLocale, MessageTree> = {
     "menu.pronounceMedium": "Vừa",
     "menu.pronounceFast": "Nhanh",
     "menu.dailyGoal": "Mục tiêu học mỗi ngày",
-    "menu.dailyGoalHint": "Chọn loại mục tiêu và mức đạt được mỗi ngày (ảnh hưởng streak).",
+    "menu.dailyGoalHint":
+      "Chọn số phút học mỗi ngày (ảnh hưởng streak). App khuyên ~2 phút/từ mới.",
+    "menu.dailyGoalWordsSync": "Khuyên học khoảng {count} từ mới/ngày",
     "menu.goalType": "Loại mục tiêu",
     "menu.goalMinutes": "Phút học",
     "menu.goalNewWords": "Từ mới",
@@ -302,7 +304,9 @@ export const messages: Record<AppLocale, MessageTree> = {
     "menu.pronounceMedium": "Medium",
     "menu.pronounceFast": "Fast",
     "menu.dailyGoal": "Daily study goal",
-    "menu.dailyGoalHint": "Choose goal type and daily target (drives your streak).",
+    "menu.dailyGoalHint":
+      "Choose study minutes per day (drives your streak). We suggest ~2 min per new word.",
+    "menu.dailyGoalWordsSync": "Recommended ~{count} new words/day",
     "menu.goalType": "Goal type",
     "menu.goalMinutes": "Study minutes",
     "menu.goalNewWords": "New words",
