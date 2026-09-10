@@ -94,6 +94,50 @@ function StatRing({
   );
 }
 
+function MiniProgressRing({
+  value,
+  max,
+  center,
+  className = "",
+  ariaLabel,
+}: {
+  value: number;
+  max: number;
+  center: string;
+  className?: string;
+  ariaLabel: string;
+}) {
+  const pctRaw = max > 0 ? Math.min(100, (value / max) * 100) : 0;
+  const pctRounded = Math.round(pctRaw);
+  const dashPct =
+    pctRounded === 0 && max > 0 ? 1.5 : pctRounded >= 100 ? 100 : pctRounded;
+  const dash = `${dashPct} 100`;
+
+  return (
+    <div
+      className={`home-galaxy-mini-ring ${className}`.trim()}
+      role="progressbar"
+      aria-valuenow={pctRounded}
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-label={ariaLabel}
+    >
+      <svg viewBox="0 0 36 36" aria-hidden>
+        <path
+          className="home-galaxy-mini-ring__track"
+          d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+        />
+        <path
+          className="home-galaxy-mini-ring__fill"
+          strokeDasharray={dash}
+          d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+        />
+      </svg>
+      <span className="home-galaxy-mini-ring__center">{center}</span>
+    </div>
+  );
+}
+
 function WeekDayCell({
   day,
   weekdayLabel,
@@ -199,10 +243,8 @@ export function HomeGalaxyScreen(props: HomeGalaxyScreenProps) {
   const bandTotal = Math.max(props.bandTotalWords, props.queueLength, 1);
   const wordsLearnedInBand = Math.max(0, bandTotal - props.queueLength);
 
-  const weekTitle =
-    weeklyMet > 0
-      ? t("home.galaxyWeekTitle", { count: weeklyMet })
-      : t("home.galaxyWeekTitleEmpty");
+  const weekTitle = t("home.galaxyWeekTitle", { count: weeklyMet });
+  const goalComplete = props.goalTarget > 0 && props.goalCurrent >= props.goalTarget;
 
   return (
     <div className="home-galaxy">
@@ -255,7 +297,16 @@ export function HomeGalaxyScreen(props: HomeGalaxyScreenProps) {
         </section>
 
         <section className="home-galaxy__week home-galaxy-card">
-          <p className="home-galaxy__week-title">{weekTitle}</p>
+          <div className="home-galaxy__week-head">
+            <p className="home-galaxy__week-title">{weekTitle}</p>
+            <MiniProgressRing
+              value={props.goalCurrent}
+              max={props.goalTarget}
+              center={`${Math.min(props.goalCurrent, props.goalTarget)}/${props.goalTarget}`}
+              className={goalComplete ? "is-complete" : ""}
+              ariaLabel={t("home.galaxyGoalMinutes")}
+            />
+          </div>
           <div className="home-galaxy__week-row">
             {weekDays.map((day) => (
               <WeekDayCell
