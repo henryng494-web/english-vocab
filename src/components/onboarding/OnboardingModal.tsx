@@ -3,7 +3,10 @@
 import { JungleMascot, JungleCastPill } from "@/components/mascot/JungleMascot";
 import { DEFAULT_BOOTSTRAP_RANGE } from "@/lib/app-bootstrap";
 import { DAILY_GOAL_OPTIONS, type DailyGoalMinutes } from "@/lib/app-settings";
-import { recommendedNewWordsForMinutes } from "@/lib/daily-goal";
+import {
+  recommendedNewWordsForMinutes,
+  recommendedReviewsForMinutes,
+} from "@/lib/daily-goal";
 import { useI18n } from "@/hooks/use-i18n";
 import { displayFontClass } from "@/lib/fonts";
 import { completeOnboarding } from "@/lib/onboarding";
@@ -86,6 +89,7 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
             <p className="onboarding__body onboarding__body--compact">
               {t("menu.dailyGoalWordsSync", {
                 count: recommendedNewWordsForMinutes(dailyGoalMinutes),
+                reviews: recommendedReviewsForMinutes(dailyGoalMinutes),
               })}
             </p>
             <div className="onboarding__nav">
