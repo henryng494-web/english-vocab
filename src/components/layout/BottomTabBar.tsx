@@ -7,6 +7,7 @@ import {
   getReviewDueCount,
   subscribeReviewDueCount,
 } from "@/lib/review-due-store";
+import { warmFirstReviewWordPronunciation } from "@/lib/pronunciation-preload";
 import { useI18n } from "@/hooks/use-i18n";
 
 type TabItem = {
@@ -164,6 +165,11 @@ export function BottomTabBar() {
             <Link
               key={tab.href}
               href={tab.href}
+              onPointerDown={
+                tab.href === "/learn"
+                  ? () => warmFirstReviewWordPronunciation()
+                  : undefined
+              }
               className={`tab-bar-link ${
                 active ? `tab-bar-link--active ${activeColorClass}` : "tab-bar-link--inactive"
               }`}

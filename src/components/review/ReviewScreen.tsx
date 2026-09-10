@@ -60,6 +60,11 @@ import {
 import { shouldRefreshImageUrl } from "@/lib/unsplash";
 import { refreshAllStaleWordImages } from "@/lib/refresh-stale-word-images";
 import { prefetchCardContent } from "@/lib/card-content-prefetch";
+import { preloadWordPronunciation } from "@/lib/speak-word";
+import {
+  preloadWordAudioElement,
+  warmWordAudioBytes,
+} from "@/lib/word-pronunciation-audio";
 import {
   ensureReviewWordClue,
   fetchReviewWordDetails,
@@ -481,6 +486,9 @@ export function ReviewScreen() {
       warmReviewImages(sessionQueue, pool);
 
       const first = sessionQueue[0]!;
+      const firstWord = first.word.trim();
+      preloadWordAudioElement(firstWord);
+      void warmWordAudioBytes(firstWord);
       const { targets } = collectReviewQuestionImageTargets(first, pool, 0);
       void prefetchReviewImages(targets).then((updates) => {
         if (Object.keys(updates).length === 0) return;
@@ -519,9 +527,12 @@ export function ReviewScreen() {
             inProgress.word.trim().toLowerCase(),
         );
         if (resumeIndex >= 0) {
-          const resumeWord = await ensureReviewWordClue(
-            sessionQueue[resumeIndex]!,
-          );
+          const resumeKey = inProgress.word.trim();
+          const [resumeWord] = await Promise.all([
+            ensureReviewWordClue(sessionQueue[resumeIndex]!),
+            warmWordAudioBytes(resumeKey),
+          ]);
+          preloadWordAudioElement(resumeKey);
           if (resumeWord !== sessionQueue[resumeIndex]) {
             patchWordFields((item) =>
               item.word === resumeWord.word ? resumeWord : item,
@@ -555,7 +566,11 @@ export function ReviewScreen() {
         }
       }
 
-      const firstReady = await ensureReviewWordClue(first);
+      const [firstReady] = await Promise.all([
+        ensureReviewWordClue(first),
+        warmWordAudioBytes(firstWord),
+      ]);
+      preloadWordAudioElement(firstReady.word.trim());
       if (firstReady !== first) {
         patchWordFields((item) =>
           item.word === firstReady.word ? firstReady : item,
@@ -616,6 +631,19 @@ export function ReviewScreen() {
     sessionStartedRef.current = true;
     void beginSession(queue, allWords.length > 0 ? allWords : queue);
   }, [loading, queue.length, beginSession, allWords.length]);
+
+  /** Warm first-word MP3 as soon as the queue exists (before session UI mounts). */
+  useEffect(() => {
+    const firstWord = queue[0]?.word?.trim();
+    if (!firstWord) return;
+    preloadWordPronunciation(firstWord);
+  }, [queue[0]?.word]);
+
+  /** During reveal transition, finish buffering pronunciation before the card speaks. */
+  useEffect(() => {
+    if (!locked || phase !== "question" || !currentWord) return;
+    preloadWordPronunciation(currentWord.word);
+  }, [locked, phase, currentWord?.word]);
 
   useEffect(() => {
     const wasEnriching = prevEnrichingRef.current;
