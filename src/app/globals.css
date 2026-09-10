@@ -2463,18 +2463,8 @@ body {
   padding: 0.875rem;
 }
 
-.home-galaxy__week-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.625rem;
-  margin-bottom: 0.625rem;
-}
-
 .home-galaxy__week-title {
-  margin: 0;
-  flex: 1 1 auto;
-  min-width: 0;
+  margin: 0 0 0.625rem;
   font-size: 0.8125rem;
   font-weight: 700;
   color: #334155;
@@ -2483,9 +2473,8 @@ body {
 
 .home-galaxy-mini-ring {
   position: relative;
-  flex: 0 0 auto;
-  width: 2.75rem;
-  height: 2.75rem;
+  width: 100%;
+  height: 100%;
 }
 
 .home-galaxy-mini-ring svg {
@@ -2525,15 +2514,20 @@ body {
   white-space: nowrap;
 }
 
-.home-galaxy-mini-ring--bubble {
-  width: 100%;
-  height: 100%;
+.home-galaxy-weekday__bubble--ring {
+  border: none;
+  background: transparent;
+  overflow: visible;
 }
 
 .home-galaxy-mini-ring--bubble .home-galaxy-mini-ring__center {
-  font-size: 0.625rem;
+  font-size: 0.5625rem;
   font-weight: 900;
   color: #6d28d9;
+}
+
+.home-galaxy-weekday.is-today .home-galaxy-mini-ring--bubble.is-complete .home-galaxy-mini-ring__fill {
+  stroke: #84cc16;
 }
 
 .home-galaxy__week-row {
