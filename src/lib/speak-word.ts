@@ -17,7 +17,7 @@ let speakRequestId = 0;
 const DEDUPE_MS = 1800;
 const SPEECH_UNLOCK_KEY = "ev-speech-unlocked";
 const AUTO_MP3_WAIT_MS = 1600;
-const AUTO_MP3_WAIT_BLOB_MS = 450;
+const AUTO_MP3_WAIT_BLOB_MS = 120;
 const AUTO_MP3_RETRY_MS = 2400;
 
 let speechUnlocked = false;
@@ -80,7 +80,9 @@ async function speakMp3Auto(
   const key = text.toLowerCase();
   stopWordAudio();
   preloadWordAudioElement(text, { force: true });
-  await warmWordAudioBytes(text);
+  if (!hasWordAudioBlob(text) && !isWordAudioElementReady(text)) {
+    await warmWordAudioBytes(text);
+  }
   if (!stillCurrentRequest(requestId, key)) return;
   preloadWordAudioElement(text, { force: true });
   if (isWordAudioPlaying(text)) return;

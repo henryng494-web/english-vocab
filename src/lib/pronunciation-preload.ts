@@ -1,3 +1,5 @@
+import { getCachedLearningSummary } from "@/lib/review-due-store";
+import { resolveReviewSession } from "@/lib/review-session";
 import {
   preloadWordAudioElement,
   warmWordAudioBytes,
@@ -23,6 +25,14 @@ export function preloadWordPronunciations(words: string[]): void {
     }
     warmWordAudioBytes(trimmed);
   }
+}
+
+/** Start warming the first due review word (call on Review tab tap). */
+export function warmFirstReviewWordPronunciation(): void {
+  if (typeof window === "undefined") return;
+  const first = resolveReviewSession(getCachedLearningSummary()).queue[0]?.word?.trim();
+  if (!first) return;
+  preloadWordPronunciations([first]);
 }
 
 /** Warm pronunciation bytes with limited concurrency (bootstrap). */

@@ -36,7 +36,10 @@ import {
   preloadWordImagesFromCache,
   type WordImagePrefetchTarget,
 } from "@/lib/image-preload";
-import { preloadWordPronunciations } from "@/lib/pronunciation-preload";
+import {
+  preloadWordPronunciations,
+  warmFirstReviewWordPronunciation,
+} from "@/lib/pronunciation-preload";
 import { unlockSpeechFromUserGesture } from "@/lib/speak-word";
 import { getGoalProgressSnapshot, subscribeGoalProgress } from "@/lib/goal-progress";
 import { getCurrentStreak, subscribeStreak, syncStreak } from "@/lib/streak";
@@ -671,7 +674,10 @@ export default function DiscoverPage() {
             goalTarget={goalProgress.target}
             todayWordsLearned={todayLearned}
             onStartJourney={() => router.push("/journey")}
-            onStartReview={() => router.push("/learn")}
+            onStartReview={() => {
+              warmFirstReviewWordPronunciation();
+              router.push("/learn");
+            }}
             onOpenLibrary={() => router.push("/words")}
           />
         )}
