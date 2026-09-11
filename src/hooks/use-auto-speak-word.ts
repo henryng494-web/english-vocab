@@ -2,6 +2,7 @@
 
 import {
   cancelSpeech,
+  ensureWordPronunciationReady,
   preloadWordPronunciation,
   speakEnglishTextAuto,
 } from "@/lib/speak-word";
@@ -16,7 +17,6 @@ let autoSpeakGeneration = 0;
 
 /** Wait for card to settle before speaking — fast swipes only pronounce the last word. */
 const AUTO_SPEAK_SETTLE_MS = 140;
-const AUTO_SPEAK_SETTLE_READY_MS = 0;
 
 /** Auto-pronounce when `text` changes (new word card). Respects menu setting. */
 export function useAutoSpeakWord(
@@ -39,17 +39,22 @@ export function useAutoSpeakWord(
     cancelSpeech();
     preloadWordPronunciation(trimmed);
 
-    const settleMs =
-      hasWordAudioBlob(trimmed) || isWordAudioElementReady(trimmed)
-        ? AUTO_SPEAK_SETTLE_READY_MS
-        : AUTO_SPEAK_SETTLE_MS;
+    const cached =
+      hasWordAudioBlob(trimmed) || isWordAudioElementReady(trimmed);
+    const settleMs = cached ? 0 : AUTO_SPEAK_SETTLE_MS;
 
+    let cancelled = false;
     const timer = window.setTimeout(() => {
-      if (generation !== autoSpeakGeneration) return;
-      speakEnglishTextAuto(trimmed);
+      void (async () => {
+        if (cancelled || generation !== autoSpeakGeneration) return;
+        await ensureWordPronunciationReady(trimmed);
+        if (cancelled || generation !== autoSpeakGeneration) return;
+        speakEnglishTextAuto(trimmed);
+      })();
     }, settleMs);
 
     return () => {
+      cancelled = true;
       window.clearTimeout(timer);
     };
   }, [text, active]);

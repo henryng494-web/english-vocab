@@ -137,6 +137,18 @@ export function preloadWordPronunciation(word: string): void {
   void warmWordAudioBytes(word);
 }
 
+/** Finish MP3 warm + bind shared audio before auto-play. */
+export async function ensureWordPronunciationReady(word: string): Promise<void> {
+  const trimmed = word?.trim();
+  if (!trimmed || typeof window === "undefined") return;
+
+  preloadWordAudioElement(trimmed);
+  if (!hasWordAudioBlob(trimmed) && !isWordAudioElementReady(trimmed)) {
+    await warmWordAudioBytes(trimmed);
+  }
+  preloadWordAudioElement(trimmed, { force: true });
+}
+
 /** @deprecated MP3-only app — kept for any legacy imports. */
 export function speakEnglishTextSync(text: string): void {
   speakEnglishText(text, { force: true });

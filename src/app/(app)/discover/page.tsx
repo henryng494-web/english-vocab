@@ -38,7 +38,11 @@ import {
 } from "@/lib/image-preload";
 import {
   preloadWordPronunciations,
+  seedJourneyBootstrapRanges,
+  seedJourneyCurrentWord,
+  warmFirstJourneyWordPronunciation,
   warmFirstReviewWordPronunciation,
+  warmWordPronunciation,
 } from "@/lib/pronunciation-preload";
 import { unlockSpeechFromUserGesture } from "@/lib/speak-word";
 import { getGoalProgressSnapshot, subscribeGoalProgress } from "@/lib/goal-progress";
@@ -337,6 +341,8 @@ export default function DiscoverPage() {
   const applyWordToView = useCallback(
     (item: DiscoverListItem, options?: { fetchIfNeeded?: boolean }) => {
       activeWordRef.current = item.word;
+      seedJourneyCurrentWord(item.word);
+      warmWordPronunciation(item.word);
 
       const cleanStub = listItemToDiscoverData(item);
       const cached = wordCache.current.get(item.word);
@@ -410,6 +416,15 @@ export default function DiscoverPage() {
   }, [rangeId]);
 
   const currentItem = queue[currentIndex];
+
+  useEffect(() => {
+    seedJourneyBootstrapRanges(bootstrapRanges ?? null);
+  }, [bootstrapRanges]);
+
+  useEffect(() => {
+    if (!inSession || !currentItem) return;
+    warmFirstJourneyWordPronunciation();
+  }, [inSession, currentItem?.word]);
 
   useEffect(() => {
     if (!wordCacheHydratedRef.current) {
@@ -673,7 +688,10 @@ export default function DiscoverPage() {
             goalCurrent={goalProgress.current}
             goalTarget={goalProgress.target}
             todayWordsLearned={todayLearned}
-            onStartJourney={() => router.push("/journey")}
+            onStartJourney={() => {
+              warmFirstJourneyWordPronunciation();
+              router.push("/journey");
+            }}
             onStartReview={() => {
               warmFirstReviewWordPronunciation();
               router.push("/learn");

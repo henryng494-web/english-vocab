@@ -19,7 +19,10 @@ import {
   type BootstrapProgress,
   type RangeBootstrapData,
 } from "@/lib/app-bootstrap";
-import { warmWordPronunciationsBatch } from "@/lib/pronunciation-preload";
+import {
+  seedJourneyBootstrapRanges,
+  warmWordPronunciationsBatch,
+} from "@/lib/pronunciation-preload";
 import type { DiscoverWordData } from "@/components/discover/DiscoverCard";
 import type { ReviewSession } from "@/lib/review-session";
 
@@ -76,6 +79,7 @@ export function AppBootstrapProvider({ children }: { children: ReactNode }) {
         await waitForWelcomeMinimum(startedAt);
         if (cancelled) return;
         setSnapshot(loaded);
+        seedJourneyBootstrapRanges(loaded.ranges);
         setReady(true);
         const defaultQueue = loaded.ranges[DEFAULT_BOOTSTRAP_RANGE]?.queue ?? [];
         void warmWordPronunciationsBatch(
