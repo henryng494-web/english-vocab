@@ -37,12 +37,10 @@ type WordCardDetailsProps = {
   loading?: boolean;
   /** Block horizontal swipe-to-flip briefly after the word opens (review reveal). */
   familySwipeGraceMs?: number;
-  /** Tap card body to flip (off on review — avoids accidental family flip). */
-  flipOnTap?: boolean;
 };
 
-const SWIPE_BLOCK_SELECTOR =
-  ".discover-card__examples, .card-details__face--family";
+/** Scrollable examples — vertical pan only; do not start flip gesture here. */
+const SWIPE_BLOCK_SELECTOR = ".discover-card__examples";
 const SWIPE_MIN_PX = 56;
 const SWIPE_HORIZONTAL_RATIO = 1.25;
 
@@ -69,7 +67,6 @@ export function WordCardDetails({
   similarWords,
   loading = false,
   familySwipeGraceMs = 0,
-  flipOnTap = true,
 }: WordCardDetailsProps) {
   const { t } = useI18n();
   const chunkEntry = useMemo(
@@ -94,8 +91,6 @@ export function WordCardDetails({
   const startX = useRef<number | null>(null);
   const startY = useRef<number | null>(null);
   const canFlipAtPointerDown = useRef(false);
-  const swiped = useRef(false);
-  const pointerMoved = useRef(false);
   const openedAtRef = useRef(0);
 
   function resetPointerGesture() {
@@ -108,36 +103,17 @@ export function WordCardDetails({
     setShowFamily(false);
     openedAtRef.current = Date.now();
     resetPointerGesture();
-    swiped.current = false;
-    pointerMoved.current = false;
   }, [word]);
 
   if (loading) {
     return <DetailsLoadingSkeleton />;
   }
 
-  function toggle() {
-    if (!canFlip) return;
-    setShowFamily((current) => !current);
-  }
-
   return (
     <div className="card-details card-details--compact">
       <div
         className="card-details__scene"
-        onClick={() => {
-          if (swiped.current) {
-            swiped.current = false;
-            return;
-          }
-          if (!flipOnTap || pointerMoved.current) {
-            pointerMoved.current = false;
-            return;
-          }
-          toggle();
-        }}
         onPointerDown={(event) => {
-          pointerMoved.current = false;
           if (!canFlip) {
             resetPointerGesture();
             return;
@@ -152,14 +128,6 @@ export function WordCardDetails({
           startX.current = event.clientX;
           startY.current = event.clientY;
           canFlipAtPointerDown.current = true;
-        }}
-        onPointerMove={(event) => {
-          if (startX.current == null || startY.current == null) return;
-          const dx = event.clientX - startX.current;
-          const dy = event.clientY - startY.current;
-          if (Math.hypot(dx, dy) > 10) {
-            pointerMoved.current = true;
-          }
         }}
         onPointerUp={(event) => {
           const withinGrace =
@@ -181,20 +149,9 @@ export function WordCardDetails({
           if (Math.abs(deltaX) <= Math.abs(deltaY) * SWIPE_HORIZONTAL_RATIO) {
             return;
           }
-          swiped.current = true;
           setShowFamily(deltaX < 0);
         }}
         onPointerCancel={resetPointerGesture}
-        role={canFlip ? "button" : undefined}
-        tabIndex={canFlip ? 0 : undefined}
-        aria-label={canFlip ? (showFamily ? "Show examples" : "Show word family") : undefined}
-        onKeyDown={(event) => {
-          if (!canFlip) return;
-          if (event.key === "Enter" || event.key === " ") {
-            event.preventDefault();
-            toggle();
-          }
-        }}
       >
         <div className={`card-details__flip${showFamily ? " is-family" : ""}`}>
           <div className="card-details__face card-details__face--meaning">
@@ -267,21 +224,13 @@ export function WordCardDetails({
       </div>
 
       {canFlip ? (
-        <button
-          type="button"
-          className="card-details__hint"
-          onClick={(event) => {
-            event.stopPropagation();
-            swiped.current = false;
-            toggle();
-          }}
-        >
+        <p className="card-details__hint" aria-hidden>
           <span>{showFamily ? "Examples" : "Family"}</span>
-          <span className="card-details__dots" aria-hidden>
+          <span className="card-details__dots">
             <i className={!showFamily ? "is-on" : ""} />
             <i className={showFamily ? "is-on" : ""} />
           </span>
-        </button>
+        </p>
       ) : null}
     </div>
   );
