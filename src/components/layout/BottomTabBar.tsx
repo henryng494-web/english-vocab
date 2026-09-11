@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useSyncExternalStore } from "react";
 import {
   getReviewDueCount,
@@ -89,6 +89,7 @@ function LibraryIcon({ active }: { active: boolean }) {
 
 export function BottomTabBar() {
   const pathname = usePathname();
+  const router = useRouter();
   const dueCount = useSyncExternalStore(
     subscribeReviewDueCount,
     getReviewDueCount,
@@ -164,17 +165,24 @@ export function BottomTabBar() {
                   ? "library"
                   : "home";
 
+          const journeyTab = tab.href === "/journey";
+
           return (
             <Link
               key={tab.href}
               href={tab.href}
-              onPointerDown={
-                tab.href === "/learn"
-                  ? () => warmFirstReviewWordPronunciation()
-                  : tab.href === "/journey"
-                    ? () => primeJourneyAudioFromUserGesture()
-                    : undefined
-              }
+              onPointerDown={(event) => {
+                if (tab.href === "/learn") {
+                  warmFirstReviewWordPronunciation();
+                  return;
+                }
+                if (!journeyTab) return;
+                event.preventDefault();
+                primeJourneyAudioFromUserGesture();
+                if (!pathname.startsWith("/journey")) {
+                  router.push("/journey");
+                }
+              }}
               className={`tab-bar-link ${
                 active ? `tab-bar-link--active ${activeColorClass}` : "tab-bar-link--inactive"
               }`}

@@ -3,16 +3,16 @@
 import {
   cancelSpeech,
   preloadWordPronunciation,
-  speakEnglishTextAuto,
-  subscribeSpeechUnlock,
+  tryAutoSpeakWord,
   wasRecentlySpokenInGesture,
 } from "@/lib/speak-word";
+import { isAppleWebKit } from "@/lib/speech-voice";
 import { useAutoSpeakSetting } from "@/context/AppSettingsContext";
 import {
   hasWordAudioBlob,
   isWordAudioElementReady,
 } from "@/lib/word-pronunciation-audio";
-import { useEffect } from "react";
+import { useEffect, useLayoutEffect } from "react";
 
 let autoSpeakGeneration = 0;
 
@@ -27,15 +27,18 @@ export function useAutoSpeakWord(
   const autoSpeakEnabled = useAutoSpeakSetting();
   const active = enabled && autoSpeakEnabled;
 
-  useEffect(() => {
-    if (!active) return;
+  useLayoutEffect(() => {
+    if (!active || !isAppleWebKit()) return;
+
     const trimmed = text?.trim() ?? "";
     if (!trimmed) return;
 
-    return subscribeSpeechUnlock(() => {
-      if (!active || wasRecentlySpokenInGesture(trimmed)) return;
-      speakEnglishTextAuto(trimmed);
-    });
+    cancelSpeech();
+    preloadWordPronunciation(trimmed);
+    if (wasRecentlySpokenInGesture(trimmed)) return;
+
+    // Still inside the tab/button gesture window right after navigation.
+    tryAutoSpeakWord(trimmed);
   }, [text, active]);
 
   useEffect(() => {
@@ -43,6 +46,8 @@ export function useAutoSpeakWord(
       cancelSpeech();
       return;
     }
+
+    if (isAppleWebKit()) return;
 
     const trimmed = text?.trim() ?? "";
     if (!trimmed) return;
@@ -60,7 +65,7 @@ export function useAutoSpeakWord(
     const speak = () => {
       if (generation !== autoSpeakGeneration) return;
       if (wasRecentlySpokenInGesture(trimmed)) return;
-      speakEnglishTextAuto(trimmed);
+      tryAutoSpeakWord(trimmed);
     };
 
     if (settleMs === 0) {

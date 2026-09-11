@@ -22,6 +22,7 @@ const AUTO_MP3_RETRY_MS = 2400;
 
 let speechUnlocked = false;
 let pendingAutoSpeak: string | null = null;
+let pendingGestureAutoSpeak: string | null = null;
 const unlockListeners = new Set<() => void>();
 
 const GESTURE_AUTO_DEDUPE_MS = 900;
@@ -34,6 +35,31 @@ function readSpeechUnlockedFromStorage(): boolean {
 export function isSpeechUnlocked(): boolean {
   if (!isAppleWebKit()) return true;
   return speechUnlocked || readSpeechUnlockedFromStorage();
+}
+
+/** True while the browser still treats the last tap as an active user gesture. */
+export function hasTransientUserActivation(): boolean {
+  if (typeof navigator === "undefined") return false;
+  const activation = (
+    navigator as Navigator & { userActivation?: { isActive?: boolean } }
+  ).userActivation;
+  return Boolean(activation?.isActive);
+}
+
+/** Queue auto-speak for the next real pointerdown on the Journey card (iOS). */
+export function queueGestureAutoSpeak(word: string): void {
+  const trimmed = word?.trim();
+  pendingGestureAutoSpeak = trimmed || null;
+}
+
+/** Speak a queued Journey word inside pointerdown (iOS auto-speak fallback). */
+export function consumeGestureAutoSpeak(): boolean {
+  const trimmed = pendingGestureAutoSpeak;
+  if (!trimmed) return false;
+  pendingGestureAutoSpeak = null;
+  if (wasRecentlySpokenInGesture(trimmed)) return true;
+  speakWordInUserGesture(trimmed);
+  return true;
 }
 
 /** Unlock HTML audio on iOS/PWA (first user gesture). */
@@ -57,7 +83,7 @@ export function unlockSpeechFromUserGesture(): void {
   if (pending) {
     pendingAutoSpeak = null;
     if (!wasRecentlySpokenInGesture(pending)) {
-      speakEnglishTextAuto(pending);
+      tryAutoSpeakWord(pending);
     }
   }
 }
@@ -91,6 +117,7 @@ export function speakWordInUserGesture(text: string): void {
   const key = trimmed.toLowerCase();
   lastSpoken = { text: key, at: Date.now() };
   speakRequestId += 1;
+  pendingGestureAutoSpeak = null;
 }
 
 function claimSpeak(text: string, force: boolean): string | null {
@@ -157,15 +184,40 @@ async function speakMp3Auto(
   await playWordAudioWhenReady(text, AUTO_MP3_RETRY_MS);
 }
 
-/** Auto-pronounce after preload (no user gesture — requires prior audio unlock on iOS). */
+/** Auto-pronounce: sync gesture path on iOS; async MP3 elsewhere. */
+export function tryAutoSpeakWord(text: string): void {
+  const trimmed = text?.trim();
+  if (!trimmed || typeof window === "undefined") return;
+
+  if (wasRecentlySpokenInGesture(trimmed)) return;
+
+  preloadWordPronunciation(trimmed);
+
+  if (isAppleWebKit()) {
+    if (hasTransientUserActivation()) {
+      speakWordInUserGesture(trimmed);
+      return;
+    }
+    if (!isSpeechUnlocked()) {
+      pendingAutoSpeak = trimmed;
+    }
+    queueGestureAutoSpeak(trimmed);
+    return;
+  }
+
+  pendingAutoSpeak = null;
+  speakEnglishTextAuto(trimmed);
+}
+
+/** Auto-pronounce after preload (no user gesture — desktop / unlocked Android). */
 export function speakEnglishTextAuto(text: string): void {
   const trimmed = text?.trim();
   if (!trimmed || typeof window === "undefined") return;
 
   if (wasRecentlySpokenInGesture(trimmed)) return;
 
-  if (isAppleWebKit() && !isSpeechUnlocked()) {
-    pendingAutoSpeak = trimmed;
+  if (isAppleWebKit()) {
+    tryAutoSpeakWord(trimmed);
     return;
   }
 

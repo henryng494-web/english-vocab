@@ -46,6 +46,7 @@ import {
   warmWordPronunciation,
 } from "@/lib/pronunciation-preload";
 import {
+  consumeGestureAutoSpeak,
   speakWordInUserGesture,
   unlockSpeechFromUserGesture,
 } from "@/lib/speak-word";
@@ -527,6 +528,21 @@ export default function DiscoverPage() {
     });
   }
 
+  function peekNextJourneyWord(item: DiscoverListItem): string | null {
+    const nextQueue = queueWithoutItem(queue, item);
+    if (nextQueue.length === 0) return null;
+    const nextIndex = Math.min(currentIndex, nextQueue.length - 1);
+    return nextQueue[nextIndex]?.word?.trim() ?? null;
+  }
+
+  function speakNextJourneyWordInGesture(item: DiscoverListItem) {
+    if (!readAppSettings().autoSpeakEnabled) return;
+    const nextWord = peekNextJourneyWord(item);
+    if (!nextWord) return;
+    seedJourneyCurrentWord(nextWord);
+    speakWordInUserGesture(nextWord);
+  }
+
   function advanceAfterAction(item: DiscoverListItem): string | null {
     const nextQueue = queueWithoutItem(queue, item);
     const nextIndex =
@@ -600,11 +616,7 @@ export default function DiscoverPage() {
     }
     setWordsKnown(countMasteredWords());
     setWordsReviewing(countLearningWords());
-    const nextWord = advanceAfterAction(currentItem);
-    if (nextWord && readAppSettings().autoSpeakEnabled) {
-      seedJourneyCurrentWord(nextWord);
-      speakWordInUserGesture(nextWord);
-    }
+    advanceAfterAction(currentItem);
     patchRangeAfterSave(rangeId, currentItem.word, currentItem.family_members);
 
     void (async () => {
@@ -782,7 +794,16 @@ export default function DiscoverPage() {
             </div>
           </div>
         ) : (
-          <div className="journey-main">
+          <div
+            className="journey-main"
+            onPointerDownCapture={(event) => {
+              const target = event.target;
+              if (!(target instanceof Element)) return;
+              if (target.closest(".journey-actions")) return;
+              if (target.closest("[data-pronounce-speak]")) return;
+              consumeGestureAutoSpeak();
+            }}
+          >
             <VocabWordCard
               key={currentItem.word}
               data={currentWord ?? stubFromListItem(currentItem)}
@@ -793,6 +814,9 @@ export default function DiscoverPage() {
             <div className="journey-actions">
               <button
                 type="button"
+                onPointerDown={() => {
+                  if (currentItem) speakNextJourneyWordInGesture(currentItem);
+                }}
                 onClick={() => updateStatus("new")}
                 disabled={dailyQuotaReached}
                 className="btn-pill-primary w-full disabled:cursor-not-allowed disabled:opacity-50"
@@ -801,6 +825,9 @@ export default function DiscoverPage() {
               </button>
               <button
                 type="button"
+                onPointerDown={() => {
+                  if (currentItem) speakNextJourneyWordInGesture(currentItem);
+                }}
                 onClick={() => updateStatus("mastered")}
                 className="btn-pill-outline-secondary w-full"
               >
