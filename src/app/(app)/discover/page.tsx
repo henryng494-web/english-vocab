@@ -40,11 +40,15 @@ import {
   preloadWordPronunciations,
   seedJourneyBootstrapRanges,
   seedJourneyCurrentWord,
+  primeJourneyAudioFromUserGesture,
   warmFirstJourneyWordPronunciation,
   warmFirstReviewWordPronunciation,
   warmWordPronunciation,
 } from "@/lib/pronunciation-preload";
-import { unlockSpeechFromUserGesture } from "@/lib/speak-word";
+import {
+  speakWordInUserGesture,
+  unlockSpeechFromUserGesture,
+} from "@/lib/speak-word";
 import { getGoalProgressSnapshot, subscribeGoalProgress } from "@/lib/goal-progress";
 import { getCurrentStreak, subscribeStreak, syncStreak } from "@/lib/streak";
 import {
@@ -523,7 +527,7 @@ export default function DiscoverPage() {
     });
   }
 
-  function advanceAfterAction(item: DiscoverListItem) {
+  function advanceAfterAction(item: DiscoverListItem): string | null {
     const nextQueue = queueWithoutItem(queue, item);
     const nextIndex =
       nextQueue.length === 0
@@ -537,9 +541,11 @@ export default function DiscoverPage() {
       activeWordRef.current = null;
       setCurrentWord(null);
       setLoadingWord(false);
-    } else {
-      setCurrentIndex(nextIndex);
+      return null;
     }
+
+    setCurrentIndex(nextIndex);
+    return nextQueue[nextIndex]?.word?.trim() ?? null;
   }
 
   function updateStatus(status: "mastered" | "new") {
@@ -594,7 +600,11 @@ export default function DiscoverPage() {
     }
     setWordsKnown(countMasteredWords());
     setWordsReviewing(countLearningWords());
-    advanceAfterAction(currentItem);
+    const nextWord = advanceAfterAction(currentItem);
+    if (nextWord && readAppSettings().autoSpeakEnabled) {
+      seedJourneyCurrentWord(nextWord);
+      speakWordInUserGesture(nextWord);
+    }
     patchRangeAfterSave(rangeId, currentItem.word, currentItem.family_members);
 
     void (async () => {
@@ -688,10 +698,8 @@ export default function DiscoverPage() {
             goalCurrent={goalProgress.current}
             goalTarget={goalProgress.target}
             todayWordsLearned={todayLearned}
-            onStartJourney={() => {
-              warmFirstJourneyWordPronunciation();
-              router.push("/journey");
-            }}
+            onStartJourney={() => router.push("/journey")}
+            onStartJourneyPointerDown={() => primeJourneyAudioFromUserGesture()}
             onStartReview={() => {
               warmFirstReviewWordPronunciation();
               router.push("/learn");

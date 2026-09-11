@@ -18,6 +18,7 @@ type DiscoverDashboardProps = {
   goalTarget: number;
   todayWordsLearned: number;
   onStartJourney: () => void;
+  onStartJourneyPointerDown?: () => void;
   onStartReview: () => void;
   onOpenLibrary: () => void;
 };

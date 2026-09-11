@@ -6,6 +6,7 @@ import { filterDiscoverQueue } from "@/lib/discover-fetch";
 import { readOnboarding } from "@/lib/onboarding";
 import { getCachedLearningSummary } from "@/lib/review-due-store";
 import { resolveReviewSession } from "@/lib/review-session";
+import { speakWordInUserGesture } from "@/lib/speak-word";
 import {
   preloadWordAudioElement,
   warmWordAudioBytes,
@@ -81,6 +82,18 @@ export function warmFirstJourneyWordPronunciation(): void {
   if (!first) return;
   preloadWordAudioElement(first);
   void warmWordAudioBytes(first);
+}
+
+/** Unlock audio and speak the Journey word inside tab/button pointerdown. */
+export function primeJourneyAudioFromUserGesture(): void {
+  if (typeof window === "undefined") return;
+  const first = resolveJourneyFirstWord();
+  if (!first) {
+    warmFirstJourneyWordPronunciation();
+    return;
+  }
+  seedJourneyCurrentWord(first);
+  speakWordInUserGesture(first);
 }
 
 /** Start warming the first due review word (call on Review tab tap). */

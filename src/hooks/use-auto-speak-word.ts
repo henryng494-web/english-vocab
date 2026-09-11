@@ -4,6 +4,8 @@ import {
   cancelSpeech,
   preloadWordPronunciation,
   speakEnglishTextAuto,
+  subscribeSpeechUnlock,
+  wasRecentlySpokenInGesture,
 } from "@/lib/speak-word";
 import { useAutoSpeakSetting } from "@/context/AppSettingsContext";
 import {
@@ -26,6 +28,17 @@ export function useAutoSpeakWord(
   const active = enabled && autoSpeakEnabled;
 
   useEffect(() => {
+    if (!active) return;
+    const trimmed = text?.trim() ?? "";
+    if (!trimmed) return;
+
+    return subscribeSpeechUnlock(() => {
+      if (!active || wasRecentlySpokenInGesture(trimmed)) return;
+      speakEnglishTextAuto(trimmed);
+    });
+  }, [text, active]);
+
+  useEffect(() => {
     if (!active) {
       cancelSpeech();
       return;
@@ -38,12 +51,15 @@ export function useAutoSpeakWord(
     cancelSpeech();
     preloadWordPronunciation(trimmed);
 
+    if (wasRecentlySpokenInGesture(trimmed)) return;
+
     const cached =
       hasWordAudioBlob(trimmed) || isWordAudioElementReady(trimmed);
     const settleMs = cached ? 0 : AUTO_SPEAK_SETTLE_MS;
 
     const speak = () => {
       if (generation !== autoSpeakGeneration) return;
+      if (wasRecentlySpokenInGesture(trimmed)) return;
       speakEnglishTextAuto(trimmed);
     };
 

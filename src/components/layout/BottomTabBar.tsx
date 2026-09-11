@@ -8,7 +8,7 @@ import {
   subscribeReviewDueCount,
 } from "@/lib/review-due-store";
 import {
-  warmFirstJourneyWordPronunciation,
+  primeJourneyAudioFromUserGesture,
   warmFirstReviewWordPronunciation,
 } from "@/lib/pronunciation-preload";
 import { useI18n } from "@/hooks/use-i18n";
@@ -172,7 +172,7 @@ export function BottomTabBar() {
                 tab.href === "/learn"
                   ? () => warmFirstReviewWordPronunciation()
                   : tab.href === "/journey"
-                    ? () => warmFirstJourneyWordPronunciation()
+                    ? () => primeJourneyAudioFromUserGesture()
                     : undefined
               }
               className={`tab-bar-link ${

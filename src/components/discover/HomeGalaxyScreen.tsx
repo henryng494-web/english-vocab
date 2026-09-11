@@ -35,6 +35,7 @@ export type HomeGalaxyScreenProps = {
   goalTarget: number;
   todayWordsLearned: number;
   onStartJourney: () => void;
+  onStartJourneyPointerDown?: () => void;
   onStartReview: () => void;
   onOpenLibrary: () => void;
 };
@@ -348,6 +349,7 @@ export function HomeGalaxyScreen(props: HomeGalaxyScreenProps) {
             type="button"
             className="home-galaxy__lesson-cta"
             disabled={props.queueLength === 0}
+            onPointerDown={props.onStartJourneyPointerDown}
             onClick={props.onStartJourney}
           >
             <span className="home-galaxy__lesson-cta-label text-[#6D28D9] font-extrabold">{t("home.bannerCta")}</span>

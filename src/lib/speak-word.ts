@@ -21,6 +21,10 @@ const AUTO_MP3_WAIT_BLOB_MS = 120;
 const AUTO_MP3_RETRY_MS = 2400;
 
 let speechUnlocked = false;
+let pendingAutoSpeak: string | null = null;
+const unlockListeners = new Set<() => void>();
+
+const GESTURE_AUTO_DEDUPE_MS = 900;
 
 function readSpeechUnlockedFromStorage(): boolean {
   if (typeof sessionStorage === "undefined") return false;
@@ -35,12 +39,58 @@ export function isSpeechUnlocked(): boolean {
 /** Unlock HTML audio on iOS/PWA (first user gesture). */
 export function unlockSpeechFromUserGesture(): void {
   if (typeof window === "undefined") return;
+  const wasUnlocked = isSpeechUnlocked();
   speechUnlocked = true;
   try {
     sessionStorage.setItem(SPEECH_UNLOCK_KEY, "1");
   } catch {
     /* private mode */
   }
+
+  if (!wasUnlocked) {
+    for (const listener of unlockListeners) {
+      listener();
+    }
+  }
+
+  const pending = pendingAutoSpeak;
+  if (pending) {
+    pendingAutoSpeak = null;
+    if (!wasRecentlySpokenInGesture(pending)) {
+      speakEnglishTextAuto(pending);
+    }
+  }
+}
+
+export function subscribeSpeechUnlock(listener: () => void): () => void {
+  unlockListeners.add(listener);
+  return () => {
+    unlockListeners.delete(listener);
+  };
+}
+
+export function wasRecentlySpokenInGesture(text: string): boolean {
+  const key = text.trim().toLowerCase();
+  if (!key || !lastSpoken) return false;
+  return (
+    lastSpoken.text === key &&
+    Date.now() - lastSpoken.at < GESTURE_AUTO_DEDUPE_MS
+  );
+}
+
+/** Pronounce inside tap/click — required on iOS before async auto-play works. */
+export function speakWordInUserGesture(text: string): void {
+  const trimmed = text?.trim();
+  if (!trimmed || typeof window === "undefined") return;
+
+  unlockSpeechFromUserGesture();
+  preloadWordAudioElement(trimmed);
+  void warmWordAudioBytes(trimmed);
+  playWordAudioInUserGesture(trimmed);
+
+  const key = trimmed.toLowerCase();
+  lastSpoken = { text: key, at: Date.now() };
+  speakRequestId += 1;
 }
 
 function claimSpeak(text: string, force: boolean): string | null {
@@ -112,8 +162,14 @@ export function speakEnglishTextAuto(text: string): void {
   const trimmed = text?.trim();
   if (!trimmed || typeof window === "undefined") return;
 
-  if (isAppleWebKit() && !isSpeechUnlocked()) return;
+  if (wasRecentlySpokenInGesture(trimmed)) return;
 
+  if (isAppleWebKit() && !isSpeechUnlocked()) {
+    pendingAutoSpeak = trimmed;
+    return;
+  }
+
+  pendingAutoSpeak = null;
   const key = trimmed.toLowerCase();
   lastSpoken = { text: key, at: Date.now() };
   speakRequestId += 1;
