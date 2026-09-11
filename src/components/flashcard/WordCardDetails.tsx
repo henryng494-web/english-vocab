@@ -37,7 +37,14 @@ type WordCardDetailsProps = {
   loading?: boolean;
   /** Block horizontal swipe-to-flip briefly after the word opens (review reveal). */
   familySwipeGraceMs?: number;
+  /** Tap card body to flip (off on review — avoids accidental family flip). */
+  flipOnTap?: boolean;
 };
+
+const SWIPE_BLOCK_SELECTOR =
+  ".discover-card__examples, .card-details__face--family";
+const SWIPE_MIN_PX = 56;
+const SWIPE_HORIZONTAL_RATIO = 1.25;
 
 function DetailsLoadingSkeleton() {
   return (
@@ -62,6 +69,7 @@ export function WordCardDetails({
   similarWords,
   loading = false,
   familySwipeGraceMs = 0,
+  flipOnTap = true,
 }: WordCardDetailsProps) {
   const { t } = useI18n();
   const chunkEntry = useMemo(
@@ -84,16 +92,24 @@ export function WordCardDetails({
   const canFlip = rows.length > 1 || similar.length > 0;
   const [showFamily, setShowFamily] = useState(false);
   const startX = useRef<number | null>(null);
+  const startY = useRef<number | null>(null);
   const canFlipAtPointerDown = useRef(false);
   const swiped = useRef(false);
+  const pointerMoved = useRef(false);
   const openedAtRef = useRef(0);
+
+  function resetPointerGesture() {
+    startX.current = null;
+    startY.current = null;
+    canFlipAtPointerDown.current = false;
+  }
 
   useEffect(() => {
     setShowFamily(false);
     openedAtRef.current = Date.now();
-    startX.current = null;
-    canFlipAtPointerDown.current = false;
+    resetPointerGesture();
     swiped.current = false;
+    pointerMoved.current = false;
   }, [word]);
 
   if (loading) {
@@ -114,16 +130,36 @@ export function WordCardDetails({
             swiped.current = false;
             return;
           }
+          if (!flipOnTap || pointerMoved.current) {
+            pointerMoved.current = false;
+            return;
+          }
           toggle();
         }}
         onPointerDown={(event) => {
+          pointerMoved.current = false;
           if (!canFlip) {
-            startX.current = null;
-            canFlipAtPointerDown.current = false;
+            resetPointerGesture();
+            return;
+          }
+          if (
+            event.target instanceof Element &&
+            event.target.closest(SWIPE_BLOCK_SELECTOR)
+          ) {
+            resetPointerGesture();
             return;
           }
           startX.current = event.clientX;
+          startY.current = event.clientY;
           canFlipAtPointerDown.current = true;
+        }}
+        onPointerMove={(event) => {
+          if (startX.current == null || startY.current == null) return;
+          const dx = event.clientX - startX.current;
+          const dy = event.clientY - startY.current;
+          if (Math.hypot(dx, dy) > 10) {
+            pointerMoved.current = true;
+          }
         }}
         onPointerUp={(event) => {
           const withinGrace =
@@ -131,20 +167,24 @@ export function WordCardDetails({
             Date.now() - openedAtRef.current < familySwipeGraceMs;
           if (
             startX.current == null ||
+            startY.current == null ||
             !canFlipAtPointerDown.current ||
             withinGrace
           ) {
-            startX.current = null;
-            canFlipAtPointerDown.current = false;
+            resetPointerGesture();
             return;
           }
-          const delta = event.clientX - startX.current;
-          startX.current = null;
-          canFlipAtPointerDown.current = false;
-          if (Math.abs(delta) < 56) return;
+          const deltaX = event.clientX - startX.current;
+          const deltaY = event.clientY - startY.current;
+          resetPointerGesture();
+          if (Math.abs(deltaX) < SWIPE_MIN_PX) return;
+          if (Math.abs(deltaX) <= Math.abs(deltaY) * SWIPE_HORIZONTAL_RATIO) {
+            return;
+          }
           swiped.current = true;
-          setShowFamily(delta < 0);
+          setShowFamily(deltaX < 0);
         }}
+        onPointerCancel={resetPointerGesture}
         role={canFlip ? "button" : undefined}
         tabIndex={canFlip ? 0 : undefined}
         aria-label={canFlip ? (showFamily ? "Show examples" : "Show word family") : undefined}
