@@ -34,7 +34,6 @@ type DiscoverCardProps = {
   /** e.g. "2 / 194" — shown on the image top-right. */
   imageBadge?: string;
   autoSpeak?: boolean;
-  familySwipeGraceMs?: number;
 };
 
 function CardImage({
@@ -76,7 +75,6 @@ export function DiscoverCard({
   loading,
   imageBadge,
   autoSpeak = true,
-  familySwipeGraceMs,
 }: DiscoverCardProps) {
   const detailsLoading = loading && !isCardContentReady(data, data.word);
   const phonetic = displayPhonetic(data.word, data.phonetic);
@@ -122,7 +120,6 @@ export function DiscoverCard({
           family={wordFamily}
           similarWords={data.similar_words}
           loading={detailsLoading}
-          familySwipeGraceMs={familySwipeGraceMs}
         />
       </div>
     </div>

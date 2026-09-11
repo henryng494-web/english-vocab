@@ -246,6 +246,8 @@ export const messages: Record<AppLocale, MessageTree> = {
     "chunks.phrases": "Cụm câu",
     "card.wordForms": "Word forms",
     "card.similarWords": "Gần nghĩa",
+    "card.showFamily": "Xem word forms và từ gần nghĩa",
+    "card.showExamples": "Quay lại ví dụ",
 
     "account.title": "Tài khoản",
     "account.backHome": "Về trang chủ",
@@ -520,6 +522,8 @@ export const messages: Record<AppLocale, MessageTree> = {
     "chunks.phrases": "Useful phrase",
     "card.wordForms": "Word forms",
     "card.similarWords": "Similar",
+    "card.showFamily": "Show word forms and similar words",
+    "card.showExamples": "Back to examples",
 
     "account.title": "Account",
     "account.backHome": "Back to home",

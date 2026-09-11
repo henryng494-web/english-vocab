@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { VocabExampleList } from "@/components/flashcard/VocabExampleList";
 import { WordLearningChunks } from "@/components/flashcard/WordLearningChunks";
 import { useI18n } from "@/hooks/use-i18n";
@@ -35,15 +35,33 @@ type WordCardDetailsProps = {
   family?: WordFamilyMember[] | null;
   similarWords?: string[] | null;
   loading?: boolean;
-  /** Block horizontal swipe-to-flip briefly after the word opens (review reveal). */
-  familySwipeGraceMs?: number;
 };
 
-const SWIPE_MIN_PX = 40;
-const SWIPE_LOCK_PX = 10;
-const SWIPE_HORIZONTAL_RATIO = 1.15;
-
-type GestureIntent = "pending" | "horizontal" | "vertical";
+function CardTapIcon() {
+  return (
+    <svg
+      className="card-details__tap-icon"
+      viewBox="0 0 24 24"
+      aria-hidden
+      focusable="false"
+    >
+      <circle
+        cx="12"
+        cy="15.5"
+        r="5.25"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        opacity="0.35"
+      />
+      <circle cx="12" cy="15.5" r="2" fill="currentColor" opacity="0.45" />
+      <path
+        fill="currentColor"
+        d="M11.2 4.1a1 1 0 0 0-1 1v6.1L8.8 9.9a1 1 0 1 0-1.4 1.4l3.6 3.6a1 1 0 0 0 1.4 0l3.6-3.6a1 1 0 0 0-1.4-1.4l-1.4 1.3V5.1a1 1 0 0 0-1-1Z"
+      />
+    </svg>
+  );
+}
 
 function DetailsLoadingSkeleton() {
   return (
@@ -67,7 +85,6 @@ export function WordCardDetails({
   family,
   similarWords,
   loading = false,
-  familySwipeGraceMs = 0,
 }: WordCardDetailsProps) {
   const { t } = useI18n();
   const chunkEntry = useMemo(
@@ -89,127 +106,23 @@ export function WordCardDetails({
   }).filter((item) => item.trim());
   const canFlip = rows.length > 1 || similar.length > 0;
   const [showFamily, setShowFamily] = useState(false);
-  const sceneRef = useRef<HTMLDivElement>(null);
-  const startX = useRef(0);
-  const startY = useRef(0);
-  const activePointer = useRef<number | null>(null);
-  const gestureIntent = useRef<GestureIntent>("pending");
-  const openedAtRef = useRef(0);
-
-  function resetGesture() {
-    activePointer.current = null;
-    gestureIntent.current = "pending";
-  }
-
-  function releaseCapture(pointerId: number) {
-    const scene = sceneRef.current;
-    if (!scene) return;
-    try {
-      if (scene.hasPointerCapture(pointerId)) {
-        scene.releasePointerCapture(pointerId);
-      }
-    } catch {
-      /* pointer already released */
-    }
-  }
 
   useEffect(() => {
     setShowFamily(false);
-    openedAtRef.current = Date.now();
-    resetGesture();
   }, [word]);
-
-  useEffect(() => {
-    const scene = sceneRef.current;
-    if (!scene || !canFlip) return;
-
-    const blockScrollDuringHorizontal = (event: TouchEvent) => {
-      if (gestureIntent.current === "horizontal" && event.cancelable) {
-        event.preventDefault();
-      }
-    };
-
-    scene.addEventListener("touchmove", blockScrollDuringHorizontal, {
-      passive: false,
-    });
-    return () => {
-      scene.removeEventListener("touchmove", blockScrollDuringHorizontal);
-    };
-  }, [canFlip, word]);
 
   if (loading) {
     return <DetailsLoadingSkeleton />;
   }
 
+  function toggle() {
+    if (!canFlip) return;
+    setShowFamily((current) => !current);
+  }
+
   return (
     <div className="card-details card-details--compact">
-      <div
-        ref={sceneRef}
-        className="card-details__scene"
-        onPointerDownCapture={(event) => {
-          if (!canFlip || event.pointerType === "mouse") return;
-          activePointer.current = event.pointerId;
-          gestureIntent.current = "pending";
-          startX.current = event.clientX;
-          startY.current = event.clientY;
-          try {
-            event.currentTarget.setPointerCapture(event.pointerId);
-          } catch {
-            /* ignore */
-          }
-        }}
-        onPointerMoveCapture={(event) => {
-          if (activePointer.current !== event.pointerId) return;
-          if (gestureIntent.current !== "pending") return;
-
-          const deltaX = event.clientX - startX.current;
-          const deltaY = event.clientY - startY.current;
-          if (Math.hypot(deltaX, deltaY) < SWIPE_LOCK_PX) return;
-
-          if (
-            Math.abs(deltaX) >= SWIPE_LOCK_PX &&
-            Math.abs(deltaX) > Math.abs(deltaY) * SWIPE_HORIZONTAL_RATIO
-          ) {
-            gestureIntent.current = "horizontal";
-            if (event.cancelable) event.preventDefault();
-            return;
-          }
-
-          if (
-            Math.abs(deltaY) >= SWIPE_LOCK_PX &&
-            Math.abs(deltaY) > Math.abs(deltaX)
-          ) {
-            gestureIntent.current = "vertical";
-            releaseCapture(event.pointerId);
-            resetGesture();
-          }
-        }}
-        onPointerUpCapture={(event) => {
-          if (activePointer.current !== event.pointerId) return;
-
-          const withinGrace =
-            familySwipeGraceMs > 0 &&
-            Date.now() - openedAtRef.current < familySwipeGraceMs;
-
-          const deltaX = event.clientX - startX.current;
-          const deltaY = event.clientY - startY.current;
-          const intent = gestureIntent.current;
-          releaseCapture(event.pointerId);
-          resetGesture();
-
-          if (withinGrace || intent !== "horizontal") return;
-          if (Math.abs(deltaX) < SWIPE_MIN_PX) return;
-          if (Math.abs(deltaX) <= Math.abs(deltaY) * SWIPE_HORIZONTAL_RATIO) {
-            return;
-          }
-          setShowFamily(deltaX < 0);
-        }}
-        onPointerCancelCapture={(event) => {
-          if (activePointer.current !== event.pointerId) return;
-          releaseCapture(event.pointerId);
-          resetGesture();
-        }}
-      >
+      <div className="card-details__scene">
         <div className={`card-details__flip${showFamily ? " is-family" : ""}`}>
           <div className="card-details__face card-details__face--meaning">
             <div
@@ -281,13 +194,15 @@ export function WordCardDetails({
       </div>
 
       {canFlip ? (
-        <p className="card-details__hint" aria-hidden>
+        <button
+          type="button"
+          className="card-details__hint"
+          onClick={toggle}
+          aria-label={showFamily ? t("card.showExamples") : t("card.showFamily")}
+        >
           <span>{showFamily ? "Examples" : "Family"}</span>
-          <span className="card-details__dots">
-            <i className={!showFamily ? "is-on" : ""} />
-            <i className={showFamily ? "is-on" : ""} />
-          </span>
-        </p>
+          <CardTapIcon />
+        </button>
       ) : null}
     </div>
   );

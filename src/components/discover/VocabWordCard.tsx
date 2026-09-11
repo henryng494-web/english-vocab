@@ -14,7 +14,6 @@ type VocabWordCardProps = {
   imageBadge?: string;
   className?: string;
   autoSpeak?: boolean;
-  familySwipeGraceMs?: number;
 };
 
 export function vocabWordToDiscoverData(word: VocabWord): DiscoverWordData {
@@ -43,7 +42,6 @@ export function VocabWordCard({
   imageBadge,
   className,
   autoSpeak = true,
-  familySwipeGraceMs,
 }: VocabWordCardProps) {
   return (
     <div className={`journey-card-slot${className ? ` ${className}` : ""}`}>
@@ -52,7 +50,6 @@ export function VocabWordCard({
         loading={loading}
         imageBadge={imageBadge}
         autoSpeak={autoSpeak}
-        familySwipeGraceMs={familySwipeGraceMs}
       />
     </div>
   );
