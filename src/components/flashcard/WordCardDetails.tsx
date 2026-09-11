@@ -37,27 +37,21 @@ type WordCardDetailsProps = {
   loading?: boolean;
 };
 
-function CardTapIcon() {
+function CardHintArrow({ direction }: { direction: "left" | "right" }) {
   return (
     <svg
-      className="card-details__tap-icon"
+      className="card-details__hint-icon"
       viewBox="0 0 24 24"
       aria-hidden
       focusable="false"
     >
-      <circle
-        cx="12"
-        cy="15.5"
-        r="5.25"
+      <path
         fill="none"
         stroke="currentColor"
-        strokeWidth="1.5"
-        opacity="0.35"
-      />
-      <circle cx="12" cy="15.5" r="2" fill="currentColor" opacity="0.45" />
-      <path
-        fill="currentColor"
-        d="M11.2 4.1a1 1 0 0 0-1 1v6.1L8.8 9.9a1 1 0 1 0-1.4 1.4l3.6 3.6a1 1 0 0 0 1.4 0l3.6-3.6a1 1 0 0 0-1.4-1.4l-1.4 1.3V5.1a1 1 0 0 0-1-1Z"
+        strokeWidth="2.25"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d={direction === "right" ? "M9 6l6 6-6 6" : "M15 6l-6 6 6 6"}
       />
     </svg>
   );
@@ -200,8 +194,9 @@ export function WordCardDetails({
           onClick={toggle}
           aria-label={showFamily ? t("card.showExamples") : t("card.showFamily")}
         >
+          {showFamily ? <CardHintArrow direction="left" /> : null}
           <span>{showFamily ? "Examples" : "Family"}</span>
-          <CardTapIcon />
+          {!showFamily ? <CardHintArrow direction="right" /> : null}
         </button>
       ) : null}
     </div>
