@@ -72,7 +72,10 @@ export function readLocalLearning(): LocalLearningMap {
   }
 }
 
-/** Pull DB-only learning rows into localStorage so Review counts match Home/badge. */
+/**
+ * Merge server learning rows into words already saved locally (Journey / Review).
+ * Does not import DB-only rows — those must not enter Review before Journey.
+ */
 export function hydrateLocalLearningFromApi(
   rows: Array<{
     word: string;
@@ -84,18 +87,26 @@ export function hydrateLocalLearningFromApi(
   if (typeof window === "undefined" || rows.length === 0) return;
   const map = readLocalLearning();
   let changed = false;
-  const now = new Date().toISOString();
 
   for (const row of rows) {
     const key = resolveLearnableWordKey(row.word);
-    if (!key || !isCountableWord(key) || map[key]) continue;
+    if (!key || !isCountableWord(key)) continue;
+    const existing = map[key];
+    if (!existing) continue;
     if (row.status === "mastered") continue;
-    map[key] = {
-      status: (row.status as LearningStatus) ?? "new",
-      last_reviewed_at: row.last_reviewed_at ?? now,
-      added_at: row.last_reviewed_at ?? now,
+    const next: LocalLearningEntry = {
+      status: (row.status as LearningStatus) ?? existing.status,
+      last_reviewed_at: row.last_reviewed_at ?? existing.last_reviewed_at,
+      added_at: existing.added_at ?? existing.last_reviewed_at,
     };
-    changed = true;
+    const merged = mergeLearningEntry(existing, next);
+    if (
+      merged.status !== existing.status ||
+      merged.last_reviewed_at !== existing.last_reviewed_at
+    ) {
+      map[key] = merged;
+      changed = true;
+    }
   }
 
   if (!changed) return;

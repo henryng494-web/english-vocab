@@ -184,17 +184,15 @@ export function isReviewDue(word: string, now = Date.now()): boolean {
 
 function isDueReviewWordWithContext(
   word: string,
-  learningStatus: LearningStatus,
-  lastReviewedAt: string | null | undefined,
+  _learningStatus: LearningStatus,
+  _lastReviewedAt: string | null | undefined,
   ctx: DueReviewContext,
 ): boolean {
   if (isExcludedVocabWord(word)) return false;
   const key = word.trim().toLowerCase();
   const localEntry = ctx.local[key] ?? ctx.local[word];
-  const status = localEntry?.status ?? learningStatus;
-  if (status === "mastered") return false;
-  const tracked = Boolean(localEntry) || Boolean(lastReviewedAt);
-  if (!tracked) return false;
+  if (!localEntry) return false;
+  if (localEntry.status === "mastered") return false;
   return isReviewDueWithContext(word, ctx);
 }
 
@@ -246,6 +244,7 @@ function collectDueReviewKeys(
   for (const item of extraWords) {
     const key = item.word.trim().toLowerCase();
     if (isExcludedVocabWord(key)) continue;
+    if (!ctx.local[key] && !ctx.local[item.word.trim()]) continue;
     if (
       isDueReviewWordWithContext(
         item.word,
