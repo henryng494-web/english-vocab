@@ -429,6 +429,7 @@ export function playWordAudioInUserGesture(word: string): boolean {
 export async function playWordAudioWhenReady(
   word: string,
   timeoutMs = 450,
+  options?: { preserveBuffer?: boolean },
 ): Promise<boolean> {
   if (typeof window === "undefined") return false;
   const key = cacheKey(word);
@@ -437,8 +438,14 @@ export async function playWordAudioWhenReady(
 
   if (isWordAudioPlaying(word)) return true;
 
-  stopWordAudio();
-  preloadWordAudioElement(word, { force: true });
+  const keepBuffer =
+    options?.preserveBuffer === true && isWordAudioElementReady(word);
+  if (keepBuffer) {
+    preloadWordAudioElement(word);
+  } else {
+    stopWordAudio();
+    preloadWordAudioElement(word, { force: true });
+  }
 
   if (!isWordAudioElementReady(word)) {
     const ready = await waitForAudioElementReady(word, timeoutMs);

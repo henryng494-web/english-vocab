@@ -2,7 +2,6 @@
 
 import {
   cancelSpeech,
-  ensureWordPronunciationReady,
   preloadWordPronunciation,
   speakEnglishTextAuto,
 } from "@/lib/speak-word";
@@ -43,19 +42,17 @@ export function useAutoSpeakWord(
       hasWordAudioBlob(trimmed) || isWordAudioElementReady(trimmed);
     const settleMs = cached ? 0 : AUTO_SPEAK_SETTLE_MS;
 
-    let cancelled = false;
-    const timer = window.setTimeout(() => {
-      void (async () => {
-        if (cancelled || generation !== autoSpeakGeneration) return;
-        await ensureWordPronunciationReady(trimmed);
-        if (cancelled || generation !== autoSpeakGeneration) return;
-        speakEnglishTextAuto(trimmed);
-      })();
-    }, settleMs);
-
-    return () => {
-      cancelled = true;
-      window.clearTimeout(timer);
+    const speak = () => {
+      if (generation !== autoSpeakGeneration) return;
+      speakEnglishTextAuto(trimmed);
     };
+
+    if (settleMs === 0) {
+      const frame = window.requestAnimationFrame(speak);
+      return () => window.cancelAnimationFrame(frame);
+    }
+
+    const timer = window.setTimeout(speak, settleMs);
+    return () => window.clearTimeout(timer);
   }, [text, active]);
 }

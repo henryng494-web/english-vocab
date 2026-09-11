@@ -78,16 +78,26 @@ async function speakMp3Auto(
   requestId: number,
 ): Promise<void> {
   const key = text.toLowerCase();
-  stopWordAudio();
-  preloadWordAudioElement(text, { force: true });
-  if (!hasWordAudioBlob(text) && !isWordAudioElementReady(text)) {
+  const buffered =
+    hasWordAudioBlob(text) || isWordAudioElementReady(text);
+
+  if (!buffered) {
+    stopWordAudio();
+    preloadWordAudioElement(text, { force: true });
     await warmWordAudioBytes(text);
+  } else {
+    preloadWordAudioElement(text);
   }
   if (!stillCurrentRequest(requestId, key)) return;
-  preloadWordAudioElement(text, { force: true });
   if (isWordAudioPlaying(text)) return;
 
-  if (await playWordAudioWhenReady(text, autoSpeakWaitMs(text))) return;
+  if (
+    await playWordAudioWhenReady(text, autoSpeakWaitMs(text), {
+      preserveBuffer: buffered,
+    })
+  ) {
+    return;
+  }
   if (!stillCurrentRequest(requestId, key)) return;
   if (isWordAudioPlaying(text)) return;
 
@@ -104,7 +114,6 @@ export function speakEnglishTextAuto(text: string): void {
 
   if (isAppleWebKit() && !isSpeechUnlocked()) return;
 
-  stopWordAudio();
   const key = trimmed.toLowerCase();
   lastSpoken = { text: key, at: Date.now() };
   speakRequestId += 1;
@@ -135,18 +144,6 @@ export function cancelSpeech(): void {
 export function preloadWordPronunciation(word: string): void {
   preloadWordAudioElement(word);
   void warmWordAudioBytes(word);
-}
-
-/** Finish MP3 warm + bind shared audio before auto-play. */
-export async function ensureWordPronunciationReady(word: string): Promise<void> {
-  const trimmed = word?.trim();
-  if (!trimmed || typeof window === "undefined") return;
-
-  preloadWordAudioElement(trimmed);
-  if (!hasWordAudioBlob(trimmed) && !isWordAudioElementReady(trimmed)) {
-    await warmWordAudioBytes(trimmed);
-  }
-  preloadWordAudioElement(trimmed, { force: true });
 }
 
 /** @deprecated MP3-only app — kept for any legacy imports. */
