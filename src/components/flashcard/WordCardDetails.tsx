@@ -39,10 +39,11 @@ type WordCardDetailsProps = {
   familySwipeGraceMs?: number;
 };
 
-/** Scrollable examples — vertical pan only; do not start flip gesture here. */
-const SWIPE_BLOCK_SELECTOR = ".discover-card__examples";
-const SWIPE_MIN_PX = 56;
-const SWIPE_HORIZONTAL_RATIO = 1.25;
+const SWIPE_MIN_PX = 40;
+const SWIPE_LOCK_PX = 10;
+const SWIPE_HORIZONTAL_RATIO = 1.15;
+
+type GestureIntent = "pending" | "horizontal" | "vertical";
 
 function DetailsLoadingSkeleton() {
   return (
@@ -88,22 +89,53 @@ export function WordCardDetails({
   }).filter((item) => item.trim());
   const canFlip = rows.length > 1 || similar.length > 0;
   const [showFamily, setShowFamily] = useState(false);
-  const startX = useRef<number | null>(null);
-  const startY = useRef<number | null>(null);
-  const canFlipAtPointerDown = useRef(false);
+  const sceneRef = useRef<HTMLDivElement>(null);
+  const startX = useRef(0);
+  const startY = useRef(0);
+  const activePointer = useRef<number | null>(null);
+  const gestureIntent = useRef<GestureIntent>("pending");
   const openedAtRef = useRef(0);
 
-  function resetPointerGesture() {
-    startX.current = null;
-    startY.current = null;
-    canFlipAtPointerDown.current = false;
+  function resetGesture() {
+    activePointer.current = null;
+    gestureIntent.current = "pending";
+  }
+
+  function releaseCapture(pointerId: number) {
+    const scene = sceneRef.current;
+    if (!scene) return;
+    try {
+      if (scene.hasPointerCapture(pointerId)) {
+        scene.releasePointerCapture(pointerId);
+      }
+    } catch {
+      /* pointer already released */
+    }
   }
 
   useEffect(() => {
     setShowFamily(false);
     openedAtRef.current = Date.now();
-    resetPointerGesture();
+    resetGesture();
   }, [word]);
+
+  useEffect(() => {
+    const scene = sceneRef.current;
+    if (!scene || !canFlip) return;
+
+    const blockScrollDuringHorizontal = (event: TouchEvent) => {
+      if (gestureIntent.current === "horizontal" && event.cancelable) {
+        event.preventDefault();
+      }
+    };
+
+    scene.addEventListener("touchmove", blockScrollDuringHorizontal, {
+      passive: false,
+    });
+    return () => {
+      scene.removeEventListener("touchmove", blockScrollDuringHorizontal);
+    };
+  }, [canFlip, word]);
 
   if (loading) {
     return <DetailsLoadingSkeleton />;
@@ -112,46 +144,71 @@ export function WordCardDetails({
   return (
     <div className="card-details card-details--compact">
       <div
+        ref={sceneRef}
         className="card-details__scene"
-        onPointerDown={(event) => {
-          if (!canFlip) {
-            resetPointerGesture();
-            return;
-          }
-          if (
-            event.target instanceof Element &&
-            event.target.closest(SWIPE_BLOCK_SELECTOR)
-          ) {
-            resetPointerGesture();
-            return;
-          }
+        onPointerDownCapture={(event) => {
+          if (!canFlip || event.pointerType === "mouse") return;
+          activePointer.current = event.pointerId;
+          gestureIntent.current = "pending";
           startX.current = event.clientX;
           startY.current = event.clientY;
-          canFlipAtPointerDown.current = true;
+          try {
+            event.currentTarget.setPointerCapture(event.pointerId);
+          } catch {
+            /* ignore */
+          }
         }}
-        onPointerUp={(event) => {
+        onPointerMoveCapture={(event) => {
+          if (activePointer.current !== event.pointerId) return;
+          if (gestureIntent.current !== "pending") return;
+
+          const deltaX = event.clientX - startX.current;
+          const deltaY = event.clientY - startY.current;
+          if (Math.hypot(deltaX, deltaY) < SWIPE_LOCK_PX) return;
+
+          if (
+            Math.abs(deltaX) >= SWIPE_LOCK_PX &&
+            Math.abs(deltaX) > Math.abs(deltaY) * SWIPE_HORIZONTAL_RATIO
+          ) {
+            gestureIntent.current = "horizontal";
+            if (event.cancelable) event.preventDefault();
+            return;
+          }
+
+          if (
+            Math.abs(deltaY) >= SWIPE_LOCK_PX &&
+            Math.abs(deltaY) > Math.abs(deltaX)
+          ) {
+            gestureIntent.current = "vertical";
+            releaseCapture(event.pointerId);
+            resetGesture();
+          }
+        }}
+        onPointerUpCapture={(event) => {
+          if (activePointer.current !== event.pointerId) return;
+
           const withinGrace =
             familySwipeGraceMs > 0 &&
             Date.now() - openedAtRef.current < familySwipeGraceMs;
-          if (
-            startX.current == null ||
-            startY.current == null ||
-            !canFlipAtPointerDown.current ||
-            withinGrace
-          ) {
-            resetPointerGesture();
-            return;
-          }
+
           const deltaX = event.clientX - startX.current;
           const deltaY = event.clientY - startY.current;
-          resetPointerGesture();
+          const intent = gestureIntent.current;
+          releaseCapture(event.pointerId);
+          resetGesture();
+
+          if (withinGrace || intent !== "horizontal") return;
           if (Math.abs(deltaX) < SWIPE_MIN_PX) return;
           if (Math.abs(deltaX) <= Math.abs(deltaY) * SWIPE_HORIZONTAL_RATIO) {
             return;
           }
           setShowFamily(deltaX < 0);
         }}
-        onPointerCancel={resetPointerGesture}
+        onPointerCancelCapture={(event) => {
+          if (activePointer.current !== event.pointerId) return;
+          releaseCapture(event.pointerId);
+          resetGesture();
+        }}
       >
         <div className={`card-details__flip${showFamily ? " is-family" : ""}`}>
           <div className="card-details__face card-details__face--meaning">

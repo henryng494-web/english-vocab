@@ -574,7 +574,6 @@ body {
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
-  touch-action: pan-y;
   padding-bottom: 0.2rem;
 }
 
