@@ -78,7 +78,9 @@ const INITIAL_REVIEW_STATE: ReviewSessionState = {
 
 export function useReviewSession() {
   const enrichGenRef = useRef(0);
-  const [state, setState] = useState<ReviewSessionState>(INITIAL_REVIEW_STATE);
+  const [state, setState] = useState<ReviewSessionState>(() =>
+    typeof window === "undefined" ? INITIAL_REVIEW_STATE : readInstantReviewState(),
+  );
 
   const apply = useCallback(
     (
