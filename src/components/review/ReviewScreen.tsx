@@ -528,16 +528,16 @@ export function ReviewScreen() {
         );
         if (resumeIndex >= 0) {
           const resumeKey = inProgress.word.trim();
-          const [resumeWord] = await Promise.all([
-            ensureReviewWordClue(sessionQueue[resumeIndex]!),
-            warmWordAudioBytes(resumeKey),
-          ]);
+          const resumeSlot = sessionQueue[resumeIndex]!;
           preloadWordAudioElement(resumeKey);
-          if (resumeWord !== sessionQueue[resumeIndex]) {
-            patchWordFields((item) =>
-              item.word === resumeWord.word ? resumeWord : item,
-            );
-          }
+          void warmWordAudioBytes(resumeKey);
+          void ensureReviewWordClue(resumeSlot).then((resumeWord) => {
+            if (resumeWord !== resumeSlot) {
+              patchWordFields((item) =>
+                item.word === resumeWord.word ? resumeWord : item,
+              );
+            }
+          });
           setIndex(resumeIndex);
           setSessionStep(resumeIndex);
           const resumeGrade =
@@ -566,14 +566,10 @@ export function ReviewScreen() {
         }
       }
 
-      const [firstReady] = await Promise.all([
-        ensureReviewWordClue(first),
-        warmWordAudioBytes(firstWord),
-      ]);
-      preloadWordAudioElement(firstReady.word.trim());
-      if (firstReady !== first) {
+      const firstLocal = hydrateReviewWordLocal(first);
+      if (firstLocal !== first) {
         patchWordFields((item) =>
-          item.word === firstReady.word ? firstReady : item,
+          item.word === firstLocal.word ? firstLocal : item,
         );
       }
 
@@ -583,13 +579,37 @@ export function ReviewScreen() {
         queueRef.current.find(
           (item) =>
             item.word.trim().toLowerCase() ===
-            firstReady.word.trim().toLowerCase(),
-        ) ?? firstReady;
+            firstLocal.word.trim().toLowerCase(),
+        ) ?? firstLocal;
 
       setIndex(0);
       setSessionStep(0);
       startQuestion(latestFirst, activePool, 0);
       setSessionReady(true);
+
+      void ensureReviewWordClue(first).then((firstReady) => {
+        preloadWordAudioElement(firstReady.word.trim());
+        if (firstReady === first || firstReady === firstLocal) return;
+        patchWordFields((item) =>
+          item.word === firstReady.word ? firstReady : item,
+        );
+        const promptKey = firstReady.word.trim().toLowerCase();
+        if (
+          indexRef.current !== 0 ||
+          phaseRef.current !== "question" ||
+          lockedRef.current ||
+          activeQuestionRef.current?.word.trim().toLowerCase() !== promptKey
+        ) {
+          return;
+        }
+        const poolNow =
+          allWordsRef.current.length > 0 ? allWordsRef.current : pool;
+        const latest =
+          queueRef.current.find(
+            (item) => item.word.trim().toLowerCase() === promptKey,
+          ) ?? firstReady;
+        startQuestion(latest, poolNow, 0, 0);
+      });
 
       void refreshAllStaleWordImages(
         pool.map((word) => ({
