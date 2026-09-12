@@ -10,7 +10,12 @@ import {
 } from "@/components/discover/VocabWordCard";
 import { ReviewSenseQuestion } from "@/components/review/ReviewSenseQuestion";
 import { JungleMascot } from "@/components/mascot/JungleMascot";
-import { incrementTodayReviewsCompleted } from "@/lib/daily-reviews";
+import {
+  getTodayReviewsCompletedSnapshot,
+  incrementTodayReviewsCompleted,
+  subscribeTodayReviewsCompleted,
+} from "@/lib/daily-reviews";
+import { getDailyReviewPlan } from "@/lib/daily-goal";
 import { writeLocalLearning } from "@/lib/learning-storage";
 import { syncStreak } from "@/lib/streak";
 import {
@@ -82,7 +87,7 @@ import {
 } from "@/lib/daily-session";
 import { DailySessionProgressBanner } from "@/components/study/DailySessionSummary";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 
 type Phase = "question" | "reveal";
 
@@ -195,7 +200,7 @@ export function ReviewScreen() {
     if (queue.length === 0) return;
     if (reviewInitialCountRef.current === 0) {
       reviewInitialCountRef.current = queue.length;
-      setDailySessionReviewPlanned(queue.length);
+      setDailySessionReviewPlanned(getDailyReviewPlan());
     }
   }, [isDailySession, queue.length]);
 
@@ -205,7 +210,7 @@ export function ReviewScreen() {
     if (queue.length > 0 || !sessionDone) return;
     if (dailyRedirectRef.current) return;
     dailyRedirectRef.current = true;
-    finishReviewPhase(reviewInitialCountRef.current);
+    finishReviewPhase(getTodayReviewsCompletedSnapshot());
     router.replace("/journey?daily=1");
   }, [isDailySession, loading, queue.length, sessionDone, router]);
 
@@ -1095,12 +1100,23 @@ export function ReviewScreen() {
     }
   }
 
+  const todayReviewsCompleted = useSyncExternalStore(
+    subscribeTodayReviewsCompleted,
+    getTodayReviewsCompletedSnapshot,
+    () => 0,
+  );
+  const dailyReviewPlan = getDailyReviewPlan();
+
   const showSpinner = (loading && queue.length === 0) || (queue.length > 0 && !sessionReady);
   const syncMismatch =
     !showSpinner && queue.length === 0 && dueCount > 0;
   const allCaughtUp = !showSpinner && queue.length === 0 && dueCount === 0;
   const displayError = error ?? loadError;
   const inSession = Boolean(currentWord) && queue.length > 0 && sessionReady;
+  const reviewPlanCurrent = Math.min(
+    inSession ? todayReviewsCompleted + 1 : todayReviewsCompleted,
+    dailyReviewPlan,
+  );
 
   return (
     <div className={`app-screen${inSession ? " app-screen--journey" : " app-screen--home"}`}>
@@ -1108,8 +1124,8 @@ export function ReviewScreen() {
         title={
           inSession
             ? t("review.sessionTitle", {
-                current: sessionStep + 1,
-                total: reviewInitialCountRef.current || queue.length,
+                current: reviewPlanCurrent,
+                total: dailyReviewPlan,
               })
             : t("review.title")
         }
@@ -1126,8 +1142,8 @@ export function ReviewScreen() {
             phase="review"
             newCompleted={0}
             newTarget={dailySession.newWordsTarget}
-            reviewCompleted={Math.min(index + 1, reviewInitialCountRef.current || queue.length)}
-            reviewPlanned={reviewInitialCountRef.current || dailySession.reviewsPlanned}
+            reviewCompleted={reviewPlanCurrent}
+            reviewPlanned={dailyReviewPlan}
           />
         </div>
       ) : null}

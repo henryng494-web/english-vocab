@@ -1,4 +1,4 @@
-import { getDailyGoalTarget } from "@/lib/daily-goal";
+import { getDailyGoalTarget, getDailyReviewPlan } from "@/lib/daily-goal";
 import { localDateKey } from "@/lib/local-date";
 
 const STORAGE_KEY = "english-vocab-daily-session-v1";
@@ -22,7 +22,7 @@ function defaultSession(reviewsDue: number): DailySession {
     active: true,
     phase: hasReview ? "review" : "journey",
     reviewsCompleted: 0,
-    reviewsPlanned: hasReview ? reviewsDue : 0,
+    reviewsPlanned: hasReview ? getDailyReviewPlan() : 0,
     newWordsCompleted: 0,
     newWordsTarget: getDailyGoalTarget(),
   };
