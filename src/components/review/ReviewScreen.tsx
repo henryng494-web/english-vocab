@@ -40,7 +40,6 @@ import { hasQualityExamples } from "@/lib/example-quality";
 import { parseExamples } from "@/lib/parse-examples";
 import {
   getReviewSchedule,
-  REVIEW_INTERVALS,
   writeReviewScheduleEntry,
   type ReviewIntervalDays,
   type ReviewScheduleEntry,
@@ -94,36 +93,6 @@ type Phase = "question" | "reveal";
 const REVEAL_DELAY_MS = 850;
 const REVIEW_PREFETCH_AHEAD = 6;
 const REVIEW_WARM_COUNT = 20;
-
-function patchImageUpdates(
-  updates: Record<string, string>,
-): {
-  patchWord: (item: VocabWord) => VocabWord;
-  patchChoice: (choice: ReviewChoice) => ReviewChoice;
-} {
-  const patchWord = (item: VocabWord) => {
-    const key = item.word.trim().toLowerCase();
-    return updates[key] ? { ...item, image_url: updates[key] } : item;
-  };
-  const patchChoice = (choice: ReviewChoice) => {
-    const key = choice.word.trim().toLowerCase();
-    return updates[key] ? { ...choice, imageUrl: updates[key] } : choice;
-  };
-  return { patchWord, patchChoice };
-}
-
-function applyImageUpdatesToState(
-  updates: Record<string, string>,
-  setAllWords: (value: VocabWord[] | ((prev: VocabWord[]) => VocabWord[])) => void,
-  setQueue: (value: VocabWord[] | ((prev: VocabWord[]) => VocabWord[])) => void,
-  setChoices: (value: ReviewChoice[] | ((prev: ReviewChoice[]) => ReviewChoice[])) => void,
-) {
-  if (Object.keys(updates).length === 0) return;
-  const { patchWord, patchChoice } = patchImageUpdates(updates);
-  setAllWords((prev) => prev.map(patchWord));
-  setQueue((prev) => prev.map(patchWord));
-  setChoices((prev) => prev.map(patchChoice));
-}
 
 export function ReviewScreen() {
   const { t } = useI18n();
@@ -390,28 +359,32 @@ export function ReviewScreen() {
         meaning: choice.meaning,
       }));
       preloadReviewImageBatch(senseTargets);
-      void prefetchReviewImages(senseTargets).then((updates) => {
-        if (Object.keys(updates).length === 0) return;
-        patchWordFields((item) => {
-          const key = item.word.trim().toLowerCase();
-          return updates[key] ? { ...item, image_url: updates[key] } : item;
-        });
-        setChoices((prev) =>
-          prev.map((choice) => {
-            const key = choice.word.trim().toLowerCase();
-            return updates[key] ? { ...choice, imageUrl: updates[key] } : choice;
-          }),
-        );
-      });
+      void prefetchReviewImages(senseTargets)
+        .then((updates) => {
+          if (Object.keys(updates).length === 0) return;
+          patchWordFields((item) => {
+            const key = item.word.trim().toLowerCase();
+            return updates[key] ? { ...item, image_url: updates[key] } : item;
+          });
+          setChoices((prev) =>
+            prev.map((choice) => {
+              const key = choice.word.trim().toLowerCase();
+              return updates[key] ? { ...choice, imageUrl: updates[key] } : choice;
+            }),
+          );
+        })
+        .catch(() => {});
     } else {
       preloadReviewImageBatch(targets);
-      void prefetchReviewImages(targets).then((updates) => {
-        if (Object.keys(updates).length === 0) return;
-        patchWordFields((item) => {
-          const key = item.word.trim().toLowerCase();
-          return updates[key] ? { ...item, image_url: updates[key] } : item;
-        });
-      });
+      void prefetchReviewImages(targets)
+        .then((updates) => {
+          if (Object.keys(updates).length === 0) return;
+          patchWordFields((item) => {
+            const key = item.word.trim().toLowerCase();
+            return updates[key] ? { ...item, image_url: updates[key] } : item;
+          });
+        })
+        .catch(() => {});
     }
 
     prefetchQuestionsAhead(queueIndex ?? indexRef.current, questionIndex);
@@ -495,13 +468,15 @@ export function ReviewScreen() {
       preloadWordAudioElement(firstWord);
       void warmWordAudioBytes(firstWord);
       const { targets } = collectReviewQuestionImageTargets(first, pool, 0);
-      void prefetchReviewImages(targets).then((updates) => {
-        if (Object.keys(updates).length === 0) return;
-        patchWordFields((item) => {
-          const key = item.word.trim().toLowerCase();
-          return updates[key] ? { ...item, image_url: updates[key] } : item;
-        });
-      });
+      void prefetchReviewImages(targets)
+        .then((updates) => {
+          if (Object.keys(updates).length === 0) return;
+          patchWordFields((item) => {
+            const key = item.word.trim().toLowerCase();
+            return updates[key] ? { ...item, image_url: updates[key] } : item;
+          });
+        })
+        .catch(() => {});
 
       void prefetchReviewClues(sessionQueue, 0, 16).then((clueUpdates) => {
         if (Object.keys(clueUpdates).length === 0) return;
@@ -522,7 +497,7 @@ export function ReviewScreen() {
             image_url: patch.image_url ?? item.image_url,
           };
         });
-      });
+      }).catch(() => {});
 
       const inProgress = readReviewSessionSnapshot()?.inProgress;
       if (inProgress) {
@@ -536,13 +511,15 @@ export function ReviewScreen() {
           const resumeSlot = sessionQueue[resumeIndex]!;
           preloadWordAudioElement(resumeKey);
           void warmWordAudioBytes(resumeKey);
-          void ensureReviewWordClue(resumeSlot).then((resumeWord) => {
-            if (resumeWord !== resumeSlot) {
-              patchWordFields((item) =>
-                item.word === resumeWord.word ? resumeWord : item,
-              );
-            }
-          });
+          void ensureReviewWordClue(resumeSlot)
+            .then((resumeWord) => {
+              if (resumeWord !== resumeSlot) {
+                patchWordFields((item) =>
+                  item.word === resumeWord.word ? resumeWord : item,
+                );
+              }
+            })
+            .catch(() => {});
           setIndex(resumeIndex);
           setSessionStep(resumeIndex);
           const resumeGrade =
@@ -614,7 +591,7 @@ export function ReviewScreen() {
             (item) => item.word.trim().toLowerCase() === promptKey,
           ) ?? firstReady;
         startQuestion(latest, poolNow, 0, 0);
-      });
+      }).catch(() => {});
 
       void refreshAllStaleWordImages(
         pool.map((word) => ({
@@ -631,13 +608,11 @@ export function ReviewScreen() {
           const key = item.word.trim().toLowerCase();
           return updates[key] ? { ...item, image_url: updates[key] } : item;
         });
-      });
+      }).catch(() => {});
     },
     [
       patchWordFields,
       prefetchQuestionsAhead,
-      setAllWords,
-      setQueue,
       startQuestion,
       warmReviewImages,
     ],
@@ -814,7 +789,7 @@ export function ReviewScreen() {
             word.word === currentWord.word ? { ...word, ...patch } : word,
           ),
         );
-      });
+      }).catch(() => {});
       return () => {
         cancelled = true;
       };

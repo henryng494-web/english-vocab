@@ -3,15 +3,23 @@
 import { createClient } from "@/lib/supabase/client";
 import { displayFontClass } from "@/lib/fonts";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const mountedRef = useRef(true);
 
   const supabase = createClient();
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
   async function handleSignIn(e: React.FormEvent) {
     e.preventDefault();
@@ -23,12 +31,13 @@ export default function LoginPage() {
       password,
     });
 
+    if (!mountedRef.current) return;
     if (error) {
       setMessage(error.message);
-    } else {
-      window.location.href = "/discover";
+      setLoading(false);
+      return;
     }
-    setLoading(false);
+    window.location.href = "/discover";
   }
 
   async function handleSignUp(e: React.FormEvent) {
@@ -44,6 +53,7 @@ export default function LoginPage() {
       },
     });
 
+    if (!mountedRef.current) return;
     if (error) {
       setMessage(error.message);
     } else {

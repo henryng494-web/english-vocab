@@ -56,6 +56,7 @@ import {
   getMaxNewWordsPerDay,
   getTodayWordsLearned,
   incrementTodayWordsLearned,
+  setTodayWordsLearned,
 } from "@/lib/daily-goal";
 import { canLearnNewWordTodayWithReviewBonus } from "@/lib/review-srs";
 import { getTodayStudyMinutes } from "@/lib/study-time";
@@ -63,6 +64,8 @@ import { readAppSettings } from "@/lib/app-settings";
 import {
   countLearningWords,
   countMasteredWords,
+  readLocalLearning,
+  restoreLocalLearningEntry,
   writeLocalLearning,
 } from "@/lib/learning-storage";
 import { seedWordImageCacheFromEntries } from "@/lib/word-image-cache";
@@ -70,7 +73,6 @@ import { prefetchCardContent } from "@/lib/card-content-prefetch";
 import { readOnboarding, shouldShowOnboarding } from "@/lib/onboarding";
 import { useSyncExternalStore } from "react";
 import {
-  getCachedLearningSummary,
   getReviewDueCount,
   getTotalDueReviewCount,
   subscribeReviewDueCount,
@@ -80,8 +82,9 @@ import { useI18n } from "@/hooks/use-i18n";
 import {
   readDailySession,
   recordDailyNewWord,
+  restoreDailySession,
+  type DailySession,
 } from "@/lib/daily-session";
-import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
@@ -149,6 +152,9 @@ export default function DiscoverPage() {
   );
   const [showOnboarding, setShowOnboarding] = useState(false);
   const inflightSaves = useRef(new Set<string>());
+  const saveCounterRef = useRef(0);
+  const lastCompletedSaveRef = useRef(0);
+  const rangeFetchGenRef = useRef(0);
   const onboardingChecked = useRef(false);
 
   useEffect(() => {
@@ -402,21 +408,26 @@ export default function DiscoverPage() {
   );
 
   const fetchRange = useCallback(async () => {
+    const fetchGen = ++rangeFetchGenRef.current;
     setLoadingList(true);
     setError(null);
     inflight.current.clear();
     try {
       const { words: filtered, stats: nextStats } =
         await fetchDiscoverRange(rangeId);
+      if (fetchGen !== rangeFetchGenRef.current) return;
       setQueue(filtered);
       setCurrentIndex(0);
       setStats(nextStats);
     } catch (err) {
+      if (fetchGen !== rangeFetchGenRef.current) return;
       setError(err instanceof Error ? err.message : "Failed to load data");
       setQueue([]);
       setCurrentWord(null);
     } finally {
-      setLoadingList(false);
+      if (fetchGen === rangeFetchGenRef.current) {
+        setLoadingList(false);
+      }
     }
   }, [rangeId]);
 
@@ -509,7 +520,7 @@ export default function DiscoverPage() {
 
     applyWordToView(currentItem, { fetchIfNeeded: true });
     preloadWords(currentIndex, queue);
-  }, [currentItem, currentIndex, queue, applyWordToView, preloadWords]);
+  }, [currentItem?.word, currentIndex, queue, applyWordToView, preloadWords]);
 
   function queueWithoutItem(
     items: DiscoverListItem[],
@@ -588,6 +599,7 @@ export default function DiscoverPage() {
     const word = currentItem.word.trim().toLowerCase();
     if (!word || inflightSaves.current.has(word)) return;
 
+    const saveId = ++saveCounterRef.current;
     const snapshot = {
       queue,
       currentIndex,
@@ -595,6 +607,9 @@ export default function DiscoverPage() {
       todayLearned: getTodayWordsLearned(),
       wordsKnown: countMasteredWords(),
       wordsReviewing: countLearningWords(),
+      prevLearning: readLocalLearning()[word] ?? null,
+      prevDailySession: readDailySession() as DailySession | null,
+      dailyReached: false,
     };
 
     inflightSaves.current.add(word);
@@ -609,9 +624,7 @@ export default function DiscoverPage() {
       syncStreak();
       if (isDailyJourney) {
         const result = recordDailyNewWord();
-        if (result.reached) {
-          router.push("/discover");
-        }
+        snapshot.dailyReached = result.reached;
       }
     }
     setWordsKnown(countMasteredWords());
@@ -647,8 +660,12 @@ export default function DiscoverPage() {
         if (!statusRes.ok) {
           const statusData = await statusRes.json();
           if (statusData.local_only) {
+            lastCompletedSaveRef.current = saveId;
             setWordsKnown(countMasteredWords());
             setWordsReviewing(countLearningWords());
+            if (snapshot.dailyReached && isDailyJourney) {
+              router.push("/discover");
+            }
             return;
           }
           throw new Error(
@@ -657,9 +674,19 @@ export default function DiscoverPage() {
               "Failed to update word status",
           );
         }
+        lastCompletedSaveRef.current = saveId;
         setWordsKnown(countMasteredWords());
         setWordsReviewing(countLearningWords());
+        if (snapshot.dailyReached && isDailyJourney) {
+          router.push("/discover");
+        }
       } catch (err) {
+        if (saveId < lastCompletedSaveRef.current) return;
+        restoreLocalLearningEntry(saveWord, snapshot.prevLearning);
+        restoreDailySession(snapshot.prevDailySession);
+        if (status === "new") {
+          setTodayWordsLearned(snapshot.todayLearned);
+        }
         setQueue(snapshot.queue);
         setCurrentIndex(snapshot.currentIndex);
         setStats(snapshot.stats);

@@ -90,6 +90,11 @@ export function setDailySessionReviewPlanned(count: number): void {
   write({ ...session, reviewsPlanned: Math.max(0, count) });
 }
 
+/** Restore daily session after a failed optimistic Journey save. */
+export function restoreDailySession(session: DailySession | null): void {
+  write(session);
+}
+
 export function finishReviewPhase(completed: number): DailySession | null {
   const session = readRaw();
   if (!session || session.phase !== "review") return session;

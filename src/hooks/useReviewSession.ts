@@ -78,9 +78,8 @@ const INITIAL_REVIEW_STATE: ReviewSessionState = {
 
 export function useReviewSession() {
   const enrichGenRef = useRef(0);
-  const [state, setState] = useState<ReviewSessionState>(() =>
-    typeof window === "undefined" ? INITIAL_REVIEW_STATE : readInstantReviewState(),
-  );
+  const mountedRef = useRef(true);
+  const [state, setState] = useState<ReviewSessionState>(INITIAL_REVIEW_STATE);
 
   const apply = useCallback(
     (
@@ -137,6 +136,8 @@ export function useReviewSession() {
   );
 
   const reload = useCallback(async () => {
+    if (!mountedRef.current) return;
+
     const instant = resolveReviewSession(getCachedLearningSummary());
     const instantQueue = instant.queue.map(hydrateReviewWordLocal);
     if (instantQueue.length > 0) {
@@ -153,7 +154,7 @@ export function useReviewSession() {
           enriching: true,
           dueReady: cached.dueReady,
         });
-      } else {
+      } else if (mountedRef.current) {
         setState((prev) => ({ ...prev, loading: true, error: null }));
       }
     }
@@ -169,6 +170,8 @@ export function useReviewSession() {
           : Promise.resolve<{ dueCount: number; queue: VocabWord[]; pool: VocabWord[] } | null>(null);
 
       await summaryPromise;
+      if (!mountedRef.current || enrichGenRef.current !== enrichGen) return;
+
       const summary = getCachedLearningSummary();
       const sync = resolveReviewSession(summary);
       const syncQueue = sync.queue.map(hydrateReviewWordLocal);
@@ -182,7 +185,7 @@ export function useReviewSession() {
       }
 
       const dueEnriched = await dueEnrichedPromise;
-      if (enrichGenRef.current !== enrichGen) return;
+      if (!mountedRef.current || enrichGenRef.current !== enrichGen) return;
 
       const baseQueue =
         dueEnriched?.queue.length
@@ -210,7 +213,7 @@ export function useReviewSession() {
       }
 
       const enriched = await enrichReviewSession(summary, baseQueue);
-      if (enrichGenRef.current !== enrichGen) return;
+      if (!mountedRef.current || enrichGenRef.current !== enrichGen) return;
 
       apply(enriched.dueCount || sync.dueCount, enriched.queue, enriched.pool, null, {
         loading: false,
@@ -219,7 +222,7 @@ export function useReviewSession() {
         mergeQueue: true,
       });
     } catch (err) {
-      if (enrichGenRef.current !== enrichGen) return;
+      if (!mountedRef.current || enrichGenRef.current !== enrichGen) return;
       const fallback = resolveReviewSession(getCachedLearningSummary());
       const fallbackQueue = fallback.queue.map(hydrateReviewWordLocal);
       apply(
@@ -241,7 +244,15 @@ export function useReviewSession() {
   }, [apply]);
 
   useEffect(() => {
+    mountedRef.current = true;
+    const instant = readInstantReviewState();
+    if (instant.queue.length > 0) {
+      setState(instant);
+    }
     void reload();
+    return () => {
+      mountedRef.current = false;
+    };
   }, [reload]);
 
   const patchQueue = useCallback((queue: VocabWord[]) => {

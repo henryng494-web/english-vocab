@@ -10,11 +10,24 @@ import {
 let cachedSummary: LearningSummaryRow[] | null = null;
 let summaryFetch: Promise<LearningSummaryRow[]> | null = null;
 const listeners = new Set<() => void>();
+let globalListenersBound = false;
 
 function emit() {
   for (const listener of listeners) {
     listener();
   }
+}
+
+function bindGlobalListeners(): void {
+  if (globalListenersBound || typeof window === "undefined") return;
+  globalListenersBound = true;
+  const onChange = () => {
+    emit();
+    void refreshReviewDueSummary();
+  };
+  window.addEventListener("vocab-learning-changed", onChange);
+  window.addEventListener("daily-reviews-changed", onChange);
+  window.addEventListener("app-settings-changed", onChange);
 }
 
 export function getReviewDueCount(): number {
@@ -39,27 +52,13 @@ export function seedCachedLearningSummary(rows: LearningSummaryRow[]): void {
 }
 
 export function subscribeReviewDueCount(listener: () => void): () => void {
+  bindGlobalListeners();
   listeners.add(listener);
-
-  const onChange = () => {
-    emit();
-    void refreshReviewDueSummary();
-  };
-
-  if (typeof window !== "undefined") {
-    window.addEventListener("vocab-learning-changed", onChange);
-    window.addEventListener("daily-reviews-changed", onChange);
-    window.addEventListener("app-settings-changed", onChange);
+  if (listeners.size === 1) {
     void refreshReviewDueSummary();
   }
-
   return () => {
     listeners.delete(listener);
-    if (typeof window !== "undefined") {
-      window.removeEventListener("vocab-learning-changed", onChange);
-      window.removeEventListener("daily-reviews-changed", onChange);
-      window.removeEventListener("app-settings-changed", onChange);
-    }
   };
 }
 

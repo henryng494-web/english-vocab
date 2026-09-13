@@ -143,11 +143,17 @@ export function getWeeklyMetCountSnapshot(): number {
   return next;
 }
 
-export function subscribeWeeklyStreak(onStoreChange: () => void): () => void {
-  if (typeof window === "undefined") return () => {};
+const weeklyListeners = new Set<() => void>();
+let weeklyGlobalListenersBound = false;
+
+function bindWeeklyGlobalListeners(): void {
+  if (weeklyGlobalListenersBound || typeof window === "undefined") return;
+  weeklyGlobalListenersBound = true;
   const handler = () => {
     invalidateWeeklyCache();
-    onStoreChange();
+    for (const listener of weeklyListeners) {
+      listener();
+    }
   };
   window.addEventListener("weekly-streak-changed", handler);
   window.addEventListener("streak-changed", handler);
@@ -156,13 +162,13 @@ export function subscribeWeeklyStreak(onStoreChange: () => void): () => void {
   window.addEventListener("daily-words-changed", handler);
   window.addEventListener("daily-reviews-changed", handler);
   window.addEventListener("focus", handler);
+}
+
+export function subscribeWeeklyStreak(onStoreChange: () => void): () => void {
+  if (typeof window === "undefined") return () => {};
+  bindWeeklyGlobalListeners();
+  weeklyListeners.add(onStoreChange);
   return () => {
-    window.removeEventListener("weekly-streak-changed", handler);
-    window.removeEventListener("streak-changed", handler);
-    window.removeEventListener("app-settings-changed", handler);
-    window.removeEventListener("study-time-changed", handler);
-    window.removeEventListener("daily-words-changed", handler);
-    window.removeEventListener("daily-reviews-changed", handler);
-    window.removeEventListener("focus", handler);
+    weeklyListeners.delete(onStoreChange);
   };
 }

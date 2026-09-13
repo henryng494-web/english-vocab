@@ -90,6 +90,14 @@ export function incrementTodayWordsLearned(): number {
   return next.count;
 }
 
+export function setTodayWordsLearned(count: number): number {
+  if (typeof window === "undefined") return 0;
+  const next = { date: localDateKey(), count: Math.max(0, count) };
+  localStorage.setItem(DAILY_GOAL_KEY, JSON.stringify(next));
+  window.dispatchEvent(new CustomEvent("daily-words-changed", { detail: next }));
+  return next.count;
+}
+
 export function countWordsLearned(): number {
   return countLearningWords();
 }
