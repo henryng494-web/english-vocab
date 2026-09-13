@@ -544,12 +544,25 @@ body {
   flex: 1 1 0;
   min-height: 0;
   overflow: hidden;
+  perspective: none;
 }
 
+/* Compact: display swap (no 3D rotate) — avoids iOS scroll/backface glitches */
 .card-details--compact .card-details__flip {
+  display: grid;
   flex: 1 1 0;
   min-height: 0;
   height: auto;
+  transform: none;
+  transition: none;
+}
+
+.card-details--compact .card-details__face {
+  grid-area: 1 / 1;
+  position: relative;
+  inset: auto;
+  backface-visibility: visible;
+  -webkit-backface-visibility: visible;
 }
 
 .card-details--compact .card-details__face--meaning {
@@ -559,10 +572,24 @@ body {
 }
 
 .card-details--compact .card-details__face--family {
+  display: none;
+  transform: none;
   overflow-x: hidden;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
+}
+
+.card-details--compact .card-details__flip.is-family {
+  transform: none;
+}
+
+.card-details--compact .card-details__flip.is-family .card-details__face--meaning {
+  display: none;
+}
+
+.card-details--compact .card-details__flip.is-family .card-details__face--family {
+  display: grid;
 }
 
 .discover-card__examples {

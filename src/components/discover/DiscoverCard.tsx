@@ -111,6 +111,7 @@ export function DiscoverCard({
         />
 
         <WordCardDetails
+          key={data.word.trim().toLowerCase()}
           word={data.word}
           examples={data.examples}
           wordType={data.word_type}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { VocabExampleList } from "@/components/flashcard/VocabExampleList";
 import { WordLearningChunks } from "@/components/flashcard/WordLearningChunks";
 import { useI18n } from "@/hooks/use-i18n";
@@ -100,10 +100,15 @@ export function WordCardDetails({
   }).filter((item) => item.trim());
   const canFlip = rows.length > 1 || similar.length > 0;
   const [showFamily, setShowFamily] = useState(false);
+  const hintTapStartRef = useRef<{ x: number; y: number } | null>(null);
 
   useEffect(() => {
     setShowFamily(false);
   }, [word]);
+
+  useEffect(() => {
+    if (!canFlip) setShowFamily(false);
+  }, [canFlip]);
 
   if (loading) {
     return <DetailsLoadingSkeleton />;
@@ -112,6 +117,24 @@ export function WordCardDetails({
   function toggle() {
     if (!canFlip) return;
     setShowFamily((current) => !current);
+  }
+
+  function handleHintPointerDown(event: React.PointerEvent<HTMLButtonElement>) {
+    hintTapStartRef.current = { x: event.clientX, y: event.clientY };
+  }
+
+  function handleHintPointerUp(event: React.PointerEvent<HTMLButtonElement>) {
+    const start = hintTapStartRef.current;
+    hintTapStartRef.current = null;
+    if (!start || !canFlip) return;
+    if (Math.hypot(event.clientX - start.x, event.clientY - start.y) > 10) {
+      return;
+    }
+    toggle();
+  }
+
+  function handleHintPointerCancel() {
+    hintTapStartRef.current = null;
   }
 
   return (
@@ -191,7 +214,9 @@ export function WordCardDetails({
         <button
           type="button"
           className="card-details__hint"
-          onClick={toggle}
+          onPointerDown={handleHintPointerDown}
+          onPointerUp={handleHintPointerUp}
+          onPointerCancel={handleHintPointerCancel}
           aria-label={showFamily ? t("card.showExamples") : t("card.showFamily")}
         >
           {showFamily ? <CardHintArrow direction="left" /> : null}
