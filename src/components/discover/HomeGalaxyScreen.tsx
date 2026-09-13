@@ -180,7 +180,6 @@ function WeekDayCell({
         ) : (
           <span className="home-galaxy-weekday__points">{bubbleLabel}</span>
         )}
-        {day.met ? <span className="home-galaxy-weekday__check" aria-hidden>✓</span> : null}
       </div>
       <span className="home-galaxy-weekday__name">{weekdayLabel}</span>
       <span className="home-galaxy-weekday__date">{day.shortLabel}</span>

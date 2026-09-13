@@ -2590,20 +2590,6 @@ body {
   background: #f8fafc;
 }
 
-.home-galaxy-weekday__check {
-  position: absolute;
-  top: -0.1875rem;
-  right: -0.1875rem;
-  width: 0.875rem;
-  height: 0.875rem;
-  border-radius: 9999px;
-  background: #22c55e;
-  color: #fff;
-  font-size: 0.5rem;
-  line-height: 0.875rem;
-  text-align: center;
-}
-
 .home-galaxy-weekday__name {
   font-size: 0.5625rem;
   font-weight: 700;
