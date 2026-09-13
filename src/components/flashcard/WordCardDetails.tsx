@@ -35,6 +35,8 @@ type WordCardDetailsProps = {
   family?: WordFamilyMember[] | null;
   similarWords?: string[] | null;
   loading?: boolean;
+  /** Off on review reveal — examples/chunks only; Family is Journey-only. */
+  enableFamilyFlip?: boolean;
 };
 
 function CardHintArrow({ direction }: { direction: "left" | "right" }) {
@@ -79,6 +81,7 @@ export function WordCardDetails({
   family,
   similarWords,
   loading = false,
+  enableFamilyFlip = true,
 }: WordCardDetailsProps) {
   const { t } = useI18n();
   const chunkEntry = useMemo(
@@ -98,9 +101,11 @@ export function WordCardDetails({
     meaning,
     englishDefinition,
   }).filter((item) => item.trim());
-  const canFlip = rows.length > 1 || similar.length > 0;
+  const canFlip =
+    enableFamilyFlip && (rows.length > 1 || similar.length > 0);
   const [showFamily, setShowFamily] = useState(false);
-  const hintTapStartRef = useRef<{ x: number; y: number } | null>(null);
+  const examplesScrollingRef = useRef(false);
+  const scrollIdleTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     setShowFamily(false);
@@ -109,6 +114,26 @@ export function WordCardDetails({
   useEffect(() => {
     if (!canFlip) setShowFamily(false);
   }, [canFlip]);
+
+  useEffect(
+    () => () => {
+      if (scrollIdleTimerRef.current != null) {
+        window.clearTimeout(scrollIdleTimerRef.current);
+      }
+    },
+    [],
+  );
+
+  function markExamplesScrolling() {
+    examplesScrollingRef.current = true;
+    if (scrollIdleTimerRef.current != null) {
+      window.clearTimeout(scrollIdleTimerRef.current);
+    }
+    scrollIdleTimerRef.current = window.setTimeout(() => {
+      examplesScrollingRef.current = false;
+      scrollIdleTimerRef.current = null;
+    }, 350);
+  }
 
   if (loading) {
     return <DetailsLoadingSkeleton />;
@@ -119,31 +144,23 @@ export function WordCardDetails({
     setShowFamily((current) => !current);
   }
 
-  function handleHintPointerDown(event: React.PointerEvent<HTMLButtonElement>) {
-    hintTapStartRef.current = { x: event.clientX, y: event.clientY };
-  }
-
-  function handleHintPointerUp(event: React.PointerEvent<HTMLButtonElement>) {
-    const start = hintTapStartRef.current;
-    hintTapStartRef.current = null;
-    if (!start || !canFlip) return;
-    if (Math.hypot(event.clientX - start.x, event.clientY - start.y) > 10) {
-      return;
-    }
+  function handleHintClick(event: React.MouseEvent<HTMLButtonElement>) {
+    event.stopPropagation();
+    if (!canFlip || examplesScrollingRef.current) return;
     toggle();
   }
 
-  function handleHintPointerCancel() {
-    hintTapStartRef.current = null;
-  }
-
   return (
-    <div className="card-details card-details--compact">
+    <div
+      className={`card-details card-details--compact${enableFamilyFlip ? "" : " card-details--no-flip"}`}
+    >
       <div className="card-details__scene">
         <div className={`card-details__flip${showFamily ? " is-family" : ""}`}>
           <div className="card-details__face card-details__face--meaning">
             <div
               className={`discover-card__examples min-h-0 flex-1${chunksOnly ? " discover-card__examples--chunks-only" : ""}`}
+              onScroll={markExamplesScrolling}
+              onTouchMove={markExamplesScrolling}
             >
               <WordLearningChunks
                 word={word}
@@ -214,9 +231,7 @@ export function WordCardDetails({
         <button
           type="button"
           className="card-details__hint"
-          onPointerDown={handleHintPointerDown}
-          onPointerUp={handleHintPointerUp}
-          onPointerCancel={handleHintPointerCancel}
+          onClick={handleHintClick}
           aria-label={showFamily ? t("card.showExamples") : t("card.showFamily")}
         >
           {showFamily ? <CardHintArrow direction="left" /> : null}
