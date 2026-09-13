@@ -1113,10 +1113,9 @@ export function ReviewScreen() {
   const allCaughtUp = !showSpinner && queue.length === 0 && dueCount === 0;
   const displayError = error ?? loadError;
   const inSession = Boolean(currentWord) && queue.length > 0 && sessionReady;
-  const reviewPlanCurrent = Math.min(
-    inSession ? todayReviewsCompleted + 1 : todayReviewsCompleted,
-    dailyReviewPlan,
-  );
+  const reviewPlanCurrent = inSession
+    ? todayReviewsCompleted + 1
+    : todayReviewsCompleted;
 
   return (
     <div className={`app-screen${inSession ? " app-screen--journey" : " app-screen--home"}`}>
