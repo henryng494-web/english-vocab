@@ -253,7 +253,7 @@ export function HomeGalaxyScreen(props: HomeGalaxyScreenProps) {
   const reviewPlan = getDailyReviewPlan();
   const reviewedCount = todayReviewsCompleted;
   const reviewsComplete = reviewedCount >= reviewPlan;
-  const reviewDisplay = `${Math.min(reviewedCount, reviewPlan)}/${reviewPlan}`;
+  const reviewDisplay = `${reviewedCount}/${reviewPlan}`;
 
   const goalDisplay = `${props.goalCurrent}/${props.goalTarget}`;
 
