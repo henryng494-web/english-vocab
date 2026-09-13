@@ -591,22 +591,15 @@ body {
   display: grid;
 }
 
-.card-details--no-flip .card-details__flip.is-family {
-  transform: none;
+.card-details__hint--grace {
+  pointer-events: none;
+  opacity: 0.45;
 }
 
-.card-details--no-flip .card-details__face--family {
-  display: none !important;
-}
-
-.card-details--examples-only .card-details__hint,
-.card-details--examples-only .card-details__face--family {
-  display: none !important;
-}
-
-.review-reveal .card-details__hint,
-.review-reveal .card-details__face--family {
-  display: none !important;
+.card-details__hint-slot {
+  flex-shrink: 0;
+  min-height: 2rem;
+  margin: 0.15rem 0 0;
 }
 
 .discover-card__examples {

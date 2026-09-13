@@ -25,6 +25,8 @@ const POS_ABBREV: Record<string, string> = {
   determiner: "det.",
 };
 
+const HINT_TAP_SLOP_PX = 10;
+
 type WordCardDetailsProps = {
   word: string;
   examples?: string | null;
@@ -35,20 +37,11 @@ type WordCardDetailsProps = {
   family?: WordFamilyMember[] | null;
   similarWords?: string[] | null;
   loading?: boolean;
-  /** Off on review reveal — examples/chunks only; Family is Journey-only. */
-  enableFamilyFlip?: boolean;
-};
-
-type ExamplesBodyProps = {
-  word: string;
-  examples?: string | null;
-  wordType?: string | null;
-  meaning?: string | null;
-  register?: WordRegister | null;
-  englishDefinition?: string | null;
-  chunksOnly: boolean;
-  parsed: ReturnType<typeof parseExamples>;
-  onScroll?: () => void;
+  /**
+   * Block Family hint taps briefly after mount/word change (review reveal uses ~450ms
+   * so the confirm tap cannot bleed into the hint when similar words appear async).
+   */
+  hintGraceMs?: number;
 };
 
 function CardHintArrow({ direction }: { direction: "left" | "right" }) {
@@ -83,84 +76,7 @@ function DetailsLoadingSkeleton() {
   );
 }
 
-function WordCardExamplesBody({
-  word,
-  examples,
-  wordType,
-  meaning,
-  register,
-  englishDefinition,
-  chunksOnly,
-  parsed,
-  onScroll,
-}: ExamplesBodyProps) {
-  return (
-    <div
-      className={`discover-card__examples min-h-0 flex-1${chunksOnly ? " discover-card__examples--chunks-only" : ""}`}
-      onScroll={onScroll}
-      onTouchMove={onScroll}
-    >
-      <WordLearningChunks
-        word={word}
-        examples={examples}
-        wordType={wordType}
-        meaning={meaning}
-        register={register}
-        englishDefinition={englishDefinition}
-        compact
-      />
-      {!chunksOnly ? (
-        <VocabExampleList
-          word={word}
-          examples={parsed}
-          wordType={wordType}
-          meaning={meaning}
-          compact
-        />
-      ) : null}
-    </div>
-  );
-}
-
-/** Review reveal: no flip state, no similar-word fetch, no Family hint DOM. */
-function WordCardDetailsExamplesOnly({
-  word,
-  examples,
-  wordType,
-  meaning,
-  register,
-  englishDefinition,
-}: Omit<
-  WordCardDetailsProps,
-  "enableFamilyFlip" | "family" | "similarWords" | "loading"
->) {
-  const chunkEntry = useMemo(
-    () => resolveLearningChunks(word, { examples, wordType, meaning }),
-    [word, examples, wordType, meaning],
-  );
-  const chunksOnly = Boolean(
-    (chunkEntry?.collocations.length ?? 0) > 0 ||
-      (chunkEntry?.chunks.length ?? 0) > 0,
-  );
-  const parsed = parseExamples(examples);
-
-  return (
-    <div className="card-details card-details--compact card-details--no-flip card-details--examples-only">
-      <WordCardExamplesBody
-        word={word}
-        examples={examples}
-        wordType={wordType}
-        meaning={meaning}
-        register={register}
-        englishDefinition={englishDefinition}
-        chunksOnly={chunksOnly}
-        parsed={parsed}
-      />
-    </div>
-  );
-}
-
-function WordCardDetailsWithFamily({
+export function WordCardDetails({
   word,
   examples,
   wordType,
@@ -169,7 +85,9 @@ function WordCardDetailsWithFamily({
   englishDefinition,
   family,
   similarWords,
-}: Omit<WordCardDetailsProps, "enableFamilyFlip" | "loading">) {
+  loading = false,
+  hintGraceMs = 0,
+}: WordCardDetailsProps) {
   const { t } = useI18n();
   const chunkEntry = useMemo(
     () => resolveLearningChunks(word, { examples, wordType, meaning }),
@@ -179,7 +97,7 @@ function WordCardDetailsWithFamily({
     (chunkEntry?.collocations.length ?? 0) > 0 ||
       (chunkEntry?.chunks.length ?? 0) > 0,
   );
-  const parsed = parseExamples(examples);
+  const parsed = loading ? [] : parseExamples(examples);
   const rows = (family ?? []).filter((item) => item.word.trim());
   const similar = useCardSimilarWords({
     word,
@@ -190,12 +108,26 @@ function WordCardDetailsWithFamily({
   }).filter((item) => item.trim());
   const canFlip = rows.length > 1 || similar.length > 0;
   const [showFamily, setShowFamily] = useState(false);
+  const [hintReady, setHintReady] = useState(hintGraceMs <= 0);
   const examplesScrollingRef = useRef(false);
   const scrollIdleTimerRef = useRef<number | null>(null);
+  const hintTapStartRef = useRef<{ x: number; y: number } | null>(null);
+  const hintGraceTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     setShowFamily(false);
-  }, [word]);
+    setHintReady(hintGraceMs <= 0);
+    if (hintGraceTimerRef.current != null) {
+      window.clearTimeout(hintGraceTimerRef.current);
+      hintGraceTimerRef.current = null;
+    }
+    if (hintGraceMs > 0) {
+      hintGraceTimerRef.current = window.setTimeout(() => {
+        setHintReady(true);
+        hintGraceTimerRef.current = null;
+      }, hintGraceMs);
+    }
+  }, [word, hintGraceMs]);
 
   useEffect(() => {
     if (!canFlip) setShowFamily(false);
@@ -205,6 +137,9 @@ function WordCardDetailsWithFamily({
     () => () => {
       if (scrollIdleTimerRef.current != null) {
         window.clearTimeout(scrollIdleTimerRef.current);
+      }
+      if (hintGraceTimerRef.current != null) {
+        window.clearTimeout(hintGraceTimerRef.current);
       }
     },
     [],
@@ -221,15 +156,33 @@ function WordCardDetailsWithFamily({
     }, 350);
   }
 
+  if (loading) {
+    return <DetailsLoadingSkeleton />;
+  }
+
   function toggle() {
-    if (!canFlip) return;
+    if (!canFlip || !hintReady) return;
     setShowFamily((current) => !current);
   }
 
-  function handleHintClick(event: React.MouseEvent<HTMLButtonElement>) {
+  function handleHintPointerDown(event: React.PointerEvent<HTMLButtonElement>) {
+    if (!hintReady) return;
+    hintTapStartRef.current = { x: event.clientX, y: event.clientY };
+  }
+
+  function handleHintPointerUp(event: React.PointerEvent<HTMLButtonElement>) {
     event.stopPropagation();
-    if (!canFlip || examplesScrollingRef.current) return;
+    const start = hintTapStartRef.current;
+    hintTapStartRef.current = null;
+    if (!start || !canFlip || !hintReady || examplesScrollingRef.current) return;
+    if (Math.hypot(event.clientX - start.x, event.clientY - start.y) > HINT_TAP_SLOP_PX) {
+      return;
+    }
     toggle();
+  }
+
+  function handleHintPointerCancel() {
+    hintTapStartRef.current = null;
   }
 
   return (
@@ -237,17 +190,30 @@ function WordCardDetailsWithFamily({
       <div className="card-details__scene">
         <div className={`card-details__flip${showFamily ? " is-family" : ""}`}>
           <div className="card-details__face card-details__face--meaning">
-            <WordCardExamplesBody
-              word={word}
-              examples={examples}
-              wordType={wordType}
-              meaning={meaning}
-              register={register}
-              englishDefinition={englishDefinition}
-              chunksOnly={chunksOnly}
-              parsed={parsed}
+            <div
+              className={`discover-card__examples min-h-0 flex-1${chunksOnly ? " discover-card__examples--chunks-only" : ""}`}
               onScroll={markExamplesScrolling}
-            />
+              onTouchMove={markExamplesScrolling}
+            >
+              <WordLearningChunks
+                word={word}
+                examples={examples}
+                wordType={wordType}
+                meaning={meaning}
+                register={register}
+                englishDefinition={englishDefinition}
+                compact
+              />
+              {!chunksOnly ? (
+                <VocabExampleList
+                  word={word}
+                  examples={parsed}
+                  wordType={wordType}
+                  meaning={meaning}
+                  compact
+                />
+              ) : null}
+            </div>
           </div>
 
           {canFlip ? (
@@ -297,58 +263,20 @@ function WordCardDetailsWithFamily({
       {canFlip ? (
         <button
           type="button"
-          className="card-details__hint"
-          onClick={handleHintClick}
+          className={`card-details__hint${hintReady ? "" : " card-details__hint--grace"}`}
+          onPointerDown={handleHintPointerDown}
+          onPointerUp={handleHintPointerUp}
+          onPointerCancel={handleHintPointerCancel}
+          aria-disabled={!hintReady}
           aria-label={showFamily ? t("card.showExamples") : t("card.showFamily")}
         >
           {showFamily ? <CardHintArrow direction="left" /> : null}
           <span>{showFamily ? "Examples" : "Family"}</span>
           {!showFamily ? <CardHintArrow direction="right" /> : null}
         </button>
-      ) : null}
+      ) : (
+        <div className="card-details__hint-slot" aria-hidden />
+      )}
     </div>
-  );
-}
-
-export function WordCardDetails({
-  word,
-  examples,
-  wordType,
-  meaning,
-  register,
-  englishDefinition,
-  family,
-  similarWords,
-  loading = false,
-  enableFamilyFlip = true,
-}: WordCardDetailsProps) {
-  if (loading) {
-    return <DetailsLoadingSkeleton />;
-  }
-
-  if (!enableFamilyFlip) {
-    return (
-      <WordCardDetailsExamplesOnly
-        word={word}
-        examples={examples}
-        wordType={wordType}
-        meaning={meaning}
-        register={register}
-        englishDefinition={englishDefinition}
-      />
-    );
-  }
-
-  return (
-    <WordCardDetailsWithFamily
-      word={word}
-      examples={examples}
-      wordType={wordType}
-      meaning={meaning}
-      register={register}
-      englishDefinition={englishDefinition}
-      family={family}
-      similarWords={similarWords}
-    />
   );
 }
