@@ -111,11 +111,11 @@ export function ReviewReveal({
 
   return (
     <div className="review-reveal">
-      <div className="journey-panel review-reveal__panel review-reveal__panel--no-family">
+      <div className="journey-panel review-reveal__panel">
         <VocabWordCard
           key={word.word.trim().toLowerCase()}
           data={toDiscoverData(word)}
-          enableFamilyFlip={false}
+          hintGraceMs={450}
         />
       </div>
 
