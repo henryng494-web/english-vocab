@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   getDefaultLearningImageDataUrl,
   hasAcceptableWordImage,
@@ -85,6 +85,14 @@ export function useWordImageSrc(
 
   const [src, setSrc] = useState(initial);
   const [ready, setReady] = useState(initialReady);
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
   useEffect(() => {
     const next = resolveDisplay(imageUrl);
@@ -146,6 +154,28 @@ export function useWordImageSrc(
     onError: () => {
       if (quizSafe) {
         void (async () => {
+          try {
+            const fetched = await fetchFreshImageUrl(
+              word,
+              searchKeyword,
+              wordType,
+              imageUrl,
+              meaning,
+            );
+            if (!mountedRef.current) return;
+            if (isQuizDisplayUrl(fetched, word)) {
+              setSrc(fetched!);
+              setReady(true);
+            }
+          } catch {
+            /* best-effort image refresh */
+          }
+        })();
+        return;
+      }
+      if (src === fallback) return;
+      void (async () => {
+        try {
           const fetched = await fetchFreshImageUrl(
             word,
             searchKeyword,
@@ -153,33 +183,21 @@ export function useWordImageSrc(
             imageUrl,
             meaning,
           );
-          if (isQuizDisplayUrl(fetched, word)) {
-            setSrc(fetched!);
-            setReady(true);
-          }
-        })();
-        return;
-      }
-      if (src === fallback) return;
-      void (async () => {
-        const fetched = await fetchFreshImageUrl(
-          word,
-          searchKeyword,
-          wordType,
-          imageUrl,
-          meaning,
-        );
-        setSrc((prev) => {
-          if (
-            fetched &&
-            hasAcceptableWordImage(fetched, word) &&
-            fetched !== prev
-          ) {
-            return fetched;
-          }
-          return fallback;
-        });
-        setReady(true);
+          if (!mountedRef.current) return;
+          setSrc((prev) => {
+            if (
+              fetched &&
+              hasAcceptableWordImage(fetched, word) &&
+              fetched !== prev
+            ) {
+              return fetched;
+            }
+            return fallback;
+          });
+          setReady(true);
+        } catch {
+          /* best-effort image refresh */
+        }
       })();
     },
   };

@@ -132,6 +132,24 @@ export function writeLocalLearning(word: string, status: LearningStatus) {
   window.dispatchEvent(new Event("vocab-learning-changed"));
 }
 
+/** Roll back a failed optimistic save — restores prior entry or removes the word. */
+export function restoreLocalLearningEntry(
+  word: string,
+  entry: LocalLearningEntry | null,
+): void {
+  if (typeof window === "undefined") return;
+  const key = resolveLearnableWordKey(word);
+  if (!key) return;
+  const map = readLocalLearning();
+  if (entry) {
+    map[key] = entry;
+  } else {
+    delete map[key];
+  }
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(map));
+  window.dispatchEvent(new Event("vocab-learning-changed"));
+}
+
 export function countLearningWords(): number {
   const map = readLocalLearning();
   return Object.entries(map).filter(

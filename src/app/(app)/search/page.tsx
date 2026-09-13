@@ -43,6 +43,7 @@ function SearchPageContent() {
         const data = (await res.json()) as {
           words?: Array<{ word: string; rank: number }>;
         };
+        if (trimmed !== query.trim()) return;
         setRows(
           (data.words ?? []).map((item) => ({
             word: item.word,
