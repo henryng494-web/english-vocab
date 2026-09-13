@@ -346,7 +346,7 @@ body {
   transition: transform 0.45s ease;
 }
 
-.card-details__flip.is-family {
+.card-details:not(.card-details--compact) .card-details__flip.is-family {
   transform: rotateY(180deg);
 }
 
@@ -362,7 +362,6 @@ body {
 }
 
 .card-details__face--family {
-  transform: rotateY(180deg);
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 46%);
   column-gap: 0.75rem;
@@ -590,6 +589,24 @@ body {
 
 .card-details--compact .card-details__flip.is-family .card-details__face--family {
   display: grid;
+}
+
+.card-details--no-flip .card-details__flip.is-family {
+  transform: none;
+}
+
+.card-details--no-flip .card-details__face--family {
+  display: none !important;
+}
+
+.card-details--examples-only .card-details__hint,
+.card-details--examples-only .card-details__face--family {
+  display: none !important;
+}
+
+.review-reveal .card-details__hint,
+.review-reveal .card-details__face--family {
+  display: none !important;
 }
 
 .discover-card__examples {
