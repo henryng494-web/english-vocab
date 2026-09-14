@@ -12,6 +12,7 @@ import { getActionableDueReviewKeys } from "@/lib/review-schedule";
 import {
   applyReviewSessionSnapshot,
   clearReviewSessionSnapshot,
+  localReviewDateKey,
   readReviewSessionSnapshot,
 } from "@/lib/review-session-storage";
 import { resolveImageSearchKeyword } from "@/lib/image-keyword";
@@ -140,10 +141,16 @@ function buildQueueFromKeys(
 
 function applySnapshot(queue: VocabWord[]): VocabWord[] {
   const snapshot = readReviewSessionSnapshot();
-  let ordered = applyReviewSessionSnapshot(queue, snapshot);
+  const ordered = applyReviewSessionSnapshot(queue, snapshot);
   if (ordered.length === 0 && queue.length > 0) {
+    if (
+      snapshot?.date === localReviewDateKey() &&
+      snapshot.completedWords.length > 0
+    ) {
+      return [];
+    }
     clearReviewSessionSnapshot();
-    ordered = queue;
+    return queue;
   }
   return ordered;
 }

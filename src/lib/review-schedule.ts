@@ -312,13 +312,14 @@ export function getReviewBadgeDueCount(
   now = Date.now(),
 ): number {
   const snapshot = readReviewSessionSnapshot();
-  if (
-    snapshot &&
-    snapshot.date === localReviewDateKey(new Date(now)) &&
-    snapshot.queueWords.length > 0
-  ) {
-    const completed = new Set(snapshot.completedWords);
-    return snapshot.queueWords.filter((key) => !completed.has(key)).length;
+  if (snapshot && snapshot.date === localReviewDateKey(new Date(now))) {
+    if (snapshot.queueWords.length > 0) {
+      const completed = new Set(snapshot.completedWords);
+      return snapshot.queueWords.filter((key) => !completed.has(key)).length;
+    }
+    if (snapshot.completedWords.length > 0) {
+      return 0;
+    }
   }
   return getActionableDueReviewKeys(extraWords, now).length;
 }

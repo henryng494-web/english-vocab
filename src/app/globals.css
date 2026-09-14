@@ -3082,6 +3082,24 @@ body {
   grid-template-rows: minmax(0, 1fr);
 }
 
+.review-empty {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 0;
+  padding-bottom: 1rem;
+}
+
+.review-empty__hero {
+  flex-shrink: 0;
+}
+
+.review-empty form {
+  flex-shrink: 0;
+  margin-top: 1.5rem;
+}
+
 /* —— Review quiz (definition → 4 choices → card + interval) —— */
 .review-quiz {
   display: flex;
