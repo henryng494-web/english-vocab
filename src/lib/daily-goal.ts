@@ -44,7 +44,7 @@ export function getMaxNewWordsPerDay(
 
 /**
  * Daily review rep target — scales with study-minute goal (~10s/rep).
- * Drives home ring denominator and review tab badge (remaining reps).
+ * Drives home review ring (completed vs planned reps).
  */
 export function recommendedReviewsForMinutes(minutes: number): number {
   return Math.max(1, minutes * REVIEW_REPS_PER_STUDY_MINUTE);
