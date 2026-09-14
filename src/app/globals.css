@@ -3458,6 +3458,26 @@ body {
   vertical-align: baseline;
 }
 
+.review-cloze__prefix {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+  margin-right: 0.1rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--foreground);
+}
+
+.review-cloze__prefix-char {
+  font-size: 1.05rem;
+}
+
+.review-cloze__prefix-dash {
+  margin-right: 0.15rem;
+  font-weight: 700;
+  color: color-mix(in srgb, var(--foreground) 45%, transparent);
+}
+
 .review-cloze__slot {
   display: inline-flex;
   align-items: center;
