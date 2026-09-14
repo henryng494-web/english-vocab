@@ -42,11 +42,19 @@ export type ReviewClozePart = {
   isBlank: boolean;
 };
 
+export type ReviewClozeLetterTile = {
+  id: string;
+  char: string;
+};
+
 export type ReviewClozeData = {
   sentenceVi: string;
   parts: ReviewClozePart[];
   correctWord: string;
+  letterTiles: ReviewClozeLetterTile[];
 };
+
+const CLOZE_EXTRA_LETTERS = "etaoinshrdlcumwfgypbvkjxqz".split("");
 
 const LETTERS = ["A", "B", "C", "D"] as const;
 const SENSE_LETTERS = ["A", "B", "C"] as const;
@@ -316,11 +324,44 @@ export function buildClozeBlankParts(
   return parts;
 }
 
+/** Shuffled letter tiles (one per character) for spelling the target word. */
+export function buildReviewClozeLetterTiles(
+  word: string,
+  seed: string,
+): ReviewClozeLetterTile[] {
+  const normalized = word.trim().toLowerCase();
+  if (!/^[a-z]{3,14}$/.test(normalized)) return [];
+
+  const tiles: ReviewClozeLetterTile[] = normalized.split("").map((char, index) => ({
+    id: `${char}-${index}`,
+    char,
+  }));
+
+  if (normalized.length <= 5) {
+    const used = new Set(normalized.split(""));
+    const extras: string[] = [];
+    for (const candidate of CLOZE_EXTRA_LETTERS) {
+      if (extras.length >= 2) break;
+      if (used.has(candidate)) continue;
+      extras.push(candidate);
+      used.add(candidate);
+    }
+    extras.forEach((char, index) => {
+      tiles.push({ id: `extra-${char}-${index}`, char });
+    });
+  }
+
+  return seededShuffle(tiles, seed);
+}
+
 export function buildReviewClozeData(
   word: ReviewPoolWord,
-  pool: ReviewPoolWord[],
+  _pool: ReviewPoolWord[],
   questionIndex: number,
 ): ReviewClozeData | null {
+  const normalized = word.word.trim().toLowerCase();
+  if (!/^[a-z]{3,14}$/.test(normalized)) return null;
+
   const example = pickReviewClozeExample(
     word.word,
     word.examples,
@@ -332,10 +373,15 @@ export function buildReviewClozeData(
   const parts = buildClozeBlankParts(example.en, word.word);
   if (!parts.some((part) => part.isBlank)) return null;
 
+  const seed = reviewSenseCacheKey(questionIndex, word.word);
+  const letterTiles = buildReviewClozeLetterTiles(normalized, seed);
+  if (letterTiles.length === 0) return null;
+
   return {
     sentenceVi: example.vi.trim(),
     parts,
-    correctWord: word.word.trim().toLowerCase(),
+    correctWord: normalized,
+    letterTiles,
   };
 }
 
@@ -379,12 +425,6 @@ export function buildReviewQuestionPlan(
     if (clozeData) {
       kind = "cloze";
       cloze = clozeData;
-      choices = buildReviewChoices(
-        word.word,
-        wordChoicePool,
-        word.rank,
-        choiceSeed,
-      );
     }
   }
 

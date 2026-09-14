@@ -3449,33 +3449,51 @@ body {
   color: var(--foreground);
 }
 
-.review-cloze__blank {
-  display: inline-block;
-  min-width: 5.5rem;
-  margin: 0 0.12rem;
-  padding: 0.08rem 0.35rem;
-  border-bottom: 2px dashed color-mix(in srgb, var(--primary) 55%, transparent);
-  color: var(--primary);
+.review-cloze__slots {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.2rem;
+  margin: 0 0.15rem;
   vertical-align: baseline;
 }
 
-.review-cloze__blank.is-filled {
-  border-bottom-style: solid;
-  border-color: var(--primary);
+.review-cloze__slot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.65rem;
+  height: 2rem;
+  padding: 0 0.2rem;
+  border: none;
+  border-bottom: 2px solid color-mix(in srgb, var(--primary) 50%, transparent);
+  background: transparent;
+  font-family: inherit;
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: color-mix(in srgb, var(--foreground) 35%, transparent);
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.review-cloze__blank.is-correct {
-  border-color: var(--accent);
+.review-cloze__slot.is-filled {
+  border-bottom-color: var(--primary);
+  color: var(--primary);
+}
+
+.review-cloze__slot.is-correct {
+  border-bottom-color: var(--accent);
   color: var(--accent);
-  background: var(--accent-50);
-  border-radius: 0.35rem;
 }
 
-.review-cloze__blank.is-wrong {
-  border-color: #e05252;
+.review-cloze__slot.is-wrong {
+  border-bottom-color: #e05252;
   color: #c0392b;
-  background: color-mix(in srgb, #e05252 12%, var(--card));
-  border-radius: 0.35rem;
+}
+
+.review-cloze__slot:disabled {
+  cursor: default;
 }
 
 .review-cloze__hint {
@@ -3495,14 +3513,16 @@ body {
 }
 
 .review-cloze__tile {
-  min-height: 2.75rem;
-  padding: 0.55rem 1rem;
+  min-width: 2.65rem;
+  min-height: 2.65rem;
+  padding: 0.45rem 0.55rem;
   border: 2px solid var(--card-border);
-  border-radius: 999px;
+  border-radius: 0.65rem;
   background: var(--card);
-  font-size: 1rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: lowercase;
   color: var(--foreground);
   box-shadow: 0 2px 8px rgba(24, 32, 48, 0.06);
   touch-action: manipulation;
@@ -3513,10 +3533,8 @@ body {
   cursor: default;
 }
 
-.review-cloze__tile.is-active {
-  border-color: var(--primary);
-  background: color-mix(in srgb, var(--primary) 10%, var(--card));
-  opacity: 0.55;
+.review-cloze__tile.is-used {
+  opacity: 0.35;
 }
 
 .review-cloze__tile.is-correct {
@@ -3531,6 +3549,21 @@ body {
 
 .review-cloze__tile.is-dim {
   opacity: 0.45;
+}
+
+.review-cloze__answer {
+  margin: 0;
+  text-align: center;
+  font-size: 0.9375rem;
+  font-weight: 700;
+}
+
+.review-cloze__answer.is-correct {
+  color: var(--accent);
+}
+
+.review-cloze__answer.is-wrong {
+  color: #c0392b;
 }
 
 .review-cloze__unsure {
