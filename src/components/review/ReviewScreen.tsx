@@ -336,7 +336,7 @@ export function ReviewScreen() {
       }
       prefetchedChoicesRef.current.delete(cacheKey);
     } else if (planned.kind === "cloze") {
-      if (!nextCloze || nextChoices.length === 0) {
+      if (!nextCloze || nextCloze.letterTiles.length === 0) {
         kind = "word";
         nextCloze = null;
         nextChoices = buildReviewChoices(
@@ -1008,6 +1008,11 @@ export function ReviewScreen() {
     lockAnswer(false, "lookup", true, true);
   }
 
+  function handleClozeComplete(attempt: string) {
+    const promptWord = currentWord?.word.trim().toLowerCase() ?? "";
+    lockAnswer(attempt.trim().toLowerCase() === promptWord, attempt, false);
+  }
+
   function handleRemember() {
     lockAnswer(true, "remember", false, true);
   }
@@ -1184,12 +1189,11 @@ export function ReviewScreen() {
         <ReviewClozeQuestion
           sentenceVi={clozeData.sentenceVi}
           parts={clozeData.parts}
-          tiles={choices}
-          selectedKey={selectedKey}
-          unsure={unsure}
+          letterTiles={clozeData.letterTiles}
           correctWord={currentWord.word}
           locked={locked}
-          onChoose={handleChoose}
+          unsure={unsure}
+          onComplete={handleClozeComplete}
           onUnsure={handleUnsure}
         />
       ) : inSession && currentWord && phase === "question" && quizKind === "recall" ? (
