@@ -190,19 +190,19 @@ export function BottomTabBar() {
               <span
                 className={`tab-bar-link__pill tab-bar-link__pill--${pillTone}${
                   active ? ` ${activeBgClass}` : ""
-                }`}
+                }${tab.showBadge && dueCount > 0 ? " tab-bar-link__pill--badged" : ""}`}
               >
-                <span className="tab-bar-link__icon">
-                  {tab.icon(active)}
-                  {tab.showBadge && dueCount > 0 ? (
-                    <span
-                      className="tab-bar-badge"
-                      aria-label={t("tab.dueAria", { count: dueCount })}
-                    >
-                      {dueCount > 99 ? "99+" : dueCount}
-                    </span>
-                  ) : null}
-                </span>
+                <span className="tab-bar-link__icon">{tab.icon(active)}</span>
+                {tab.showBadge && dueCount > 0 ? (
+                  <span
+                    className={`tab-bar-badge${
+                      dueCount >= 10 ? " tab-bar-badge--wide" : ""
+                    }`}
+                    aria-label={t("tab.dueAria", { count: dueCount })}
+                  >
+                    {dueCount > 99 ? "99+" : dueCount}
+                  </span>
+                ) : null}
               </span>
               <span>{tab.label}</span>
             </Link>
