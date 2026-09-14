@@ -190,15 +190,15 @@ export const messages: Record<AppLocale, MessageTree> = {
     "review.clozeCorrect": "Đúng!",
     "review.clozeWrong": "Đáp án: {word}",
     "review.chooseMatching": "Chọn từ đúng.",
-    "review.allCaughtUp": "Bạn đã ôn xong!",
-    "review.noWordsDue": "Không có từ đến hạn",
-    "review.comeBackLater":
-      "Quay lại khi đến lịch ôn tiếp theo, hoặc thêm từ mới.",
+    "review.allCaughtUp": "Đã ôn xong các từ đến hạn hôm nay",
+    "review.allCaughtUpHint":
+      "{done}/{plan} lượt ôn · từ sẽ quay lại theo lịch, hoặc học từ mới trên Trang chủ",
+    "review.noWordsDue": "Chưa có từ nào cần ôn",
     "review.learnOnHome":
       "Học từ trên Trang chủ hoặc thêm từ bên dưới để bắt đầu ôn.",
-    "review.syncMismatch": "Chưa tải được lịch ôn",
+    "review.syncMismatch": "Không tải được danh sách ôn",
     "review.syncMismatchHint":
-      "Có {count} từ đến hạn nhưng Review chưa load xong. Thử lại.",
+      "Có {count} từ đến hạn nhưng chưa load được. Nhấn Tải lại.",
     "review.retryLoad": "Tải lại",
     "review.addWordPlaceholder": "Thêm từ mới…",
     "review.add": "Thêm",
@@ -472,14 +472,14 @@ export const messages: Record<AppLocale, MessageTree> = {
     "review.clozeCorrect": "Correct!",
     "review.clozeWrong": "Answer: {word}",
     "review.chooseMatching": "Choose the matching word.",
-    "review.allCaughtUp": "You're all caught up!",
-    "review.noWordsDue": "No words due",
-    "review.comeBackLater":
-      "Come back when the next review interval is due, or add a new word.",
+    "review.allCaughtUp": "All due words reviewed for today",
+    "review.allCaughtUpHint":
+      "{done}/{plan} reviews · words return on schedule, or learn new ones on Home",
+    "review.noWordsDue": "No words to review yet",
     "review.learnOnHome": "Learn words on Home or add one below to start reviewing.",
-    "review.syncMismatch": "Could not load your review queue",
+    "review.syncMismatch": "Could not load your review list",
     "review.syncMismatchHint":
-      "{count} words are due but Review did not load them. Tap to retry.",
+      "{count} words are due but the list did not load. Tap Retry.",
     "review.retryLoad": "Retry",
     "review.addWordPlaceholder": "Add a new word…",
     "review.add": "Add",

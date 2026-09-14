@@ -58,7 +58,6 @@ import {
   type ReviewGrade,
 } from "@/lib/review-srs";
 import {
-  clearReviewSessionSnapshot,
   markReviewSessionCompleted,
   readReviewSessionSnapshot,
   saveReviewSessionInProgress,
@@ -1112,7 +1111,6 @@ export function ReviewScreen() {
         setIndex(0);
         setSessionStep(0);
         sessionStartedRef.current = false;
-        clearReviewSessionSnapshot();
         return;
       }
       setSessionStep(nextStep);
@@ -1267,8 +1265,8 @@ export function ReviewScreen() {
           confirming={confirming}
         />
       ) : !showSpinner ? (
-        <div className="page-scroll px-4">
-          <div className="mx-auto flex max-w-sm flex-col items-center pt-6 text-center">
+        <div className="review-empty page-scroll px-4">
+          <div className="review-empty__hero mx-auto flex max-w-sm flex-col items-center text-center">
             <JungleMascot character={allCaughtUp ? "monkey" : "crocodile"} size={88} />
             <h2 className="mt-3 text-xl font-bold text-foreground">
               {syncMismatch
@@ -1281,7 +1279,10 @@ export function ReviewScreen() {
               {syncMismatch
                 ? t("review.syncMismatchHint", { count: dueCount })
                 : allCaughtUp
-                  ? t("review.comeBackLater")
+                  ? t("review.allCaughtUpHint", {
+                      done: todayReviewsCompleted,
+                      plan: dailyReviewPlan,
+                    })
                   : t("review.learnOnHome")}
             </p>
             {syncMismatch ? (
