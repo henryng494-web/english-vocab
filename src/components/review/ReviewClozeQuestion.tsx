@@ -148,8 +148,6 @@ export function ReviewClozeQuestion({
 
   return (
     <div className={`review-cloze ${displayFontClass}`}>
-      <p className={`review-cloze__vi ${displayFontClass}`}>{sentenceVi}</p>
-
       <p className={`review-cloze__en ${displayFontClass}`}>
         {parts.map((part, index) =>
           part.isBlank ? (
@@ -159,7 +157,9 @@ export function ReviewClozeQuestion({
                   <span className="review-cloze__prefix" aria-hidden>
                     {letterSlots.slice(0, prefixCount).map((slot, slotIndex) => (
                       <span key={`prefix-${slotIndex}`} className="review-cloze__prefix-char">
-                        {slot.char.toUpperCase()}
+                        {slotIndex === 0
+                          ? slot.char.toUpperCase()
+                          : slot.char.toLowerCase()}
                       </span>
                     ))}
                   </span>
@@ -178,6 +178,10 @@ export function ReviewClozeQuestion({
             <span key={`${part.text}-${index}`}>{part.text}</span>
           ),
         )}
+      </p>
+
+      <p className={`review-cloze__vi vocab-examples__vi italic ${displayFontClass}`}>
+        {sentenceVi}
       </p>
 
       <p className={`review-cloze__hint ${displayFontClass}`}>
