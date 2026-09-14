@@ -3477,6 +3477,13 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
+.review-cloze__slot--prefilled {
+  border-bottom-color: color-mix(in srgb, var(--foreground) 22%, transparent);
+  color: var(--foreground);
+  font-weight: 700;
+  cursor: default;
+}
+
 .review-cloze__slot.is-filled {
   border-bottom-color: var(--primary);
   color: var(--primary);

@@ -47,13 +47,21 @@ export type ReviewClozeLetterTile = {
   char: string;
 };
 
+export type ReviewClozeLetterSlot = {
+  char: string;
+  /** False when the letter is shown in place — user does not pick it. */
+  blank: boolean;
+};
+
 export type ReviewClozeData = {
   sentenceVi: string;
   parts: ReviewClozePart[];
   correctWord: string;
+  letterSlots: ReviewClozeLetterSlot[];
   letterTiles: ReviewClozeLetterTile[];
 };
 
+const CLOZE_MAX_PICK = 5;
 const CLOZE_EXTRA_LETTERS = "etaoinshrdlcumwfgypbvkjxqz".split("");
 
 const LETTERS = ["A", "B", "C", "D"] as const;
@@ -324,21 +332,60 @@ export function buildClozeBlankParts(
   return parts;
 }
 
-/** Shuffled letter tiles (one per character) for spelling the target word. */
-export function buildReviewClozeLetterTiles(
+/** Up to 5 blank indices, spread across the word when it is longer than 5 letters. */
+export function pickClozeBlankIndices(
+  length: number,
+  maxBlank: number,
+  seed: string,
+): number[] {
+  if (length <= 0) return [];
+  if (length <= maxBlank) {
+    return Array.from({ length }, (_, index) => index);
+  }
+
+  const spaced: number[] = [];
+  for (let i = 0; i < maxBlank; i++) {
+    spaced.push(Math.round((i * (length - 1)) / (maxBlank - 1)));
+  }
+  const unique = [...new Set(spaced)].sort((left, right) => left - right);
+  if (unique.length >= maxBlank) {
+    return unique.slice(0, maxBlank);
+  }
+
+  const remaining = Array.from({ length }, (_, index) => index).filter(
+    (index) => !unique.includes(index),
+  );
+  const shuffled = seededShuffle(remaining, `${seed}:cloze-blanks`);
+  return [...unique, ...shuffled].slice(0, maxBlank).sort((left, right) => left - right);
+}
+
+/** Letter slots (some prefilled) + shuffled tiles for blank positions only. */
+export function buildReviewClozeLetterPlan(
   word: string,
   seed: string,
-): ReviewClozeLetterTile[] {
+): { letterSlots: ReviewClozeLetterSlot[]; letterTiles: ReviewClozeLetterTile[] } | null {
   const normalized = word.trim().toLowerCase();
-  if (!/^[a-z]{3,14}$/.test(normalized)) return [];
+  if (!/^[a-z]{3,14}$/.test(normalized)) return null;
 
-  const tiles: ReviewClozeLetterTile[] = normalized.split("").map((char, index) => ({
-    id: `${char}-${index}`,
+  const chars = normalized.split("");
+  const blankIndices = new Set(
+    pickClozeBlankIndices(chars.length, CLOZE_MAX_PICK, seed),
+  );
+  const letterSlots: ReviewClozeLetterSlot[] = chars.map((char, index) => ({
     char,
+    blank: blankIndices.has(index),
   }));
 
-  if (normalized.length <= 5) {
-    const used = new Set(normalized.split(""));
+  const tiles: ReviewClozeLetterTile[] = [];
+  for (const index of blankIndices) {
+    tiles.push({
+      id: `blank-${index}`,
+      char: chars[index]!,
+    });
+  }
+
+  if (blankIndices.size <= CLOZE_MAX_PICK && chars.length <= CLOZE_MAX_PICK) {
+    const used = new Set(chars);
     const extras: string[] = [];
     for (const candidate of CLOZE_EXTRA_LETTERS) {
       if (extras.length >= 2) break;
@@ -351,7 +398,10 @@ export function buildReviewClozeLetterTiles(
     });
   }
 
-  return seededShuffle(tiles, seed);
+  return {
+    letterSlots,
+    letterTiles: seededShuffle(tiles, seed),
+  };
 }
 
 export function buildReviewClozeData(
@@ -374,14 +424,15 @@ export function buildReviewClozeData(
   if (!parts.some((part) => part.isBlank)) return null;
 
   const seed = reviewSenseCacheKey(questionIndex, word.word);
-  const letterTiles = buildReviewClozeLetterTiles(normalized, seed);
-  if (letterTiles.length === 0) return null;
+  const letterPlan = buildReviewClozeLetterPlan(normalized, seed);
+  if (!letterPlan || letterPlan.letterTiles.length === 0) return null;
 
   return {
     sentenceVi: example.vi.trim(),
     parts,
     correctWord: normalized,
-    letterTiles,
+    letterSlots: letterPlan.letterSlots,
+    letterTiles: letterPlan.letterTiles,
   };
 }
 
