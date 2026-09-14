@@ -61,7 +61,7 @@ export type ReviewClozeData = {
   letterTiles: ReviewClozeLetterTile[];
 };
 
-const CLOZE_MAX_PICK = 5;
+const CLOZE_MAX_PICK = 4;
 /** First N letters are always shown as a spelling hint (e.g. C O –). */
 export const CLOZE_PREFIX_HINT = 2;
 

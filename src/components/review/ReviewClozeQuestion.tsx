@@ -148,6 +148,7 @@ export function ReviewClozeQuestion({
 
   return (
     <div className={`review-cloze ${displayFontClass}`}>
+      <div className="review-cloze__main">
       <div className="review-cloze__body">
       <p className={`review-cloze__en ${displayFontClass}`}>
         {parts.map((part, index) =>
@@ -222,6 +223,8 @@ export function ReviewClozeQuestion({
             : t("review.clozeWrong", { word: correctWord })}
         </p>
       ) : null}
+      </div>
+      </div>
 
       <button
         type="button"
@@ -231,7 +234,6 @@ export function ReviewClozeQuestion({
       >
         {t("review.notSure")}
       </button>
-      </div>
     </div>
   );
 }
