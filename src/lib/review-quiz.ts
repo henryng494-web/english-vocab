@@ -62,7 +62,6 @@ export type ReviewClozeData = {
 };
 
 const CLOZE_MAX_PICK = 5;
-const CLOZE_EXTRA_LETTERS = "etaoinshrdlcumwfgypbvkjxqz".split("");
 
 const LETTERS = ["A", "B", "C", "D"] as const;
 const SENSE_LETTERS = ["A", "B", "C"] as const;
@@ -381,20 +380,6 @@ export function buildReviewClozeLetterPlan(
     tiles.push({
       id: `blank-${index}`,
       char: chars[index]!,
-    });
-  }
-
-  if (blankIndices.size <= CLOZE_MAX_PICK && chars.length <= CLOZE_MAX_PICK) {
-    const used = new Set(chars);
-    const extras: string[] = [];
-    for (const candidate of CLOZE_EXTRA_LETTERS) {
-      if (extras.length >= 2) break;
-      if (used.has(candidate)) continue;
-      extras.push(candidate);
-      used.add(candidate);
-    }
-    extras.forEach((char, index) => {
-      tiles.push({ id: `extra-${char}-${index}`, char });
     });
   }
 
