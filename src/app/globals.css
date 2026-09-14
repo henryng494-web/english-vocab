@@ -4673,9 +4673,10 @@ body {
   inset: 0;
   z-index: 120;
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: center;
-  padding: 1rem;
+  padding: max(env(safe-area-inset-top, 0px), 1rem) 1rem
+    max(env(safe-area-inset-bottom, 0px), 1rem);
   background: rgb(15 23 42 / 0.45);
 }
 
