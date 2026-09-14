@@ -39,6 +39,10 @@ import {
   preloadReviewImageBatch,
 } from "@/lib/review-image-preload";
 import { useReviewSession } from "@/hooks/useReviewSession";
+import {
+  getReviewDueCount,
+  subscribeReviewDueCount,
+} from "@/lib/review-due-store";
 import { hasQualityExamples } from "@/lib/example-quality";
 import { parseExamples } from "@/lib/parse-examples";
 import {
@@ -58,6 +62,7 @@ import {
   type ReviewGrade,
 } from "@/lib/review-srs";
 import {
+  isTodayReviewBatchComplete,
   markReviewSessionCompleted,
   readReviewSessionSnapshot,
   saveReviewSessionInProgress,
@@ -104,7 +109,6 @@ export function ReviewScreen() {
   const {
     loading,
     enriching,
-    dueCount,
     queue,
     pool: allWords,
     error: loadError,
@@ -1126,12 +1130,19 @@ export function ReviewScreen() {
     getTodayReviewsCompletedSnapshot,
     () => 0,
   );
+  const badgeDueCount = useSyncExternalStore(
+    subscribeReviewDueCount,
+    getReviewDueCount,
+    () => 0,
+  );
   const dailyReviewPlan = getDailyReviewPlan();
 
   const showSpinner = (loading && queue.length === 0) || (queue.length > 0 && !sessionReady);
+  const batchComplete = sessionDone || isTodayReviewBatchComplete();
   const syncMismatch =
-    !showSpinner && queue.length === 0 && dueCount > 0;
-  const allCaughtUp = !showSpinner && queue.length === 0 && dueCount === 0;
+    !showSpinner && queue.length === 0 && badgeDueCount > 0 && !batchComplete;
+  const allCaughtUp =
+    !showSpinner && queue.length === 0 && (badgeDueCount === 0 || batchComplete);
   const displayError = error ?? loadError;
   const inSession = Boolean(currentWord) && queue.length > 0 && sessionReady;
   const reviewPlanCurrent = inSession
@@ -1277,7 +1288,7 @@ export function ReviewScreen() {
             </h2>
             <p className="mt-1 text-sm text-foreground/60">
               {syncMismatch
-                ? t("review.syncMismatchHint", { count: dueCount })
+                ? t("review.syncMismatchHint", { count: badgeDueCount })
                 : allCaughtUp
                   ? t("review.allCaughtUpHint", {
                       done: todayReviewsCompleted,
