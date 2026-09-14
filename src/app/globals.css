@@ -1028,31 +1028,47 @@ body {
   padding: 0.25rem 0.45rem;
 }
 
+.tab-bar-link__pill--badged {
+  padding-top: 0.35rem;
+  padding-right: 0.55rem;
+}
+
 .tab-bar-link__icon {
-  position: relative;
   display: flex;
   width: 1.5rem;
   height: 1.5rem;
-  overflow: visible;
+  flex-shrink: 0;
 }
 
 .tab-bar-badge {
   position: absolute;
-  top: -0.4rem;
-  right: -0.55rem;
+  top: 0;
+  right: 0;
   z-index: 3;
-  min-width: 1.15rem;
-  height: 1.15rem;
-  padding: 0 0.28rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.125rem;
+  height: 1.125rem;
+  padding: 0 0.3rem;
   border-radius: 9999px;
   background: var(--secondary);
   color: #ffffff;
   font-family: var(--font-sans);
-  font-size: 0.6875rem;
+  font-size: 0.625rem;
   font-weight: 700;
-  line-height: 1.15rem;
-  text-align: center;
+  line-height: 1;
+  white-space: nowrap;
+  pointer-events: none;
+  transform: translate(38%, -42%);
   box-shadow: 0 0 0 2px var(--tab-bar-bg);
+}
+
+.tab-bar-badge--wide {
+  min-width: 1.65rem;
+  padding: 0 0.32rem;
+  font-size: 0.5625rem;
+  letter-spacing: -0.02em;
 }
 
 .card-image-frame {
