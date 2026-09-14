@@ -148,6 +148,7 @@ export function ReviewClozeQuestion({
 
   return (
     <div className={`review-cloze ${displayFontClass}`}>
+      <div className="review-cloze__body">
       <p className={`review-cloze__en ${displayFontClass}`}>
         {parts.map((part, index) =>
           part.isBlank ? (
@@ -180,9 +181,7 @@ export function ReviewClozeQuestion({
         )}
       </p>
 
-      <p className={`review-cloze__vi vocab-examples__vi italic ${displayFontClass}`}>
-        {sentenceVi}
-      </p>
+      <p className="review-cloze__vi vocab-examples__vi">{sentenceVi}</p>
 
       <p className={`review-cloze__hint ${displayFontClass}`}>
         {t("review.clozeHint")}
@@ -232,6 +231,7 @@ export function ReviewClozeQuestion({
       >
         {t("review.notSure")}
       </button>
+      </div>
     </div>
   );
 }
