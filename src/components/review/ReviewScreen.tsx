@@ -47,6 +47,7 @@ import { hasQualityExamples } from "@/lib/example-quality";
 import { parseExamples } from "@/lib/parse-examples";
 import {
   getReviewSchedule,
+  isTodayReviewBatchComplete,
   writeReviewScheduleEntry,
   type ReviewIntervalDays,
   type ReviewScheduleEntry,
@@ -62,7 +63,6 @@ import {
   type ReviewGrade,
 } from "@/lib/review-srs";
 import {
-  isTodayReviewBatchComplete,
   markReviewSessionCompleted,
   readReviewSessionSnapshot,
   saveReviewSessionInProgress,
