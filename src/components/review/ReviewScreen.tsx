@@ -4,6 +4,7 @@ import { AppHeader } from "@/components/layout/AppHeader";
 import { AppMenuButton } from "@/components/layout/AppMenuButton";
 import { ReviewQuestion } from "@/components/review/ReviewQuestion";
 import { ReviewRecallQuestion } from "@/components/review/ReviewRecallQuestion";
+import { ReviewClozeQuestion } from "@/components/review/ReviewClozeQuestion";
 import { ReviewReveal } from "@/components/review/ReviewReveal";
 import {
   vocabWordToDiscoverData,
@@ -27,7 +28,9 @@ import {
   resolveReviewSenseChoices,
   senseChoicesAreValidForPrompt,
   type ReviewChoice,
+  type ReviewClozeData,
   type ReviewQuizKind,
+  pickReviewClozeExample,
 } from "@/lib/review-quiz";
 import {
   collectReviewQuestionImageTargets,
@@ -149,6 +152,7 @@ export function ReviewScreen() {
   const prevEnrichingRef = useRef(enriching);
   const enrichFetchInflightRef = useRef<string | null>(null);
   const [sessionStep, setSessionStep] = useState(0);
+  const [clozeData, setClozeData] = useState<ReviewClozeData | null>(null);
 
   const currentWord = queue[index];
   phaseRef.current = phase;
@@ -304,6 +308,7 @@ export function ReviewScreen() {
     const planned = buildReviewQuestionPlan(word, pool, questionIndex);
     let kind = planned.kind;
     let nextChoices = planned.choices;
+    let nextCloze = planned.cloze ?? null;
 
     if (planned.kind === "sense") {
       nextChoices = resolveReviewSenseChoices(
@@ -313,6 +318,7 @@ export function ReviewScreen() {
       );
       if (!senseChoicesAreValidForPrompt(nextChoices, word.word, pool)) {
         kind = "word";
+        nextCloze = null;
         nextChoices = buildReviewChoices(
           word.word,
           pool.filter(
@@ -326,15 +332,37 @@ export function ReviewScreen() {
         );
       } else {
         kind = "sense";
+        nextCloze = null;
       }
       prefetchedChoicesRef.current.delete(cacheKey);
+    } else if (planned.kind === "cloze") {
+      if (!nextCloze || nextChoices.length === 0) {
+        kind = "word";
+        nextCloze = null;
+        nextChoices = buildReviewChoices(
+          word.word,
+          pool.filter(
+            (item) =>
+              /^[a-z]+$/i.test(item.word) &&
+              item.word.length >= 3 &&
+              Boolean(item.english_definition?.trim()),
+          ),
+          word.rank,
+          cacheKey,
+        );
+      }
     } else if (cachedSenseChoices) {
       prefetchedChoicesRef.current.delete(cacheKey);
+    }
+
+    if (kind !== "cloze") {
+      nextCloze = null;
     }
 
     setPhase("question");
     setQuizKind(kind);
     setChoices(nextChoices);
+    setClozeData(nextCloze);
     setSelectedKey(null);
     setUnsure(false);
     setLocked(false);
@@ -650,7 +678,7 @@ export function ReviewScreen() {
     prevEnrichingRef.current = enriching;
     if (!wasEnriching || enriching) return;
     if (!sessionReady || locked || phase !== "question" || !currentWord) return;
-    if (quizKind === "recall") return;
+    if (quizKind === "recall" || quizKind === "cloze") return;
     if (choices.length > 0) return;
 
     const pool = allWords.length > 0 ? allWords : queue;
@@ -805,6 +833,17 @@ export function ReviewScreen() {
           )
         : "";
     const recallReady = Boolean(recallSentence.trim());
+    const clozeReady =
+      quizKind === "cloze"
+        ? Boolean(
+            pickReviewClozeExample(
+              currentWord.word,
+              currentWord.examples,
+              currentWord.vietnamese_meaning,
+              currentWord.word_type,
+            ),
+          )
+        : false;
 
     const missingImage = shouldRefreshImageUrl(
       currentWord.image_url,
@@ -815,9 +854,12 @@ export function ReviewScreen() {
       currentWord.english_definition?.trim() &&
       currentWord.vietnamese_meaning.trim().toLowerCase() ===
         currentWord.english_definition.trim().toLowerCase();
-    const missingExamples = quizKind === "recall" && !recallReady;
+    const missingExamples =
+      (quizKind === "recall" && !recallReady) ||
+      (quizKind === "cloze" && !clozeReady);
     const badExamples =
       !recallReady &&
+      !clozeReady &&
       !hasQualityExamples(
         currentWord.word,
         parseExamples(currentWord.examples),
@@ -858,6 +900,7 @@ export function ReviewScreen() {
     }
 
     if (quizKind === "recall" && recallReady) return;
+    if (quizKind === "cloze" && clozeReady) return;
 
     const fetchKey = currentWord.word.trim().toLowerCase();
     if (enrichFetchInflightRef.current === fetchKey) return;
@@ -1126,6 +1169,22 @@ export function ReviewScreen() {
         <ReviewSenseQuestion
           word={currentWord.word}
           choices={choices}
+          selectedKey={selectedKey}
+          unsure={unsure}
+          correctWord={currentWord.word}
+          locked={locked}
+          onChoose={handleChoose}
+          onUnsure={handleUnsure}
+        />
+      ) : inSession &&
+        currentWord &&
+        phase === "question" &&
+        quizKind === "cloze" &&
+        clozeData ? (
+        <ReviewClozeQuestion
+          sentenceVi={clozeData.sentenceVi}
+          parts={clozeData.parts}
+          tiles={choices}
           selectedKey={selectedKey}
           unsure={unsure}
           correctWord={currentWord.word}
