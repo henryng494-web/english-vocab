@@ -8,7 +8,10 @@ import {
 } from "@/lib/learning-storage";
 import { isExcludedVocabWord } from "@/lib/proper-noun";
 import { prefetchReviewQuestionRange } from "@/lib/review-image-preload";
-import { getActionableDueReviewKeys } from "@/lib/review-schedule";
+import {
+  getActionableDueReviewKeys,
+  getReviewBadgeDueCount,
+} from "@/lib/review-schedule";
 import {
   applyReviewSessionSnapshot,
   clearReviewSessionSnapshot,
@@ -167,7 +170,7 @@ export function resolveReviewSession(
   const queue = applySnapshot(buildQueueFromKeys(dueKeys, [], extraWords));
 
   return {
-    dueCount: dueKeys.length,
+    dueCount: getReviewBadgeDueCount(extraWords),
     queue,
     pool: queue,
   };

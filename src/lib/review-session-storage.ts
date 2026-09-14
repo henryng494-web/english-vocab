@@ -72,6 +72,13 @@ export function clearReviewSessionSnapshot(): void {
   window.dispatchEvent(new Event("vocab-learning-changed"));
 }
 
+/** True when today's review batch was finished (no words left in session queue). */
+export function isTodayReviewBatchComplete(): boolean {
+  const snap = readReviewSessionSnapshot();
+  if (!snap) return false;
+  return snap.completedWords.length > 0 && snap.queueWords.length === 0;
+}
+
 /** Build today's queue: drop completed words, keep saved order, append newly due. */
 export function applyReviewSessionSnapshot<T extends { word: string }>(
   dueQueue: T[],
