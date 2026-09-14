@@ -1189,6 +1189,7 @@ export function ReviewScreen() {
         <ReviewClozeQuestion
           sentenceVi={clozeData.sentenceVi}
           parts={clozeData.parts}
+          letterSlots={clozeData.letterSlots}
           letterTiles={clozeData.letterTiles}
           correctWord={currentWord.word}
           locked={locked}

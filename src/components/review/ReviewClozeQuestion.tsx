@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { displayFontClass } from "@/lib/fonts";
 import { useI18n } from "@/hooks/use-i18n";
 import type {
+  ReviewClozeLetterSlot,
   ReviewClozeLetterTile,
   ReviewClozePart,
 } from "@/lib/review-quiz";
@@ -11,6 +12,7 @@ import type {
 type ReviewClozeQuestionProps = {
   sentenceVi: string;
   parts: ReviewClozePart[];
+  letterSlots: ReviewClozeLetterSlot[];
   letterTiles: ReviewClozeLetterTile[];
   correctWord: string;
   locked: boolean;
@@ -19,9 +21,24 @@ type ReviewClozeQuestionProps = {
   onUnsure: () => void;
 };
 
+function assembleWord(
+  letterSlots: ReviewClozeLetterSlot[],
+  blankFills: Map<number, string | null>,
+  tileById: Map<string, ReviewClozeLetterTile>,
+): string {
+  return letterSlots
+    .map((slot, index) => {
+      if (!slot.blank) return slot.char;
+      const tileId = blankFills.get(index);
+      return tileId ? tileById.get(tileId)?.char ?? "" : "";
+    })
+    .join("");
+}
+
 export function ReviewClozeQuestion({
   sentenceVi,
   parts,
+  letterSlots,
   letterTiles,
   correctWord,
   locked,
@@ -30,57 +47,62 @@ export function ReviewClozeQuestion({
   onUnsure,
 }: ReviewClozeQuestionProps) {
   const { t } = useI18n();
-  const slotCount = correctWord.length;
+  const blankIndices = useMemo(
+    () =>
+      letterSlots
+        .map((slot, index) => (slot.blank ? index : -1))
+        .filter((index) => index >= 0),
+    [letterSlots],
+  );
   const tileById = useMemo(
     () => new Map(letterTiles.map((tile) => [tile.id, tile])),
     [letterTiles],
   );
-  const [slots, setSlots] = useState<(string | null)[]>(() =>
-    Array.from({ length: slotCount }, () => null),
+  const [blankFills, setBlankFills] = useState<Map<number, string | null>>(
+    () => new Map(),
   );
 
   useEffect(() => {
-    setSlots(Array.from({ length: slotCount }, () => null));
-  }, [correctWord, slotCount, letterTiles]);
+    setBlankFills(new Map());
+  }, [correctWord, letterSlots, letterTiles]);
 
-  const usedTileIds = new Set(slots.filter(Boolean) as string[]);
-  const assembled = slots
-    .map((id) => (id ? tileById.get(id)?.char ?? "" : ""))
-    .join("");
-  const allFilled = slots.every(Boolean);
-  const isCorrect = assembled.toLowerCase() === correctWord.trim().toLowerCase();
+  const usedTileIds = new Set(
+    [...blankFills.values()].filter(Boolean) as string[],
+  );
+  const assembled = assembleWord(letterSlots, blankFills, tileById);
+  const allBlanksFilled = blankIndices.every((index) => blankFills.get(index));
+  const isCorrect =
+    assembled.toLowerCase() === correctWord.trim().toLowerCase();
 
   function handleTileTap(tile: ReviewClozeLetterTile) {
     if (locked || usedTileIds.has(tile.id)) return;
-    const nextIndex = slots.findIndex((slot) => slot === null);
-    if (nextIndex < 0) return;
+    const nextBlank = blankIndices.find((index) => !blankFills.get(index));
+    if (nextBlank === undefined) return;
 
-    const next = [...slots];
-    next[nextIndex] = tile.id;
-    setSlots(next);
+    const next = new Map(blankFills);
+    next.set(nextBlank, tile.id);
+    setBlankFills(next);
 
-    if (nextIndex === slotCount - 1) {
-      const attempt = next
-        .map((id) => (id ? tileById.get(id)?.char ?? "" : ""))
-        .join("");
-      onComplete(attempt);
+    const filledAll = blankIndices.every((index) => next.get(index));
+    if (filledAll) {
+      onComplete(assembleWord(letterSlots, next, tileById));
     }
   }
 
-  function handleSlotTap(index: number) {
-    if (locked) return;
-    const tileId = slots[index];
+  function handleBlankTap(index: number) {
+    if (locked || !letterSlots[index]?.blank) return;
+    const tileId = blankFills.get(index);
     if (!tileId) return;
 
-    const lastFilled = slots.reduce<number>(
-      (last, slot, slotIndex) => (slot ? slotIndex : last),
+    const lastFilled = blankIndices.reduce<number>(
+      (last, blankIndex) => (blankFills.get(blankIndex) ? blankIndex : last),
       -1,
     );
     if (index !== lastFilled) return;
 
-    const next = [...slots];
-    next[index] = null;
-    setSlots(next);
+    const next = new Map(blankFills);
+    next.delete(index);
+    setBlankFills(next);
   }
 
   return (
@@ -91,7 +113,20 @@ export function ReviewClozeQuestion({
         {parts.map((part, index) =>
           part.isBlank ? (
             <span key={`blank-${index}`} className="review-cloze__slots">
-              {slots.map((tileId, slotIndex) => {
+              {letterSlots.map((slot, slotIndex) => {
+                if (!slot.blank) {
+                  return (
+                    <span
+                      key={`slot-${slotIndex}`}
+                      className="review-cloze__slot review-cloze__slot--prefilled"
+                      aria-hidden
+                    >
+                      {slot.char}
+                    </span>
+                  );
+                }
+
+                const tileId = blankFills.get(slotIndex);
                 const char = tileId ? tileById.get(tileId)?.char : null;
                 let state = "";
                 if (locked) {
@@ -105,7 +140,7 @@ export function ReviewClozeQuestion({
                     type="button"
                     className={`review-cloze__slot${state}`}
                     disabled={locked || !char}
-                    onClick={() => handleSlotTap(slotIndex)}
+                    onClick={() => handleBlankTap(slotIndex)}
                     aria-label={
                       char
                         ? t("review.clozeSlotFilled", { letter: char })
@@ -151,7 +186,7 @@ export function ReviewClozeQuestion({
         })}
       </div>
 
-      {locked && !unsure && allFilled ? (
+      {locked && !unsure && allBlanksFilled ? (
         <p
           className={`review-cloze__answer ${displayFontClass}${
             isCorrect ? " is-correct" : " is-wrong"
