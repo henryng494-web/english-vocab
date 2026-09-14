@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { displayFontClass } from "@/lib/fonts";
 import { useI18n } from "@/hooks/use-i18n";
 import {
-  CLOZE_PREFIX_HINT,
+  clozePrefixHintLength,
   type ReviewClozeLetterSlot,
   type ReviewClozeLetterTile,
   type ReviewClozePart,
@@ -48,7 +48,7 @@ export function ReviewClozeQuestion({
   onUnsure,
 }: ReviewClozeQuestionProps) {
   const { t } = useI18n();
-  const prefixCount = Math.min(CLOZE_PREFIX_HINT, letterSlots.length);
+  const prefixCount = clozePrefixHintLength(letterSlots.length);
   const blankIndices = useMemo(
     () =>
       letterSlots

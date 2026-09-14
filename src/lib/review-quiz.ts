@@ -62,8 +62,12 @@ export type ReviewClozeData = {
 };
 
 const CLOZE_MAX_PICK = 4;
-/** First N letters are always shown as a spelling hint (e.g. C O –). */
-export const CLOZE_PREFIX_HINT = 2;
+
+/** Spelling prefix hint: none for ≤4 letters, first letter only for 5+. */
+export function clozePrefixHintLength(wordLength: number): number {
+  if (wordLength <= 4) return 0;
+  return 1;
+}
 
 const LETTERS = ["A", "B", "C", "D"] as const;
 const SENSE_LETTERS = ["A", "B", "C"] as const;
@@ -334,7 +338,7 @@ export function buildClozeBlankParts(
 }
 
 /**
- * Blank indices after the fixed 2-letter prefix hint.
+ * Blank indices after the length-based prefix hint.
  * At most `maxBlank` picks from the tail; extra tail letters stay prefilled.
  */
 export function pickClozeBlankIndices(
@@ -344,7 +348,7 @@ export function pickClozeBlankIndices(
 ): number[] {
   if (length <= 0) return [];
 
-  const prefixEnd = Math.min(CLOZE_PREFIX_HINT, length);
+  const prefixEnd = clozePrefixHintLength(length);
   const tailIndices = Array.from(
     { length: length - prefixEnd },
     (_, index) => index + prefixEnd,
