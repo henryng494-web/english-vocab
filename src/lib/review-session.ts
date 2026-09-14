@@ -146,10 +146,15 @@ function applySnapshot(queue: VocabWord[]): VocabWord[] {
   const snapshot = readReviewSessionSnapshot();
   const ordered = applyReviewSessionSnapshot(queue, snapshot);
   if (ordered.length === 0 && queue.length > 0) {
-    if (
-      snapshot?.date === localReviewDateKey() &&
-      snapshot.completedWords.length > 0
-    ) {
+    const dueKeys = new Set(
+      queue.map((item) => item.word.trim().toLowerCase()),
+    );
+    const completed = new Set(
+      snapshot?.date === localReviewDateKey() ? snapshot.completedWords : [],
+    );
+    const allDueCompleted =
+      completed.size > 0 && [...dueKeys].every((key) => completed.has(key));
+    if (allDueCompleted) {
       return [];
     }
     clearReviewSessionSnapshot();

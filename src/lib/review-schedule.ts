@@ -317,11 +317,26 @@ export function getReviewBadgeDueCount(
       const completed = new Set(snapshot.completedWords);
       return snapshot.queueWords.filter((key) => !completed.has(key)).length;
     }
-    if (snapshot.completedWords.length > 0) {
-      return 0;
-    }
   }
   return getActionableDueReviewKeys(extraWords, now).length;
+}
+
+/** True when today's session batch is finished and no new due words remain. */
+export function isTodayReviewBatchComplete(
+  extraWords: Array<{
+    word: string;
+    status?: LearningStatus | string;
+    last_reviewed_at?: string | null;
+  }> = [],
+  now = Date.now(),
+): boolean {
+  const snapshot = readReviewSessionSnapshot();
+  if (!snapshot || snapshot.date !== localReviewDateKey(new Date(now))) {
+    return false;
+  }
+  if (snapshot.queueWords.length > 0) return false;
+  if (snapshot.completedWords.length === 0) return false;
+  return getActionableDueReviewKeys(extraWords, now).length === 0;
 }
 
 /** Due word keys for today's review session (capped + prioritized). */
