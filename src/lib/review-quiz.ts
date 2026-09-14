@@ -1,6 +1,6 @@
 import { keepNaturalExamples } from "@/lib/example-quality";
 import { capitalizeFirst } from "@/lib/format-text";
-import { parseExamples } from "@/lib/parse-examples";
+import { parseExamples, type VocabExample } from "@/lib/parse-examples";
 import { formatMeaningsForDisplay } from "@/lib/word-meanings";
 import { isSameRankBand } from "@/data/word-ranges";
 
@@ -35,7 +35,18 @@ export type ReviewChoice = {
   isCorrect?: boolean;
 };
 
-export type ReviewQuizKind = "word" | "sense" | "recall";
+export type ReviewQuizKind = "word" | "sense" | "recall" | "cloze";
+
+export type ReviewClozePart = {
+  text: string;
+  isBlank: boolean;
+};
+
+export type ReviewClozeData = {
+  sentenceVi: string;
+  parts: ReviewClozePart[];
+  correctWord: string;
+};
 
 const LETTERS = ["A", "B", "C", "D"] as const;
 const SENSE_LETTERS = ["A", "B", "C"] as const;
@@ -252,9 +263,10 @@ export function buildReviewSenseChoices(
 }
 
 export function reviewQuizKindForIndex(index: number): ReviewQuizKind {
-  const slot = index % 3;
+  const slot = index % 4;
   if (slot === 1) return "sense";
   if (slot === 2) return "recall";
+  if (slot === 3) return "cloze";
   return "word";
 }
 
@@ -263,15 +275,88 @@ type ReviewPoolWord = SenseSource & {
   examples?: string | null;
 };
 
+/** Example with EN sentence containing the word and a Vietnamese gloss line. */
+export function pickReviewClozeExample(
+  word: string,
+  rawExamples: unknown,
+  meaning?: string | null,
+  pos?: string | null,
+): VocabExample | null {
+  const parsed = parseExamples(rawExamples);
+  const natural = keepNaturalExamples(word, parsed, pos, meaning);
+  const withWordAndVi =
+    natural.find(
+      (item) => sentenceHasWord(item.en, word) && Boolean(item.vi.trim()),
+    ) ??
+    parsed.find(
+      (item) => sentenceHasWord(item.en, word) && Boolean(item.vi.trim()),
+    );
+  return withWordAndVi ?? null;
+}
+
+export function buildClozeBlankParts(
+  sentence: string,
+  word: string,
+): ReviewClozePart[] {
+  const needle = word.trim();
+  if (!sentence.trim() || !needle) {
+    return sentence.trim() ? [{ text: sentence, isBlank: false }] : [];
+  }
+  const re = new RegExp(`\\b${escapeRegExp(needle)}\\b`, "i");
+  const match = re.exec(sentence);
+  if (!match || match.index === undefined) {
+    return [{ text: sentence, isBlank: false }];
+  }
+  const parts: ReviewClozePart[] = [];
+  const before = sentence.slice(0, match.index);
+  const after = sentence.slice(match.index + match[0].length);
+  if (before) parts.push({ text: before, isBlank: false });
+  parts.push({ text: "", isBlank: true });
+  if (after) parts.push({ text: after, isBlank: false });
+  return parts;
+}
+
+export function buildReviewClozeData(
+  word: ReviewPoolWord,
+  pool: ReviewPoolWord[],
+  questionIndex: number,
+): ReviewClozeData | null {
+  const example = pickReviewClozeExample(
+    word.word,
+    word.examples,
+    word.vietnamese_meaning,
+    word.word_type,
+  );
+  if (!example) return null;
+
+  const parts = buildClozeBlankParts(example.en, word.word);
+  if (!parts.some((part) => part.isBlank)) return null;
+
+  return {
+    sentenceVi: example.vi.trim(),
+    parts,
+    correctWord: word.word.trim().toLowerCase(),
+  };
+}
+
 /** Build quiz kind + choices for a review slot (shared by UI and image prefetch). */
 export function buildReviewQuestionPlan(
   word: ReviewPoolWord,
   pool: ReviewPoolWord[],
   questionIndex: number,
-): { kind: ReviewQuizKind; choices: ReviewChoice[] } {
+): { kind: ReviewQuizKind; choices: ReviewChoice[]; cloze?: ReviewClozeData } {
   const wanted = reviewQuizKindForIndex(questionIndex);
+  const choiceSeed = reviewSenseCacheKey(questionIndex, word.word);
   let kind: ReviewQuizKind = "word";
   let choices: ReviewChoice[] = [];
+  let cloze: ReviewClozeData | undefined;
+
+  const wordChoicePool = pool.filter(
+    (item) =>
+      /^[a-z]+$/i.test(item.word) &&
+      item.word.length >= 3 &&
+      Boolean(item.english_definition?.trim()),
+  );
 
   if (wanted === "sense") {
     const senseChoices = buildReviewSenseChoices(word.word, pool);
@@ -289,23 +374,30 @@ export function buildReviewQuestionPlan(
     if (recallSentence.trim()) {
       kind = "recall";
     }
+  } else if (wanted === "cloze") {
+    const clozeData = buildReviewClozeData(word, pool, questionIndex);
+    if (clozeData) {
+      kind = "cloze";
+      cloze = clozeData;
+      choices = buildReviewChoices(
+        word.word,
+        wordChoicePool,
+        word.rank,
+        choiceSeed,
+      );
+    }
   }
 
   if (kind === "word") {
     choices = buildReviewChoices(
       word.word,
-      pool.filter(
-        (item) =>
-          /^[a-z]+$/i.test(item.word) &&
-          item.word.length >= 3 &&
-          Boolean(item.english_definition?.trim()),
-      ),
+      wordChoicePool,
       word.rank,
-      reviewSenseCacheKey(questionIndex, word.word),
+      choiceSeed,
     );
   }
 
-  return { kind, choices };
+  return { kind, choices, cloze };
 }
 
 function escapeRegExp(value: string): string {
