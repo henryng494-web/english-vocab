@@ -3,10 +3,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { displayFontClass } from "@/lib/fonts";
 import { useI18n } from "@/hooks/use-i18n";
-import type {
-  ReviewClozeLetterSlot,
-  ReviewClozeLetterTile,
-  ReviewClozePart,
+import {
+  CLOZE_PREFIX_HINT,
+  type ReviewClozeLetterSlot,
+  type ReviewClozeLetterTile,
+  type ReviewClozePart,
 } from "@/lib/review-quiz";
 
 type ReviewClozeQuestionProps = {
@@ -47,6 +48,7 @@ export function ReviewClozeQuestion({
   onUnsure,
 }: ReviewClozeQuestionProps) {
   const { t } = useI18n();
+  const prefixCount = Math.min(CLOZE_PREFIX_HINT, letterSlots.length);
   const blankIndices = useMemo(
     () =>
       letterSlots
@@ -54,6 +56,45 @@ export function ReviewClozeQuestion({
         .filter((index) => index >= 0),
     [letterSlots],
   );
+
+  function renderTailSlot(slot: ReviewClozeLetterSlot, slotIndex: number) {
+    if (!slot.blank) {
+      return (
+        <span
+          key={`slot-${slotIndex}`}
+          className="review-cloze__slot review-cloze__slot--prefilled"
+          aria-hidden
+        >
+          {slot.char}
+        </span>
+      );
+    }
+
+    const tileId = blankFills.get(slotIndex);
+    const char = tileId ? tileById.get(tileId)?.char : null;
+    let state = "";
+    if (locked) {
+      state = isCorrect ? " is-correct" : " is-wrong";
+    } else if (char) {
+      state = " is-filled";
+    }
+    return (
+      <button
+        key={`slot-${slotIndex}`}
+        type="button"
+        className={`review-cloze__slot${state}`}
+        disabled={locked || !char}
+        onClick={() => handleBlankTap(slotIndex)}
+        aria-label={
+          char
+            ? t("review.clozeSlotFilled", { letter: char })
+            : t("review.clozeSlotEmpty")
+        }
+      >
+        {char ?? "·"}
+      </button>
+    );
+  }
   const tileById = useMemo(
     () => new Map(letterTiles.map((tile) => [tile.id, tile])),
     [letterTiles],
@@ -113,44 +154,25 @@ export function ReviewClozeQuestion({
         {parts.map((part, index) =>
           part.isBlank ? (
             <span key={`blank-${index}`} className="review-cloze__slots">
-              {letterSlots.map((slot, slotIndex) => {
-                if (!slot.blank) {
-                  return (
-                    <span
-                      key={`slot-${slotIndex}`}
-                      className="review-cloze__slot review-cloze__slot--prefilled"
-                      aria-hidden
-                    >
-                      {slot.char}
-                    </span>
-                  );
-                }
-
-                const tileId = blankFills.get(slotIndex);
-                const char = tileId ? tileById.get(tileId)?.char : null;
-                let state = "";
-                if (locked) {
-                  state = isCorrect ? " is-correct" : " is-wrong";
-                } else if (char) {
-                  state = " is-filled";
-                }
-                return (
-                  <button
-                    key={`slot-${slotIndex}`}
-                    type="button"
-                    className={`review-cloze__slot${state}`}
-                    disabled={locked || !char}
-                    onClick={() => handleBlankTap(slotIndex)}
-                    aria-label={
-                      char
-                        ? t("review.clozeSlotFilled", { letter: char })
-                        : t("review.clozeSlotEmpty")
-                    }
-                  >
-                    {char ?? "·"}
-                  </button>
-                );
-              })}
+              {prefixCount > 0 ? (
+                <>
+                  <span className="review-cloze__prefix" aria-hidden>
+                    {letterSlots.slice(0, prefixCount).map((slot, slotIndex) => (
+                      <span key={`prefix-${slotIndex}`} className="review-cloze__prefix-char">
+                        {slot.char.toUpperCase()}
+                      </span>
+                    ))}
+                  </span>
+                  <span className="review-cloze__prefix-dash" aria-hidden>
+                    –
+                  </span>
+                </>
+              ) : null}
+              {letterSlots
+                .slice(prefixCount)
+                .map((slot, tailIndex) =>
+                  renderTailSlot(slot, tailIndex + prefixCount),
+                )}
             </span>
           ) : (
             <span key={`${part.text}-${index}`}>{part.text}</span>

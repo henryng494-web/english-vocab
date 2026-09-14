@@ -62,6 +62,8 @@ export type ReviewClozeData = {
 };
 
 const CLOZE_MAX_PICK = 5;
+/** First N letters are always shown as a spelling hint (e.g. C O –). */
+export const CLOZE_PREFIX_HINT = 2;
 
 const LETTERS = ["A", "B", "C", "D"] as const;
 const SENSE_LETTERS = ["A", "B", "C"] as const;
@@ -331,31 +333,31 @@ export function buildClozeBlankParts(
   return parts;
 }
 
-/** Up to 5 blank indices, spread across the word when it is longer than 5 letters. */
+/**
+ * Blank indices after the fixed 2-letter prefix hint.
+ * At most `maxBlank` picks from the tail; extra tail letters stay prefilled.
+ */
 export function pickClozeBlankIndices(
   length: number,
   maxBlank: number,
-  seed: string,
+  _seed: string,
 ): number[] {
   if (length <= 0) return [];
-  if (length <= maxBlank) {
-    return Array.from({ length }, (_, index) => index);
-  }
 
-  const spaced: number[] = [];
-  for (let i = 0; i < maxBlank; i++) {
-    spaced.push(Math.round((i * (length - 1)) / (maxBlank - 1)));
-  }
-  const unique = [...new Set(spaced)].sort((left, right) => left - right);
-  if (unique.length >= maxBlank) {
-    return unique.slice(0, maxBlank);
-  }
-
-  const remaining = Array.from({ length }, (_, index) => index).filter(
-    (index) => !unique.includes(index),
+  const prefixEnd = Math.min(CLOZE_PREFIX_HINT, length);
+  const tailIndices = Array.from(
+    { length: length - prefixEnd },
+    (_, index) => index + prefixEnd,
   );
-  const shuffled = seededShuffle(remaining, `${seed}:cloze-blanks`);
-  return [...unique, ...shuffled].slice(0, maxBlank).sort((left, right) => left - right);
+  if (tailIndices.length === 0) return [];
+  if (tailIndices.length <= maxBlank) return tailIndices;
+
+  const picked: number[] = [];
+  for (let i = 0; i < maxBlank; i++) {
+    const pos = Math.round((i * (tailIndices.length - 1)) / (maxBlank - 1));
+    picked.push(tailIndices[pos]!);
+  }
+  return [...new Set(picked)].sort((left, right) => left - right);
 }
 
 /** Letter slots (some prefilled) + shuffled tiles for blank positions only. */
