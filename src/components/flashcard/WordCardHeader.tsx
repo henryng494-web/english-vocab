@@ -34,7 +34,7 @@ export function WordCardHeader({
   const { registerLabel, wordTypeLabel } = useI18n();
   const wordTypeLabelText = wordTypeLabel(wordType, word);
   const meaningLines = meanings ? formatMeaningsForDisplay(meanings) : [];
-  const displayedRegister = displayWordRegister(register);
+  const displayedRegister = displayWordRegister(register, word);
   const registerLabelText = registerLabel(displayedRegister);
   const showMeta =
     meaningLines.length > 0 && (registerLabelText || wordTypeLabelText);

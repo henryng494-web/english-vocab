@@ -20,6 +20,7 @@ import { formatIpa, isPlaceholderPhonetic } from "@/lib/phonetic";
 import { fillExampleTranslations, keepNaturalExamples } from "@/lib/example-fallback";
 import { hasQualityExamples } from "@/lib/example-quality";
 import type { VocabExample } from "@/lib/parse-examples";
+import { applyRegisterOverride } from "@/data/register-overrides";
 import {
   alignmentMeaningLines,
   encodeRegisterCollocation,
@@ -160,7 +161,10 @@ function parseGeminiResponse(text: string, word: string): WordEnrichment {
   const normalizedMeanings = meanings.map((item) => capitalizeFirst(item));
   const meaningRaw = normalizedMeanings[0] ?? word;
   const wordType = normalizeWordType(parsed.pos?.trim(), word) ?? "unknown";
-  const register = normalizeWordRegister(parsed.register);
+  const register = applyRegisterOverride(
+    word,
+    normalizeWordRegister(parsed.register),
+  );
 
   const definition =
     parsed.definition?.trim() ||

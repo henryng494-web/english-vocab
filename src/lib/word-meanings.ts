@@ -1,3 +1,4 @@
+import { getRegisterOverride } from "@/data/register-overrides";
 import { capitalizeFirst } from "@/lib/format-text";
 import { sanitizeVietnameseText } from "@/lib/sanitize-vi";
 
@@ -142,9 +143,13 @@ export function decodeRegisterFromCollocation(
 }
 
 export function resolveWordRegister(input: {
+  word?: string | null;
   register?: WordRegister | null;
   collocations?: string | null;
 }): WordRegister | null {
+  const override = input.word ? getRegisterOverride(input.word) : null;
+  if (override) return override;
+
   const fromField = input.register ? normalizeWordRegister(input.register) : null;
   if (fromField) return fromField;
   return decodeRegisterFromCollocation(input.collocations);
@@ -153,7 +158,10 @@ export function resolveWordRegister(input: {
 /** UI fallback when register metadata is missing on cached rows. */
 export function displayWordRegister(
   register: WordRegister | null | undefined,
+  word?: string | null,
 ): WordRegister {
+  const override = word ? getRegisterOverride(word) : null;
+  if (override) return override;
   return normalizeWordRegister(register ?? "") ?? "neutral";
 }
 
