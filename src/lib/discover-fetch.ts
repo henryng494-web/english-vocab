@@ -89,6 +89,7 @@ export function mapApiWordToDiscoverData(
     image_url: (apiWord.image_url as string | null | undefined) ?? null,
     collocations: apiWord.collocations as string | null | undefined,
     register: resolveWordRegister({
+      word: item.word,
       register: apiWord.register as DiscoverWordData["register"],
       collocations: apiWord.collocations as string | null | undefined,
     }),

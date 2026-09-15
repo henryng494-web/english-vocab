@@ -19,6 +19,7 @@ formal (polished / professional / written register)
 
 informal (ONLY clearly casual / spoken / slang)
   • Short chat verbs & phrasal verbs: get, buy, tell, check, go on, bring up, find out, pick up
+  • Slang & casual nouns: chow, grub, eats, booze, bucks, dude, mom, fridge, TV
   • Slang: gonna, kinda, dude
   • MUST be the informal half of a pair — obtain/continue/mention → formal, NOT informal
   • Do NOT tag neutral words informal just because examples sound friendly
@@ -100,6 +101,9 @@ Gold standards (register):
 • go on (phrasal) → informal · continue (verb) → formal
 • bring up (phrasal) → informal · mention (verb) → formal
 • talk about → informal · discuss (verb) → formal
+• chow (noun) → informal · food (noun) → neutral
+• grub (noun) → informal · meal (noun) → neutral
+• bucks (noun) → informal · dollars (noun) → neutral
 • hereby (adverb) → formal · meanings: ["Theo đây"]
 • happy (adjective) → neutral
 • shrimp (noun) → meanings: ["Tôm", "Người nhỏ bé"] — NOT "Động vật giáp xác nhỏ"
