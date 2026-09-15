@@ -17,6 +17,7 @@ import {
   clearReviewSessionSnapshot,
   localReviewDateKey,
   readReviewSessionSnapshot,
+  writeReviewSessionSnapshot,
 } from "@/lib/review-session-storage";
 import { resolveImageSearchKeyword } from "@/lib/image-keyword";
 import { getImportanceTier } from "@/lib/word-rank";
@@ -157,7 +158,18 @@ function applySnapshot(queue: VocabWord[]): VocabWord[] {
     if (allDueCompleted) {
       return [];
     }
-    clearReviewSessionSnapshot();
+    if (
+      snapshot?.date === localReviewDateKey() &&
+      snapshot.completedWords.length > 0
+    ) {
+      writeReviewSessionSnapshot({
+        ...snapshot,
+        queueWords: [],
+        inProgress: null,
+      });
+    } else {
+      clearReviewSessionSnapshot();
+    }
     return queue;
   }
   return ordered;

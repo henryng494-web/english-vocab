@@ -13,6 +13,7 @@ import {
 import {
   localReviewDateKey,
   readReviewSessionSnapshot,
+  readTodayCompletedReviewWords,
 } from "@/lib/review-session-storage";
 import type { LearningStatus } from "@/types/database";
 
@@ -277,11 +278,17 @@ function capDueKeys(keys: string[], schedule: ScheduleMap): string[] {
 }
 
 function excludeSessionCompletedToday(keys: string[], now = Date.now()): string[] {
+  const today = localReviewDateKey(new Date(now));
   const snapshot = readReviewSessionSnapshot();
-  if (!snapshot || snapshot.date !== localReviewDateKey(new Date(now))) {
-    return keys;
+  if (snapshot?.date !== today) {
+    const completed = new Set(readTodayCompletedReviewWords());
+    if (completed.size === 0) return keys;
+    return keys.filter((key) => !completed.has(key));
   }
-  const completed = new Set(snapshot.completedWords);
+  const completed = new Set([
+    ...readTodayCompletedReviewWords(),
+    ...snapshot.completedWords,
+  ]);
   return keys.filter((key) => !completed.has(key));
 }
 
@@ -314,8 +321,8 @@ export function getReviewBadgeDueCount(
   const snapshot = readReviewSessionSnapshot();
   if (snapshot && snapshot.date === localReviewDateKey(new Date(now))) {
     if (snapshot.queueWords.length > 0) {
-      const completed = new Set(snapshot.completedWords);
-      return snapshot.queueWords.filter((key) => !completed.has(key)).length;
+      // queueWords is already the remaining session queue after each confirm
+      return snapshot.queueWords.length;
     }
   }
   return getActionableDueReviewKeys(extraWords, now).length;

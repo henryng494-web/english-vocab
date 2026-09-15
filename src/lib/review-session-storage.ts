@@ -5,6 +5,12 @@ import type { ReviewIntervalDays } from "@/lib/review-schedule";
 export { localDateKey as localReviewDateKey };
 
 const STORAGE_KEY = "english-vocab-review-session-v1";
+const COMPLETED_TODAY_KEY = "english-vocab-review-completed-today-v1";
+
+type CompletedTodayState = {
+  date: string;
+  words: string[];
+};
 
 export type ReviewSessionInProgress = {
   word: string;
@@ -64,6 +70,49 @@ export function writeReviewSessionSnapshot(
   if (options?.notify !== false) {
     window.dispatchEvent(new Event("vocab-learning-changed"));
   }
+}
+
+function readCompletedTodayState(): CompletedTodayState {
+  if (typeof window === "undefined") {
+    return { date: localDateKey(), words: [] };
+  }
+  try {
+    const raw = localStorage.getItem(COMPLETED_TODAY_KEY);
+    if (!raw) return { date: localDateKey(), words: [] };
+    const parsed = JSON.parse(raw) as CompletedTodayState;
+    if (!parsed || parsed.date !== localDateKey() || !Array.isArray(parsed.words)) {
+      return { date: localDateKey(), words: [] };
+    }
+    return {
+      date: parsed.date,
+      words: parsed.words.map((w) => w.trim().toLowerCase()).filter(Boolean),
+    };
+  } catch {
+    return { date: localDateKey(), words: [] };
+  }
+}
+
+/** Words confirmed in review today — survives session snapshot resets. */
+export function readTodayCompletedReviewWords(): string[] {
+  const snapshot = readReviewSessionSnapshot();
+  const persisted = readCompletedTodayState().words;
+  if (!snapshot?.date || snapshot.date !== localDateKey()) {
+    return persisted;
+  }
+  return [...new Set([...persisted, ...snapshot.completedWords])];
+}
+
+function persistTodayCompletedReviewWord(word: string): void {
+  if (typeof window === "undefined") return;
+  const today = localDateKey();
+  const key = word.trim().toLowerCase();
+  if (!key) return;
+  const words = new Set(readCompletedTodayState().words);
+  words.add(key);
+  localStorage.setItem(
+    COMPLETED_TODAY_KEY,
+    JSON.stringify({ date: today, words: [...words] }),
+  );
 }
 
 export function clearReviewSessionSnapshot(): void {
@@ -138,6 +187,7 @@ export function markReviewSessionCompleted(
   );
   completed.add(key);
 
+  persistTodayCompletedReviewWord(key);
   writeReviewSessionSnapshot({
     date: today,
     completedWords: [...completed],
