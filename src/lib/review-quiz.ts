@@ -68,9 +68,15 @@ export type ReviewClozeData = {
 
 const CLOZE_MAX_PICK = 4;
 
-/** Spelling prefix hint: none for ≤4 letters, first letter only for 5+. */
+/**
+ * Spelling prefix hint:
+ * - ≤4 letters: none (player fills every letter)
+ * - 5+ letters with ≤4 tail blanks: first letter only
+ * - 5+ letters with 4 spaced tail picks: first two letters
+ */
 export function clozePrefixHintLength(wordLength: number): number {
   if (wordLength <= 4) return 0;
+  if (wordLength - 2 > CLOZE_MAX_PICK) return 2;
   return 1;
 }
 
