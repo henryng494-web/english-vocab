@@ -1,5 +1,10 @@
 import { keepNaturalExamples } from "@/lib/example-quality";
 import { capitalizeFirst } from "@/lib/format-text";
+import {
+  isTemplateVietnameseDefinition,
+  looksLikeEnglish,
+  stripTemplateVietnameseDefinition,
+} from "@/lib/translate-vi";
 import { parseExamples, type VocabExample } from "@/lib/parse-examples";
 import { formatMeaningsForDisplay } from "@/lib/word-meanings";
 import { isSameRankBand } from "@/data/word-ranges";
@@ -600,9 +605,26 @@ export function reviewClue(word: {
   english_definition?: string | null;
   vietnamese_meaning?: string | null;
 }): string {
-  const definition = word.english_definition?.trim();
-  if (definition) return capitalizeFirst(definition);
   const meaning = reviewSenseText(word);
+  const definition = word.english_definition?.trim();
+
+  if (meaning) {
+    if (
+      !definition ||
+      isTemplateVietnameseDefinition(definition) ||
+      looksLikeEnglish(definition)
+    ) {
+      return meaning;
+    }
+  }
+
+  if (definition && !isTemplateVietnameseDefinition(definition)) {
+    return capitalizeFirst(definition);
+  }
   if (meaning) return meaning;
+  if (definition) {
+    const stripped = stripTemplateVietnameseDefinition(definition);
+    if (stripped) return stripped;
+  }
   return "Choose the matching word.";
 }

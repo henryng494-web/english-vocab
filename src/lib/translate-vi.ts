@@ -1,6 +1,5 @@
 import { capitalizeFirst } from "@/lib/format-text";
 import { sanitizeVietnameseText } from "@/lib/sanitize-vi";
-import { normalizeWordType } from "@/lib/word-type";
 import { getStaticVietnamese } from "@/lib/static-vietnamese";
 import { primaryVietnameseMeaning } from "@/lib/word-meanings";
 import {
@@ -65,10 +64,30 @@ export function looksLikeEnglish(text: string): boolean {
   return false;
 }
 
-/** Build a short Vietnamese definition sentence from meaning text. */
+/** Detect auto-built glosses like "Có nghĩa là chết đói một điều gì đó." */
+export function isTemplateVietnameseDefinition(text: string): boolean {
+  const trimmed = text.trim();
+  if (!trimmed) return false;
+  if (/một điều gì đó/i.test(trimmed)) return true;
+  if (/^có nghĩa là\s+/i.test(trimmed)) return true;
+  return false;
+}
+
+/** Strip legacy template wrapper; returns empty when nothing usable remains. */
+export function stripTemplateVietnameseDefinition(text: string): string {
+  const trimmed = text.trim();
+  if (!trimmed) return "";
+  const match = trimmed.match(
+    /^có nghĩa là\s+(.+?)(?:\s+một điều gì đó)?\.?$/iu,
+  );
+  if (!match?.[1]) return trimmed;
+  return capitalizeFirst(match[1].trim());
+}
+
+/** Build a short Vietnamese gloss from meaning text (no meta "Có nghĩa là…" wrapper). */
 export function buildDefinitionFromVietnameseMeaning(
   vietnameseMeaning: string,
-  wordType?: string | null,
+  _wordType?: string | null,
 ): string {
   const raw = primaryVietnameseMeaning(vietnameseMeaning) || vietnameseMeaning.trim();
   if (!raw || raw === "—") return "";
@@ -79,24 +98,17 @@ export function buildDefinitionFromVietnameseMeaning(
     .filter(Boolean);
   if (!segments.length) return "";
 
-  const lowered = segments
+  const phrase = segments
     .map((seg, index) => {
       const s = seg.trim();
       if (index === 0) {
-        return s.charAt(0).toLowerCase() + s.slice(1);
+        return s.charAt(0).toUpperCase() + s.slice(1);
       }
       return s.toLowerCase();
     })
     .join(", ");
 
-  const pos = normalizeWordType(wordType, undefined);
-  const isVerb = pos === "verb";
-
-  const sentence = isVerb
-    ? `Có nghĩa là ${lowered} một điều gì đó.`
-    : `Có nghĩa là ${lowered}.`;
-
-  return capitalizeFirst(sentence);
+  return phrase.endsWith(".") ? phrase : `${phrase}.`;
 }
 
 export function isMissingDefinition(text: string | null | undefined): boolean {
