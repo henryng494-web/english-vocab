@@ -10,11 +10,14 @@ import {
   srsLevelFromIntervalDays,
   type ReviewLastResult,
 } from "@/lib/review-srs";
+import { getDailyReviewPlanRemaining } from "@/lib/daily-goal";
+import { getTodayReviewWordTarget } from "@/lib/review-daily-target";
 import {
   localReviewDateKey,
   readReviewSessionSnapshot,
   readTodayCompletedReviewWords,
 } from "@/lib/review-session-storage";
+import { getTodayReviewsCompleted } from "@/lib/daily-reviews";
 import type { LearningStatus } from "@/types/database";
 
 /** Standard SRS dropdown milestones (days). */
@@ -306,9 +309,23 @@ export function countDueReviewWords(
   ).length;
 }
 
+function countRemainingDueReviewWords(
+  extraWords: Array<{
+    word: string;
+    status?: LearningStatus | string;
+    last_reviewed_at?: string | null;
+  }> = [],
+  now = Date.now(),
+): number {
+  return excludeSessionCompletedToday(
+    [...collectDueReviewKeys(extraWords, now)],
+    now,
+  ).length;
+}
+
 /**
- * Badge / home due count: remaining words in today's active session queue when
- * one exists; otherwise the next capped batch (max 50).
+ * Badge / home due count: words left toward today's review goal.
+ * Synced with the home review ring (daily rep plan) and decreases on each confirm.
  */
 export function getReviewBadgeDueCount(
   extraWords: Array<{
@@ -318,14 +335,24 @@ export function getReviewBadgeDueCount(
   }> = [],
   now = Date.now(),
 ): number {
+  const planRemaining = getDailyReviewPlanRemaining();
+  if (planRemaining <= 0) return 0;
+
+  const dueRemaining = countRemainingDueReviewWords(extraWords, now);
+  const wordTarget = getTodayReviewWordTarget(dueRemaining);
+  const repsCompleted = getTodayReviewsCompleted();
+  const targetRemaining = Math.max(0, wordTarget - repsCompleted);
+
   const snapshot = readReviewSessionSnapshot();
-  if (snapshot && snapshot.date === localReviewDateKey(new Date(now))) {
-    if (snapshot.queueWords.length > 0) {
-      // queueWords is already the remaining session queue after each confirm
-      return snapshot.queueWords.length;
-    }
+  const today = localReviewDateKey(new Date(now));
+  if (snapshot?.date === today && snapshot.queueWords.length > 0) {
+    return Math.max(
+      0,
+      Math.min(snapshot.queueWords.length, targetRemaining, planRemaining, dueRemaining),
+    );
   }
-  return getActionableDueReviewKeys(extraWords, now).length;
+
+  return Math.max(0, Math.min(targetRemaining, planRemaining, dueRemaining));
 }
 
 /** True when today's session batch is finished and no new due words remain. */
