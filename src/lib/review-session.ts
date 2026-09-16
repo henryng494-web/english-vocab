@@ -350,7 +350,7 @@ export async function enrichDueReviewWords(
   }
   const enriched = await enrichDueWordsOnly(extraWords, queue);
   return {
-    dueCount: queue.length,
+    dueCount: getReviewBadgeDueCount(extraWords),
     queue: enriched.queue,
     pool: enriched.pool,
   };
@@ -365,7 +365,7 @@ export async function enrichReviewSession(
   }
   const enriched = await enrichQueue(extraWords, queue);
   return {
-    dueCount: queue.length,
+    dueCount: getReviewBadgeDueCount(extraWords),
     queue: enriched.queue,
     pool: enriched.pool,
   };
