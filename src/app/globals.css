@@ -701,20 +701,22 @@ body {
   line-clamp: unset;
 }
 
-.word-learning-chunks__item--with-speak {
+.word-learning-chunks__en-row {
   display: flex;
-  align-items: flex-start;
-  gap: 0.35rem;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.2rem 0.35rem;
+  margin: 0;
 }
 
-.word-learning-chunks__phrase-body {
+.word-learning-chunks__en-row .vocab-examples__en {
+  display: inline;
   flex: 1 1 auto;
   min-width: 0;
 }
 
 .word-learning-chunks__speak {
   flex: 0 0 auto;
-  margin-top: 0.05rem;
 }
 
 .word-learning-chunks__section--phrases .vocab-examples__item {
@@ -722,9 +724,15 @@ body {
   overflow: visible;
 }
 
-.word-learning-chunks__section--phrases .vocab-examples__en,
 .word-learning-chunks__section--phrases .vocab-examples__vi {
   display: block;
+  overflow: visible;
+  -webkit-line-clamp: unset;
+  line-clamp: unset;
+}
+
+.word-learning-chunks__section--phrases .word-learning-chunks__en-row .vocab-examples__en {
+  display: inline;
   overflow: visible;
   -webkit-line-clamp: unset;
   line-clamp: unset;

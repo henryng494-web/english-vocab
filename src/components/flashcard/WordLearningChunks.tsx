@@ -42,9 +42,7 @@ function PhraseList({
           className={
             inline
               ? "vocab-examples__item word-learning-chunks__item--inline"
-              : speakAtEnd
-                ? "vocab-examples__item word-learning-chunks__item--with-speak"
-                : "vocab-examples__item"
+              : "vocab-examples__item"
           }
         >
           {inline ? (
@@ -65,21 +63,23 @@ function PhraseList({
             </p>
           ) : speakAtEnd ? (
             <>
-              <div className="word-learning-chunks__phrase-body">
-                <p className="vocab-examples__en italic">{capitalizeFirst(item.en)}</p>
-                {item.vi ? (
-                  <p className="vocab-examples__vi mt-0.5 italic">
-                    {capitalizeFirst(item.vi)}
-                  </p>
-                ) : null}
-              </div>
-              <SpeakButton
-                text={item.en}
-                variant="light"
-                iconOnly
-                ariaLabel={speakAriaLabel}
-                className="word-learning-chunks__speak !h-8 !w-8"
-              />
+              <p className="word-learning-chunks__en-row">
+                <span className="vocab-examples__en italic">
+                  {capitalizeFirst(item.en)}
+                </span>
+                <SpeakButton
+                  text={item.en}
+                  variant="light"
+                  iconOnly
+                  ariaLabel={speakAriaLabel}
+                  className="word-learning-chunks__speak !h-8 !w-8"
+                />
+              </p>
+              {item.vi ? (
+                <p className="vocab-examples__vi mt-0.5 italic">
+                  {capitalizeFirst(item.vi)}
+                </p>
+              ) : null}
             </>
           ) : (
             <>
