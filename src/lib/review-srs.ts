@@ -1,9 +1,11 @@
 import type { ReviewQuizKind } from "@/lib/review-quiz";
 import {
+  DAILY_REVIEW_SESSION_CAP,
   REVIEW_INTERVALS,
   type ReviewIntervalDays,
+  type ReviewLastResult,
   type ReviewScheduleEntry,
-} from "@/lib/review-schedule";
+} from "@/lib/review-shared";
 import { getTodayReviewsCompleted } from "@/lib/daily-reviews";
 import {
   canLearnNewWordToday,
@@ -19,10 +21,10 @@ export const MASTERED_MIN_SRS_LEVEL = 4;
 
 export const LEECH_WRONG_STREAK = 3;
 export const IN_SESSION_REPEAT_GAP = 3;
-export const DAILY_REVIEW_SESSION_CAP = 50;
 
 export type ReviewGrade = "correct" | "unsure" | "wrong";
-export type ReviewLastResult = ReviewGrade | "lookup";
+export type { ReviewLastResult } from "@/lib/review-shared";
+export { DAILY_REVIEW_SESSION_CAP } from "@/lib/review-shared";
 
 export function gradeFromAnswer(
   isCorrect: boolean,

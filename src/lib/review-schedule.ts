@@ -1,14 +1,18 @@
 import { readLocalLearning } from "@/lib/learning-storage";
 import { resolveLearnableWordKey } from "@/data/vocab-abbreviations";
 import { isExcludedVocabWord } from "@/lib/proper-noun";
-import type { ReviewQuizKind } from "@/lib/review-quiz";
+import {
+  DAILY_REVIEW_SESSION_CAP,
+  REVIEW_INTERVALS,
+  type ReviewIntervalDays,
+  type ReviewLastResult,
+  type ReviewScheduleEntry,
+} from "@/lib/review-shared";
 import {
   computeNextReviewAt,
-  DAILY_REVIEW_SESSION_CAP,
   isLeechEntry,
   normalizeScheduleEntry,
   srsLevelFromIntervalDays,
-  type ReviewLastResult,
 } from "@/lib/review-srs";
 import { getDailyReviewPlanRemaining } from "@/lib/daily-goal";
 import { getTodayReviewWordTarget } from "@/lib/review-daily-target";
@@ -20,25 +24,16 @@ import {
 import { getTodayReviewsCompleted } from "@/lib/daily-reviews";
 import type { LearningStatus } from "@/types/database";
 
-/** Standard SRS dropdown milestones (days). */
-export const REVIEW_INTERVALS = [1, 3, 7, 14, 30] as const;
-
-export type ReviewIntervalDays = (typeof REVIEW_INTERVALS)[number];
+export {
+  DAILY_REVIEW_SESSION_CAP,
+  REVIEW_INTERVALS,
+  type ReviewIntervalDays,
+  type ReviewLastResult,
+  type ReviewScheduleEntry,
+} from "@/lib/review-shared";
 
 /** Mark word as fully known — no further scheduled reviews. */
 export const REVIEW_MASTERED_LABEL = "Already know";
-
-export type ReviewScheduleEntry = {
-  intervalDays: ReviewIntervalDays;
-  nextReviewAt: string;
-  timesReviewed: number;
-  srsLevel?: number;
-  streakCorrect?: number;
-  wrongStreak?: number;
-  lastResult?: ReviewLastResult;
-  lastQuizKind?: ReviewQuizKind;
-  leechFlag?: boolean;
-};
 
 const STORAGE_KEY = "english-vocab-review-schedule-v1";
 
@@ -309,20 +304,6 @@ export function countDueReviewWords(
   ).length;
 }
 
-function countRemainingDueReviewWords(
-  extraWords: Array<{
-    word: string;
-    status?: LearningStatus | string;
-    last_reviewed_at?: string | null;
-  }> = [],
-  now = Date.now(),
-): number {
-  return excludeSessionCompletedToday(
-    [...collectDueReviewKeys(extraWords, now)],
-    now,
-  ).length;
-}
-
 /**
  * Badge / home due count: words left toward today's review goal.
  * Synced with the home review ring (daily rep plan) and decreases on each confirm.
@@ -338,7 +319,7 @@ export function getReviewBadgeDueCount(
   const planRemaining = getDailyReviewPlanRemaining();
   if (planRemaining <= 0) return 0;
 
-  const dueRemaining = countRemainingDueReviewWords(extraWords, now);
+  const dueRemaining = countDueReviewWords(extraWords, now);
   const wordTarget = getTodayReviewWordTarget(dueRemaining);
   const repsCompleted = getTodayReviewsCompleted();
   const targetRemaining = Math.max(0, wordTarget - repsCompleted);
