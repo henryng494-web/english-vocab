@@ -1,6 +1,9 @@
 import { proxyPronounceAudioPath } from "@/lib/dictionary-pronunciation";
+import {
+  getPronounceAccent,
+  voiceVersionForAccent,
+} from "@/lib/pronounce-accent";
 import { getPronouncePlaybackRate } from "@/lib/pronounce-speed";
-import { PRONOUNCE_VOICE_VERSION } from "@/lib/neural-pronunciation";
 
 const audioUrlCache = new Map<string, string | null>();
 const pendingLookups = new Map<string, Promise<string | null>>();
@@ -16,11 +19,22 @@ function normalizeWord(word: string): string {
   return word.trim().toLowerCase();
 }
 
-/** Client cache key — must include voice version so auto-speak never replays stale MP3s. */
+/** Client cache key — must include accent + voice version so auto-speak never replays stale MP3s. */
 function cacheKey(word: string): string {
   const normalized = normalizeWord(word);
   if (!normalized) return "";
-  return `${PRONOUNCE_VOICE_VERSION}:${normalized}`;
+  const accent = getPronounceAccent();
+  return `${voiceVersionForAccent(accent)}:${normalized}`;
+}
+
+function clearPronounceAudioCaches(): void {
+  audioUrlCache.clear();
+  pendingLookups.clear();
+  warmedAudioBytes.clear();
+  pendingWarmByKey.clear();
+  for (const key of blobUrlByKey.keys()) {
+    revokeBlobUrl(key);
+  }
 }
 
 function revokeBlobUrl(key: string): void {
@@ -77,7 +91,7 @@ function resolveAudioElement(): HTMLAudioElement | null {
   if (!(found instanceof HTMLAudioElement)) return null;
   pronounceAudioElement = found;
   configureAudioElement(found);
-  bindPlaybackRateListener();
+  bindSettingsListener();
   return found;
 }
 
@@ -117,16 +131,22 @@ function startPlayback(audio: HTMLAudioElement): void {
   playAttempt();
 }
 
-function bindPlaybackRateListener(): void {
-  if (typeof window === "undefined" || playbackRateListenerBound) return;
-  playbackRateListenerBound = true;
+function bindSettingsListener(): void {
+  if (typeof window === "undefined" || settingsListenerBound) return;
+  settingsListenerBound = true;
+  let lastAccent = getPronounceAccent();
   window.addEventListener("app-settings-changed", () => {
     const audio = getAudioElement();
     if (audio) applyPlaybackRate(audio);
+    const nextAccent = getPronounceAccent();
+    if (nextAccent !== lastAccent) {
+      lastAccent = nextAccent;
+      clearPronounceAudioCaches();
+    }
   });
 }
 
-let playbackRateListenerBound = false;
+let settingsListenerBound = false;
 
 /** Register the layout `<audio>` element (required for iOS Safari + PWA). */
 export function registerPronounceAudioElement(element: HTMLAudioElement | null): void {
@@ -136,7 +156,7 @@ export function registerPronounceAudioElement(element: HTMLAudioElement | null):
   }
   pronounceAudioElement = element;
   configureAudioElement(element);
-  bindPlaybackRateListener();
+  bindSettingsListener();
 }
 
 function getAudioElement(): HTMLAudioElement | null {
@@ -158,11 +178,11 @@ export function isWordAudioPlaying(word: string): boolean {
   return audio.dataset.wordKey === key && isSharedAudioPlaying();
 }
 
-/** Same-origin neural MP3 path for the current voice version. */
+/** Same-origin MP3 path for the current accent + voice version. */
 function resolvePlayableUrl(word: string): string {
   const normalized = normalizeWord(word);
   if (!normalized) return "";
-  return proxyPronounceAudioPath(normalized);
+  return proxyPronounceAudioPath(normalized, getPronounceAccent());
 }
 
 /** Resolve a same-origin pronunciation MP3 URL (cached). */
@@ -175,9 +195,13 @@ export async function resolveWordAudioUrl(word: string): Promise<string | null> 
   if (pending) return pending;
 
   const normalized = normalizeWord(word);
-  const lookup = fetch(`/api/pronounce?word=${encodeURIComponent(normalized)}`, {
-    cache: "no-cache",
-  })
+  const accent = getPronounceAccent();
+  const lookup = fetch(
+    `/api/pronounce?word=${encodeURIComponent(normalized)}&accent=${accent}`,
+    {
+      cache: "no-cache",
+    },
+  )
     .then(async (response) => {
       if (!response.ok) {
         audioUrlCache.set(key, null);
@@ -376,7 +400,7 @@ export function primeAudioPipelineInUserGesture(): void {
     audio.pause();
     audio.currentTime = 0;
     if (currentAudio === audio) currentAudio = null;
-    const versionToken = `v=${PRONOUNCE_VOICE_VERSION}`;
+    const versionToken = `v=${voiceVersionForAccent(getPronounceAccent())}`;
     if (prevSrc && prevSrc.includes(versionToken)) {
       audio.src = prevSrc;
       audio.dataset.wordKey = prevKey;

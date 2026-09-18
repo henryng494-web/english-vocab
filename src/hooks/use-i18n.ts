@@ -5,6 +5,7 @@ import { capitalizeFirst } from "@/lib/format-text";
 import {
   countGoalMessageKey,
   dailyGoalMessageKey,
+  pronounceAccentMessageKey,
   pronounceSpeedMessageKey,
   translate,
   type AppLocale,
@@ -16,7 +17,13 @@ import {
   type WordRegister,
 } from "@/lib/word-meanings";
 import { useCallback, useMemo } from "react";
-import type { CountGoalTarget, DailyGoalMinutes, GoalType, PronounceSpeed } from "@/lib/app-settings";
+import type {
+  CountGoalTarget,
+  DailyGoalMinutes,
+  GoalType,
+  PronounceAccent,
+  PronounceSpeed,
+} from "@/lib/app-settings";
 import type { ReviewIntervalDays } from "@/lib/review-schedule";
 
 export function useI18n() {
@@ -61,6 +68,14 @@ export function useI18n() {
     (speed: PronounceSpeed) => {
       const key = pronounceSpeedMessageKey(speed);
       return key ? t(key) : speed;
+    },
+    [t],
+  );
+
+  const pronounceAccentLabel = useCallback(
+    (accent: PronounceAccent) => {
+      const key = pronounceAccentMessageKey(accent);
+      return key ? t(key) : accent;
     },
     [t],
   );
@@ -119,6 +134,7 @@ export function useI18n() {
       countGoalLabel,
       goalTypeLabel,
       pronounceSpeedLabel,
+      pronounceAccentLabel,
       registerLabel,
       wordTypeLabel,
       reviewTimesLabel,
@@ -132,6 +148,7 @@ export function useI18n() {
       countGoalLabel,
       goalTypeLabel,
       pronounceSpeedLabel,
+      pronounceAccentLabel,
       registerLabel,
       wordTypeLabel,
       reviewTimesLabel,

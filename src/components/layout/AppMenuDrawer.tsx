@@ -2,6 +2,7 @@
 
 import {
   DAILY_GOAL_OPTIONS,
+  PRONOUNCE_ACCENT_OPTIONS,
   PRONOUNCE_SPEED_OPTIONS,
   type DailyGoalMinutes,
 } from "@/lib/app-settings";
@@ -59,6 +60,8 @@ export function AppMenuDrawer({ open, onClose }: AppMenuDrawerProps) {
     setAutoSpeakEnabled,
     pronounceSpeed,
     setPronounceSpeed,
+    pronounceAccent,
+    setPronounceAccent,
     dailyGoalMinutes,
     setDailyGoalMinutes,
     reminderEnabled,
@@ -68,7 +71,7 @@ export function AppMenuDrawer({ open, onClose }: AppMenuDrawerProps) {
     appLanguage,
     setAppLanguage,
   } = useAppSettings();
-  const { t, dailyGoalLabel, pronounceSpeedLabel } = useI18n();
+  const { t, dailyGoalLabel, pronounceSpeedLabel, pronounceAccentLabel } = useI18n();
 
   const recommendedWords = useMemo(
     () => recommendedNewWordsForMinutes(dailyGoalMinutes),
@@ -139,6 +142,24 @@ export function AppMenuDrawer({ open, onClose }: AppMenuDrawerProps) {
               checked={autoSpeakEnabled}
               onChange={setAutoSpeakEnabled}
             />
+            <div className="app-menu__subblock">
+              <p className="app-menu__subblock-title">{t("menu.pronounceAccent")}</p>
+              <p className="app-menu__hint">{t("menu.pronounceAccentHint")}</p>
+              <div className="app-menu__chips">
+                {PRONOUNCE_ACCENT_OPTIONS.map((accent) => (
+                  <button
+                    key={accent}
+                    type="button"
+                    className={`app-menu__chip${
+                      pronounceAccent === accent ? " is-active" : ""
+                    }`}
+                    onClick={() => setPronounceAccent(accent)}
+                  >
+                    {pronounceAccentLabel(accent)}
+                  </button>
+                ))}
+              </div>
+            </div>
             <div className="app-menu__subblock">
               <p className="app-menu__subblock-title">{t("menu.pronounceSpeed")}</p>
               <p className="app-menu__hint">{t("menu.pronounceSpeedHint")}</p>

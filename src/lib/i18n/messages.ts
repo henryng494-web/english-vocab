@@ -30,6 +30,11 @@ export const messages: Record<AppLocale, MessageTree> = {
     "menu.pronounceSlow": "Chậm",
     "menu.pronounceMedium": "Vừa",
     "menu.pronounceFast": "Nhanh",
+    "menu.pronounceAccent": "Giọng phát âm",
+    "menu.pronounceAccentHint": "Chọn Anh-Anh, Anh-Úc hoặc Anh-Mỹ",
+    "menu.pronounceAccentUs": "Mỹ",
+    "menu.pronounceAccentUk": "Anh",
+    "menu.pronounceAccentAu": "Úc",
     "menu.dailyGoal": "Mục tiêu học mỗi ngày",
     "menu.dailyGoalHint":
       "Chọn số phút học mỗi ngày (ảnh hưởng streak). App khuyên ~2 phút/từ mới, ~6 lượt ôn/phút.",
@@ -311,6 +316,11 @@ export const messages: Record<AppLocale, MessageTree> = {
     "menu.pronounceSlow": "Slow",
     "menu.pronounceMedium": "Medium",
     "menu.pronounceFast": "Fast",
+    "menu.pronounceAccent": "Pronunciation accent",
+    "menu.pronounceAccentHint": "Choose US, UK, or Australian English",
+    "menu.pronounceAccentUs": "US",
+    "menu.pronounceAccentUk": "UK",
+    "menu.pronounceAccentAu": "AU",
     "menu.dailyGoal": "Daily study goal",
     "menu.dailyGoalHint":
       "Choose study minutes per day (drives your streak). We suggest ~2 min per new word, ~6 review reps/min.",
@@ -622,4 +632,15 @@ export function pronounceSpeedMessageKey(
     fast: "menu.pronounceFast",
   };
   return map[speed] ?? null;
+}
+
+export function pronounceAccentMessageKey(
+  accent: string,
+): MessageKey | null {
+  const map: Record<string, MessageKey> = {
+    us: "menu.pronounceAccentUs",
+    uk: "menu.pronounceAccentUk",
+    au: "menu.pronounceAccentAu",
+  };
+  return map[accent] ?? null;
 }

@@ -1,4 +1,9 @@
-import { PRONOUNCE_VOICE_VERSION } from "@/lib/neural-pronunciation";
+import {
+  DEFAULT_PRONOUNCE_ACCENT,
+  isPronounceAccent,
+  voiceVersionForAccent,
+  type PronounceAccent,
+} from "@/lib/pronounce-accent";
 
 type DictionaryPhonetic = {
   text?: string;
@@ -13,26 +18,41 @@ type DictionaryEntry = {
 const upstreamAudioCache = new Map<string, string | null>();
 const MAX_CACHE = 8000;
 
-function pickUsAudioUrl(phonetics: DictionaryPhonetic[] | undefined): string | null {
+const ACCENT_AUDIO_PATTERNS: Record<PronounceAccent, RegExp[]> = {
+  us: [/-us(?:-\w+)?\.mp3/i, /\/en\/[^/]*-us[^/]*\.mp3/i],
+  uk: [
+    /-gb(?:-\w+)?\.mp3/i,
+    /\/en\/[^/]*-gb[^/]*\.mp3/i,
+    /\/en\/[^/]*-uk[^/]*\.mp3/i,
+  ],
+  au: [/-au(?:-\w+)?\.mp3/i, /\/en\/[^/]*-au[^/]*\.mp3/i],
+};
+
+function pickAccentAudioUrl(
+  phonetics: DictionaryPhonetic[] | undefined,
+  accent: PronounceAccent,
+): string | null {
   if (!phonetics?.length) return null;
 
   const withAudio = phonetics.filter((item) => item.audio?.trim());
   if (!withAudio.length) return null;
 
-  const usExact = withAudio.find((item) => /-us(?:-\w+)?\.mp3/i.test(item.audio!));
-  if (usExact?.audio) return usExact.audio;
-
-  const usLoose = withAudio.find((item) => /\/en\/[^/]*-us[^/]*\.mp3/i.test(item.audio!));
-  if (usLoose?.audio) return usLoose.audio;
+  for (const pattern of ACCENT_AUDIO_PATTERNS[accent]) {
+    const match = withAudio.find((item) => pattern.test(item.audio!));
+    if (match?.audio) return match.audio;
+  }
 
   return withAudio[0]?.audio?.trim() ?? null;
 }
 
 const DICTIONARY_FETCH_TIMEOUT_MS = 2200;
 
-/** Fetch US dictionary MP3 bytes (same-origin proxy for client playback). */
-export async function fetchDictionaryAudioBytes(word: string): Promise<ArrayBuffer | null> {
-  const upstreamUrl = await lookupDictionaryAudioUrl(word);
+/** Fetch dictionary MP3 bytes for the requested accent (same-origin proxy for client). */
+export async function fetchDictionaryAudioBytes(
+  word: string,
+  accent: PronounceAccent = DEFAULT_PRONOUNCE_ACCENT,
+): Promise<ArrayBuffer | null> {
+  const upstreamUrl = await lookupDictionaryAudioUrl(word, accent);
   if (!upstreamUrl) return null;
 
   const controller = new AbortController();
@@ -54,8 +74,11 @@ export async function fetchDictionaryAudioBytes(word: string): Promise<ArrayBuff
 }
 
 /** Upstream dictionary MP3 URL (cross-origin). */
-export async function lookupDictionaryAudioUrl(word: string): Promise<string | null> {
-  const key = word.trim().toLowerCase();
+export async function lookupDictionaryAudioUrl(
+  word: string,
+  accent: PronounceAccent = DEFAULT_PRONOUNCE_ACCENT,
+): Promise<string | null> {
+  const key = `${accent}:${word.trim().toLowerCase()}`;
   if (!key) return null;
   if (upstreamAudioCache.has(key)) return upstreamAudioCache.get(key) ?? null;
 
@@ -78,7 +101,7 @@ export async function lookupDictionaryAudioUrl(word: string): Promise<string | n
 
     const entries = (await response.json()) as DictionaryEntry[];
     for (const entry of entries) {
-      const audioUrl = pickUsAudioUrl(entry.phonetics);
+      const audioUrl = pickAccentAudioUrl(entry.phonetics, accent);
       if (audioUrl) {
         if (upstreamAudioCache.size >= MAX_CACHE) {
           const firstKey = upstreamAudioCache.keys().next().value;
@@ -99,12 +122,20 @@ export async function lookupDictionaryAudioUrl(word: string): Promise<string | n
   }
 }
 
-export function proxyPronounceAudioPath(word: string): string {
+export function proxyPronounceAudioPath(
+  word: string,
+  accent: PronounceAccent = DEFAULT_PRONOUNCE_ACCENT,
+): string {
   const params = new URLSearchParams({
     word: word.trim().toLowerCase(),
-    v: PRONOUNCE_VOICE_VERSION,
+    v: voiceVersionForAccent(accent),
+    accent,
   });
   return `/api/pronounce/audio?${params}`;
+}
+
+export function parsePronounceAccentParam(value: string | null): PronounceAccent {
+  return isPronounceAccent(value) ? value : DEFAULT_PRONOUNCE_ACCENT;
 }
 
 /** HTTP TTS fallback when Bing Edge WebSocket is unavailable (e.g. Vercel cold start). */

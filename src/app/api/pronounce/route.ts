@@ -1,4 +1,7 @@
-import { proxyPronounceAudioPath } from "@/lib/dictionary-pronunciation";
+import {
+  parsePronounceAccentParam,
+  proxyPronounceAudioPath,
+} from "@/lib/dictionary-pronunciation";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
@@ -7,7 +10,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Invalid word" }, { status: 400 });
   }
 
-  const audioUrl = proxyPronounceAudioPath(word);
+  const accent = parsePronounceAccentParam(request.nextUrl.searchParams.get("accent"));
+  const audioUrl = proxyPronounceAudioPath(word, accent);
   return NextResponse.json(
     { audioUrl },
     { headers: { "Cache-Control": "public, max-age=2592000, stale-while-revalidate=86400" } },
