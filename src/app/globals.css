@@ -702,21 +702,21 @@ body {
 }
 
 .word-learning-chunks__en-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.2rem 0.35rem;
   margin: 0;
+  line-height: 1.4;
 }
 
-.word-learning-chunks__en-row .vocab-examples__en {
+.word-learning-chunks__en-row .word-learning-chunks__en-text {
   display: inline;
-  flex: 1 1 auto;
-  min-width: 0;
+  overflow: visible;
+  -webkit-line-clamp: unset;
+  line-clamp: unset;
+  -webkit-box-orient: unset;
 }
 
 .word-learning-chunks__speak {
-  flex: 0 0 auto;
+  margin-left: 0.2rem;
+  vertical-align: middle;
 }
 
 .word-learning-chunks__section--phrases .vocab-examples__item {
@@ -731,11 +731,14 @@ body {
   line-clamp: unset;
 }
 
-.word-learning-chunks__section--phrases .word-learning-chunks__en-row .vocab-examples__en {
+.discover-card .word-learning-chunks__en-row .word-learning-chunks__en-text,
+.journey-card-slot .word-learning-chunks__en-row .word-learning-chunks__en-text,
+.word-learning-chunks__en-row .word-learning-chunks__en-text {
   display: inline;
   overflow: visible;
   -webkit-line-clamp: unset;
   line-clamp: unset;
+  -webkit-box-orient: unset;
 }
 
 .word-learning-chunks--solo .word-learning-chunks__examples .vocab-examples__item {

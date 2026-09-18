@@ -64,7 +64,7 @@ function PhraseList({
           ) : speakAtEnd ? (
             <>
               <p className="word-learning-chunks__en-row">
-                <span className="vocab-examples__en italic">
+                <span className="word-learning-chunks__en-text vocab-examples__en italic">
                   {capitalizeFirst(item.en)}
                 </span>
                 <SpeakButton
@@ -72,7 +72,7 @@ function PhraseList({
                   variant="light"
                   iconOnly
                   ariaLabel={speakAriaLabel}
-                  className="word-learning-chunks__speak !h-8 !w-8"
+                  className="word-learning-chunks__speak !inline-flex !h-7 !w-7"
                 />
               </p>
               {item.vi ? (
