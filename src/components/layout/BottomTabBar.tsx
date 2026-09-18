@@ -2,11 +2,6 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useSyncExternalStore } from "react";
-import {
-  getReviewDueCount,
-  subscribeReviewDueCount,
-} from "@/lib/review-due-store";
 import {
   primeJourneyAudioFromUserGesture,
   warmFirstReviewWordPronunciation,
@@ -18,7 +13,6 @@ type TabItem = {
   label: string;
   match: (path: string) => boolean;
   icon: (active: boolean) => React.ReactNode;
-  showBadge?: boolean;
 };
 
 function DiscoverIcon({ active }: { active: boolean }) {
@@ -90,11 +84,6 @@ function LibraryIcon({ active }: { active: boolean }) {
 export function BottomTabBar() {
   const pathname = usePathname();
   const router = useRouter();
-  const dueCount = useSyncExternalStore(
-    subscribeReviewDueCount,
-    getReviewDueCount,
-    () => 0,
-  );
   const { t } = useI18n();
 
   const tabs: TabItem[] = [
@@ -118,7 +107,6 @@ export function BottomTabBar() {
       label: t("tab.review"),
       match: (path) => path.startsWith("/learn"),
       icon: (active) => <LearnIcon active={active} />,
-      showBadge: true,
     },
     {
       href: "/words",
@@ -190,19 +178,9 @@ export function BottomTabBar() {
               <span
                 className={`tab-bar-link__pill tab-bar-link__pill--${pillTone}${
                   active ? ` ${activeBgClass}` : ""
-                }${tab.showBadge && dueCount > 0 ? " tab-bar-link__pill--badged" : ""}`}
+                }`}
               >
                 <span className="tab-bar-link__icon">{tab.icon(active)}</span>
-                {tab.showBadge && dueCount > 0 ? (
-                  <span
-                    className={`tab-bar-badge${
-                      dueCount >= 10 ? " tab-bar-badge--wide" : ""
-                    }`}
-                    aria-label={t("tab.dueAria", { count: dueCount })}
-                  >
-                    {dueCount > 99 ? "99+" : dueCount}
-                  </span>
-                ) : null}
               </span>
               <span>{tab.label}</span>
             </Link>
