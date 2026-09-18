@@ -8,6 +8,7 @@ import {
   MAX_LEARNING_COLLOCATIONS,
   type LearningChunkPhrase,
 } from "@/data/demo-learning-chunks";
+import { SpeakButton } from "@/components/flashcard/SpeakButton";
 import { capitalizeFirst } from "@/lib/format-text";
 import { resolveLearningChunks } from "@/lib/learning-chunks";
 import type { WordRegister } from "@/lib/word-meanings";
@@ -25,9 +26,13 @@ type WordLearningChunksProps = {
 function PhraseList({
   items,
   inline = false,
+  speakAtEnd = false,
+  speakAriaLabel,
 }: {
   items: LearningChunkPhrase[];
   inline?: boolean;
+  speakAtEnd?: boolean;
+  speakAriaLabel?: string;
 }) {
   return (
     <ul className="vocab-examples vocab-examples--compact word-learning-chunks__examples">
@@ -37,7 +42,9 @@ function PhraseList({
           className={
             inline
               ? "vocab-examples__item word-learning-chunks__item--inline"
-              : "vocab-examples__item"
+              : speakAtEnd
+                ? "vocab-examples__item word-learning-chunks__item--with-speak"
+                : "vocab-examples__item"
           }
         >
           {inline ? (
@@ -56,6 +63,24 @@ function PhraseList({
                 </>
               ) : null}
             </p>
+          ) : speakAtEnd ? (
+            <>
+              <div className="word-learning-chunks__phrase-body">
+                <p className="vocab-examples__en italic">{capitalizeFirst(item.en)}</p>
+                {item.vi ? (
+                  <p className="vocab-examples__vi mt-0.5 italic">
+                    {capitalizeFirst(item.vi)}
+                  </p>
+                ) : null}
+              </div>
+              <SpeakButton
+                text={item.en}
+                variant="light"
+                iconOnly
+                ariaLabel={speakAriaLabel}
+                className="word-learning-chunks__speak !h-8 !w-8"
+              />
+            </>
           ) : (
             <>
               <p className="vocab-examples__en italic">{capitalizeFirst(item.en)}</p>
@@ -119,7 +144,11 @@ export function WordLearningChunks({
       {chunkItems.length > 0 ? (
         <section className="word-learning-chunks__section word-learning-chunks__section--phrases">
           <h3 className="word-learning-chunks__label">{t("chunks.phrases")}</h3>
-          <PhraseList items={chunkItems} />
+          <PhraseList
+            items={chunkItems}
+            speakAtEnd
+            speakAriaLabel={t("speak.phraseAria")}
+          />
         </section>
       ) : null}
     </div>

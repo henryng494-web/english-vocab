@@ -3,6 +3,7 @@ import {
   getPronounceAccent,
   voiceVersionForAccent,
 } from "@/lib/pronounce-accent";
+import { normalizePronounceText } from "@/lib/pronounce-text";
 import { getPronouncePlaybackRate } from "@/lib/pronounce-speed";
 
 const audioUrlCache = new Map<string, string | null>();
@@ -16,15 +17,15 @@ let pronounceAudioElement: HTMLAudioElement | null = null;
 let currentAudio: HTMLAudioElement | null = null;
 
 function normalizeWord(word: string): string {
-  return word.trim().toLowerCase();
+  return normalizePronounceText(word)?.toLowerCase() ?? word.trim().toLowerCase();
 }
 
 /** Client cache key — must include accent + voice version so auto-speak never replays stale MP3s. */
 function cacheKey(word: string): string {
-  const normalized = normalizeWord(word);
+  const normalized = normalizePronounceText(word);
   if (!normalized) return "";
   const accent = getPronounceAccent();
-  return `${voiceVersionForAccent(accent)}:${normalized}`;
+  return `${voiceVersionForAccent(accent)}:${normalized.toLowerCase()}`;
 }
 
 function clearPronounceAudioCaches(): void {
@@ -180,7 +181,7 @@ export function isWordAudioPlaying(word: string): boolean {
 
 /** Same-origin MP3 path for the current accent + voice version. */
 function resolvePlayableUrl(word: string): string {
-  const normalized = normalizeWord(word);
+  const normalized = normalizePronounceText(word);
   if (!normalized) return "";
   return proxyPronounceAudioPath(normalized, getPronounceAccent());
 }
@@ -194,10 +195,10 @@ export async function resolveWordAudioUrl(word: string): Promise<string | null> 
   const pending = pendingLookups.get(key);
   if (pending) return pending;
 
-  const normalized = normalizeWord(word);
+  const normalized = normalizePronounceText(word) ?? normalizeWord(word);
   const accent = getPronounceAccent();
   const lookup = fetch(
-    `/api/pronounce?word=${encodeURIComponent(normalized)}&accent=${accent}`,
+    `/api/pronounce?text=${encodeURIComponent(normalized)}&accent=${accent}`,
     {
       cache: "no-cache",
     },

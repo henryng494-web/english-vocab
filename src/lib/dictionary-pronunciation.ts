@@ -123,11 +123,12 @@ export async function lookupDictionaryAudioUrl(
 }
 
 export function proxyPronounceAudioPath(
-  word: string,
+  text: string,
   accent: PronounceAccent = DEFAULT_PRONOUNCE_ACCENT,
 ): string {
+  const normalized = text.trim();
   const params = new URLSearchParams({
-    word: word.trim().toLowerCase(),
+    text: normalized,
     v: voiceVersionForAccent(accent),
     accent,
   });

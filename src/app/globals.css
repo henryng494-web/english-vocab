@@ -701,6 +701,22 @@ body {
   line-clamp: unset;
 }
 
+.word-learning-chunks__item--with-speak {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.35rem;
+}
+
+.word-learning-chunks__phrase-body {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.word-learning-chunks__speak {
+  flex: 0 0 auto;
+  margin-top: 0.05rem;
+}
+
 .word-learning-chunks__section--phrases .vocab-examples__item {
   flex: 0 0 auto;
   overflow: visible;

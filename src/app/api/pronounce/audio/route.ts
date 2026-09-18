@@ -3,6 +3,10 @@ import {
   parsePronounceAccentParam,
 } from "@/lib/dictionary-pronunciation";
 import { lookupNeuralTtsAudio } from "@/lib/neural-pronunciation";
+import {
+  isSinglePronounceWord,
+  parsePronounceTextParam,
+} from "@/lib/pronounce-text";
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
@@ -11,14 +15,18 @@ export const maxDuration = 15;
 const NEURAL_RETRY_DELAY_MS = 350;
 
 export async function GET(request: NextRequest) {
-  const word = request.nextUrl.searchParams.get("word")?.trim().toLowerCase();
-  if (!word || !/^[a-z][a-z'-]*$/i.test(word)) {
-    return NextResponse.json({ error: "Invalid word" }, { status: 400 });
+  const text = parsePronounceTextParam(
+    request.nextUrl.searchParams.get("text"),
+    request.nextUrl.searchParams.get("word"),
+  );
+  if (!text) {
+    return NextResponse.json({ error: "Invalid text" }, { status: 400 });
   }
 
   const accent = parsePronounceAccentParam(request.nextUrl.searchParams.get("accent"));
 
-  const dictionaryBytes = await fetchDictionaryAudioBytes(word, accent);
+  const dictionaryBytes =
+    isSinglePronounceWord(text) ? await fetchDictionaryAudioBytes(text, accent) : null;
   if (dictionaryBytes) {
     return new NextResponse(dictionaryBytes, {
       headers: {
@@ -29,10 +37,10 @@ export async function GET(request: NextRequest) {
     });
   }
 
-  let bytes = await lookupNeuralTtsAudio(word, accent);
+  let bytes = await lookupNeuralTtsAudio(text, accent);
   if (!bytes) {
     await new Promise((resolve) => setTimeout(resolve, NEURAL_RETRY_DELAY_MS));
-    bytes = await lookupNeuralTtsAudio(word, accent);
+    bytes = await lookupNeuralTtsAudio(text, accent);
   }
 
   if (!bytes) {

@@ -252,6 +252,7 @@ export const messages: Record<AppLocale, MessageTree> = {
 
     "speak.pronounce": "Phát âm",
     "speak.aria": "Phát âm",
+    "speak.phraseAria": "Phát âm cả câu",
     "chunks.collocations": "Hay dùng với",
     "chunks.phrases": "Cụm câu",
     "card.wordForms": "Word forms",
@@ -538,6 +539,7 @@ export const messages: Record<AppLocale, MessageTree> = {
 
     "speak.pronounce": "Pronounce",
     "speak.aria": "Pronounce",
+    "speak.phraseAria": "Pronounce full phrase",
     "chunks.collocations": "Goes with",
     "chunks.phrases": "Useful phrase",
     "card.wordForms": "Word forms",
