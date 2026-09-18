@@ -27,6 +27,9 @@ import {
 } from "@/lib/review-session";
 import { refreshAllStaleWordImages } from "@/lib/refresh-stale-word-images";
 import { prefetchCardContent } from "@/lib/card-content-prefetch";
+import { prefetchCardSimilarWords } from "@/lib/card-similar-prefetch";
+import { prefetchLearningChunkContent } from "@/lib/learning-chunk-prefetch";
+import { warmWordPronunciationsBatch } from "@/lib/pronunciation-preload";
 import { seedWordImageCacheFromEntries } from "@/lib/word-image-cache";
 
 export const DEFAULT_BOOTSTRAP_RANGE = "1-100";
@@ -146,14 +149,33 @@ async function loadBootstrapRange(
   return { queue: [], stats: { total: 0, hidden: 0 } };
 }
 
+async function prefetchBootstrapCardContent(
+  data: DiscoverWordData,
+  options?: { awaitChunks?: boolean },
+): Promise<void> {
+  if (options?.awaitChunks) {
+    await prefetchLearningChunkContent(data);
+    void prefetchCardSimilarWords({
+      word: data.word,
+      preset: data.similar_words,
+      wordType: data.word_type,
+      meaning: data.vietnamese_meaning,
+      englishDefinition: data.english_definition,
+    });
+    return;
+  }
+  prefetchCardContent(data);
+}
+
 async function loadBootstrapWordDetail(
   item: DiscoverListItem,
   wordCache: Map<string, DiscoverWordData>,
+  options?: { awaitChunks?: boolean },
 ): Promise<void> {
   const cached = wordCache.get(item.word);
   if (isWordDetailComplete(cached, item.word)) {
     preloadImageUrl(cached!.image_url);
-    prefetchCardContent(cached);
+    await prefetchBootstrapCardContent(cached!, options);
     return;
   }
 
@@ -165,7 +187,7 @@ async function loadBootstrapWordDetail(
     if (loaded && isCacheEntryValid(loaded, item.word)) {
       wordCache.set(item.word, loaded);
       preloadImageUrl(loaded.image_url);
-      prefetchCardContent(loaded);
+      await prefetchBootstrapCardContent(loaded, options);
       return;
     }
   } catch {
@@ -176,7 +198,7 @@ async function loadBootstrapWordDetail(
   if (preview.vietnamese_meaning?.trim()) {
     wordCache.set(item.word, preview);
     preloadImageUrl(preview.image_url);
-    prefetchCardContent(preview);
+    await prefetchBootstrapCardContent(preview, options);
   }
 }
 
@@ -224,6 +246,11 @@ export async function runAppBootstrap(
   report(onProgress, 62, "");
 
   const preloadTargets = collectPreloadTargets(ranges);
+  if (typeof window !== "undefined" && preloadTargets.length > 0) {
+    void warmWordPronunciationsBatch(
+      preloadTargets.slice(0, BOOTSTRAP_PRELOAD_DEFAULT).map((item) => item.word),
+    );
+  }
   const imageWarmTargets: WordImagePrefetchTarget[] = preloadTargets.map(
     (item) => ({
       word: item.word,
@@ -242,8 +269,10 @@ export async function runAppBootstrap(
   await mapWithConcurrency(
     preloadTargets,
     BOOTSTRAP_WORD_CONCURRENCY,
-    async (item) => {
-      await loadBootstrapWordDetail(item, wordCache);
+    async (item, index) => {
+      await loadBootstrapWordDetail(item, wordCache, {
+        awaitChunks: index < 3,
+      });
       wordsDone += 1;
       report(
         onProgress,
@@ -259,6 +288,11 @@ export async function runAppBootstrap(
   report(onProgress, 94, "");
   const review =
     (await reviewPromise) ?? resolveReviewSessionFast();
+  if (typeof window !== "undefined" && review?.queue?.length) {
+    void warmWordPronunciationsBatch(
+      review.queue.slice(0, 3).map((item) => item.word),
+    );
+  }
   if (review?.pool?.length) {
     void refreshAllStaleWordImages(
       review.pool.map((word) => ({

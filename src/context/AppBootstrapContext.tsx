@@ -80,11 +80,14 @@ export function AppBootstrapProvider({ children }: { children: ReactNode }) {
         if (cancelled) return;
         setSnapshot(loaded);
         seedJourneyBootstrapRanges(loaded.ranges);
-        setReady(true);
         const defaultQueue = loaded.ranges[DEFAULT_BOOTSTRAP_RANGE]?.queue ?? [];
-        void warmWordPronunciationsBatch(
-          defaultQueue.slice(0, BOOTSTRAP_PRELOAD_DEFAULT).map((item) => item.word),
-        );
+        const reviewWords =
+          loaded.review?.queue?.slice(0, 3).map((item) => item.word) ?? [];
+        void warmWordPronunciationsBatch([
+          ...reviewWords,
+          ...defaultQueue.slice(0, BOOTSTRAP_PRELOAD_DEFAULT).map((item) => item.word),
+        ]);
+        setReady(true);
       } catch {
         await waitForWelcomeMinimum(startedAt);
         if (cancelled) return;

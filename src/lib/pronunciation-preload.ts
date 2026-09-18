@@ -2,7 +2,10 @@ import {
   DEFAULT_BOOTSTRAP_RANGE,
   type RangeBootstrapData,
 } from "@/lib/app-bootstrap";
-import { filterDiscoverQueue } from "@/lib/discover-fetch";
+import {
+  filterDiscoverQueue,
+  type DiscoverListItem,
+} from "@/lib/discover-fetch";
 import { readOnboarding } from "@/lib/onboarding";
 import { getCachedLearningSummary } from "@/lib/review-due-store";
 import { resolveReviewSession } from "@/lib/review-session";
@@ -13,7 +16,9 @@ import {
 } from "@/lib/word-pronunciation-audio";
 
 const PRONUNCIATION_WARM_CONCURRENCY = 4;
-const AHEAD_PRONUNCIATION_STAGGER_MS = 120;
+/** First N cards get immediate MP3 warm — fixes slow audio on journey/review open. */
+export const PRONUNCIATION_PRIORITY_COUNT = 3;
+const AHEAD_PRONUNCIATION_STAGGER_MS = 80;
 
 let journeyRangesCache: Record<string, RangeBootstrapData> | null = null;
 let journeyCurrentWord: string | null = null;
@@ -25,22 +30,35 @@ export function warmWordPronunciation(word: string): void {
   warmWordAudioBytes(trimmed);
 }
 
+function uniquePronunciationWords(words: string[]): string[] {
+  const unique: string[] = [];
+  const seen = new Set<string>();
+  for (const raw of words) {
+    const trimmed = raw?.trim();
+    if (!trimmed) continue;
+    const key = trimmed.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    unique.push(trimmed);
+  }
+  return unique;
+}
+
 /** Preload pronunciation for one or more words (current card + ahead). */
 export function preloadWordPronunciations(words: string[]): void {
-  const current = words[0]?.trim();
-  if (current) {
-    preloadWordAudioElement(current);
-    void warmWordAudioBytes(current);
-  }
-
-  for (let index = 1; index < words.length; index++) {
-    const trimmed = words[index]?.trim();
-    if (!trimmed) continue;
+  const unique = uniquePronunciationWords(words);
+  for (let index = 0; index < unique.length; index++) {
+    const trimmed = unique[index]!;
+    if (index < PRONUNCIATION_PRIORITY_COUNT) {
+      preloadWordAudioElement(trimmed);
+      void warmWordAudioBytes(trimmed);
+      continue;
+    }
     window.setTimeout(
       () => {
         void warmWordAudioBytes(trimmed);
       },
-      index * AHEAD_PRONUNCIATION_STAGGER_MS,
+      (index - PRONUNCIATION_PRIORITY_COUNT + 1) * AHEAD_PRONUNCIATION_STAGGER_MS,
     );
   }
 }
@@ -57,37 +75,55 @@ export function seedJourneyCurrentWord(word: string | null | undefined): void {
   journeyCurrentWord = word?.trim() || null;
 }
 
-function resolveJourneyFirstWord(): string | null {
-  if (journeyCurrentWord) return journeyCurrentWord;
+function resolveJourneyPriorityWords(
+  count = PRONUNCIATION_PRIORITY_COUNT,
+): string[] {
+  const words: string[] = [];
+  const seen = new Set<string>();
+
+  const pushWord = (raw: string | null | undefined) => {
+    const trimmed = raw?.trim();
+    if (!trimmed) return;
+    const key = trimmed.toLowerCase();
+    if (seen.has(key)) return;
+    seen.add(key);
+    words.push(trimmed);
+  };
+
+  pushWord(journeyCurrentWord);
 
   const rangeId = readOnboarding().preferredRangeId || DEFAULT_BOOTSTRAP_RANGE;
+  const queues: DiscoverListItem[][] = [];
   const preferredQueue = journeyRangesCache?.[rangeId]?.queue;
-  if (preferredQueue?.length) {
-    const first = filterDiscoverQueue(preferredQueue)[0]?.word?.trim();
-    if (first) return first;
+  if (preferredQueue?.length) queues.push(filterDiscoverQueue(preferredQueue));
+  if (journeyRangesCache) {
+    for (const range of Object.values(journeyRangesCache)) {
+      if (range.queue !== preferredQueue) {
+        queues.push(filterDiscoverQueue(range.queue));
+      }
+    }
   }
 
-  if (!journeyRangesCache) return null;
-  for (const range of Object.values(journeyRangesCache)) {
-    const first = filterDiscoverQueue(range.queue)[0]?.word?.trim();
-    if (first) return first;
+  for (const queue of queues) {
+    for (const item of queue) {
+      pushWord(item.word);
+      if (words.length >= count) return words;
+    }
   }
-  return null;
+
+  return words;
 }
 
 /** Start warming the first Journey word (call on Journey tab tap). */
 export function warmFirstJourneyWordPronunciation(): void {
   if (typeof window === "undefined") return;
-  const first = resolveJourneyFirstWord();
-  if (!first) return;
-  preloadWordAudioElement(first);
-  void warmWordAudioBytes(first);
+  preloadWordPronunciations(resolveJourneyPriorityWords());
 }
 
 /** Unlock audio and speak the Journey word inside tab/button pointerdown. */
 export function primeJourneyAudioFromUserGesture(): void {
   if (typeof window === "undefined") return;
-  const first = resolveJourneyFirstWord();
+  const first = resolveJourneyPriorityWords(1)[0];
   if (!first) {
     warmFirstJourneyWordPronunciation();
     return;
@@ -99,30 +135,41 @@ export function primeJourneyAudioFromUserGesture(): void {
 /** Start warming the first due review word (call on Review tab tap). */
 export function warmFirstReviewWordPronunciation(): void {
   if (typeof window === "undefined") return;
-  const first = resolveReviewSession(getCachedLearningSummary()).queue[0]?.word?.trim();
-  if (!first) return;
-  preloadWordPronunciations([first]);
+  const words = resolveReviewSession(getCachedLearningSummary())
+    .queue.slice(0, PRONUNCIATION_PRIORITY_COUNT)
+    .map((item) => item.word);
+  if (!words.length) return;
+  preloadWordPronunciations(words);
 }
 
 /** Warm pronunciation bytes with limited concurrency (bootstrap). */
 export async function warmWordPronunciationsBatch(words: string[]): Promise<void> {
-  const unique = [
-    ...new Set(words.map((w) => w.trim().toLowerCase()).filter(Boolean)),
-  ];
+  const unique = uniquePronunciationWords(words);
   if (unique.length === 0) return;
+
+  const priority = unique.slice(0, PRONUNCIATION_PRIORITY_COUNT);
+  await Promise.all(
+    priority.map(async (word) => {
+      preloadWordAudioElement(word);
+      await warmWordAudioBytes(word);
+    }),
+  );
+
+  const rest = unique.slice(PRONUNCIATION_PRIORITY_COUNT);
+  if (rest.length === 0) return;
 
   let index = 0;
   async function worker() {
-    while (index < unique.length) {
+    while (index < rest.length) {
       const current = index;
       index += 1;
-      warmWordAudioBytes(unique[current]!);
+      await warmWordAudioBytes(rest[current]!);
     }
   }
 
   await Promise.all(
     Array.from(
-      { length: Math.min(PRONUNCIATION_WARM_CONCURRENCY, unique.length) },
+      { length: Math.min(PRONUNCIATION_WARM_CONCURRENCY, rest.length) },
       () => worker(),
     ),
   );

@@ -71,6 +71,7 @@ import {
 import { shouldRefreshImageUrl } from "@/lib/unsplash";
 import { refreshAllStaleWordImages } from "@/lib/refresh-stale-word-images";
 import { prefetchCardContent } from "@/lib/card-content-prefetch";
+import { preloadWordPronunciations } from "@/lib/pronunciation-preload";
 import { preloadWordPronunciation } from "@/lib/speak-word";
 import {
   preloadWordAudioElement,
@@ -495,9 +496,9 @@ export function ReviewScreen() {
       warmReviewImages(sessionQueue, pool);
 
       const first = sessionQueue[0]!;
-      const firstWord = first.word.trim();
-      preloadWordAudioElement(firstWord);
-      void warmWordAudioBytes(firstWord);
+      preloadWordPronunciations(
+        sessionQueue.slice(0, 3).map((item) => item.word),
+      );
       const { targets } = collectReviewQuestionImageTargets(first, pool, 0);
       void prefetchReviewImages(targets)
         .then((updates) => {
