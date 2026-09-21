@@ -18,6 +18,7 @@ import {
   getCachedSupplementCollocations,
   setCachedSupplementCollocations,
 } from "@/lib/learning-chunk-supplement-cache";
+import { useAppSettings } from "@/context/AppSettingsContext";
 import type { WordRegister } from "@/lib/word-meanings";
 
 type UseLearningChunkTranslationsArgs = {
@@ -59,6 +60,7 @@ export function useLearningChunkTranslations({
   englishDefinition,
   entry,
 }: UseLearningChunkTranslationsArgs): LearningChunkEntry | null {
+  const { learnerLocale } = useAppSettings();
   const seedKey = useMemo(() => entrySeedKey(word, entry), [word, entry]);
 
   const isOverride = useMemo(() => {
@@ -115,6 +117,7 @@ export function useLearningChunkTranslations({
               ? { en: usefulPhrase.en, vi: usefulPhrase.vi }
               : null,
             count: MAX_LEARNING_COLLOCATIONS,
+            learnerLocale,
           }),
         });
 
@@ -149,6 +152,7 @@ export function useLearningChunkTranslations({
     entry,
     seedKey,
     isOverride,
+    learnerLocale,
   ]);
 
   useEffect(() => {
@@ -163,7 +167,11 @@ export function useLearningChunkTranslations({
       return;
     }
 
-    const cachedTranslations = getCachedCollocationTranslations(word, pending);
+    const cachedTranslations = getCachedCollocationTranslations(
+      word,
+      pending,
+      learnerLocale,
+    );
     if (cachedTranslations?.length) {
       setCollocations(mergeCollocationVi(entry.collocations, cachedTranslations));
       hydratedKeyRef.current = seedKey;
@@ -182,7 +190,11 @@ export function useLearningChunkTranslations({
       collocations: null,
     }).then(() => {
       if (cancelled) return;
-      const warmed = getCachedCollocationTranslations(word, pending);
+      const warmed = getCachedCollocationTranslations(
+        word,
+        pending,
+        learnerLocale,
+      );
       if (!warmed?.length) return;
       setCollocations(mergeCollocationVi(entry.collocations, warmed));
       hydratedKeyRef.current = seedKey;
@@ -201,6 +213,7 @@ export function useLearningChunkTranslations({
     entry,
     seedKey,
     isOverride,
+    learnerLocale,
   ]);
 
   if (!entry) return null;

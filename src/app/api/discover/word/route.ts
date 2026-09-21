@@ -22,6 +22,13 @@ import {
 } from "@/lib/unsplash";
 import { isClosedClassWord } from "@/lib/word-image-strategy";
 import { isExcludedVocabWord } from "@/lib/proper-noun";
+import { localizeWordContent } from "@/lib/localize-word-content";
+import {
+  DEFAULT_LEARNER_LOCALE,
+  parseLearnerLocale,
+  type LearnerLocale,
+} from "@/lib/learner-locale";
+import { sanitizeLearnerText } from "@/lib/sanitize-learner";
 import { sanitizeVietnameseText } from "@/lib/sanitize-vi";
 import { resolveWordRegister } from "@/lib/word-meanings";
 import { normalizeVocabInput } from "@/lib/word-validation";
@@ -75,20 +82,51 @@ function imageSearchKeyword(
   });
 }
 
+async function applyLearnerLocaleFields(
+  word: string,
+  detail: Pick<
+    WordDetail,
+    "vietnamese_meaning" | "examples" | "word_type" | "english_definition"
+  >,
+  locale: LearnerLocale,
+): Promise<{ vietnamese_meaning: string; examples: string | null }> {
+  const viMeaning =
+    sanitizeVietnameseText(detail.vietnamese_meaning) ||
+    detail.vietnamese_meaning;
+  if (locale === DEFAULT_LEARNER_LOCALE) {
+    return { vietnamese_meaning: viMeaning, examples: detail.examples };
+  }
+  return localizeWordContent(
+    {
+      word,
+      vietnamese_meaning: viMeaning,
+      examples: detail.examples,
+      word_type: detail.word_type,
+      english_definition: detail.english_definition,
+    },
+    locale,
+  );
+}
+
 function persistedDetailToDiscoverWord(
   word: string,
   detail: WordDetail,
   rank: number,
   imageUrl: string,
   searchKeyword: string,
+  localized?: { vietnamese_meaning: string; examples: string | null },
 ) {
+  const meaning =
+    localized?.vietnamese_meaning ??
+    sanitizeVietnameseText(detail.vietnamese_meaning);
+  const examples = localized?.examples ?? detail.examples;
   return withWordFamily({
     word,
     phonetic: detail.phonetic,
     word_type: detail.word_type,
-    vietnamese_meaning: sanitizeVietnameseText(detail.vietnamese_meaning),
+    vietnamese_meaning: meaning,
     english_definition: detail.english_definition,
-    examples: detail.examples,
+    examples,
     collocations: detail.collocations,
     register: resolveWordRegister(detail),
     image_url: imageUrl,
@@ -264,6 +302,8 @@ export async function GET(request: Request) {
       searchParams.get("skipGemini") === "true" &&
       hasQualityStandardVocab(word ?? "");
     const forceRepair = searchParams.get("forceRepair") === "true";
+    const learnerLocale = parseLearnerLocale(searchParams.get("locale"));
+    const persistLearnerContent = learnerLocale === DEFAULT_LEARNER_LOCALE;
 
     if (!word) {
       return NextResponse.json(
@@ -367,6 +407,11 @@ export async function GET(request: Request) {
             .eq("word", word);
         }
       }
+      const localized = await applyLearnerLocaleFields(
+        word,
+        repairedDbDetail!,
+        learnerLocale,
+      );
       return NextResponse.json({
         word: persistedDetailToDiscoverWord(
           word,
@@ -374,6 +419,7 @@ export async function GET(request: Request) {
           frequencyRank,
           imageUrl,
           searchKeyword,
+          localized,
         ),
       });
     }
@@ -384,11 +430,16 @@ export async function GET(request: Request) {
       rank: frequencyRank,
       skipGemini: forceExampleRegen ? false : skipGemini,
       forceGemini: forceExampleRegen,
+      learnerLocale,
     });
     const responseWord = enrichmentToDiscoverWord(word, enrichment, null);
     const searchKeyword = responseWord.search_keyword ?? word;
-    const vietnameseMeaning =
-      sanitizeVietnameseText(responseWord.vietnamese_meaning) || word;
+    const sanitizeMeaning = (value: string | null | undefined) =>
+      persistLearnerContent
+        ? sanitizeVietnameseText(value) || word
+        : sanitizeLearnerText(value, learnerLocale) || word;
+
+    const vietnameseMeaning = sanitizeMeaning(responseWord.vietnamese_meaning);
     const englishDefinition = responseWord.english_definition?.trim() || null;
     const fetched = await fetchWordImageUrlDetailed(
       word,
@@ -405,52 +456,56 @@ export async function GET(request: Request) {
       responseWord.word_type ?? enrichment.wordType,
     );
     responseWord.image_url = imageUrl;
-    let examples = await repairWordExamples(
-      word,
-      responseWord.examples,
-      responseWord.word_type,
+    let examples = responseWord.examples ?? "";
+    let vietnameseMeaningFinal = sanitizeMeaning(
       responseWord.vietnamese_meaning,
     );
-    let vietnameseMeaningFinal =
-      sanitizeVietnameseText(responseWord.vietnamese_meaning) || word;
-    if (
-      meaningsNeedRegeneration(
-        word,
-        vietnameseMeaningFinal,
-        responseWord.word_type,
-        examples,
-        responseWord.english_definition,
-      )
-    ) {
-      vietnameseMeaningFinal = await repairWordMeanings(
-        word,
-        vietnameseMeaningFinal,
-        responseWord.word_type,
-        examples,
-        responseWord.english_definition,
-      );
+    if (persistLearnerContent) {
       examples = await repairWordExamples(
         word,
-        examples,
+        responseWord.examples,
         responseWord.word_type,
-        vietnameseMeaningFinal,
+        responseWord.vietnamese_meaning,
       );
-    }
-    if (
-      examplesNeedRegeneration(
-        word,
-        examples,
-        responseWord.word_type,
-        vietnameseMeaningFinal,
-      )
-    ) {
-      const retried = await repairWordExamples(
-        word,
-        examples,
-        responseWord.word_type,
-        vietnameseMeaningFinal,
-      );
-      if (retried.trim()) examples = retried;
+      if (
+        meaningsNeedRegeneration(
+          word,
+          vietnameseMeaningFinal,
+          responseWord.word_type,
+          examples,
+          responseWord.english_definition,
+        )
+      ) {
+        vietnameseMeaningFinal = await repairWordMeanings(
+          word,
+          vietnameseMeaningFinal,
+          responseWord.word_type,
+          examples,
+          responseWord.english_definition,
+        );
+        examples = await repairWordExamples(
+          word,
+          examples,
+          responseWord.word_type,
+          vietnameseMeaningFinal,
+        );
+      }
+      if (
+        examplesNeedRegeneration(
+          word,
+          examples,
+          responseWord.word_type,
+          vietnameseMeaningFinal,
+        )
+      ) {
+        const retried = await repairWordExamples(
+          word,
+          examples,
+          responseWord.word_type,
+          vietnameseMeaningFinal,
+        );
+        if (retried.trim()) examples = retried;
+      }
     }
     const phonetic = await repairPhoneticIfNeeded(word, responseWord.phonetic);
 
@@ -465,6 +520,7 @@ export async function GET(request: Request) {
     };
 
     if (
+      persistLearnerContent &&
       !examplesNeedRegeneration(
         word,
         examples,
@@ -480,6 +536,8 @@ export async function GET(request: Request) {
       )
     ) {
       void persistEnrichedWordDetail(supabase, word, persistPayload);
+    } else if (!persistLearnerContent) {
+      /* Spanish glosses are not stored in word_details */
     } else {
       console.warn(
         `[discover/word] Gemini content still misaligned for "${word}" — not persisting bad rows`,

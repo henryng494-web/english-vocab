@@ -1,5 +1,11 @@
 /** Shared POS + register rules for Gemini vocabulary prompts. */
 
+import {
+  DEFAULT_LEARNER_LOCALE,
+  learnerLanguageName,
+  type LearnerLocale,
+} from "@/lib/learner-locale";
+
 export const VALID_POS =
   "noun|verb|adjective|adverb|pronoun|preposition|conjunction|article|number|interjection|determiner";
 
@@ -89,8 +95,80 @@ export const SHARED_OUTPUT_RULES = `- Vietnamese: Latin quốc ngữ only — ne
 - phonetic: American English IPA in slashes — NEVER echo spelling (wrong: /spent/)
 - searchKeyword: 2–4 English words for a clear stock photo linked to the primary meaning`;
 
-export function buildEnrichPrompt(word: string): string {
-  return `You are an expert English–Vietnamese lexicographer writing a learner flashcard.
+const MEANING_COUNT_RULES_ES = `STEP 2 — Spanish meanings (MAX 2 lines):
+- If the word has ONE common sense → "meanings" array with 1 short gloss.
+- If TWO distinct common senses → "meanings" with exactly 2 glosses, most frequent FIRST.
+- Each gloss: 1–4 everyday words — the translation learners expect in a dictionary, NOT an encyclopedia entry.
+- GOOD: shrimp → "Camarón"; apple → "Manzana"; river → "Río".
+- NEVER return more than 2 meanings.`;
+
+const POS_MEANING_RULES_ES = `Translate each meaning by pos + register:
+
+noun → everyday Spanish noun (e.g. "Camarón", "Manzana", "Río")
+verb → verb gloss (e.g. "Aceptar", "Cavar")
+adjective → adjective (e.g. "Importante", "Limpio")
+adverb → adverb — match register (hereby → "por la presente")
+preposition → preposition (e.g. "En", "Sobre")
+conjunction → conjunction (e.g. "Pero", "Aunque")
+pronoun → pronoun
+number → number word (twenty → Veinte)
+article/determiner → article (e.g. "Un", "Una")
+interjection → interjection
+
+register tweaks:
+- NEVER write register hints inside meanings
+- register follows the FIRST meaning when there are 2 senses
+- Match example tone to register (informal / neutral / formal)`;
+
+function meaningCountRules(locale: LearnerLocale): string {
+  return locale === "es" ? MEANING_COUNT_RULES_ES : MEANING_COUNT_RULES;
+}
+
+function posMeaningRules(locale: LearnerLocale): string {
+  return locale === "es" ? POS_MEANING_RULES_ES : POS_MEANING_RULES;
+}
+
+function exampleRules(word: string, locale: LearnerLocale): string {
+  const lang = learnerLanguageName(locale);
+  return `STEP 3 — Examples (EXACTLY 2):
+- English: 5–10 words, MUST contain "${word}"
+- If 2 meanings → example 1 illustrates meaning 1 ONLY, example 2 illustrates meaning 2 ONLY (set senseIndex 1 and 2)
+- If 1 meaning → both examples illustrate that same meaning (senseIndex 1 for both)
+- English MUST match the assigned gloss sense — never a different dictionary sense
+- ${lang} MUST translate "${word}" using vocabulary from THAT gloss line only
+- Do NOT substitute a different ${lang} synonym for the gloss
+- Match register (informal → conversational; neutral → everyday natural; formal → workplace/news/legal)
+- ${lang}: natural, not word-by-word
+- Use full words in English — never clipped subtitle forms (medicine not med, laboratory not lab, examination not exam)
+- NEVER meta lines ("I learned the word...", "Please use ... in a sentence")`;
+}
+
+function sharedOutputRules(locale: LearnerLocale): string {
+  const lang = learnerLanguageName(locale);
+  const scriptRule =
+    locale === "es"
+      ? `${lang}: Latin script only — no Vietnamese or CJK characters`
+      : `${lang}: Latin quốc ngữ only — never Chinese/Japanese/Korean characters`;
+  return `- ${scriptRule}
+- phonetic: American English IPA in slashes — NEVER echo spelling (wrong: /spent/)
+- searchKeyword: 2–4 English words for a clear stock photo linked to the primary meaning`;
+}
+
+export function buildEnrichPrompt(
+  word: string,
+  locale: LearnerLocale = DEFAULT_LEARNER_LOCALE,
+): string {
+  const lang = learnerLanguageName(locale);
+  const goldMeanings =
+    locale === "es"
+      ? `• hereby (adverb) → formal · meanings: ["Por la presente"]
+• shrimp (noun) → meanings: ["Camarón"]
+• apple (noun) → meanings: ["Manzana"]`
+      : `• hereby (adverb) → formal · meanings: ["Theo đây"]
+• shrimp (noun) → meanings: ["Tôm", "Người nhỏ bé"] — NOT "Động vật giáp xác nhỏ"
+• apple (noun) → meanings: ["Quả táo"] — NOT "Loại quả mọng màu đỏ"`;
+
+  return `You are an expert English–${lang} lexicographer writing a learner flashcard.
 
 Word: "${word}"
 
@@ -104,20 +182,18 @@ Gold standards (register):
 • chow (noun) → informal · food (noun) → neutral
 • grub (noun) → informal · meal (noun) → neutral
 • bucks (noun) → informal · dollars (noun) → neutral
-• hereby (adverb) → formal · meanings: ["Theo đây"]
 • happy (adjective) → neutral
-• shrimp (noun) → meanings: ["Tôm", "Người nhỏ bé"] — NOT "Động vật giáp xác nhỏ"
-• apple (noun) → meanings: ["Quả táo"] — NOT "Loại quả mọng màu đỏ"
+${goldMeanings}
 
 ${POS_CLASSIFICATION_RULES}
 
-${MEANING_COUNT_RULES}
+${meaningCountRules(locale)}
 
-${POS_MEANING_RULES}
+${posMeaningRules(locale)}
 
-${EXAMPLE_RULES(word)}
+${exampleRules(word, locale)}
 
-${SHARED_OUTPUT_RULES}
+${sharedOutputRules(locale)}
 
 Similar words (similarWords):
 - 1–3 common English words with the same or very close meaning as the PRIMARY sense
@@ -130,10 +206,10 @@ Respond with ONLY valid JSON:
   "pos": "noun",
   "register": "neutral",
   "phonetic": "/ipa/",
-  "meanings": ["Nghĩa 1", "Nghĩa 2 hoặc bỏ nếu chỉ 1 nghĩa"],
+  "meanings": ["Gloss 1", "Gloss 2 if needed"],
   "examples": [
-    { "en": "English for meaning 1.", "vi": "Bản dịch.", "senseIndex": 1 },
-    { "en": "English for meaning 2.", "vi": "Bản dịch.", "senseIndex": 2 }
+    { "en": "English for meaning 1.", "vi": "${lang} translation.", "senseIndex": 1 },
+    { "en": "English for meaning 2.", "vi": "${lang} translation.", "senseIndex": 2 }
   ],
   "searchKeyword": "concrete photo phrase",
   "similarWords": ["synonym1", "synonym2"]
@@ -176,36 +252,50 @@ Reply with ONLY JSON:
 {"similarWords":["word1","word2"]}`;
 }
 
-export function buildMeaningPrompt(word: string): string {
+export function buildMeaningPrompt(
+  word: string,
+  locale: LearnerLocale = DEFAULT_LEARNER_LOCALE,
+): string {
+  const lang = learnerLanguageName(locale);
+  const numberHint =
+    locale === "es"
+      ? 'For numbers like "twenty", reply "Veinte".'
+      : 'For numbers like "twenty", reply "Hai mươi".';
   return `English word: "${word}".
 
 ${POS_CLASSIFICATION_RULES}
 
-${MEANING_COUNT_RULES}
+${meaningCountRules(locale)}
 
-${POS_MEANING_RULES}
+${posMeaningRules(locale)}
 
-Reply with ONLY the short Vietnamese meanings for the primary sense(s), max 2 lines separated by newline.
-For numbers like "twenty", reply "Hai mươi".
+Reply with ONLY the short ${lang} meanings for the primary sense(s), max 2 lines separated by newline.
+${numberHint}
 No English, no JSON, no explanation.`;
 }
 
 export function buildDefinitionPrompt(
   word: string,
   englishDefinition?: string,
+  locale: LearnerLocale = DEFAULT_LEARNER_LOCALE,
 ): string {
+  const lang = learnerLanguageName(locale);
   const context = englishDefinition?.trim()
     ? `English definition: "${englishDefinition.trim()}".`
     : "";
+  const numberHint =
+    locale === "es"
+      ? 'For "twenty": "Número veinte (20)."'
+      : 'For "twenty": "Số đếm hai mươi (20)."';
   return `English word: "${word}". ${context}
 
 ${POS_CLASSIFICATION_RULES}
 
-${POS_MEANING_RULES}
+${posMeaningRules(locale)}
 
-Write ONE short natural Vietnamese definition sentence using the correct pos and register.
-For "twenty": "Số đếm hai mươi (20)."
-Reply with ONLY the Vietnamese definition. No English, no JSON.`;
+Write ONE short natural ${lang} definition sentence using the correct pos and register.
+${numberHint}
+Reply with ONLY the ${lang} definition. No English, no JSON.`;
 }
 
 export function buildExamplesPrompt(
@@ -213,7 +303,9 @@ export function buildExamplesPrompt(
   pos?: string | null,
   meaning?: string | null,
   meanings?: string[] | null,
+  locale: LearnerLocale = DEFAULT_LEARNER_LOCALE,
 ): string {
+  const lang = learnerLanguageName(locale);
   const posHint = pos?.trim() ? `Known pos: ${pos.trim()}.` : "Infer pos and register first.";
   const meaningLines =
     meanings?.filter(Boolean) ??
@@ -224,19 +316,19 @@ export function buildExamplesPrompt(
           .filter(Boolean)
       : []);
   const meaningHint = meaningLines.length
-    ? `Vietnamese meanings — each example MUST match its gloss exactly:
+    ? `${lang} meanings — each example MUST match its gloss exactly:
 ${meaningLines.map((line, index) => `${index + 1}. ${line}`).join("\n")}`
     : meaning?.trim()
-      ? `Vietnamese meaning: ${meaning.trim()}.`
+      ? `${lang} meaning: ${meaning.trim()}.`
       : "";
   return `Write example sentences for "${word}".
 ${posHint} ${meaningHint}
 
 ${POS_CLASSIFICATION_RULES}
 
-${MEANING_COUNT_RULES}
+${meaningCountRules(locale)}
 
-${EXAMPLE_RULES(word)}
+${exampleRules(word, locale)}
 
 ONLY JSON:
 {"examples":[{"en":"...","vi":"...","senseIndex":1},{"en":"...","vi":"...","senseIndex":2}]}`;
@@ -247,24 +339,34 @@ export function buildExampleTranslationPrompt(
   word: string,
   pos?: string | null,
   meaning?: string | null,
+  locale: LearnerLocale = DEFAULT_LEARNER_LOCALE,
 ): string {
+  const lang = learnerLanguageName(locale);
   const posHint = pos?.trim() ? `Part of speech: ${pos}.` : "";
   const meaningHint = meaning?.trim() ? `Word meaning: ${meaning}.` : "";
-  return `Translate this English sentence to natural Vietnamese for a vocabulary learner.
+  const herebyHint =
+    locale === "es"
+      ? 'Function words like hereby → "por la presente" at natural position in Spanish'
+      : 'Function words like hereby → "theo đây" at natural position in Vietnamese';
+  const scriptRule =
+    locale === "es"
+      ? "Latin Spanish only"
+      : "Latin Vietnamese only";
+  return `Translate this English sentence to natural ${lang} for a vocabulary learner.
 
 Sentence: "${englishSentence}"
 Headword: "${word}"
 ${posHint} ${meaningHint}
 
 Rules:
-- Match register (informal → conversational; neutral → everyday natural; formal → formal Vietnamese)
+- Match register (informal → conversational; neutral → everyday natural; formal → formal ${lang})
 - Natural idiom, not word-by-word
 - MUST use vocabulary from the provided meaning gloss when translating "${word}"
-- Do NOT substitute a different synonym (if gloss is "Rút ra", use "rút ra"/"rút" — NEVER "thu hút")
-- Function words like hereby → "theo đây" at natural position in Vietnamese
-- Latin Vietnamese only
+- Do NOT substitute a different synonym for the gloss
+- ${herebyHint}
+- ${scriptRule}
 
-Reply with ONLY the Vietnamese sentence. No quotes, no explanation.`;
+Reply with ONLY the ${lang} sentence. No quotes, no explanation.`;
 }
 
 export type CollocationTranslationInput = {
@@ -283,14 +385,17 @@ export function buildCollocationTranslationsPrompt(
   options?: {
     register?: string | null;
     englishDefinition?: string | null;
+    learnerLocale?: LearnerLocale;
   },
 ): string {
+  const locale = options?.learnerLocale ?? DEFAULT_LEARNER_LOCALE;
+  const lang = learnerLanguageName(locale);
   const posHint = pos?.trim() ? `Part of speech: ${pos}.` : "";
   const meaningHint = meaning?.trim()
-    ? `Vietnamese meaning on the card: ${meaning}.`
+    ? `${lang} meaning on the card: ${meaning}.`
     : "";
   const registerHint = options?.register?.trim()
-    ? `Register: ${options.register.trim()} (match this tone in Vietnamese).`
+    ? `Register: ${options.register.trim()} (match this tone in ${lang}).`
     : "";
   const definitionHint = options?.englishDefinition?.trim()
     ? `English definition: ${options.englishDefinition.trim()}.`
@@ -308,12 +413,12 @@ export function buildCollocationTranslationsPrompt(
     })
     .join("\n");
 
-  return `You translate "Goes with" collocation phrases for an English–Vietnamese vocabulary flashcard.
+  return `You translate "Goes with" collocation phrases for an English–${lang} vocabulary flashcard.
 
 What "Goes with" means:
 - Short English phrases (usually 2–4 words) showing words that naturally pair with the headword
-- NOT full sentences — output a short Vietnamese phrase only
-- Learners see English on top and Vietnamese below each collocation
+- NOT full sentences — output a short ${lang} phrase only
+- Learners see English on top and ${lang} below each collocation
 
 Headword being studied: "${word}"
 ${posHint} ${meaningHint} ${registerHint} ${definitionHint}
@@ -325,10 +430,10 @@ Rules:
 - Each translation MUST reflect the ENTIRE English collocation (e.g. "Big ram" → include "lớn", "Store hay" → include "lưu/cất", "Leaves drift" → include "lá")
 - Use the useful phrase and sense gloss to pick the correct sense of "${word}"
 - When translating "${word}", use vocabulary from the sense gloss — do NOT substitute a different synonym
-- Natural Vietnamese learners expect — not word-by-word machine translation
-- Match register (informal → conversational; neutral → everyday; formal/legal → formal Vietnamese)
+- Natural ${lang} learners expect — not word-by-word machine translation
+- Match register (informal → conversational; neutral → everyday; formal/legal → formal ${lang})
 - Short phrase only — never a full sentence unless the English collocation is already a sentence
-- Latin Vietnamese only
+- ${locale === "es" ? "Latin Spanish only" : "Latin Vietnamese only"}
 
 Reply with ONLY JSON, same order as input:
 {"translations":["...","..."]}`;
@@ -344,11 +449,14 @@ export function buildSupplementCollocationsPrompt(
   options?: {
     register?: string | null;
     englishDefinition?: string | null;
+    learnerLocale?: LearnerLocale;
   },
 ): string {
+  const locale = options?.learnerLocale ?? DEFAULT_LEARNER_LOCALE;
+  const lang = learnerLanguageName(locale);
   const posHint = pos?.trim() ? `Part of speech: ${pos}.` : "";
   const meaningHint = meaning?.trim()
-    ? `Vietnamese meaning on the card: ${meaning}.`
+    ? `${lang} meaning on the card: ${meaning}.`
     : "";
   const registerHint = options?.register?.trim()
     ? `Register: ${options.register.trim()}.`
@@ -363,7 +471,7 @@ export function buildSupplementCollocationsPrompt(
     ? `Useful phrase for context: "${usefulPhrase.en.trim()}" → "${usefulPhrase.vi.trim()}"`
     : "";
 
-  return `Create "Goes with" collocation phrases for an English–Vietnamese vocabulary flashcard.
+  return `Create "Goes with" collocation phrases for an English–${lang} vocabulary flashcard.
 
 Headword: "${word}"
 ${posHint} ${meaningHint} ${registerHint} ${definitionHint}
@@ -375,7 +483,7 @@ Generate exactly ${count} NEW short English collocation phrase(s) (2–4 words e
 - At least one phrase should show the base/literal meaning clearly
 - Natural pairings learners actually say or read — not dictionary definitions
 - Do NOT duplicate the existing phrases or the useful phrase
-- Match register in Vietnamese translations
+- Match register in ${lang} translations
 
 Reply with ONLY JSON:
 {"collocations":[{"en":"...","vi":"..."}]}`;

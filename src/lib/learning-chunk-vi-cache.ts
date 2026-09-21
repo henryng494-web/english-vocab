@@ -1,6 +1,10 @@
 import type { LearningChunkPhrase } from "@/data/demo-learning-chunks";
+import {
+  DEFAULT_LEARNER_LOCALE,
+  type LearnerLocale,
+} from "@/lib/learner-locale";
 
-const STORAGE_KEY = "learning-chunk-vi-cache-v2";
+const STORAGE_KEY = "learning-chunk-vi-cache-v3";
 
 type CacheEntry = {
   collocations: LearningChunkPhrase[];
@@ -8,9 +12,13 @@ type CacheEntry = {
 
 type CacheStore = Record<string, CacheEntry>;
 
-function cacheKey(word: string, phrases: LearningChunkPhrase[]): string {
+function cacheKey(
+  word: string,
+  phrases: LearningChunkPhrase[],
+  locale: LearnerLocale = DEFAULT_LEARNER_LOCALE,
+): string {
   const enKey = phrases.map((item) => item.en.trim().toLowerCase()).join("|");
-  return `${word.trim().toLowerCase()}::${enKey}`;
+  return `${locale}:${word.trim().toLowerCase()}::${enKey}`;
 }
 
 function readStore(): CacheStore {
@@ -36,8 +44,9 @@ function writeStore(store: CacheStore): void {
 export function getCachedCollocationTranslations(
   word: string,
   phrases: LearningChunkPhrase[],
+  locale: LearnerLocale = DEFAULT_LEARNER_LOCALE,
 ): LearningChunkPhrase[] | null {
-  const key = cacheKey(word, phrases);
+  const key = cacheKey(word, phrases, locale);
   const hit = readStore()[key];
   if (!hit?.collocations?.length) return null;
   if (hit.collocations.length !== phrases.length) return null;
@@ -48,9 +57,10 @@ export function setCachedCollocationTranslations(
   word: string,
   phrases: LearningChunkPhrase[],
   translated: LearningChunkPhrase[],
+  locale: LearnerLocale = DEFAULT_LEARNER_LOCALE,
 ): void {
   if (!translated.length) return;
-  const key = cacheKey(word, phrases);
+  const key = cacheKey(word, phrases, locale);
   const store = readStore();
   store[key] = { collocations: translated };
   writeStore(store);

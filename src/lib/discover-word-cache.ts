@@ -1,6 +1,11 @@
 import type { DiscoverWordData } from "@/components/discover/DiscoverCard";
 import { hasQualityExamples, keepNaturalExamples } from "@/lib/example-quality";
 import { hasLearningChunks } from "@/lib/learning-chunks";
+import {
+  DEFAULT_LEARNER_LOCALE,
+  parseDiscoverCacheKey,
+  type LearnerLocale,
+} from "@/lib/learner-locale";
 import { hasQualityMeanings } from "@/lib/meaning-quality";
 import { parseExamples } from "@/lib/parse-examples";
 import {
@@ -14,7 +19,7 @@ import {
 } from "@/lib/word-meanings";
 
 /** Bump when Gemini/Unsplash pipeline or image quality rules change. */
-export const DISCOVER_WORD_CACHE_VERSION = 102;
+export const DISCOVER_WORD_CACHE_VERSION = 103;
 
 const STORAGE_KEY = `discover-word-cache-v${DISCOVER_WORD_CACHE_VERSION}`;
 
@@ -101,10 +106,13 @@ const MAX_ENTRIES = 250;
 export function isWordDetailComplete(
   data: DiscoverWordData | undefined,
   expectedWord?: string,
+  learnerLocale: LearnerLocale = DEFAULT_LEARNER_LOCALE,
 ): boolean {
   if (!data?.vietnamese_meaning?.trim()) return false;
-  if (containsForeignScript(data.vietnamese_meaning)) return false;
-  if (hasCorruptedVietnameseText(data.vietnamese_meaning)) return false;
+  if (learnerLocale === "vi") {
+    if (containsForeignScript(data.vietnamese_meaning)) return false;
+    if (hasCorruptedVietnameseText(data.vietnamese_meaning)) return false;
+  }
   if (
     !hasQualityMeanings(
       data.word,
@@ -174,11 +182,19 @@ export function isCardContentReady(
 
 export function isCacheEntryValid(
   data: DiscoverWordData | undefined,
-  expectedWord: string,
+  cacheKey: string,
 ): boolean {
   if (!data) return false;
-  if (data.word.toLowerCase() !== expectedWord.toLowerCase()) return false;
-  return isWordDetailComplete(data, expectedWord);
+  const { locale, word } = parseDiscoverCacheKey(cacheKey);
+  if (data.word.toLowerCase() !== word.toLowerCase()) return false;
+  return isWordDetailComplete(data, word, locale);
+}
+
+export function discoverCacheKeyForWord(
+  word: string,
+  locale: LearnerLocale = DEFAULT_LEARNER_LOCALE,
+): string {
+  return `${locale}:${word.trim().toLowerCase()}`;
 }
 
 /** Drop legacy sessionStorage keys so stale template examples cannot persist. */
@@ -202,8 +218,11 @@ export function loadPersistedWordCache(): Map<string, DiscoverWordData> {
     const parsed = JSON.parse(raw) as Record<string, DiscoverWordData>;
     const map = new Map<string, DiscoverWordData>();
     for (const [key, value] of Object.entries(parsed)) {
-      if (isCacheEntryValid(value, key)) {
-        map.set(key, value);
+      const normalizedKey = key.includes(":")
+        ? key
+        : discoverCacheKeyForWord(key, DEFAULT_LEARNER_LOCALE);
+      if (isCacheEntryValid(value, normalizedKey)) {
+        map.set(normalizedKey, value);
       }
     }
     return map;
@@ -215,8 +234,8 @@ export function loadPersistedWordCache(): Map<string, DiscoverWordData> {
 export function persistWordCache(cache: Map<string, DiscoverWordData>): void {
   if (typeof window === "undefined") return;
   try {
-    const complete = Array.from(cache.entries()).filter(([word, value]) =>
-      isCacheEntryValid(value, word),
+    const complete = Array.from(cache.entries()).filter(([key, value]) =>
+      isCacheEntryValid(value, key),
     );
     const entries = complete.slice(-MAX_ENTRIES);
     sessionStorage.setItem(

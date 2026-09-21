@@ -9,6 +9,7 @@ import {
   type CountGoalTarget,
   type DailyGoalMinutes,
   type GoalType,
+  type LearnerLocale,
   type PronounceAccent,
   type PronounceSpeed,
 } from "@/lib/app-settings";
@@ -31,6 +32,7 @@ type AppSettingsContextValue = AppSettings & {
   setAppLanguage: (language: AppLocale) => void;
   setPronounceSpeed: (speed: PronounceSpeed) => void;
   setPronounceAccent: (accent: PronounceAccent) => void;
+  setLearnerLocale: (locale: LearnerLocale) => void;
   refresh: () => void;
 };
 
@@ -75,6 +77,8 @@ export function AppSettingsProvider({ children }: { children: React.ReactNode })
         setSettings(patchAppSettings({ pronounceSpeed: speed })),
       setPronounceAccent: (accent) =>
         setSettings(patchAppSettings({ pronounceAccent: accent })),
+      setLearnerLocale: (learnerLocale) =>
+        setSettings(patchAppSettings({ learnerLocale })),
       refresh,
     }),
     [settings, refresh],

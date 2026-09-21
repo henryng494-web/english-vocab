@@ -1,6 +1,8 @@
 import type { DiscoverWordData } from "@/components/discover/DiscoverCard";
 import { WORD_RANGES } from "@/data/word-ranges";
+import { readAppSettings } from "@/lib/app-settings";
 import {
+  discoverCacheKeyForWord,
   isCacheEntryValid,
   isWordDetailComplete,
   loadPersistedWordCache,
@@ -172,8 +174,10 @@ async function loadBootstrapWordDetail(
   wordCache: Map<string, DiscoverWordData>,
   options?: { awaitChunks?: boolean },
 ): Promise<void> {
-  const cached = wordCache.get(item.word);
-  if (isWordDetailComplete(cached, item.word)) {
+  const learnerLocale = readAppSettings().learnerLocale;
+  const cacheKey = discoverCacheKeyForWord(item.word, learnerLocale);
+  const cached = wordCache.get(cacheKey);
+  if (isWordDetailComplete(cached, item.word, learnerLocale)) {
     preloadImageUrl(cached!.image_url);
     await prefetchBootstrapCardContent(cached!, options);
     return;
@@ -184,8 +188,8 @@ async function loadBootstrapWordDetail(
       fetchDiscoverWordDetail(item, { bootstrap: true }),
       BOOTSTRAP_WORD_TIMEOUT_MS,
     );
-    if (loaded && isCacheEntryValid(loaded, item.word)) {
-      wordCache.set(item.word, loaded);
+    if (loaded && isCacheEntryValid(loaded, cacheKey)) {
+      wordCache.set(cacheKey, loaded);
       preloadImageUrl(loaded.image_url);
       await prefetchBootstrapCardContent(loaded, options);
       return;
@@ -196,7 +200,7 @@ async function loadBootstrapWordDetail(
 
   const preview = listItemToDiscoverData(item);
   if (preview.vietnamese_meaning?.trim()) {
-    wordCache.set(item.word, preview);
+    wordCache.set(cacheKey, preview);
     preloadImageUrl(preview.image_url);
     await prefetchBootstrapCardContent(preview, options);
   }

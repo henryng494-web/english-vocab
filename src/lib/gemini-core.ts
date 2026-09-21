@@ -11,6 +11,9 @@ import {
   buildSimilarWordsPrompt,
   type CollocationTranslationInput,
 } from "@/lib/gemini-prompts";
+import type { LearnerLocale } from "@/lib/learner-locale";
+import { DEFAULT_LEARNER_LOCALE } from "@/lib/learner-locale";
+import { sanitizeLearnerText } from "@/lib/sanitize-learner";
 import { sanitizeVietnameseText } from "@/lib/sanitize-vi";
 import { getPresetRank } from "@/data/preset-word-details";
 import { buildDefinitionFromVietnameseMeaning } from "@/lib/translate-vi";
@@ -77,10 +80,16 @@ type GeminiJsonShape = {
   rank?: number;
 };
 
-function parseMeanings(parsed: GeminiJsonShape, fallbackWord: string): string[] {
+function parseMeanings(
+  parsed: GeminiJsonShape,
+  fallbackWord: string,
+  locale: LearnerLocale,
+): string[] {
   const fromArray = Array.isArray(parsed.meanings)
     ? parsed.meanings
-        .map((item) => sanitizeVietnameseText(String(item ?? "").trim()))
+        .map((item) =>
+          sanitizeLearnerText(String(item ?? "").trim(), locale),
+        )
         .filter(Boolean)
         .slice(0, 2)
     : [];
@@ -88,8 +97,9 @@ function parseMeanings(parsed: GeminiJsonShape, fallbackWord: string): string[] 
   if (fromArray.length) return fromArray;
 
   const legacy =
-    sanitizeVietnameseText(
+    sanitizeLearnerText(
       parsed.meaning?.trim() || parsed.vietnamese?.trim() || "",
+      locale,
     ) || fallbackWord;
 
   return legacy ? [legacy] : [];
@@ -119,6 +129,7 @@ async function generateGeminiText(prompt: string): Promise<string> {
 
 function parseExamples(
   raw: GeminiJsonShape["examples"],
+  locale: LearnerLocale,
 ): VocabExample[] {
   if (!Array.isArray(raw)) return [];
   const parsed: VocabExample[] = [];
@@ -133,7 +144,7 @@ function parseExamples(
       const senseIndexRaw = item.senseIndex ?? item.sense;
       parsed.push({
         en,
-        vi: sanitizeVietnameseText(item.vi),
+        vi: sanitizeLearnerText(item.vi, locale),
         senseIndex:
           typeof senseIndexRaw === "number" && Number.isFinite(senseIndexRaw)
             ? Math.max(1, Math.round(senseIndexRaw))
@@ -150,14 +161,18 @@ function parseExamples(
     .slice(0, 2);
 }
 
-function parseGeminiResponse(text: string, word: string): WordEnrichment {
+function parseGeminiResponse(
+  text: string,
+  word: string,
+  locale: LearnerLocale = DEFAULT_LEARNER_LOCALE,
+): WordEnrichment {
   const jsonMatch = text.match(/\{[\s\S]*\}/);
   if (!jsonMatch) {
     throw new Error(`Failed to parse Gemini response for "${word}"`);
   }
 
   const parsed = JSON.parse(jsonMatch[0]) as GeminiJsonShape;
-  const meanings = parseMeanings(parsed, word);
+  const meanings = parseMeanings(parsed, word, locale);
   const normalizedMeanings = meanings.map((item) => capitalizeFirst(item));
   const meaningRaw = normalizedMeanings[0] ?? word;
   const wordType = normalizeWordType(parsed.pos?.trim(), word) ?? "unknown";
@@ -173,7 +188,7 @@ function parseGeminiResponse(text: string, word: string): WordEnrichment {
 
   const examples = keepNaturalExamples(
     word,
-    parseExamples(parsed.examples),
+    parseExamples(parsed.examples, locale),
     wordType,
     serializeVietnameseMeanings(normalizedMeanings),
   );
@@ -216,52 +231,67 @@ function parseGeminiResponse(text: string, word: string): WordEnrichment {
 async function enrichWithModel(
   word: string,
   modelName: string,
+  locale: LearnerLocale,
 ): Promise<WordEnrichment> {
   const genAI = getGeminiClient();
   const model = genAI.getGenerativeModel({ model: modelName });
-  const result = await model.generateContent(buildEnrichPrompt(word));
-  return parseGeminiResponse(result.response.text().trim(), word);
+  const result = await model.generateContent(buildEnrichPrompt(word, locale));
+  return parseGeminiResponse(result.response.text().trim(), word, locale);
 }
 
 /** Lightweight Gemini call — Vietnamese meanings only (saves quota vs full enrich). */
-export async function translateVietnameseWithGemini(
+export async function translateLearnerMeaningWithGemini(
   word: string,
+  locale: LearnerLocale = DEFAULT_LEARNER_LOCALE,
 ): Promise<string | null> {
   if (!process.env.GEMINI_API_KEY?.trim()) return null;
 
   try {
-    const text = sanitizeVietnameseText(
-      (await generateGeminiText(buildMeaningPrompt(word))).replace(
+    const text = sanitizeLearnerText(
+      (await generateGeminiText(buildMeaningPrompt(word, locale))).replace(
         /^["']|["']$/g,
         "",
       ),
+      locale,
     );
     return text || null;
   } catch (error) {
-    console.warn(`Gemini VI "${primaryModelName()}" failed for "${word}":`, error);
+    console.warn(
+      `Gemini ${locale} "${primaryModelName()}" failed for "${word}":`,
+      error,
+    );
     return null;
   }
+}
+
+/** @deprecated Use translateLearnerMeaningWithGemini(word, "vi") */
+export async function translateVietnameseWithGemini(
+  word: string,
+): Promise<string | null> {
+  return translateLearnerMeaningWithGemini(word, "vi");
 }
 
 /** Gemini — short Vietnamese definition for static fallback. */
 export async function translateDefinitionWithGemini(
   word: string,
   englishDefinition?: string,
+  locale: LearnerLocale = DEFAULT_LEARNER_LOCALE,
 ): Promise<string | null> {
   if (!process.env.GEMINI_API_KEY?.trim()) return null;
 
   try {
-    const text = sanitizeVietnameseText(
+    const text = sanitizeLearnerText(
       (
         await generateGeminiText(
-          buildDefinitionPrompt(word, englishDefinition),
+          buildDefinitionPrompt(word, englishDefinition, locale),
         )
       ).replace(/^["']|["']$/g, ""),
+      locale,
     );
     return text || null;
   } catch (error) {
     console.warn(
-      `Gemini VI definition "${primaryModelName()}" failed for "${word}":`,
+      `Gemini ${locale} definition "${primaryModelName()}" failed for "${word}":`,
       error,
     );
     return null;
@@ -277,9 +307,11 @@ export async function translateCollocationsWithGemini(
   options?: {
     register?: string | null;
     englishDefinition?: string | null;
+    learnerLocale?: LearnerLocale;
   },
 ): Promise<string[] | null> {
   if (!process.env.GEMINI_API_KEY?.trim()) return null;
+  const locale = options?.learnerLocale ?? DEFAULT_LEARNER_LOCALE;
   const items = phrases
     .map((item) => ({
       en: item.en?.trim() ?? "",
@@ -292,7 +324,10 @@ export async function translateCollocationsWithGemini(
 
   try {
     const text = await generateGeminiText(
-      buildCollocationTranslationsPrompt(word, pos, meaning, items, options),
+      buildCollocationTranslationsPrompt(word, pos, meaning, items, {
+        ...options,
+        learnerLocale: locale,
+      }),
     );
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (!jsonMatch) return null;
@@ -300,7 +335,7 @@ export async function translateCollocationsWithGemini(
     if (!Array.isArray(parsed.translations)) return null;
     const out = parsed.translations
       .map((item) =>
-        sanitizeVietnameseText(String(item ?? "").trim()).replace(
+        sanitizeLearnerText(String(item ?? "").trim(), locale).replace(
           /^["']|["']$/g,
           "",
         ),
@@ -324,9 +359,11 @@ export async function supplementCollocationsWithGemini(
   options?: {
     register?: string | null;
     englishDefinition?: string | null;
+    learnerLocale?: LearnerLocale;
   },
 ): Promise<Array<{ en: string; vi: string }> | null> {
   if (!process.env.GEMINI_API_KEY?.trim() || count < 1) return null;
+  const locale = options?.learnerLocale ?? DEFAULT_LEARNER_LOCALE;
 
   try {
     const text = await generateGeminiText(
@@ -337,7 +374,7 @@ export async function supplementCollocationsWithGemini(
         meaning,
         existing,
         usefulPhrase,
-        options,
+        { ...options, learnerLocale: locale },
       ),
     );
     const jsonMatch = text.match(/\{[\s\S]*\}/);
@@ -349,7 +386,7 @@ export async function supplementCollocationsWithGemini(
     const out = parsed.collocations
       .map((item) => ({
         en: String(item.en ?? "").trim(),
-        vi: sanitizeVietnameseText(String(item.vi ?? "").trim()).replace(
+        vi: sanitizeLearnerText(String(item.vi ?? "").trim(), locale).replace(
           /^["']|["']$/g,
           "",
         ),
@@ -368,22 +405,24 @@ export async function translateExampleWithGemini(
   word: string,
   pos?: string | null,
   meaning?: string | null,
+  locale: LearnerLocale = DEFAULT_LEARNER_LOCALE,
 ): Promise<string | null> {
   if (!process.env.GEMINI_API_KEY?.trim()) return null;
   const en = englishSentence.trim();
   if (!en) return null;
 
   try {
-    const text = sanitizeVietnameseText(
+    const text = sanitizeLearnerText(
       (
         await generateGeminiText(
-          buildExampleTranslationPrompt(en, word, pos, meaning),
+          buildExampleTranslationPrompt(en, word, pos, meaning, locale),
         )
       ).replace(/^["']|["']$/g, ""),
+      locale,
     );
     return text || null;
   } catch (error) {
-    console.warn(`Gemini example VI failed for "${word}":`, error);
+    console.warn(`Gemini example ${locale} failed for "${word}":`, error);
     return null;
   }
 }
@@ -394,6 +433,7 @@ export async function generateExamplesWithGemini(
   pos?: string | null,
   meaning?: string | null,
   meanings?: string[] | null,
+  locale: LearnerLocale = DEFAULT_LEARNER_LOCALE,
 ): Promise<VocabExample[] | null> {
   if (!process.env.GEMINI_API_KEY?.trim()) return null;
 
@@ -402,19 +442,19 @@ export async function generateExamplesWithGemini(
 
   try {
     const text = await generateGeminiText(
-      buildExamplesPrompt(word, pos, meaning, meaningLines),
+      buildExamplesPrompt(word, pos, meaning, meaningLines, locale),
     );
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (!jsonMatch) return null;
     const parsed = JSON.parse(jsonMatch[0]) as GeminiJsonShape;
     const raw = keepNaturalExamples(
       word,
-      parseExamples(parsed.examples),
+      parseExamples(parsed.examples, locale),
       pos,
       meaning,
     );
     if (raw.length < 2) return null;
-    const filled = await fillExampleTranslations(raw, word, pos, meaning);
+    const filled = await fillExampleTranslations(raw, word, pos, meaning, locale);
     if (!hasQualityExamples(word, filled, pos, meaning)) return null;
     return filled.slice(0, 2);
   } catch (error) {
@@ -481,13 +521,14 @@ export async function generateSimilarWordsWithGemini(
 export async function enrichWithGemini(
   word: string,
   presetRank?: number,
+  locale: LearnerLocale = DEFAULT_LEARNER_LOCALE,
 ): Promise<WordEnrichment> {
   const models = [...new Set(FALLBACK_MODELS)];
   let lastError: unknown;
 
   for (const modelName of models) {
     try {
-      const result = await enrichWithModel(word, modelName);
+      const result = await enrichWithModel(word, modelName, locale);
       if (presetRank) {
         result.frequencyRank = presetRank;
         result.importanceTier = getImportanceTier(

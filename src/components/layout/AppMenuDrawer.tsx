@@ -2,6 +2,7 @@
 
 import {
   DAILY_GOAL_OPTIONS,
+  LEARNER_LOCALE_OPTIONS,
   PRONOUNCE_ACCENT_OPTIONS,
   PRONOUNCE_SPEED_OPTIONS,
   type DailyGoalMinutes,
@@ -70,8 +71,16 @@ export function AppMenuDrawer({ open, onClose }: AppMenuDrawerProps) {
     setReminderTime,
     appLanguage,
     setAppLanguage,
+    learnerLocale,
+    setLearnerLocale,
   } = useAppSettings();
-  const { t, dailyGoalLabel, pronounceSpeedLabel, pronounceAccentLabel } = useI18n();
+  const {
+    t,
+    dailyGoalLabel,
+    pronounceSpeedLabel,
+    pronounceAccentLabel,
+    learnerLocaleLabel,
+  } = useI18n();
 
   const recommendedWords = useMemo(
     () => recommendedNewWordsForMinutes(dailyGoalMinutes),
@@ -136,6 +145,24 @@ export function AppMenuDrawer({ open, onClose }: AppMenuDrawerProps) {
 
           <section className="app-menu__section">
             <h3 className="app-menu__section-title">{t("menu.learning")}</h3>
+            <div className="app-menu__subblock">
+              <p className="app-menu__subblock-title">{t("menu.learnerLocale")}</p>
+              <p className="app-menu__hint">{t("menu.learnerLocaleHint")}</p>
+              <div className="app-menu__chips">
+                {LEARNER_LOCALE_OPTIONS.map((locale) => (
+                  <button
+                    key={locale}
+                    type="button"
+                    className={`app-menu__chip${
+                      learnerLocale === locale ? " is-active" : ""
+                    }`}
+                    onClick={() => setLearnerLocale(locale)}
+                  >
+                    {learnerLocaleLabel(locale)}
+                  </button>
+                ))}
+              </div>
+            </div>
             <ToggleRow
               label={t("menu.autoSpeak")}
               description={t("menu.autoSpeakDesc")}

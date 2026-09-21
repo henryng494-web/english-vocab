@@ -5,6 +5,7 @@ import { capitalizeFirst } from "@/lib/format-text";
 import {
   countGoalMessageKey,
   dailyGoalMessageKey,
+  learnerLocaleMessageKey,
   pronounceAccentMessageKey,
   pronounceSpeedMessageKey,
   translate,
@@ -21,6 +22,7 @@ import type {
   CountGoalTarget,
   DailyGoalMinutes,
   GoalType,
+  LearnerLocale,
   PronounceAccent,
   PronounceSpeed,
 } from "@/lib/app-settings";
@@ -80,6 +82,14 @@ export function useI18n() {
     [t],
   );
 
+  const learnerLocaleLabel = useCallback(
+    (learnerLocale: LearnerLocale) => {
+      const key = learnerLocaleMessageKey(learnerLocale);
+      return key ? t(key) : learnerLocale;
+    },
+    [t],
+  );
+
   const registerLabel = useCallback(
     (register: WordRegister | null | undefined): string | null => {
       const displayed = displayWordRegister(register);
@@ -135,6 +145,7 @@ export function useI18n() {
       goalTypeLabel,
       pronounceSpeedLabel,
       pronounceAccentLabel,
+      learnerLocaleLabel,
       registerLabel,
       wordTypeLabel,
       reviewTimesLabel,
@@ -149,6 +160,7 @@ export function useI18n() {
       goalTypeLabel,
       pronounceSpeedLabel,
       pronounceAccentLabel,
+      learnerLocaleLabel,
       registerLabel,
       wordTypeLabel,
       reviewTimesLabel,

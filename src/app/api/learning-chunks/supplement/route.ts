@@ -1,4 +1,5 @@
 import { supplementCollocationsWithGemini } from "@/lib/gemini-core";
+import { parseLearnerLocale } from "@/lib/learner-locale";
 import { MAX_LEARNING_COLLOCATIONS } from "@/data/demo-learning-chunks";
 import { NextResponse } from "next/server";
 
@@ -21,6 +22,7 @@ export async function POST(request: Request) {
       existing?: string[];
       usefulPhrase?: { en?: string; vi?: string } | null;
       count?: number;
+      learnerLocale?: string | null;
     };
 
     const word = body.word?.trim() ?? "";
@@ -43,6 +45,8 @@ export async function POST(request: Request) {
           }
         : null;
 
+    const learnerLocale = parseLearnerLocale(body.learnerLocale);
+
     const collocations = await supplementCollocationsWithGemini(
       word,
       count,
@@ -53,6 +57,7 @@ export async function POST(request: Request) {
       {
         register: body.register,
         englishDefinition: body.englishDefinition,
+        learnerLocale,
       },
     );
 
