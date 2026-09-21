@@ -19,7 +19,12 @@ export const messages: Record<AppLocale, MessageTree> = {
     "menu.title": "Menu",
     "menu.close": "Đóng",
     "menu.language": "Ngôn ngữ app",
-    "menu.languageHint": "Chọn ngôn ngữ giao diện (nghĩa từ vựng vẫn hiển thị tiếng Việt).",
+    "menu.languageHint": "Chọn ngôn ngữ giao diện (menu, nút, nhãn).",
+    "menu.learnerLocale": "Ngôn ngữ học",
+    "menu.learnerLocaleHint":
+      "Ngôn ngữ cho nghĩa từ và bản dịch câu ví dụ trên thẻ.",
+    "menu.learnerLocaleVi": "Tiếng Việt",
+    "menu.learnerLocaleEs": "Español",
     "menu.langVi": "Tiếng Việt",
     "menu.langEn": "English",
     "menu.learning": "Học tập",
@@ -306,7 +311,12 @@ export const messages: Record<AppLocale, MessageTree> = {
     "menu.title": "Menu",
     "menu.close": "Close",
     "menu.language": "App language",
-    "menu.languageHint": "Choose interface language (word meanings stay in Vietnamese).",
+    "menu.languageHint": "Choose interface language (menus, buttons, labels).",
+    "menu.learnerLocale": "Learning language",
+    "menu.learnerLocaleHint":
+      "Language for word glosses and example translations on cards.",
+    "menu.learnerLocaleVi": "Tiếng Việt",
+    "menu.learnerLocaleEs": "Español",
     "menu.langVi": "Tiếng Việt",
     "menu.langEn": "English",
     "menu.learning": "Learning",
@@ -645,4 +655,14 @@ export function pronounceAccentMessageKey(
     au: "menu.pronounceAccentAu",
   };
   return map[accent] ?? null;
+}
+
+export function learnerLocaleMessageKey(
+  locale: string,
+): MessageKey | null {
+  const map: Record<string, MessageKey> = {
+    vi: "menu.learnerLocaleVi",
+    es: "menu.learnerLocaleEs",
+  };
+  return map[locale] ?? null;
 }

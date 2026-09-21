@@ -40,12 +40,17 @@ import { repairWordMeanings } from "@/lib/repair-word-meanings";
 
 export type { WordEnrichment } from "@/lib/gemini-core";
 
+import type { LearnerLocale } from "@/lib/learner-locale";
+import { DEFAULT_LEARNER_LOCALE } from "@/lib/learner-locale";
+
 export type EnrichOptions = {
   rank?: number;
   /** Skip Gemini when a complete standard card already exists. */
   skipGemini?: boolean;
   /** Bypass curated standard vocab and prefer Gemini (for re-enrich scripts). */
   forceGemini?: boolean;
+  /** Gloss + example translation language (default Vietnamese). */
+  learnerLocale?: LearnerLocale;
 };
 
 function clampFrequencyRank(rank: number): number {
@@ -79,6 +84,7 @@ async function finalizeExamples(
   pos?: string | null,
   meaning?: string | null,
   allowGemini?: boolean,
+  learnerLocale: LearnerLocale = DEFAULT_LEARNER_LOCALE,
 ): Promise<VocabExample[]> {
   const existing = keepNaturalExamples(word, examples, pos, meaning);
   if (hasQualityExamples(word, existing, pos, meaning)) {
@@ -93,6 +99,7 @@ async function finalizeExamples(
         pos,
         meaning,
         alignmentMeaningLines(meaning),
+        learnerLocale,
       );
       lastGenerated = generated;
       if (hasQualityExamples(word, generated ?? undefined, pos, meaning)) {
@@ -107,17 +114,35 @@ async function finalizeExamples(
 
   const naturalOnly = keepNaturalExamples(word, existing, pos, meaning);
   if (naturalOnly.length >= 2) {
-    const translated = await fillExampleTranslations(naturalOnly, word, pos, meaning);
+    const translated = await fillExampleTranslations(
+      naturalOnly,
+      word,
+      pos,
+      meaning,
+      learnerLocale,
+    );
     if (hasQualityExamples(word, translated, pos, meaning)) {
       return translated.slice(0, 2);
     }
   }
 
   const ensured = ensureExamples(word, existing, pos, meaning);
-  const aligned = await alignExampleTranslations(ensured, word, pos, meaning);
+  const aligned = await alignExampleTranslations(
+    ensured,
+    word,
+    pos,
+    meaning,
+    learnerLocale,
+  );
   if (hasQualityExamples(word, aligned, pos, meaning)) return aligned.slice(0, 2);
 
-  const translatedEnsured = await fillExampleTranslations(aligned, word, pos, meaning);
+  const translatedEnsured = await fillExampleTranslations(
+    aligned,
+    word,
+    pos,
+    meaning,
+    learnerLocale,
+  );
   if (hasQualityExamples(word, translatedEnsured, pos, meaning)) {
     return translatedEnsured.slice(0, 2);
   }
@@ -269,12 +294,17 @@ export async function enrichWord(
 ): Promise<WordEnrichment> {
   const normalized = word.trim().toLowerCase();
   const presetRank = options?.rank ?? getPresetRank(normalized);
+  const learnerLocale = options?.learnerLocale ?? DEFAULT_LEARNER_LOCALE;
   const viOptions: ResolveViOptions = {
     allowGemini: !options?.skipGemini,
+    learnerLocale,
   };
 
   // Prefer curated cards even during repair — forceGemini only bypasses incomplete entries.
-  if (!options?.forceGemini || hasQualityStandardVocab(normalized)) {
+  if (
+    learnerLocale === "vi" &&
+    (!options?.forceGemini || hasQualityStandardVocab(normalized))
+  ) {
     const fromStandard = await standardToEnrichment(
       normalized,
       presetRank,
@@ -285,7 +315,11 @@ export async function enrichWord(
 
   if (process.env.GEMINI_API_KEY?.trim()) {
     try {
-      const geminiResult = await enrichWithGemini(normalized, presetRank);
+      const geminiResult = await enrichWithGemini(
+        normalized,
+        presetRank,
+        learnerLocale,
+      );
       if (isMissingDefinition(geminiResult.englishDefinition)) {
         const built = buildDefinitionFromVietnameseMeaning(
           geminiResult.vietnameseMeaning,
@@ -317,6 +351,7 @@ export async function enrichWord(
         geminiResult.wordType,
         geminiResult.vietnameseMeaning,
         true,
+        learnerLocale,
       );
       geminiResult.phonetic = await finalizePhonetic(
         normalized,

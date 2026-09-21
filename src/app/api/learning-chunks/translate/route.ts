@@ -1,4 +1,5 @@
 import { translateCollocationsWithGemini } from "@/lib/gemini-core";
+import { parseLearnerLocale } from "@/lib/learner-locale";
 import { alignmentMeaningLines } from "@/lib/word-meanings";
 import { NextResponse } from "next/server";
 
@@ -26,6 +27,7 @@ export async function POST(request: Request) {
       register?: string | null;
       englishDefinition?: string | null;
       phrases?: PhraseInput[];
+      learnerLocale?: string | null;
     };
 
     const word = body.word?.trim() ?? "";
@@ -60,6 +62,8 @@ export async function POST(request: Request) {
           : meaningLines[0] ?? body.meaning ?? null,
     }));
 
+    const learnerLocale = parseLearnerLocale(body.learnerLocale);
+
     const translations = await translateCollocationsWithGemini(
       word,
       geminiInput,
@@ -68,6 +72,7 @@ export async function POST(request: Request) {
       {
         register: body.register,
         englishDefinition: body.englishDefinition,
+        learnerLocale,
       },
     );
 

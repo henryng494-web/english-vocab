@@ -1,6 +1,11 @@
 import { getStaticWordDetail, getPresetRank } from "@/data/preset-word-details";
 import { hasQualityStandardVocab } from "@/data/standard-vocab";
-import { loadPersistedWordCache } from "@/lib/discover-word-cache";
+import { readAppSettings } from "@/lib/app-settings";
+import {
+  discoverCacheKeyForWord,
+  loadPersistedWordCache,
+} from "@/lib/discover-word-cache";
+import { DEFAULT_LEARNER_LOCALE } from "@/lib/learner-locale";
 import { standardToDiscoverFields } from "@/lib/enrichment-helpers";
 import { resolveImageSearchKeyword } from "@/lib/image-keyword";
 import { prefetchCardContent } from "@/lib/card-content-prefetch";
@@ -78,6 +83,12 @@ function mergeHydratedFields(
 
 /** Curated standard cards override stale DB meanings for review clues. */
 function applyCuratedReviewFields(word: VocabWord): VocabWord | null {
+  const learnerLocale =
+    typeof window !== "undefined"
+      ? readAppSettings().learnerLocale
+      : DEFAULT_LEARNER_LOCALE;
+  if (learnerLocale !== "vi") return null;
+
   const key = word.word.trim().toLowerCase();
   if (!hasQualityStandardVocab(key)) return null;
 
@@ -112,7 +123,13 @@ export function hydrateReviewWordLocal(word: VocabWord): VocabWord {
   if (hasReviewClueFields(word)) return word;
 
   const key = word.word.trim().toLowerCase();
-  const cached = getDiscoverCache().get(key);
+  const learnerLocale =
+    typeof window !== "undefined"
+      ? readAppSettings().learnerLocale
+      : DEFAULT_LEARNER_LOCALE;
+  const cached = getDiscoverCache().get(
+    discoverCacheKeyForWord(key, learnerLocale),
+  );
   if (cached && hasReviewClueFields(cached)) {
     return mergeHydratedFields(word, {
       phonetic: cached.phonetic ?? "",
@@ -163,10 +180,15 @@ export async function fetchDiscoverWordEnrichment(
   const key = word.word.trim().toLowerCase();
   if (!key) return null;
   try {
+    const learnerLocale =
+      typeof window !== "undefined"
+        ? readAppSettings().learnerLocale
+        : DEFAULT_LEARNER_LOCALE;
     const params = new URLSearchParams({
       word: key,
       rank: String(word.rank ?? getPresetRank(key) ?? 10000),
       skipGemini: "false",
+      locale: learnerLocale,
     });
     const res = await fetch(`/api/discover/word?${params}`, {
       cache: "no-store",

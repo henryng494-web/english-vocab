@@ -4,12 +4,18 @@ import { getStaticVietnamese } from "@/lib/static-vietnamese";
 import { primaryVietnameseMeaning } from "@/lib/word-meanings";
 import {
   translateDefinitionWithGemini,
-  translateVietnameseWithGemini,
+  translateLearnerMeaningWithGemini,
 } from "@/lib/gemini-core";
+import {
+  DEFAULT_LEARNER_LOCALE,
+  type LearnerLocale,
+} from "@/lib/learner-locale";
+import { sanitizeLearnerText } from "@/lib/sanitize-learner";
 
 export type ResolveViOptions = {
   /** Prefer Gemini; MyMemory is last resort when Gemini is unavailable. */
   allowGemini?: boolean;
+  learnerLocale?: LearnerLocale;
 };
 
 type MyMemoryResponse = {
@@ -18,11 +24,15 @@ type MyMemoryResponse = {
 };
 
 /** Free EN→VI lookup via MyMemory (no key required). */
-export async function fetchMyMemoryTranslation(word: string): Promise<string | null> {
+export async function fetchMyMemoryTranslation(
+  word: string,
+  locale: LearnerLocale = DEFAULT_LEARNER_LOCALE,
+): Promise<string | null> {
   try {
+    const target = locale === "es" ? "es" : "vi";
     const params = new URLSearchParams({
       q: word.trim(),
-      langpair: "en|vi",
+      langpair: `en|${target}`,
     });
     const response = await fetch(
       `https://api.mymemory.translated.net/get?${params}`,
@@ -41,7 +51,7 @@ export async function fetchMyMemoryTranslation(word: string): Promise<string | n
     // MyMemory quota warning text
     if (normalized.includes("mymemory warning")) return null;
 
-    return sanitizeVietnameseText(translated) || null;
+    return sanitizeLearnerText(translated, locale) || null;
   } catch {
     return null;
   }
@@ -136,7 +146,11 @@ export async function resolveVietnameseDefinition(
       result = capitalizeFirst(trimmed);
     } else if (options?.allowGemini && process.env.GEMINI_API_KEY?.trim()) {
       try {
-        const geminiDef = await translateDefinitionWithGemini(word, trimmed);
+        const geminiDef = await translateDefinitionWithGemini(
+          word,
+          trimmed,
+          options?.learnerLocale,
+        );
         if (geminiDef?.trim()) result = capitalizeFirst(geminiDef.trim());
       } catch (error) {
         console.warn(`Gemini VI definition failed for "${word}":`, error);
@@ -144,7 +158,10 @@ export async function resolveVietnameseDefinition(
     }
 
     if (isMissingDefinition(result)) {
-      const fromMyMemory = await fetchMyMemoryTranslation(trimmed);
+      const fromMyMemory = await fetchMyMemoryTranslation(
+        trimmed,
+        options?.learnerLocale,
+      );
       if (fromMyMemory && !looksLikeEnglish(fromMyMemory)) {
         result = capitalizeFirst(fromMyMemory);
       }
@@ -161,7 +178,11 @@ export async function resolveVietnameseDefinition(
 
   if (isMissingDefinition(result) && options?.allowGemini && process.env.GEMINI_API_KEY?.trim()) {
     try {
-      const geminiDef = await translateDefinitionWithGemini(word);
+      const geminiDef = await translateDefinitionWithGemini(
+        word,
+        undefined,
+        options?.learnerLocale ?? DEFAULT_LEARNER_LOCALE,
+      );
       if (geminiDef?.trim()) return capitalizeFirst(geminiDef.trim());
     } catch (error) {
       console.warn(`Gemini VI definition (no source) failed for "${word}":`, error);
@@ -178,20 +199,26 @@ export async function resolveVietnameseMeaning(
   word: string,
   options?: ResolveViOptions,
 ): Promise<string> {
-  const staticVi = getStaticVietnamese(word);
-  if (staticVi) return sanitizeVietnameseText(staticVi) || staticVi;
+  const locale = options?.learnerLocale ?? DEFAULT_LEARNER_LOCALE;
+
+  if (locale === "vi") {
+    const staticVi = getStaticVietnamese(word);
+    if (staticVi) return sanitizeVietnameseText(staticVi) || staticVi;
+  }
 
   if (options?.allowGemini && process.env.GEMINI_API_KEY?.trim()) {
     try {
-      const geminiVi = await translateVietnameseWithGemini(word);
-      if (geminiVi?.trim()) return geminiVi.trim();
+      const gemini = await translateLearnerMeaningWithGemini(word, locale);
+      if (gemini?.trim()) return gemini.trim();
     } catch (error) {
-      console.warn(`Gemini VI translation failed for "${word}":`, error);
+      console.warn(`Gemini ${locale} translation failed for "${word}":`, error);
     }
   }
 
-  const fromMyMemory = await fetchMyMemoryTranslation(word);
-  if (fromMyMemory) return sanitizeVietnameseText(fromMyMemory) || fromMyMemory;
+  const fromMyMemory = await fetchMyMemoryTranslation(word, locale);
+  if (fromMyMemory) {
+    return sanitizeLearnerText(fromMyMemory, locale) || fromMyMemory;
+  }
 
   return "—";
 }

@@ -6,12 +6,20 @@ import {
   type PronounceAccent,
 } from "@/lib/pronounce-accent";
 import {
+  DEFAULT_LEARNER_LOCALE,
+  isLearnerLocale,
+  LEARNER_LOCALE_OPTIONS,
+  LEARNER_LOCALE_LABELS,
+  type LearnerLocale,
+} from "@/lib/learner-locale";
+import {
   DEFAULT_PRONOUNCE_SPEED,
   isPronounceSpeed,
   type PronounceSpeed,
 } from "@/lib/pronounce-speed";
 
-export type { PronounceAccent, PronounceSpeed };
+export type { LearnerLocale, PronounceAccent, PronounceSpeed };
+export { LEARNER_LOCALE_OPTIONS, LEARNER_LOCALE_LABELS } from "@/lib/learner-locale";
 export { PRONOUNCE_ACCENT_OPTIONS } from "@/lib/pronounce-accent";
 export { PRONOUNCE_SPEED_OPTIONS } from "@/lib/pronounce-speed";
 
@@ -37,6 +45,8 @@ export type AppSettings = {
   pronounceSpeed: PronounceSpeed;
   /** US / UK / AU neural + dictionary accent from menu. */
   pronounceAccent: PronounceAccent;
+  /** Gloss + example translation language on flashcards. */
+  learnerLocale: LearnerLocale;
 };
 
 export const DAILY_GOAL_OPTIONS: readonly DailyGoalMinutes[] = [
@@ -74,6 +84,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   appLanguage: DEFAULT_APP_LOCALE,
   pronounceSpeed: DEFAULT_PRONOUNCE_SPEED,
   pronounceAccent: DEFAULT_PRONOUNCE_ACCENT,
+  learnerLocale: DEFAULT_LEARNER_LOCALE,
 };
 
 function isDailyGoalMinutes(value: number): value is DailyGoalMinutes {
@@ -123,6 +134,9 @@ function normalizeAppSettings(parsed: Partial<AppSettings>): AppSettings {
     pronounceAccent: isPronounceAccent(parsed.pronounceAccent)
       ? parsed.pronounceAccent
       : DEFAULT_SETTINGS.pronounceAccent,
+    learnerLocale: isLearnerLocale(parsed.learnerLocale)
+      ? parsed.learnerLocale
+      : DEFAULT_SETTINGS.learnerLocale,
   };
 }
 

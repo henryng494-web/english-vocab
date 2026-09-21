@@ -4,12 +4,15 @@ import { VocabWordCard } from "@/components/discover/VocabWordCard";
 import type { DiscoverWordData } from "@/components/discover/DiscoverCard";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { JungleMascot } from "@/components/mascot/JungleMascot";
+import { readAppSettings } from "@/lib/app-settings";
 import {
   DISCOVER_WORD_CACHE_VERSION,
+  discoverCacheKeyForWord,
   isCacheEntryValid,
   loadPersistedWordCache,
   persistWordCache,
 } from "@/lib/discover-word-cache";
+import { useAppSettings } from "@/context/AppSettingsContext";
 import { mapApiWordToDiscoverData } from "@/lib/discover-fetch";
 import { examplesNeedRegeneration } from "@/lib/repair-word-examples";
 import { refreshSingleWordImage } from "@/lib/refresh-stale-word-images";
@@ -58,6 +61,7 @@ function WordDetailPageContent() {
   const [error, setError] = useState<string | null>(null);
   const localStatus = word ? getLocalWordStatus(word) : null;
   const statusText = statusLabel(localStatus);
+  const { learnerLocale } = useAppSettings();
 
   useEffect(() => {
     if (!word) {
@@ -67,7 +71,8 @@ function WordDetailPageContent() {
     }
 
     const cache = loadPersistedWordCache();
-    const cached = cache.get(word);
+    const cacheKey = discoverCacheKeyForWord(word, learnerLocale);
+    const cached = cache.get(cacheKey);
     const cachedMisaligned = Boolean(
       cached &&
         examplesNeedRegeneration(
@@ -78,14 +83,14 @@ function WordDetailPageContent() {
         ),
     );
     if (cachedMisaligned) {
-      cache.delete(word);
+      cache.delete(cacheKey);
       persistWordCache(cache);
     }
 
     const hadValidCache = Boolean(
       cached &&
         !cachedMisaligned &&
-        isCacheEntryValid(cached, word),
+        isCacheEntryValid(cached, cacheKey),
     );
     if (hadValidCache) {
       setData(cached!);
@@ -105,6 +110,7 @@ function WordDetailPageContent() {
         rank: String(rank),
         skipGemini: "false",
         cacheVersion: String(DISCOVER_WORD_CACHE_VERSION),
+        locale: learnerLocale,
       });
       if (forceRepair) {
         params.set("forceRepair", "true");
@@ -140,7 +146,7 @@ function WordDetailPageContent() {
             return fetchWord(true);
           }
           if (cancelled) return;
-          cache.set(word, loaded);
+          cache.set(cacheKey, loaded);
           persistWordCache(cache);
           setData(loaded);
         });
@@ -159,7 +165,7 @@ function WordDetailPageContent() {
     return () => {
       cancelled = true;
     };
-  }, [word]);
+  }, [word, learnerLocale]);
 
   useEffect(() => {
     if (!data?.word || !data.vietnamese_meaning?.trim()) return;
@@ -175,9 +181,13 @@ function WordDetailPageContent() {
       if (cancelled || !imageUrl || imageUrl === data.image_url) return;
       setData((prev) => (prev ? { ...prev, image_url: imageUrl } : prev));
       const cache = loadPersistedWordCache();
-      const existing = cache.get(data.word);
+      const cacheKey = discoverCacheKeyForWord(
+        data.word,
+        readAppSettings().learnerLocale,
+      );
+      const existing = cache.get(cacheKey);
       if (existing) {
-        cache.set(data.word, { ...existing, image_url: imageUrl });
+        cache.set(cacheKey, { ...existing, image_url: imageUrl });
         persistWordCache(cache);
       }
     });

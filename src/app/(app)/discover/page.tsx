@@ -9,6 +9,7 @@ import { AppHeader } from "@/components/layout/AppHeader";
 import { HeaderSelect } from "@/components/layout/HeaderSelect";
 import { JungleMascot } from "@/components/mascot/JungleMascot";
 import { useAppBootstrap } from "@/context/AppBootstrapContext";
+import { useAppSettings } from "@/context/AppSettingsContext";
 import {
   findNearestRangeWithWords,
   WORD_RANGES,
@@ -23,6 +24,7 @@ import {
   type DiscoverListItem,
 } from "@/lib/discover-fetch";
 import {
+  discoverCacheKeyForWord,
   isCacheEntryValid,
   isCardContentReady,
   isWordDetailComplete,
@@ -116,8 +118,13 @@ export default function DiscoverPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { t } = useI18n();
+  const { learnerLocale } = useAppSettings();
   const { ranges: bootstrapRanges, wordCache: bootstrapWordCache, patchRangeAfterSave } =
     useAppBootstrap();
+  const cacheKeyForWord = useCallback(
+    (word: string) => discoverCacheKeyForWord(word, learnerLocale),
+    [learnerLocale],
+  );
   const inSession = pathname.startsWith("/journey");
   const isDailyJourney =
     inSession &&
@@ -272,7 +279,7 @@ export default function DiscoverPage() {
       void repairDiscoverWordDetail(item)
         .then((repaired) => {
           if (!isCardContentReady(repaired, item.word)) return;
-          wordCache.current.set(item.word, repaired);
+          wordCache.current.set(cacheKeyForWord(item.word), repaired);
           persistWordCache(wordCache.current);
           if (activeWordRef.current !== item.word) return;
           setCurrentWord(repaired);
@@ -282,20 +289,21 @@ export default function DiscoverPage() {
           /* keep partial card visible */
         });
     },
-    [],
+    [cacheKeyForWord],
   );
 
   const ensureWordFetched = useCallback(
     async (item: DiscoverListItem): Promise<DiscoverWordData> => {
-      const cached = wordCache.current.get(item.word);
+      const cacheKey = cacheKeyForWord(item.word);
+      const cached = wordCache.current.get(cacheKey);
       if (cached && isCardContentReady(cached, item.word)) {
         return cached;
       }
       if (cached && !isCardContentReady(cached, item.word)) {
-        wordCache.current.delete(item.word);
+        wordCache.current.delete(cacheKey);
       }
 
-      const pending = inflight.current.get(item.word);
+      const pending = inflight.current.get(cacheKey);
       if (pending) return pending;
 
       const promise = fetchWordFromApi(item)
@@ -306,23 +314,23 @@ export default function DiscoverPage() {
           ) {
             throw new Error(`Data mismatch for "${item.word}"`);
           }
-          wordCache.current.set(item.word, loaded);
+          wordCache.current.set(cacheKey, loaded);
           persistWordCache(wordCache.current);
           preloadImageUrl(loaded.image_url);
           prefetchCardContent(loaded);
           scheduleBackgroundRepair(item, loaded);
-          inflight.current.delete(item.word);
+          inflight.current.delete(cacheKey);
           return loaded;
         })
         .catch((err) => {
-          inflight.current.delete(item.word);
+          inflight.current.delete(cacheKey);
           throw err;
         });
 
-      inflight.current.set(item.word, promise);
+      inflight.current.set(cacheKey, promise);
       return promise;
     },
-    [fetchWordFromApi, scheduleBackgroundRepair],
+    [cacheKeyForWord, fetchWordFromApi, scheduleBackgroundRepair],
   );
 
   const preloadWords = useCallback(
@@ -335,8 +343,8 @@ export default function DiscoverPage() {
         imageTargets.push(listItemImageTarget(item));
         pronunciationWords.push(item.word);
 
-        const cached = wordCache.current.get(item.word);
-        if (isWordDetailComplete(cached, item.word)) {
+        const cached = wordCache.current.get(cacheKeyForWord(item.word));
+        if (isWordDetailComplete(cached, item.word, learnerLocale)) {
           prefetchCardContent(cached);
           continue;
         }
@@ -346,7 +354,7 @@ export default function DiscoverPage() {
       preloadWordPronunciations(pronunciationWords);
       void prefetchWordImages(imageTargets, 4);
     },
-    [ensureWordFetched],
+    [cacheKeyForWord, ensureWordFetched, learnerLocale],
   );
 
   const applyWordToView = useCallback(
@@ -356,16 +364,17 @@ export default function DiscoverPage() {
       warmWordPronunciation(item.word);
 
       const cleanStub = listItemToDiscoverData(item);
-      const cached = wordCache.current.get(item.word);
+      const cacheKey = cacheKeyForWord(item.word);
+      const cached = wordCache.current.get(cacheKey);
       if (
         cached &&
-        !isCacheEntryValid(cached, item.word) &&
+        !isCacheEntryValid(cached, cacheKey) &&
         !isCardContentReady(cached, item.word)
       ) {
-        wordCache.current.delete(item.word);
+        wordCache.current.delete(cacheKey);
       }
 
-      const readyCached = wordCache.current.get(item.word);
+      const readyCached = wordCache.current.get(cacheKey);
       if (readyCached && isCardContentReady(readyCached, item.word)) {
         setCurrentWord(readyCached);
         setLoadingWord(false);
@@ -404,7 +413,7 @@ export default function DiscoverPage() {
           });
       }
     },
-    [ensureWordFetched],
+    [cacheKeyForWord, ensureWordFetched],
   );
 
   const fetchRange = useCallback(async () => {
@@ -447,8 +456,9 @@ export default function DiscoverPage() {
       wordCache.current = loadPersistedWordCache();
       if (bootstrapWordCache) {
         for (const [word, entry] of Object.entries(bootstrapWordCache)) {
-          if (isCacheEntryValid(entry, word)) {
-            wordCache.current.set(word, entry);
+          const key = discoverCacheKeyForWord(word, learnerLocale);
+          if (isCacheEntryValid(entry, key)) {
+            wordCache.current.set(key, entry);
           }
         }
         persistWordCache(wordCache.current);
@@ -458,7 +468,14 @@ export default function DiscoverPage() {
       }
       wordCacheHydratedRef.current = true;
     }
-  }, [bootstrapWordCache]);
+  }, [bootstrapWordCache, learnerLocale]);
+
+  useEffect(() => {
+    inflight.current.clear();
+    const item = queue[currentIndex];
+    if (!item) return;
+    applyWordToView(item, { fetchIfNeeded: true });
+  }, [learnerLocale, queue, currentIndex, applyWordToView]);
 
   useEffect(() => {
     if (queue.length === 0) return;

@@ -5,8 +5,10 @@ import {
   keepNaturalExamples,
   viTranslationMatchesGloss,
 } from "@/lib/example-quality";
+import { DEFAULT_LEARNER_LOCALE } from "@/lib/learner-locale";
 import type { VocabExample } from "@/lib/parse-examples";
 import { translateExampleWithGemini } from "@/lib/gemini-core";
+import type { LearnerLocale } from "@/lib/learner-locale";
 import { fetchMyMemoryTranslation } from "@/lib/translate-vi";
 import { normalizeWordType } from "@/lib/word-type";
 import {
@@ -214,6 +216,7 @@ export async function fillExampleTranslations(
   word?: string,
   pos?: string | null,
   meaning?: string | null,
+  locale: LearnerLocale = DEFAULT_LEARNER_LOCALE,
 ): Promise<VocabExample[]> {
   const meaningLines = alignmentMeaningLines(meaning);
   const filled: VocabExample[] = [];
@@ -229,6 +232,7 @@ export async function fillExampleTranslations(
     const head = word?.trim() ?? "";
     const needsTranslation =
       !vi ||
+      (locale === "es" && isLikelyVietnameseGloss(vi)) ||
       (head && containsUntranslatedHeadword(vi, head)) ||
       (senseMeaning && !viTranslationMatchesGloss(vi, senseMeaning));
     if (needsTranslation) {
@@ -238,11 +242,13 @@ export async function fillExampleTranslations(
           head || en,
           pos,
           senseMeaning ?? meaning,
+          locale,
         )) ||
-        (await fetchMyMemoryTranslation(en)) ||
+        (await fetchMyMemoryTranslation(en, locale)) ||
         vi;
     }
     if (!vi) continue;
+    if (locale === "es" && isLikelyVietnameseGloss(vi)) continue;
     if (head && containsUntranslatedHeadword(vi, head)) continue;
     filled.push({ en, vi, senseIndex: item.senseIndex });
   }
@@ -255,6 +261,7 @@ export async function alignExampleTranslations(
   word: string,
   pos?: string | null,
   meaning?: string | null,
+  locale: LearnerLocale = DEFAULT_LEARNER_LOCALE,
 ): Promise<VocabExample[]> {
   const meaningLines = alignmentMeaningLines(meaning);
   if (!meaningLines.length) return examples;
@@ -271,10 +278,17 @@ export async function alignExampleTranslations(
     let vi = item.vi?.trim() ?? "";
     if (
       !vi ||
+      (locale === "es" && isLikelyVietnameseGloss(vi)) ||
       (senseMeaning && !viTranslationMatchesGloss(vi, senseMeaning))
     ) {
       vi =
-        (await translateExampleWithGemini(en, word, pos, senseMeaning ?? meaning)) ||
+        (await translateExampleWithGemini(
+          en,
+          word,
+          pos,
+          senseMeaning ?? meaning,
+          locale,
+        )) ||
         vi;
     }
     if (!vi) continue;

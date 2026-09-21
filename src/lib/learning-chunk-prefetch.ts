@@ -1,4 +1,5 @@
 import type { DiscoverWordData } from "@/components/discover/DiscoverCard";
+import { readAppSettings } from "@/lib/app-settings";
 import {
   LEARNING_CHUNK_OVERRIDES,
   MAX_LEARNING_COLLOCATIONS,
@@ -57,7 +58,8 @@ export function resolveHydratedCollocations(
   const pending = collocations.filter((item) => !item.vi.trim());
   if (!pending.length) return collocations;
 
-  const cached = getCachedCollocationTranslations(word, pending);
+  const locale = readAppSettings().learnerLocale;
+  const cached = getCachedCollocationTranslations(word, pending, locale);
   if (cached?.length) return mergeCollocationVi(collocations, cached);
 
   return collocations;
@@ -106,6 +108,7 @@ async function prefetchSupplementCollocations(
         ? { en: usefulPhrase.en, vi: usefulPhrase.vi }
         : null,
       count: MAX_LEARNING_COLLOCATIONS,
+      learnerLocale: readAppSettings().learnerLocale,
     }),
   });
 
@@ -129,7 +132,12 @@ async function prefetchCollocationTranslations(
   const pending = entry.collocations.filter((item) => !item.vi.trim());
   if (!pending.length) return;
 
-  const cachedTranslations = getCachedCollocationTranslations(data.word, pending);
+  const learnerLocale = readAppSettings().learnerLocale;
+  const cachedTranslations = getCachedCollocationTranslations(
+    data.word,
+    pending,
+    learnerLocale,
+  );
   if (cachedTranslations?.length) return;
 
   const contextPool = [...entry.chunks];
@@ -151,6 +159,7 @@ async function prefetchCollocationTranslations(
           contextVi: context?.vi,
         };
       }),
+      learnerLocale,
     }),
   });
 
@@ -162,7 +171,12 @@ async function prefetchCollocationTranslations(
   const translated = body.translations?.filter((item) => item.vi?.trim());
   if (!translated?.length) return;
 
-  setCachedCollocationTranslations(data.word, pending, translated);
+  setCachedCollocationTranslations(
+    data.word,
+    pending,
+    translated,
+    learnerLocale,
+  );
 }
 
 /** Warm sessionStorage caches for Goes-with / phrase VI before the card opens. */
