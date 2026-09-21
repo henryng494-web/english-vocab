@@ -11,15 +11,15 @@ import {
   resolveReviewSession,
 } from "@/lib/review-session";
 import {
-  hasReviewClueFields,
   hydrateReviewWordLocal,
+  isReviewClueReadyForLocale,
 } from "@/lib/review-word-hydrate";
 import type { VocabWord } from "@/types/database";
 
 function firstCardDueReady(queue: VocabWord[]): boolean {
   const first = queue[0];
   if (!first) return false;
-  return hasReviewClueFields(hydrateReviewWordLocal(first));
+  return isReviewClueReadyForLocale(hydrateReviewWordLocal(first));
 }
 
 function readInstantReviewState(): ReviewSessionState {
@@ -253,6 +253,14 @@ export function useReviewSession() {
     return () => {
       mountedRef.current = false;
     };
+  }, [reload]);
+
+  useEffect(() => {
+    const onSettings = () => {
+      void reload();
+    };
+    window.addEventListener("app-settings-changed", onSettings);
+    return () => window.removeEventListener("app-settings-changed", onSettings);
   }, [reload]);
 
   const patchQueue = useCallback((queue: VocabWord[]) => {
