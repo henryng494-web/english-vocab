@@ -3,6 +3,7 @@ import { hasQualityExamples, keepNaturalExamples } from "@/lib/example-quality";
 import { hasLearningChunks } from "@/lib/learning-chunks";
 import {
   DEFAULT_LEARNER_LOCALE,
+  isLearnerGlossDisplayReady,
   parseDiscoverCacheKey,
   type LearnerLocale,
 } from "@/lib/learner-locale";
@@ -19,7 +20,7 @@ import {
 } from "@/lib/word-meanings";
 
 /** Bump when Gemini/Unsplash pipeline or image quality rules change. */
-export const DISCOVER_WORD_CACHE_VERSION = 103;
+export const DISCOVER_WORD_CACHE_VERSION = 104;
 
 const STORAGE_KEY = `discover-word-cache-v${DISCOVER_WORD_CACHE_VERSION}`;
 
@@ -147,8 +148,14 @@ export function isWordDetailComplete(
 export function isCardContentReady(
   data: DiscoverWordData | undefined,
   expectedWord?: string,
+  learnerLocale: LearnerLocale = DEFAULT_LEARNER_LOCALE,
 ): boolean {
   if (!data?.vietnamese_meaning?.trim()) return false;
+  if (
+    !isLearnerGlossDisplayReady(data.vietnamese_meaning, learnerLocale)
+  ) {
+    return false;
+  }
   if (expectedWord && data.word.toLowerCase() !== expectedWord.toLowerCase()) {
     return false;
   }

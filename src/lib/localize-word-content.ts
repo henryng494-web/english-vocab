@@ -11,9 +11,13 @@ import { DEFAULT_LEARNER_LOCALE } from "@/lib/learner-locale";
 import { parseExamples, serializeExamples } from "@/lib/parse-examples";
 import { sanitizeLearnerText } from "@/lib/sanitize-learner";
 import {
+  fetchMyMemoryViToLearner,
+} from "@/lib/translate-vi";
+import {
   parseVietnameseMeanings,
   serializeVietnameseMeanings,
 } from "@/lib/word-meanings";
+import { isLikelyVietnameseGloss } from "@/lib/example-quality";
 
 type LocalizeInput = {
   word: string;
@@ -48,6 +52,27 @@ export async function localizeWordContent(
       locale,
     );
     if (def) meanings = [def];
+  }
+
+  if (meanings.some((line) => isLikelyVietnameseGloss(line))) {
+    const translated: string[] = [];
+    for (const line of meanings) {
+      if (!isLikelyVietnameseGloss(line)) {
+        translated.push(line);
+        continue;
+      }
+      const es =
+        (await fetchMyMemoryViToLearner(line, locale)) ??
+        (input.english_definition?.trim()
+          ? await translateDefinitionWithGemini(
+              word,
+              input.english_definition,
+              locale,
+            )
+          : null);
+      if (es?.trim()) translated.push(es.trim());
+    }
+    if (translated.length) meanings = translated;
   }
 
   const meaningSerialized =

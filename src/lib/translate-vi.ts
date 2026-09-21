@@ -23,16 +23,15 @@ type MyMemoryResponse = {
   responseStatus?: number;
 };
 
-/** Free EN→VI lookup via MyMemory (no key required). */
-export async function fetchMyMemoryTranslation(
-  word: string,
-  locale: LearnerLocale = DEFAULT_LEARNER_LOCALE,
+async function fetchMyMemoryLangPair(
+  text: string,
+  langpair: string,
+  locale: LearnerLocale,
 ): Promise<string | null> {
   try {
-    const target = locale === "es" ? "es" : "vi";
     const params = new URLSearchParams({
-      q: word.trim(),
-      langpair: `en|${target}`,
+      q: text.trim(),
+      langpair,
     });
     const response = await fetch(
       `https://api.mymemory.translated.net/get?${params}`,
@@ -45,8 +44,8 @@ export async function fetchMyMemoryTranslation(
     if (!translated) return null;
 
     const normalized = translated.toLowerCase();
-    const wordLower = word.trim().toLowerCase();
-    if (normalized === wordLower) return null;
+    const sourceLower = text.trim().toLowerCase();
+    if (normalized === sourceLower) return null;
 
     // MyMemory quota warning text
     if (normalized.includes("mymemory warning")) return null;
@@ -55,6 +54,27 @@ export async function fetchMyMemoryTranslation(
   } catch {
     return null;
   }
+}
+
+/** Free EN→learner lookup via MyMemory (no key required). */
+export async function fetchMyMemoryTranslation(
+  word: string,
+  locale: LearnerLocale = DEFAULT_LEARNER_LOCALE,
+): Promise<string | null> {
+  const target = locale === "es" ? "es" : "vi";
+  return fetchMyMemoryLangPair(word, `en|${target}`, locale);
+}
+
+/** Vietnamese gloss line → Spanish (fallback when Gemini is unavailable). */
+export async function fetchMyMemoryViToLearner(
+  text: string,
+  locale: LearnerLocale,
+): Promise<string | null> {
+  if (locale === "vi") return text.trim() || null;
+  if (locale === "es") {
+    return fetchMyMemoryLangPair(text, "vi|es", locale);
+  }
+  return null;
 }
 
 /** Heuristic: text is likely English (not a Vietnamese gloss). */

@@ -2,7 +2,6 @@
 
 import {
   DAILY_GOAL_OPTIONS,
-  LEARNER_LOCALE_OPTIONS,
   PRONOUNCE_ACCENT_OPTIONS,
   PRONOUNCE_SPEED_OPTIONS,
   type DailyGoalMinutes,
@@ -69,10 +68,8 @@ export function AppMenuDrawer({ open, onClose }: AppMenuDrawerProps) {
     setReminderEnabled,
     reminderTime,
     setReminderTime,
-    appLanguage,
-    setAppLanguage,
     learnerLocale,
-    setLearnerLocale,
+    setLanguagePair,
   } = useAppSettings();
   const {
     t,
@@ -134,10 +131,12 @@ export function AppMenuDrawer({ open, onClose }: AppMenuDrawerProps) {
                 <button
                   key={locale}
                   type="button"
-                  className={`app-menu__chip${appLanguage === locale ? " is-active" : ""}`}
-                  onClick={() => setAppLanguage(locale)}
+                  className={`app-menu__chip${
+                    learnerLocale === locale ? " is-active" : ""
+                  }`}
+                  onClick={() => setLanguagePair(locale)}
                 >
-                  {locale === "vi" ? t("menu.langVi") : t("menu.langEn")}
+                  {learnerLocaleLabel(locale)}
                 </button>
               ))}
             </div>
@@ -145,24 +144,6 @@ export function AppMenuDrawer({ open, onClose }: AppMenuDrawerProps) {
 
           <section className="app-menu__section">
             <h3 className="app-menu__section-title">{t("menu.learning")}</h3>
-            <div className="app-menu__subblock">
-              <p className="app-menu__subblock-title">{t("menu.learnerLocale")}</p>
-              <p className="app-menu__hint">{t("menu.learnerLocaleHint")}</p>
-              <div className="app-menu__chips">
-                {LEARNER_LOCALE_OPTIONS.map((locale) => (
-                  <button
-                    key={locale}
-                    type="button"
-                    className={`app-menu__chip${
-                      learnerLocale === locale ? " is-active" : ""
-                    }`}
-                    onClick={() => setLearnerLocale(locale)}
-                  >
-                    {learnerLocaleLabel(locale)}
-                  </button>
-                ))}
-              </div>
-            </div>
             <ToggleRow
               label={t("menu.autoSpeak")}
               description={t("menu.autoSpeakDesc")}

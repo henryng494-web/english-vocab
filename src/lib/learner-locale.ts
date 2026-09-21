@@ -1,3 +1,5 @@
+import { isLikelyVietnameseGloss } from "@/lib/example-quality";
+
 export type LearnerLocale = "vi" | "es";
 
 export const LEARNER_LOCALE_OPTIONS: readonly LearnerLocale[] = ["vi", "es"] as const;
@@ -29,6 +31,17 @@ export function discoverWordCacheKey(
   locale: LearnerLocale = DEFAULT_LEARNER_LOCALE,
 ): string {
   return `${locale}:${word.trim().toLowerCase()}`;
+}
+
+/** Card gloss matches the selected learner locale (avoids showing VI when es is chosen). */
+export function isLearnerGlossDisplayReady(
+  meaning: string | null | undefined,
+  locale: LearnerLocale,
+): boolean {
+  const trimmed = meaning?.trim() ?? "";
+  if (!trimmed) return false;
+  if (locale === "vi") return isLikelyVietnameseGloss(trimmed);
+  return !isLikelyVietnameseGloss(trimmed);
 }
 
 /** Parse cache map keys (`vi:hello` or legacy `hello`). */
