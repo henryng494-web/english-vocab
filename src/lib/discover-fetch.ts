@@ -60,6 +60,10 @@ export function filterDiscoverQueue(
 export function listItemToDiscoverData(item: DiscoverListItem): DiscoverWordData {
   const base = stubFromListItem(item);
   const preview = item.preview;
+  const learnerLocale = readAppSettings().learnerLocale;
+  if (learnerLocale !== "vi") {
+    return base;
+  }
   if (!preview?.vietnamese_meaning?.trim()) {
     return base;
   }
@@ -184,8 +188,8 @@ export async function fetchDiscoverWordDetail(
   item: DiscoverListItem,
   options?: { forceRepair?: boolean; bootstrap?: boolean },
 ): Promise<DiscoverWordData> {
+  const learnerLocale = readAppSettings().learnerLocale;
   const fetchOnce = async (forceRepair: boolean): Promise<DiscoverWordData> => {
-    const learnerLocale = readAppSettings().learnerLocale;
     const params = new URLSearchParams({
       word: item.word,
       rank: String(item.rank),
@@ -218,7 +222,7 @@ export async function fetchDiscoverWordDetail(
         return loaded;
       }
 
-      if (isCardContentReady(loaded, item.word)) {
+      if (isCardContentReady(loaded, item.word, learnerLocale)) {
         return loaded;
       }
 

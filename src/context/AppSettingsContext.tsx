@@ -1,6 +1,7 @@
 "use client";
 
 import type { AppLocale } from "@/lib/i18n/messages";
+import { pairedLanguageSettings } from "@/lib/learner-app-sync";
 import {
   getDefaultAppSettings,
   patchAppSettings,
@@ -33,6 +34,8 @@ type AppSettingsContextValue = AppSettings & {
   setPronounceSpeed: (speed: PronounceSpeed) => void;
   setPronounceAccent: (accent: PronounceAccent) => void;
   setLearnerLocale: (locale: LearnerLocale) => void;
+  /** Keeps app UI + card gloss locale in sync (vi | es). */
+  setLanguagePair: (locale: LearnerLocale) => void;
   refresh: () => void;
 };
 
@@ -79,6 +82,8 @@ export function AppSettingsProvider({ children }: { children: React.ReactNode })
         setSettings(patchAppSettings({ pronounceAccent: accent })),
       setLearnerLocale: (learnerLocale) =>
         setSettings(patchAppSettings({ learnerLocale })),
+      setLanguagePair: (locale) =>
+        setSettings(patchAppSettings(pairedLanguageSettings(locale))),
       refresh,
     }),
     [settings, refresh],

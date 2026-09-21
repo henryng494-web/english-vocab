@@ -1,5 +1,10 @@
 import type { AppLocale } from "@/lib/i18n/messages";
-import { DEFAULT_APP_LOCALE, isAppLocale } from "@/lib/i18n/messages";
+import {
+  DEFAULT_APP_LOCALE,
+  isAppLocale,
+  normalizeAppLocale,
+} from "@/lib/i18n/messages";
+import { pairedLanguageSettings } from "@/lib/learner-app-sync";
 import {
   DEFAULT_PRONOUNCE_ACCENT,
   isPronounceAccent,
@@ -126,7 +131,7 @@ function normalizeAppSettings(parsed: Partial<AppSettings>): AppSettings {
           : DEFAULT_SETTINGS.reminderEnabled,
       reminderTime: normalizeReminderTime(parsed.reminderTime),
       appLanguage: isAppLocale(parsed.appLanguage)
-        ? parsed.appLanguage
+        ? normalizeAppLocale(parsed.appLanguage)
         : DEFAULT_SETTINGS.appLanguage,
     pronounceSpeed: isPronounceSpeed(parsed.pronounceSpeed)
       ? parsed.pronounceSpeed
@@ -140,6 +145,15 @@ function normalizeAppSettings(parsed: Partial<AppSettings>): AppSettings {
   };
 }
 
+function syncPairedLocales(settings: AppSettings): AppSettings {
+  if (settings.appLanguage === settings.learnerLocale) return settings;
+  return {
+    ...settings,
+    appLanguage: settings.learnerLocale,
+    learnerLocale: settings.learnerLocale,
+  };
+}
+
 export function readAppSettings(): AppSettings {
   if (typeof window === "undefined") return DEFAULT_SETTINGS;
   try {
@@ -150,7 +164,7 @@ export function readAppSettings(): AppSettings {
     if (parsed.goalType && parsed.goalType !== "minutes") {
       writeAppSettings(normalized);
     }
-    return normalized;
+    return syncPairedLocales(normalized);
   } catch {
     return DEFAULT_SETTINGS;
   }
@@ -163,7 +177,23 @@ export function writeAppSettings(next: AppSettings): void {
 }
 
 export function patchAppSettings(patch: Partial<AppSettings>): AppSettings {
-  const next = normalizeAppSettings({ ...readAppSettings(), ...patch, goalType: "minutes" });
+  const current = readAppSettings();
+  let merged: Partial<AppSettings> = {
+    ...current,
+    ...patch,
+    goalType: "minutes",
+  };
+
+  if (patch.learnerLocale !== undefined && patch.appLanguage === undefined) {
+    Object.assign(merged, pairedLanguageSettings(patch.learnerLocale));
+  } else if (patch.appLanguage !== undefined && patch.learnerLocale === undefined) {
+    Object.assign(
+      merged,
+      pairedLanguageSettings(normalizeAppLocale(patch.appLanguage)),
+    );
+  }
+
+  const next = syncPairedLocales(normalizeAppSettings(merged));
   writeAppSettings(next);
   return next;
 }

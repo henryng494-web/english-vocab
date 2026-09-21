@@ -4,6 +4,7 @@ import { WordCardHeader } from "@/components/flashcard/WordCardHeader";
 import { WordCardDetails } from "@/components/flashcard/WordCardDetails";
 import { WordImage } from "@/components/word/WordImage";
 import { displayPhonetic } from "@/lib/phonetic";
+import { useAppSettings } from "@/context/AppSettingsContext";
 import { isCardContentReady } from "@/lib/discover-word-cache";
 import type { WordFamilyMember } from "@/types/database";
 import type { WordRegister } from "@/lib/word-meanings";
@@ -78,7 +79,9 @@ export function DiscoverCard({
   autoSpeak = true,
   hintGraceMs,
 }: DiscoverCardProps) {
-  const detailsLoading = loading && !isCardContentReady(data, data.word);
+  const { learnerLocale } = useAppSettings();
+  const detailsLoading =
+    loading && !isCardContentReady(data, data.word, learnerLocale);
   const phonetic = displayPhonetic(data.word, data.phonetic);
   const register = resolveWordRegister(data);
   const wordFamily =

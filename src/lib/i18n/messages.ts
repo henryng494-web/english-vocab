@@ -1,6 +1,8 @@
-export type AppLocale = "vi" | "en";
+import { SPANISH_MESSAGE_OVERRIDES } from "@/lib/i18n/messages-es-overrides";
 
-export const APP_LOCALES: readonly AppLocale[] = ["vi", "en"] as const;
+export type AppLocale = "vi" | "es";
+
+export const APP_LOCALES: readonly AppLocale[] = ["vi", "es"] as const;
 
 export const DEFAULT_APP_LOCALE: AppLocale = "vi";
 
@@ -8,7 +10,8 @@ export type MessageKey = keyof typeof messages.vi;
 
 type MessageTree = Record<string, string>;
 
-export const messages: Record<AppLocale, MessageTree> = {
+/** `en` is UI fallback seed for Spanish (`es`) — not a selectable app locale. */
+export const messages = {
   vi: {
     "tab.home": "Trang chủ",
     "tab.journey": "Hành trình",
@@ -26,7 +29,7 @@ export const messages: Record<AppLocale, MessageTree> = {
     "menu.learnerLocaleVi": "Tiếng Việt",
     "menu.learnerLocaleEs": "Español",
     "menu.langVi": "Tiếng Việt",
-    "menu.langEn": "English",
+    "menu.langEs": "Español",
     "menu.learning": "Học tập",
     "menu.autoSpeak": "Tự động phát âm",
     "menu.autoSpeakDesc": "Đọc mỗi từ mới khi xuất hiện",
@@ -318,7 +321,7 @@ export const messages: Record<AppLocale, MessageTree> = {
     "menu.learnerLocaleVi": "Tiếng Việt",
     "menu.learnerLocaleEs": "Español",
     "menu.langVi": "Tiếng Việt",
-    "menu.langEn": "English",
+    "menu.langEs": "Español",
     "menu.learning": "Learning",
     "menu.autoSpeak": "Auto-pronounce",
     "menu.autoSpeakDesc": "Speak each new word automatically",
@@ -593,10 +596,18 @@ export const messages: Record<AppLocale, MessageTree> = {
     "session.done": "Back to home",
     "session.endEarly": "Finish session",
   },
-};
+} as const satisfies { vi: MessageTree; en: MessageTree };
 
 export function isAppLocale(value: unknown): value is AppLocale {
-  return value === "vi" || value === "en";
+  if (value === "vi" || value === "es") return true;
+  // Legacy English UI setting → treat as Vietnamese interface
+  if (value === "en") return true;
+  return false;
+}
+
+export function normalizeAppLocale(value: unknown): AppLocale {
+  if (value === "es") return "es";
+  return "vi";
 }
 
 export function translate(
@@ -604,7 +615,13 @@ export function translate(
   key: MessageKey,
   params?: Record<string, string | number>,
 ): string {
-  const template = messages[locale][key] ?? messages.en[key] ?? key;
+  const template =
+    locale === "vi"
+      ? (messages.vi[key] ?? key)
+      : (SPANISH_MESSAGE_OVERRIDES[key as string] ??
+        messages.en[key] ??
+        messages.vi[key] ??
+        key);
   if (!params) return template;
   return template.replace(/\{(\w+)\}/g, (_, name: string) => {
     const value = params[name];

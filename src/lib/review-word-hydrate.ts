@@ -155,7 +155,7 @@ export function hydrateReviewWordLocal(word: VocabWord): VocabWord {
   }
 
   const preset = getStaticWordDetail(key);
-  if (preset) {
+  if (preset && learnerLocale === "vi") {
     return mergeHydratedFields(word, {
       phonetic: preset.ipa,
       word_type: preset.pos,

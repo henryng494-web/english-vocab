@@ -260,7 +260,7 @@ export default function DiscoverPage() {
   const fetchWordFromApi = useCallback(
     async (item: DiscoverListItem): Promise<DiscoverWordData> => {
       const loaded = await fetchDiscoverWordDetail(item);
-      if (isCardContentReady(loaded, item.word)) {
+      if (isCardContentReady(loaded, item.word, learnerLocale)) {
         return loaded;
       }
       if (loaded.vietnamese_meaning?.trim()) {
@@ -275,10 +275,10 @@ export default function DiscoverPage() {
 
   const scheduleBackgroundRepair = useCallback(
     (item: DiscoverListItem, loaded: DiscoverWordData) => {
-      if (isCardContentReady(loaded, item.word)) return;
+      if (isCardContentReady(loaded, item.word, learnerLocale)) return;
       void repairDiscoverWordDetail(item)
         .then((repaired) => {
-          if (!isCardContentReady(repaired, item.word)) return;
+          if (!isCardContentReady(repaired, item.word, learnerLocale)) return;
           wordCache.current.set(cacheKeyForWord(item.word), repaired);
           persistWordCache(wordCache.current);
           if (activeWordRef.current !== item.word) return;
@@ -296,10 +296,10 @@ export default function DiscoverPage() {
     async (item: DiscoverListItem): Promise<DiscoverWordData> => {
       const cacheKey = cacheKeyForWord(item.word);
       const cached = wordCache.current.get(cacheKey);
-      if (cached && isCardContentReady(cached, item.word)) {
+      if (cached && isCardContentReady(cached, item.word, learnerLocale)) {
         return cached;
       }
-      if (cached && !isCardContentReady(cached, item.word)) {
+      if (cached && !isCardContentReady(cached, item.word, learnerLocale)) {
         wordCache.current.delete(cacheKey);
       }
 
@@ -309,7 +309,7 @@ export default function DiscoverPage() {
       const promise = fetchWordFromApi(item)
         .then((loaded) => {
           if (
-            !isCardContentReady(loaded, item.word) &&
+            !isCardContentReady(loaded, item.word, learnerLocale) &&
             !loaded.vietnamese_meaning?.trim()
           ) {
             throw new Error(`Data mismatch for "${item.word}"`);
@@ -369,7 +369,7 @@ export default function DiscoverPage() {
       if (
         cached &&
         !isCacheEntryValid(cached, cacheKey) &&
-        !isCardContentReady(cached, item.word)
+        !isCardContentReady(cached, item.word, learnerLocale)
       ) {
         wordCache.current.delete(cacheKey);
       }
@@ -386,7 +386,7 @@ export default function DiscoverPage() {
       setCurrentWord(cleanStub);
       setLoadingWord(
         Boolean(options?.fetchIfNeeded) &&
-          !isCardContentReady(cleanStub, item.word),
+          !isCardContentReady(cleanStub, item.word, learnerLocale),
       );
       prefetchCardContent(cleanStub);
 
