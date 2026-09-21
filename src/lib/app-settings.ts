@@ -77,7 +77,8 @@ export const DAILY_GOAL_LABELS: Record<DailyGoalMinutes, string> = {
   120: "2 hours",
 };
 
-const STORAGE_KEY = "vocab-app-settings-v1";
+const STORAGE_KEY = "vocab-app-settings-v2";
+const LEGACY_STORAGE_KEY = "vocab-app-settings-v1";
 
 const DEFAULT_SETTINGS: AppSettings = {
   autoSpeakEnabled: true,
@@ -157,14 +158,21 @@ function syncPairedLocales(settings: AppSettings): AppSettings {
 export function readAppSettings(): AppSettings {
   if (typeof window === "undefined") return DEFAULT_SETTINGS;
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    let raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) {
+      raw = localStorage.getItem(LEGACY_STORAGE_KEY);
+    }
     if (!raw) return DEFAULT_SETTINGS;
     const parsed = JSON.parse(raw) as Partial<AppSettings>;
     const normalized = normalizeAppSettings(parsed);
     if (parsed.goalType && parsed.goalType !== "minutes") {
       writeAppSettings(normalized);
     }
-    return syncPairedLocales(normalized);
+    const synced = syncPairedLocales(normalized);
+    if (!localStorage.getItem(STORAGE_KEY)) {
+      writeAppSettings(synced);
+    }
+    return synced;
   } catch {
     return DEFAULT_SETTINGS;
   }

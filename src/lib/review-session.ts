@@ -318,10 +318,15 @@ async function enrichQueue(
     buildQueueFromKeys(dueKeys, allWords, extraWords),
   );
 
-  void prefetchReviewQuestionRange(enrichedQueue, allWords, 0, 20);
+  const withClues = await enrichReviewQueueClues(
+    enrichedQueue.length > 0 ? enrichedQueue : queue,
+    24,
+  );
+
+  void prefetchReviewQuestionRange(withClues, allWords, 0, 20);
 
   return {
-    queue: enrichedQueue.length > 0 ? enrichedQueue : queue,
+    queue: withClues.length > 0 ? withClues : queue,
     pool: allWords,
   };
 }

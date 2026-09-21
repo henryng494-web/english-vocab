@@ -5,7 +5,11 @@ import {
   discoverCacheKeyForWord,
   loadPersistedWordCache,
 } from "@/lib/discover-word-cache";
-import { DEFAULT_LEARNER_LOCALE } from "@/lib/learner-locale";
+import {
+  DEFAULT_LEARNER_LOCALE,
+  isLearnerGlossDisplayReady,
+  type LearnerLocale,
+} from "@/lib/learner-locale";
 import { standardToDiscoverFields } from "@/lib/enrichment-helpers";
 import { resolveImageSearchKeyword } from "@/lib/image-keyword";
 import { prefetchCardContent } from "@/lib/card-content-prefetch";
@@ -32,6 +36,50 @@ export function hasReviewClueFields(word: {
   return Boolean(
     word.english_definition?.trim() || word.vietnamese_meaning?.trim(),
   );
+}
+
+function currentLearnerLocale(): LearnerLocale {
+  return typeof window !== "undefined"
+    ? readAppSettings().learnerLocale
+    : DEFAULT_LEARNER_LOCALE;
+}
+
+/** Clue text matches the learner gloss locale (ES cards must not keep Vietnamese lines). */
+export function isReviewClueReadyForLocale(
+  word: {
+    vietnamese_meaning?: string | null;
+    english_definition?: string | null;
+    examples?: string | null;
+  },
+  locale: LearnerLocale = currentLearnerLocale(),
+): boolean {
+  if (!hasReviewClueFields(word)) return false;
+  const meaning = word.vietnamese_meaning?.trim();
+  if (meaning) {
+    return isLearnerGlossDisplayReady(meaning, locale);
+  }
+  return Boolean(word.english_definition?.trim());
+}
+
+/** Apply discover/API gloss + examples (overwrites stale Vietnamese when switching to ES). */
+export function mergeReviewLearnerContent(
+  word: VocabWord,
+  patch: Partial<VocabWord>,
+): VocabWord {
+  let next = mergeHydratedFields(word, patch);
+  if (patch.vietnamese_meaning?.trim()) {
+    next = { ...next, vietnamese_meaning: patch.vietnamese_meaning.trim() };
+  }
+  if (patch.examples?.trim()) {
+    next = { ...next, examples: patch.examples.trim() };
+  }
+  if (patch.word_type?.trim()) {
+    next = { ...next, word_type: patch.word_type.trim() };
+  }
+  if (patch.phonetic?.trim()) {
+    next = { ...next, phonetic: patch.phonetic.trim() };
+  }
+  return next;
 }
 
 function mergeHydratedFields(
@@ -120,17 +168,14 @@ export function hydrateReviewWordLocal(word: VocabWord): VocabWord {
   const curated = applyCuratedReviewFields(word);
   if (curated) return curated;
 
-  if (hasReviewClueFields(word)) return word;
+  const learnerLocale = currentLearnerLocale();
+  if (isReviewClueReadyForLocale(word, learnerLocale)) return word;
 
   const key = word.word.trim().toLowerCase();
-  const learnerLocale =
-    typeof window !== "undefined"
-      ? readAppSettings().learnerLocale
-      : DEFAULT_LEARNER_LOCALE;
   const cached = getDiscoverCache().get(
     discoverCacheKeyForWord(key, learnerLocale),
   );
-  if (cached && hasReviewClueFields(cached)) {
+  if (cached && isReviewClueReadyForLocale(cached, learnerLocale)) {
     return mergeHydratedFields(word, {
       phonetic: cached.phonetic ?? "",
       word_type: cached.word_type ?? "",
@@ -143,7 +188,7 @@ export function hydrateReviewWordLocal(word: VocabWord): VocabWord {
   }
 
   const standard = standardToDiscoverFields(key);
-  if (standard && hasReviewClueFields(standard)) {
+  if (standard && learnerLocale === "vi" && hasReviewClueFields(standard)) {
     return mergeHydratedFields(word, {
       phonetic: standard.phonetic,
       word_type: standard.word_type,
@@ -196,7 +241,9 @@ export async function fetchDiscoverWordEnrichment(
     if (!res.ok) return null;
     const data = (await res.json()) as { word?: VocabWord };
     const enriched = data.word;
-    if (!enriched || !hasReviewClueFields(enriched)) return null;
+    if (!enriched || !isReviewClueReadyForLocale(enriched, learnerLocale)) {
+      return null;
+    }
     return {
       phonetic: enriched.phonetic,
       word_type: enriched.word_type,
@@ -221,8 +268,9 @@ export async function enrichReviewQueueClues(
 
   for (let index = 0; index < enriched.length && targets.length < limit; index++) {
     const word = enriched[index]!;
-    if (!hasReviewClueFields(hydrateReviewWordLocal(word))) {
-      targets.push({ index, word });
+    const hydrated = hydrateReviewWordLocal(word);
+    if (!isReviewClueReadyForLocale(hydrated)) {
+      targets.push({ index, word: hydrated });
     }
   }
 
@@ -233,7 +281,7 @@ export async function enrichReviewQueueClues(
       batch.map(async ({ index, word }) => {
         const discovered = await fetchDiscoverWordEnrichment(word);
         if (discovered) {
-          enriched[index] = mergeHydratedFields(word, discovered);
+          enriched[index] = mergeReviewLearnerContent(word, discovered);
           prefetchCardContent(enriched[index]!);
         }
       }),
@@ -245,22 +293,34 @@ export async function enrichReviewQueueClues(
 
 /** Local hydrate, then DB, then discover enrich — for the active review card. */
 export async function ensureReviewWordClue(word: VocabWord): Promise<VocabWord> {
-  const local = hydrateReviewWordLocal(word);
-  if (hasReviewClueFields(local)) {
-    prefetchCardContent(local);
-    return local;
-  }
-  const details = await fetchReviewWordDetails(word.word);
-  let merged = details ? mergeHydratedFields(local, details) : local;
-  if (hasReviewClueFields(merged)) {
+  const locale = currentLearnerLocale();
+  let merged = hydrateReviewWordLocal(word);
+  if (isReviewClueReadyForLocale(merged, locale)) {
     prefetchCardContent(merged);
     return merged;
   }
+
   const discovered = await fetchDiscoverWordEnrichment(word);
-  merged = discovered ? mergeHydratedFields(merged, discovered) : merged;
-  if (hasReviewClueFields(merged)) {
-    prefetchCardContent(merged);
+  if (discovered) {
+    merged = mergeReviewLearnerContent(merged, discovered);
+    if (isReviewClueReadyForLocale(merged, locale)) {
+      prefetchCardContent(merged);
+      return merged;
+    }
   }
+
+  if (locale === "vi") {
+    const details = await fetchReviewWordDetails(word.word);
+    if (details) {
+      merged = mergeHydratedFields(merged, details);
+      if (isReviewClueReadyForLocale(merged, locale)) {
+        prefetchCardContent(merged);
+        return merged;
+      }
+    }
+  }
+
+  prefetchCardContent(merged);
   return merged;
 }
 
@@ -299,7 +359,7 @@ export async function prefetchReviewClues(
     const word = queue[startIndex + offset];
     if (!word) break;
     const hydrated = hydrateReviewWordLocal(word);
-    if (hasReviewClueFields(hydrated)) {
+    if (isReviewClueReadyForLocale(hydrated)) {
       const key = word.word.trim().toLowerCase();
       updates[key] = hydrated;
       prefetchCardContent(hydrated);
@@ -340,8 +400,9 @@ export async function prefetchReviewClues(
       if (!source) return;
       const discovered = await fetchDiscoverWordEnrichment(source);
       if (discovered) {
-        updates[key] = discovered;
-        prefetchCardContent({ ...source, ...discovered });
+        const merged = mergeReviewLearnerContent(source, discovered);
+        updates[key] = merged;
+        prefetchCardContent(merged);
       }
     }),
   );
