@@ -10,8 +10,10 @@ import type { WordFamilyMember } from "@/types/database";
 import type { WordRegister } from "@/lib/word-meanings";
 import { resolveWordRegister } from "@/lib/word-meanings";
 import { buildWordFamilyEntries } from "@/lib/word-family-display";
+import { englishOnlyExamplesSerialized } from "@/lib/multilang-word-record";
 import { resolveWordDisplay } from "@/lib/word-display";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { ensureLearnerExampleTranslations } from "@/lib/ensure-learner-example-translations";
 
 export type DiscoverWordData = {
   word: string;
@@ -86,36 +88,53 @@ export function DiscoverCard({
   hintGraceMs,
 }: DiscoverCardProps) {
   const { learnerLocale, userLanguage } = useAppSettings();
+  const [cardData, setCardData] = useState(data);
+  useEffect(() => {
+    setCardData(data);
+  }, [data]);
+  useEffect(() => {
+    void ensureLearnerExampleTranslations(data, userLanguage).then((fresh) => {
+      if (fresh) setCardData(fresh);
+    });
+  }, [data, userLanguage]);
   const display = useMemo(
-    () => resolveWordDisplay(data, userLanguage),
-    [data, userLanguage],
+    () => resolveWordDisplay(cardData, userLanguage),
+    [cardData, userLanguage],
+  );
+  const examplesEnOnly = useMemo(
+    () => englishOnlyExamplesSerialized(cardData.examples) ?? cardData.examples,
+    [cardData.examples],
   );
   const detailsLoading =
-    loading && !isCardContentReady(data, data.word, learnerLocale);
-  const phonetic = displayPhonetic(data.word, data.phonetic);
-  const register = resolveWordRegister(data);
-  const glossForFamily = display.primaryMeaning ?? data.vietnamese_meaning;
+    loading && !isCardContentReady(cardData, cardData.word, learnerLocale);
+  const phonetic = displayPhonetic(cardData.word, cardData.phonetic);
+  const register = resolveWordRegister(cardData);
+  const glossForFamily = display.primaryMeaning ?? cardData.vietnamese_meaning;
   const wordFamily =
-    data.word_family && data.word_family.length > 0
-      ? data.word_family
-      : buildWordFamilyEntries(data.word, glossForFamily, data.word_type);
+    cardData.word_family && cardData.word_family.length > 0
+      ? cardData.word_family
+      : buildWordFamilyEntries(
+          cardData.word,
+          glossForFamily,
+          cardData.word_type,
+        );
 
   return (
     <div className="discover-card discover-card--compact grid h-full min-h-0 w-full overflow-hidden rounded-2xl border-2 shadow-lg">
       <CardImage
-        word={data.word}
-        imageUrl={data.image_url}
-        searchKeyword={data.search_keyword}
-        wordType={data.word_type}
+        word={cardData.word}
+        imageUrl={cardData.image_url}
+        searchKeyword={cardData.search_keyword}
+        wordType={cardData.word_type}
         meaning={display.primaryMeaning}
         badge={imageBadge}
       />
 
       <div className="discover-card__body discover-card__body--compact flex min-h-0 flex-col overflow-hidden p-3">
         <WordCardHeader
-          word={data.word}
+          word={cardData.word}
           phonetic={phonetic}
-          wordType={data.word_type}
+          wordType={cardData.word_type}
           meanings={display.primaryMeaning}
           register={register}
           loadingPhonetic={detailsLoading && !phonetic}
@@ -123,16 +142,18 @@ export function DiscoverCard({
         />
 
         <WordCardDetails
-          key={`${data.word.trim().toLowerCase()}:${userLanguage}`}
-          word={data.word}
-          examples={data.examples}
-          wordType={data.word_type}
+          key={`${cardData.word.trim().toLowerCase()}:${userLanguage}`}
+          word={cardData.word}
+          examples={examplesEnOnly}
+          wordType={cardData.word_type}
           meaning={display.primaryMeaning}
           userLanguage={userLanguage}
           register={register}
-          englishDefinition={data.english_definition}
+          englishDefinition={cardData.english_definition}
+          meanings={cardData.meanings}
+          example_translations={cardData.example_translations}
           family={wordFamily}
-          similarWords={data.similar_words}
+          similarWords={cardData.similar_words}
           loading={detailsLoading}
           hintGraceMs={hintGraceMs}
         />

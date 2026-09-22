@@ -54,5 +54,9 @@ export async function ensureExamplesForLearnerLocale(
     retried.push({ en, vi, senseIndex: item.senseIndex });
   }
 
-  return retried.length ? retried : rows;
+  if (retried.length) return retried;
+  if (locale === DEFAULT_LEARNER_LOCALE) return rows;
+  return rows
+    .map((item) => ({ ...item, vi: "" }))
+    .filter((item) => item.en.trim());
 }

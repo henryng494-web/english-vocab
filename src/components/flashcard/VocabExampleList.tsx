@@ -1,13 +1,15 @@
 "use client";
 
-import { keepNaturalExamples } from "@/lib/example-quality";
+import { isLikelyVietnameseGloss, keepNaturalExamples } from "@/lib/example-quality";
 import type { VocabExample } from "@/lib/parse-examples";
+import type { UserLanguage } from "@/lib/user-language";
 
 type VocabExampleListProps = {
   word: string;
   examples: VocabExample[];
   wordType?: string | null;
   meaning?: string | null;
+  userLanguage?: UserLanguage;
   boxed?: boolean;
   /** Tighter layout for fixed-height journey cards. */
   compact?: boolean;
@@ -18,11 +20,20 @@ export function VocabExampleList({
   examples,
   wordType,
   meaning,
+  userLanguage = "vi",
   boxed = false,
   compact = false,
 }: VocabExampleListProps) {
-  const filled = keepNaturalExamples(word, examples, wordType, meaning);
-  const visible = filled.slice(0, 2);
+  const filled = keepNaturalExamples(word, examples, wordType, meaning).map(
+    (item) => ({
+      ...item,
+      vi:
+        userLanguage === "es" && isLikelyVietnameseGloss(item.vi)
+          ? ""
+          : item.vi,
+    }),
+  );
+  const visible = filled.filter((item) => item.en.trim()).slice(0, 2);
 
   if (visible.length === 0) return null;
 

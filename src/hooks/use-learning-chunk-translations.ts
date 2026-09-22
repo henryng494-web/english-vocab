@@ -21,6 +21,10 @@ import {
 } from "@/lib/learning-chunk-supplement-cache";
 import { useAppSettings } from "@/context/AppSettingsContext";
 import { isLikelyVietnameseGloss } from "@/lib/example-quality";
+import {
+  DEFAULT_LEARNER_LOCALE,
+  type LearnerLocale,
+} from "@/lib/learner-locale";
 import type { WordRegister } from "@/lib/word-meanings";
 
 type UseLearningChunkTranslationsArgs = {
@@ -32,6 +36,18 @@ type UseLearningChunkTranslationsArgs = {
   englishDefinition?: string | null;
   entry: LearningChunkEntry | null;
 };
+
+function phrasesWithoutForeignVi(
+  items: LearningChunkPhrase[],
+  locale: LearnerLocale,
+): LearningChunkPhrase[] {
+  if (locale === "vi") return items;
+  return items.map((item) => ({
+    ...item,
+    vi:
+      item.vi?.trim() && !isLikelyVietnameseGloss(item.vi) ? item.vi.trim() : "",
+  }));
+}
 
 function mergeCollocationVi(
   base: LearningChunkPhrase[],
@@ -78,7 +94,7 @@ export function useLearningChunkTranslations({
   const [collocations, setCollocations] =
     useState<LearningChunkPhrase[]>(cachedCollocations);
   const [chunks, setChunks] = useState<LearningChunkPhrase[]>(
-    entry?.chunks ?? [],
+    phrasesWithoutForeignVi(entry?.chunks ?? [], learnerLocale),
   );
   const hydratedKeyRef = useRef<string | null>(null);
   const supplementedKeyRef = useRef<string | null>(null);
@@ -86,11 +102,11 @@ export function useLearningChunkTranslations({
 
   useEffect(() => {
     setCollocations(resolveHydratedCollocations(word, entry, isOverride));
-    setChunks(entry?.chunks ?? []);
+    setChunks(phrasesWithoutForeignVi(entry?.chunks ?? [], learnerLocale));
     hydratedKeyRef.current = null;
     supplementedKeyRef.current = null;
     chunkLocaleKeyRef.current = null;
-  }, [seedKey, word, entry, isOverride]);
+  }, [seedKey, word, entry, isOverride, learnerLocale]);
 
   useEffect(() => {
     if (!entry || isOverride) return;
@@ -226,7 +242,7 @@ export function useLearningChunkTranslations({
 
   useEffect(() => {
     if (!entry?.chunks.length || learnerLocale === "vi") {
-      setChunks(entry?.chunks ?? []);
+      setChunks(phrasesWithoutForeignVi(entry?.chunks ?? [], learnerLocale));
       return;
     }
 
@@ -234,7 +250,7 @@ export function useLearningChunkTranslations({
       (item) => item.vi?.trim() && isLikelyVietnameseGloss(item.vi),
     );
     if (!needsRefresh) {
-      setChunks(entry.chunks);
+      setChunks(phrasesWithoutForeignVi(entry.chunks, learnerLocale));
       return;
     }
 
@@ -286,7 +302,9 @@ export function useLearningChunkTranslations({
         setChunks(mergeCollocationVi(entry.chunks, translated));
         chunkLocaleKeyRef.current = localeKey;
       } catch {
-        if (!cancelled) setChunks(entry.chunks);
+        if (!cancelled) {
+          setChunks(phrasesWithoutForeignVi(entry.chunks, learnerLocale));
+        }
       }
     })();
 

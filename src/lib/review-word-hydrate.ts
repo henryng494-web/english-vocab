@@ -1,6 +1,7 @@
 import { getPresetRank } from "@/data/preset-word-details";
 import { vocabWordToDiscoverData } from "@/components/discover/VocabWordCard";
 import { readAppSettings } from "@/lib/app-settings";
+import { applyLocaleToVocabWord } from "@/lib/ensure-learner-example-translations";
 import { getLearnerContentRepository } from "@/lib/learner-content";
 import {
   DEFAULT_LEARNER_LOCALE,
@@ -66,6 +67,12 @@ export function mergeReviewLearnerContent(
   if (patch.examples?.trim()) {
     next = { ...next, examples: patch.examples.trim() };
   }
+  if (patch.meanings) {
+    next = { ...next, meanings: patch.meanings };
+  }
+  if (patch.example_translations) {
+    next = { ...next, example_translations: patch.example_translations };
+  }
   if (patch.word_type?.trim()) {
     next = { ...next, word_type: patch.word_type.trim() };
   }
@@ -124,7 +131,11 @@ function mergeHydratedFields(
 
 /** Instant clue/meaning from the active learner content store (bundled + session cache). */
 export function hydrateReviewWordLocal(word: VocabWord): VocabWord {
-  return getLearnerContentRepository().hydrateVocabWord(word);
+  const locale = currentLearnerLocale();
+  return applyLocaleToVocabWord(
+    getLearnerContentRepository(locale).hydrateVocabWord(word),
+    locale,
+  );
 }
 
 /** Gemini enrich via discover API when DB/local cache has no clue text. */
@@ -162,6 +173,8 @@ export async function fetchDiscoverWordEnrichment(
       vietnamese_meaning: enriched.vietnamese_meaning,
       english_definition: enriched.english_definition,
       examples: enriched.examples,
+      meanings: enriched.meanings,
+      example_translations: enriched.example_translations,
       image_url: enriched.image_url,
       search_keyword: enriched.search_keyword,
     };

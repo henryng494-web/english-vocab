@@ -87,6 +87,21 @@ export function splitLegacyExamples(serialized: string | null | undefined): {
   };
 }
 
+export function mergeExampleTranslationRows(
+  base: ExampleTranslationsJson,
+  incoming: ExampleTranslationsJson,
+): ExampleTranslationsJson {
+  const max = Math.max(base.length, incoming.length);
+  const next: ExampleTranslationsJson = [];
+  for (let i = 0; i < max; i++) {
+    next.push({
+      ...(base[i] ?? {}),
+      ...(incoming[i] ?? {}),
+    });
+  }
+  return next;
+}
+
 export function mergeExampleTranslationRow(
   rows: ExampleTranslationsJson,
   index: number,
@@ -110,15 +125,16 @@ export function migrateLegacyWordDetail(detail: WordDetail): MultilangWordRecord
     meanings = { ...meanings, vi: detail.vietnamese_meaning.trim() };
   }
 
-  const hasMultilangExamples =
-    example_translations.length > 0 ||
-    (examples?.includes("\n---\n") && parseExamples(examples).some((e) => e.vi));
-
-  if (!hasMultilangExamples && examples) {
+  const parsedExamples = parseExamples(examples);
+  const embeddedTranslations = parsedExamples.some((item) => item.vi?.trim());
+  if (embeddedTranslations && examples) {
     const split = splitLegacyExamples(examples);
     examples = split.examples ?? null;
     if (split.example_translations.length) {
-      example_translations = split.example_translations;
+      example_translations = mergeExampleTranslationRows(
+        example_translations,
+        split.example_translations,
+      );
     }
   }
 
@@ -185,10 +201,45 @@ export function serializedExamplesForUserLanguage(
   const rows = vocabExamplesFromRecord(record, userLanguage).filter(
     (item) => item.en.trim(),
   );
-  if (!rows.length) return record.examples;
+  if (!rows.length) {
+    return englishOnlyExamplesSerialized(record.examples);
+  }
   const withTranslations = rows.filter((item) => item.vi.trim());
-  if (!withTranslations.length) return serializeExamples(rows) || null;
+  if (!withTranslations.length) {
+    return serializeExamples(rows) || null;
+  }
   return serializeExamples(withTranslations) || null;
+}
+
+/** Strip legacy `|||vi` / `---` pairs so chunk UI cannot leak Vietnamese when locale is es. */
+export function englishOnlyExamplesSerialized(
+  serialized: string | null | undefined,
+): string | null {
+  if (!serialized?.trim()) return null;
+  const parsed = parseExamples(serialized);
+  if (!parsed.some((item) => item.vi?.trim())) return serialized;
+  const split = splitLegacyExamples(serialized);
+  return (
+    split.examples ??
+    (serializeExamples(parsed.map((item) => ({ en: item.en, vi: "" }))) || null)
+  );
+}
+
+export function recordNeedsExampleTranslationsForLanguage(
+  record: Pick<MultilangWordRecord, "examples" | "example_translations">,
+  userLanguage: UserLanguage,
+): boolean {
+  if (userLanguage === "vi") return false;
+  const parsed = parseExamples(record.examples);
+  if (!parsed.length) return false;
+  return parsed.some((_, index) => {
+    const row = record.example_translations[index];
+    const tr = row?.[userLanguage]?.trim();
+    if (tr && !isLikelyVietnameseGloss(tr)) return false;
+    const legacy = parsed[index]?.vi?.trim();
+    if (legacy && isLikelyVietnameseGloss(legacy)) return true;
+    return !tr;
+  });
 }
 
 export function setMeaningForLanguage(

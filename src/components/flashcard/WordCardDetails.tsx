@@ -12,6 +12,11 @@ import { resolveLearningChunks } from "@/lib/learning-chunks";
 import { parseExamples } from "@/lib/parse-examples";
 import type { WordFamilyMember } from "@/types/database";
 import type { WordRegister } from "@/lib/word-meanings";
+import type {
+  ExampleTranslationsJson,
+  LocalizedMeaningsJson,
+} from "@/types/word-content";
+import { isLikelyVietnameseGloss } from "@/lib/example-quality";
 
 const POS_ABBREV: Record<string, string> = {
   noun: "n.",
@@ -37,6 +42,8 @@ type WordCardDetailsProps = {
   userLanguage: UserLanguage;
   register?: WordRegister | null;
   englishDefinition?: string | null;
+  meanings?: LocalizedMeaningsJson | null;
+  example_translations?: ExampleTranslationsJson | null;
   family?: WordFamilyMember[] | null;
   similarWords?: string[] | null;
   loading?: boolean;
@@ -87,6 +94,8 @@ export function WordCardDetails({
   userLanguage,
   register,
   englishDefinition,
+  meanings,
+  example_translations,
   family,
   similarWords,
   loading = false,
@@ -104,7 +113,15 @@ export function WordCardDetails({
   const parsed = useMemo(() => {
     if (loading) return [];
     const display = resolveWordDisplay(
-      { word, examples, vietnamese_meaning: meaning, word_type: wordType },
+      {
+        word,
+        examples,
+        vietnamese_meaning: meaning,
+        word_type: wordType,
+        english_definition: englishDefinition,
+        meanings,
+        example_translations,
+      },
       userLanguage,
     );
     return display.examples
@@ -112,8 +129,25 @@ export function WordCardDetails({
         en: item.sentence,
         vi: item.translation ?? "",
       }))
-      .filter((item) => item.en.trim() && item.vi.trim());
-  }, [loading, examples, meaning, userLanguage, word, wordType]);
+      .filter((item) => {
+        if (!item.en.trim()) return false;
+        if (!item.vi.trim()) return userLanguage === "vi";
+        if (userLanguage === "es" && isLikelyVietnameseGloss(item.vi)) {
+          return false;
+        }
+        return true;
+      });
+  }, [
+    loading,
+    examples,
+    meaning,
+    userLanguage,
+    word,
+    wordType,
+    englishDefinition,
+    meanings,
+    example_translations,
+  ]);
   const rows = (family ?? []).filter((item) => item.word.trim());
   const similar = useCardSimilarWords({
     word,
@@ -227,6 +261,7 @@ export function WordCardDetails({
                   examples={parsed}
                   wordType={wordType}
                   meaning={meaning}
+                  userLanguage={userLanguage}
                   compact
                 />
               ) : null}
