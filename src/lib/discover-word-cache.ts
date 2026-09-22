@@ -19,9 +19,14 @@ import {
   isLegacyRegisterCollocation,
   resolveWordRegister,
 } from "@/lib/word-meanings";
+import { coerceMultilangRecord } from "@/lib/discover-word-multilang";
+import {
+  hasMeaningForLanguage,
+  pickPrimaryMeaning,
+} from "@/lib/multilang-word-record";
 
 /** Bump when Gemini/Unsplash pipeline or image quality rules change. */
-export const DISCOVER_WORD_CACHE_VERSION = 106;
+export const DISCOVER_WORD_CACHE_VERSION = 107;
 
 const STORAGE_KEY = `discover-word-cache-v${DISCOVER_WORD_CACHE_VERSION}`;
 
@@ -110,15 +115,18 @@ export function isWordDetailComplete(
   expectedWord?: string,
   learnerLocale: LearnerLocale = DEFAULT_LEARNER_LOCALE,
 ): boolean {
-  if (!data?.vietnamese_meaning?.trim()) return false;
+  if (!data?.word?.trim()) return false;
+  const record = coerceMultilangRecord(data);
+  const gloss = pickPrimaryMeaning(record, learnerLocale);
+  if (!gloss?.trim()) return false;
   if (learnerLocale === "vi") {
-    if (containsForeignScript(data.vietnamese_meaning)) return false;
-    if (hasCorruptedVietnameseText(data.vietnamese_meaning)) return false;
+    if (containsForeignScript(gloss)) return false;
+    if (hasCorruptedVietnameseText(gloss)) return false;
   }
   if (
     !hasQualityMeanings(
       data.word,
-      data.vietnamese_meaning,
+      gloss,
       data.word_type,
       parseExamples(data.examples),
       data.english_definition,
@@ -131,7 +139,7 @@ export function isWordDetailComplete(
       data.word,
       parseExamples(data.examples),
       data.word_type,
-      data.vietnamese_meaning,
+      gloss,
     )
   ) {
     return false;
@@ -141,7 +149,7 @@ export function isWordDetailComplete(
   }
   if (!resolveWordRegister(data)) return false;
   if (isLegacyRegisterCollocation(data.collocations)) return false;
-  if (hasEmbeddedRegisterHints(data.vietnamese_meaning)) return false;
+  if (hasEmbeddedRegisterHints(gloss)) return false;
   return true;
 }
 
@@ -151,15 +159,22 @@ export function isCardContentReady(
   expectedWord?: string,
   learnerLocale: LearnerLocale = DEFAULT_LEARNER_LOCALE,
 ): boolean {
-  if (!data?.vietnamese_meaning?.trim()) return false;
+  const record = coerceMultilangRecord(data ?? { word: expectedWord ?? "" });
+  if (!hasMeaningForLanguage(record, learnerLocale)) return false;
+  const gloss = pickPrimaryMeaning(record, learnerLocale) ?? "";
   if (
-    !isLearnerGlossDisplayReady(data.vietnamese_meaning, learnerLocale)
+    gloss &&
+    !isLearnerGlossDisplayReady(gloss, learnerLocale)
   ) {
     return false;
   }
-  if (expectedWord && data.word.toLowerCase() !== expectedWord.toLowerCase()) {
+  if (
+    expectedWord &&
+    data?.word?.toLowerCase() !== expectedWord.toLowerCase()
+  ) {
     return false;
   }
+  if (!data?.word) return false;
   const parsed = parseExamples(data.examples);
   if (examplesNeedLearnerLocaleRefresh(parsed, learnerLocale)) {
     return false;
@@ -171,7 +186,7 @@ export function isCardContentReady(
       data.word,
       parsed,
       data.word_type,
-      data.vietnamese_meaning,
+      gloss,
     ).length > 0
   ) {
     return true;
@@ -181,7 +196,7 @@ export function isCardContentReady(
     hasLearningChunks(data.word, {
       examples: data.examples,
       wordType: data.word_type,
-      meaning: data.vietnamese_meaning,
+      meaning: gloss,
     })
   ) {
     return true;

@@ -5,9 +5,11 @@ import {
   isLearnerGlossDisplayReady,
   type LearnerLocale,
 } from "@/lib/learner-locale";
+import { coerceMultilangRecord } from "@/lib/discover-word-multilang";
+import { pickExampleTranslation, pickPrimaryMeaning } from "@/lib/multilang-word-record";
 import {
-  exampleTranslationForUserLanguage,
   primaryMeaningForUserLanguage,
+  type WordDisplaySource,
 } from "@/lib/word-display";
 import type { UserLanguage } from "@/lib/user-language";
 import { parseExamples, type VocabExample } from "@/lib/parse-examples";
@@ -122,15 +124,6 @@ function fallbackSenseDistractors(locale: LearnerLocale) {
     : FALLBACK_SENSE_DISTRACTORS_VI;
 }
 
-function exampleTranslationReady(
-  item: VocabExample,
-  locale: LearnerLocale,
-): boolean {
-  return Boolean(
-    exampleTranslationForUserLanguage(item, locale as UserLanguage),
-  );
-}
-
 type SenseSource = {
   word: string;
   rank?: number;
@@ -206,7 +199,10 @@ export function senseChoicesAreValidForPrompt(
   if (!senseChoicesIncludeCorrectWord(choices, promptWord)) return false;
 
   const poolItem = pool.find((item) => item.word.trim().toLowerCase() === correct);
-  const expectedMeaning = reviewSenseText(poolItem ?? {}, locale);
+  const expectedMeaning = reviewSenseText(
+    poolItem ?? { word: promptWord },
+    locale,
+  );
   if (!expectedMeaning) return false;
 
   const correctChoice = choices.find(
@@ -259,14 +255,11 @@ export function resolveReviewSenseChoices(
 
 /** Compact learner gloss for review sense choices (user-language only, no English fallback). */
 export function reviewSenseText(
-  word: {
-    vietnamese_meaning?: string | null;
-    english_definition?: string | null;
-  },
+  source: WordDisplaySource,
   locale: LearnerLocale = DEFAULT_LEARNER_LOCALE,
 ): string {
   const meaning = primaryMeaningForUserLanguage(
-    word.vietnamese_meaning,
+    source,
     locale as UserLanguage,
   );
   if (meaning) {
@@ -285,7 +278,10 @@ export function buildReviewSenseChoices(
   const correctItem = pool.find(
     (item) => item.word.trim().toLowerCase() === correct,
   );
-  const correctMeaning = reviewSenseText(correctItem ?? {}, locale);
+  const correctMeaning = reviewSenseText(
+    correctItem ?? { word: correctWord },
+    locale,
+  );
   if (!correctMeaning) return [];
   if (
     correctItem?.vietnamese_meaning?.trim() &&
@@ -356,28 +352,36 @@ type ReviewPoolWord = SenseSource & {
   examples?: string | null;
 };
 
-/** Example with EN sentence containing the word and a Vietnamese gloss line. */
+/** Example with EN sentence containing the word and a user-language gloss line. */
 export function pickReviewClozeExample(
-  word: string,
-  rawExamples: unknown,
-  meaning?: string | null,
-  pos?: string | null,
+  poolWord: ReviewPoolWord,
   locale: LearnerLocale = DEFAULT_LEARNER_LOCALE,
 ): VocabExample | null {
-  const parsed = parseExamples(rawExamples);
-  const natural = keepNaturalExamples(word, parsed, pos, meaning);
-  const withWordAndVi =
-    natural.find(
-      (item) =>
-        sentenceHasWord(item.en, word) &&
-        exampleTranslationReady(item, locale),
-    ) ??
-    parsed.find(
-      (item) =>
-        sentenceHasWord(item.en, word) &&
-        exampleTranslationReady(item, locale),
+  const word = poolWord.word;
+  const record = coerceMultilangRecord(poolWord);
+  const meaning = pickPrimaryMeaning(record, locale as UserLanguage);
+  const parsed = parseExamples(record.examples);
+  const natural = keepNaturalExamples(
+    word,
+    parsed,
+    poolWord.word_type,
+    meaning,
+  );
+  const candidates = natural.length ? natural : parsed;
+
+  for (let index = 0; index < candidates.length; index++) {
+    const item = candidates[index]!;
+    const sourceIndex = parsed.findIndex((row) => row.en === item.en);
+    const tr = pickExampleTranslation(
+      record,
+      sourceIndex >= 0 ? sourceIndex : index,
+      locale as UserLanguage,
     );
-  return withWordAndVi ?? null;
+    if (sentenceHasWord(item.en, word) && tr) {
+      return { en: item.en, vi: tr, senseIndex: item.senseIndex };
+    }
+  }
+  return null;
 }
 
 export function buildClozeBlankParts(
@@ -469,13 +473,7 @@ export function buildReviewClozeData(
   const normalized = word.word.trim().toLowerCase();
   if (!/^[a-z]{3,14}$/.test(normalized)) return null;
 
-  const example = pickReviewClozeExample(
-    word.word,
-    word.examples,
-    word.vietnamese_meaning,
-    word.word_type,
-    locale,
-  );
+  const example = pickReviewClozeExample(word, locale);
   if (!example) return null;
 
   const parts = buildClozeBlankParts(example.en, word.word);
@@ -665,10 +663,7 @@ export function buildReviewChoices(
 }
 
 export function reviewClue(
-  word: {
-    english_definition?: string | null;
-    vietnamese_meaning?: string | null;
-  },
+  word: WordDisplaySource,
   locale: LearnerLocale = DEFAULT_LEARNER_LOCALE,
 ): string {
   const meaning = reviewSenseText(word, locale);

@@ -5,17 +5,23 @@ import {
 } from "@/lib/gemini-core";
 import type { LearnerLocale } from "@/lib/learner-locale";
 import { DEFAULT_LEARNER_LOCALE } from "@/lib/learner-locale";
+import {
+  mergeExampleTranslationRow,
+  splitLegacyExamples,
+} from "@/lib/multilang-word-record";
 import { parseExamples, serializeExamples } from "@/lib/parse-examples";
 import { sanitizeLearnerText } from "@/lib/sanitize-learner";
-import {
-  fetchMyMemoryViToLearner,
-} from "@/lib/translate-vi";
+import { fetchMyMemoryViToLearner } from "@/lib/translate-vi";
 import {
   parseVietnameseMeanings,
   serializeVietnameseMeanings,
 } from "@/lib/word-meanings";
 import { ensureExamplesForLearnerLocale } from "@/lib/localize-examples";
 import { isLikelyVietnameseGloss } from "@/lib/example-quality";
+import type {
+  ExampleTranslationsJson,
+  LocalizedMeaningsJson,
+} from "@/types/word-content";
 
 type LocalizeInput = {
   word: string;
@@ -23,38 +29,61 @@ type LocalizeInput = {
   examples: string | null;
   word_type?: string | null;
   english_definition?: string | null;
+  meanings?: LocalizedMeaningsJson | null;
+  example_translations?: ExampleTranslationsJson | null;
 };
 
-/** Spanish (or future locales) from persisted Vietnamese/English card data. */
+export type LocalizedWordContentPatch = {
+  meanings: LocalizedMeaningsJson;
+  example_translations: ExampleTranslationsJson;
+  examples: string | null;
+  /** Active locale gloss for legacy single-field consumers. */
+  active_gloss: string | null;
+};
+
+/** Build / merge JSON multi-language fields (never copies vi gloss into es). */
 export async function localizeWordContent(
   input: LocalizeInput,
   locale: LearnerLocale,
-): Promise<{ vietnamese_meaning: string; examples: string | null }> {
+): Promise<LocalizedWordContentPatch> {
+  const split = splitLegacyExamples(input.examples);
+  let meanings: LocalizedMeaningsJson = {
+    ...(input.meanings ?? {}),
+  };
+  let example_translations: ExampleTranslationsJson = [
+    ...(input.example_translations ?? split.example_translations),
+  ];
+  const examples = split.examples ?? input.examples;
+
   if (locale === DEFAULT_LEARNER_LOCALE) {
+    const viGloss = input.vietnamese_meaning?.trim();
+    if (viGloss) meanings.vi = viGloss;
     return {
-      vietnamese_meaning: input.vietnamese_meaning,
-      examples: input.examples,
+      meanings,
+      example_translations,
+      examples,
+      active_gloss: meanings.vi ?? null,
     };
   }
 
   const word = input.word.trim();
-  let meanings = parseVietnameseMeanings(input.vietnamese_meaning);
+  let glossLines = parseVietnameseMeanings(input.vietnamese_meaning);
 
   const fromGemini = await translateLearnerMeaningWithGemini(word, locale);
   if (fromGemini) {
-    meanings = parseVietnameseMeanings(fromGemini);
+    glossLines = parseVietnameseMeanings(fromGemini);
   } else if (input.english_definition?.trim()) {
     const def = await translateDefinitionWithGemini(
       word,
       input.english_definition,
       locale,
     );
-    if (def) meanings = [def];
+    if (def) glossLines = [def];
   }
 
-  if (meanings.some((line) => isLikelyVietnameseGloss(line))) {
+  if (glossLines.some((line) => isLikelyVietnameseGloss(line))) {
     const translated: string[] = [];
-    for (const line of meanings) {
+    for (const line of glossLines) {
       if (!isLikelyVietnameseGloss(line)) {
         translated.push(line);
         continue;
@@ -70,15 +99,19 @@ export async function localizeWordContent(
           : null);
       if (es?.trim()) translated.push(es.trim());
     }
-    if (translated.length) meanings = translated;
+    if (translated.length) glossLines = translated;
   }
 
   const meaningSerialized =
     serializeVietnameseMeanings(
-      meanings.map((line) => sanitizeLearnerText(line, locale)),
-    ) || sanitizeLearnerText(meanings[0] ?? word, locale);
+      glossLines.map((line) => sanitizeLearnerText(line, locale)),
+    ) || sanitizeLearnerText(glossLines[0] ?? "", locale);
 
-  const parsed = parseExamples(input.examples);
+  if (meaningSerialized) {
+    meanings = { ...meanings, [locale]: meaningSerialized };
+  }
+
+  const parsed = parseExamples(examples);
   const natural = keepNaturalExamples(
     word,
     parsed,
@@ -93,8 +126,25 @@ export async function localizeWordContent(
     locale,
   );
 
+  translated.forEach((item, index) => {
+    const tr = item.vi?.trim();
+    if (!tr || isLikelyVietnameseGloss(tr)) return;
+    example_translations = mergeExampleTranslationRow(
+      example_translations,
+      index,
+      locale,
+      tr,
+    );
+  });
+
+  const enOnly = serializeExamples(
+    translated.map((item) => ({ en: item.en, vi: "" })),
+  );
+
   return {
-    vietnamese_meaning: meaningSerialized,
-    examples: translated.length ? serializeExamples(translated) : null,
+    meanings,
+    example_translations,
+    examples: enOnly || examples,
+    active_gloss: meanings[locale] ?? null,
   };
 }

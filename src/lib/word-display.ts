@@ -1,30 +1,36 @@
 import { isLikelyVietnameseGloss } from "@/lib/example-quality";
+import { coerceMultilangRecord } from "@/lib/discover-word-multilang";
 import {
-  isLearnerGlossDisplayReady,
-  type LearnerLocale,
-} from "@/lib/learner-locale";
-import { parseExamples, type VocabExample } from "@/lib/parse-examples";
+  pickExampleTranslation,
+  pickPrimaryMeaning,
+  vocabExamplesFromRecord,
+} from "@/lib/multilang-word-record";
 import type { UserLanguage } from "@/lib/user-language";
 import { courseIdFor, learningLanguageId } from "@/lib/user-language";
 import type {
-  LocalizedExample,
-  LocalizedMeanings,
   WordContentRecord,
   WordDisplayView,
 } from "@/types/word-content";
 import { formatMeaningsForDisplay } from "@/lib/word-meanings";
+import type { VocabExample } from "@/lib/parse-examples";
 
-/** Legacy API/DB shape — English fields + single-locale gloss storage. */
+/** Legacy API/DB shape — normalized through `coerceMultilangRecord`. */
 export type WordDisplaySource = {
   word: string;
   phonetic?: string | null;
   word_type?: string | null;
-  /** Legacy DB/API field: gloss text for the locale it was generated for. */
   vietnamese_meaning?: string | null;
   english_definition?: string | null;
   examples?: string | null;
+  meanings?: import("@/types/word-content").LocalizedMeaningsJson | null;
+  example_translations?:
+    | import("@/types/word-content").ExampleTranslationsJson
+    | null;
+  collocations?: string | null;
+  image_url?: string | null;
 };
 
+/** Legacy chunk lines until chunk cache is repopulated after language switch. */
 export function translationLineForUserLanguage(
   text: string | null | undefined,
   userLanguage: UserLanguage,
@@ -40,37 +46,39 @@ export function translationLineForUserLanguage(
 export function exampleTranslationForUserLanguage(
   example: VocabExample,
   userLanguage: UserLanguage,
+  exampleIndex: number,
+  source: WordDisplaySource,
 ): string | null {
-  return translationLineForUserLanguage(example.vi, userLanguage);
+  const record = coerceMultilangRecord(source);
+  const fromJson = pickExampleTranslation(record, exampleIndex, userLanguage);
+  if (fromJson) return fromJson;
+  return null;
 }
 
 export function primaryMeaningForUserLanguage(
-  storedGloss: string | null | undefined,
+  source: WordDisplaySource,
   userLanguage: UserLanguage,
 ): string | null {
-  const trimmed = storedGloss?.trim() ?? "";
-  if (!trimmed) return null;
-  if (!isLearnerGlossDisplayReady(trimmed, userLanguage as LearnerLocale)) {
-    return null;
-  }
-  return trimmed;
+  const record = coerceMultilangRecord(source);
+  return pickPrimaryMeaning(record, userLanguage);
 }
 
 export function resolveWordDisplay(
   source: WordDisplaySource,
   userLanguage: UserLanguage,
 ): WordDisplayView {
-  const primaryMeaning = primaryMeaningForUserLanguage(
-    source.vietnamese_meaning,
-    userLanguage,
-  );
+  const record = coerceMultilangRecord(source);
+  const primaryMeaning = pickPrimaryMeaning(record, userLanguage);
   const primaryMeaningLines = primaryMeaning
     ? formatMeaningsForDisplay(primaryMeaning)
     : [];
 
-  const examples = parseExamples(source.examples).map((item) => ({
+  const parsed = vocabExamplesFromRecord(record, userLanguage);
+  const examples = parsed.map((item, index) => ({
     sentence: item.en,
-    translation: exampleTranslationForUserLanguage(item, userLanguage),
+    translation:
+      pickExampleTranslation(record, index, userLanguage) ||
+      null,
   }));
 
   return {
@@ -90,45 +98,30 @@ export function wordContentFromLegacySource(
   source: WordDisplaySource,
   activeUserLanguage: UserLanguage,
 ): WordContentRecord {
-  const meanings: LocalizedMeanings = {};
-  const viGloss = primaryMeaningForUserLanguage(source.vietnamese_meaning, "vi");
-  const esGloss = primaryMeaningForUserLanguage(source.vietnamese_meaning, "es");
-  if (viGloss) meanings.vi = viGloss;
-  if (esGloss) meanings.es = esGloss;
-  if (
-    !meanings[activeUserLanguage] &&
-    source.vietnamese_meaning?.trim() &&
-    isLearnerGlossDisplayReady(
-      source.vietnamese_meaning,
-      activeUserLanguage as LearnerLocale,
-    )
-  ) {
-    meanings[activeUserLanguage] = source.vietnamese_meaning.trim();
-  }
-
-  const examples: LocalizedExample[] = parseExamples(source.examples).map(
-    (item) => {
-      const translations: Partial<Record<UserLanguage, string>> = {};
-      const vi = exampleTranslationForUserLanguage(item, "vi");
-      const es = exampleTranslationForUserLanguage(item, "es");
-      if (vi) translations.vi = vi;
-      if (es) translations.es = es;
-      return { sentence: item.en, translations };
-    },
-  );
-
+  const record = coerceMultilangRecord(source);
   return {
     learningLanguage: learningLanguageId(),
-    targetWord: source.word,
-    phonetic: source.phonetic?.trim() || null,
-    wordType: source.word_type?.trim() || null,
-    englishDefinition: source.english_definition?.trim() || null,
-    primaryMeanings: meanings,
-    examples,
+    targetWord: record.word,
+    phonetic: record.phonetic,
+    wordType: record.word_type,
+    englishDefinition: record.english_definition,
+    primaryMeanings: { ...record.meanings },
+    examples: record.example_translations.length
+      ? vocabExamplesFromRecord(record, activeUserLanguage).map((item, index) => ({
+          sentence: item.en,
+          translations: {
+            ...(record.example_translations[index]?.vi
+              ? { vi: record.example_translations[index]!.vi! }
+              : {}),
+            ...(record.example_translations[index]?.es
+              ? { es: record.example_translations[index]!.es! }
+              : {}),
+          },
+        }))
+      : [],
   };
 }
 
-/** Apply resolved gloss onto discover data for downstream code that reads one string field. */
 export function applyUserLanguageToDiscoverData<
   T extends WordDisplaySource & { word: string },
 >(data: T, userLanguage: UserLanguage): T {
@@ -136,18 +129,12 @@ export function applyUserLanguageToDiscoverData<
   return {
     ...data,
     vietnamese_meaning: display.primaryMeaning,
-    examples: serializeExamplesForDisplay(display),
+    examples: display.examples
+      .map((item) =>
+        item.translation
+          ? `${item.sentence}\n---\n${item.translation}`
+          : item.sentence,
+      )
+      .join("\n---\n"),
   };
-}
-
-function serializeExamplesForDisplay(display: WordDisplayView): string | null {
-  const rows = display.examples.filter((item) => item.sentence.trim());
-  if (!rows.length) return null;
-  return rows
-    .map((item) => {
-      const en = item.sentence.trim();
-      const tr = item.translation?.trim();
-      return tr ? `${en}\n---\n${tr}` : en;
-    })
-    .join("\n---\n");
 }

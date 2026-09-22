@@ -3,6 +3,7 @@ import { readAppSettings } from "@/lib/app-settings";
 import { getLearnerContentRepository } from "@/lib/learner-content";
 import { isCardContentReady } from "@/lib/discover-word-cache";
 import { resolveWordRegister } from "@/lib/word-meanings";
+import { applyMultilangToDiscoverWord } from "@/lib/discover-word-multilang";
 import { DISCOVER_WORD_CACHE_VERSION, stubFromListItem } from "@/lib/discover-word-cache";
 import { meaningsNeedRegeneration } from "@/lib/meaning-quality";
 import { examplesNeedRegeneration } from "@/lib/repair-word-examples";
@@ -66,7 +67,8 @@ export function mapApiWordToDiscoverData(
   item: DiscoverListItem,
   apiWord: Record<string, unknown>,
 ): DiscoverWordData {
-  return {
+  const learnerLocale = readAppSettings().learnerLocale;
+  const base: DiscoverWordData = {
     word: item.word,
     rank: Number(apiWord.rank ?? item.rank),
     importance_tier: String(apiWord.importance_tier ?? item.importance_tier),
@@ -75,6 +77,9 @@ export function mapApiWordToDiscoverData(
     vietnamese_meaning: apiWord.vietnamese_meaning as string | null | undefined,
     english_definition: apiWord.english_definition as string | null | undefined,
     examples: apiWord.examples as string | null | undefined,
+    meanings: apiWord.meanings as DiscoverWordData["meanings"],
+    example_translations:
+      apiWord.example_translations as DiscoverWordData["example_translations"],
     image_url: (apiWord.image_url as string | null | undefined) ?? null,
     collocations: apiWord.collocations as string | null | undefined,
     register: resolveWordRegister({
@@ -91,6 +96,7 @@ export function mapApiWordToDiscoverData(
       ? (apiWord.similar_words as string[])
       : null,
   };
+  return applyMultilangToDiscoverWord(base, learnerLocale);
 }
 
 export async function fetchDiscoverRange(

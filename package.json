@@ -49,7 +49,8 @@
     "audit:meanings": "npx tsx scripts/audit-meaning-quality.ts",
     "re-enrich:formal": "npx tsx scripts/re-enrich-stale-words.ts -- --formal-only",
     "audit:subtlex-noise": "npx tsx scripts/audit-subtlex-noise.ts",
-    "audit:vocab-abbreviations": "npx tsx scripts/audit-vocab-abbreviations.ts"
+    "audit:vocab-abbreviations": "npx tsx scripts/audit-vocab-abbreviations.ts",
+    "migrate:word-details-multilang": "npx tsx scripts/migrate-word-details-multilang.ts"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.0",
