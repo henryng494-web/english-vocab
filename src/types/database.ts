@@ -8,9 +8,11 @@ export type WordBank = {
 
 export type WordDetail = {
   id: string;
+  /** English headword (learning language). */
   word: string;
   phonetic: string;
   word_type: string;
+  /** Legacy column: gloss in the locale it was saved under (usually Vietnamese). */
   vietnamese_meaning: string;
   english_definition: string;
   examples: string;

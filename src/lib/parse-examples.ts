@@ -5,7 +5,12 @@ const EXAMPLE_DELIMITER = "\n---\n";
 const PAIR_DELIMITER = "|||";
 
 export type VocabExample = {
+  /** English sentence (learning language). */
   en: string;
+  /**
+   * Translation line in the user's explanation language (vi or es).
+   * Legacy field name `vi` — not necessarily Vietnamese.
+   */
   vi: string;
   /** 1-based sense index when the word has multiple meanings. */
   senseIndex?: number;

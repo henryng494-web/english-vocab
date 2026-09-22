@@ -12,12 +12,15 @@ import { SpeakButton } from "@/components/flashcard/SpeakButton";
 import { capitalizeFirst } from "@/lib/format-text";
 import { resolveLearningChunks } from "@/lib/learning-chunks";
 import type { WordRegister } from "@/lib/word-meanings";
+import type { UserLanguage } from "@/lib/user-language";
+import { translationLineForUserLanguage } from "@/lib/word-display";
 
 type WordLearningChunksProps = {
   word: string;
   examples?: string | null;
   wordType?: string | null;
   meaning?: string | null;
+  userLanguage: UserLanguage;
   register?: WordRegister | null;
   englishDefinition?: string | null;
   compact?: boolean;
@@ -25,18 +28,25 @@ type WordLearningChunksProps = {
 
 function PhraseList({
   items,
+  userLanguage,
   inline = false,
   speakAtEnd = false,
   speakAriaLabel,
 }: {
   items: LearningChunkPhrase[];
+  userLanguage: UserLanguage;
   inline?: boolean;
   speakAtEnd?: boolean;
   speakAriaLabel?: string;
 }) {
   return (
     <ul className="vocab-examples vocab-examples--compact word-learning-chunks__examples">
-      {items.map((item) => (
+      {items.map((item) => {
+        const translation = translationLineForUserLanguage(
+          item.vi,
+          userLanguage,
+        );
+        return (
         <li
           key={`${item.sense ?? 0}-${item.en}`}
           className={
@@ -50,13 +60,13 @@ function PhraseList({
               <span className="vocab-examples__en italic">
                 {capitalizeFirst(item.en)}
               </span>
-              {item.vi ? (
+              {translation ? (
                 <>
                   <span className="word-learning-chunks__sep" aria-hidden="true">
                     ·
                   </span>
                   <span className="vocab-examples__vi italic">
-                    {capitalizeFirst(item.vi)}
+                    {capitalizeFirst(translation)}
                   </span>
                 </>
               ) : null}
@@ -75,24 +85,25 @@ function PhraseList({
                   className="word-learning-chunks__speak !inline-flex !h-7 !w-7"
                 />
               </p>
-              {item.vi ? (
+              {translation ? (
                 <p className="vocab-examples__vi mt-0.5 italic">
-                  {capitalizeFirst(item.vi)}
+                  {capitalizeFirst(translation)}
                 </p>
               ) : null}
             </>
           ) : (
             <>
               <p className="vocab-examples__en italic">{capitalizeFirst(item.en)}</p>
-              {item.vi ? (
+              {translation ? (
                 <p className="vocab-examples__vi mt-0.5 italic">
-                  {capitalizeFirst(item.vi)}
+                  {capitalizeFirst(translation)}
                 </p>
               ) : null}
             </>
           )}
         </li>
-      ))}
+        );
+      })}
     </ul>
   );
 }
@@ -102,6 +113,7 @@ export function WordLearningChunks({
   examples,
   wordType,
   meaning,
+  userLanguage,
   register,
   englishDefinition,
   compact = false,
@@ -137,7 +149,7 @@ export function WordLearningChunks({
       {collocationItems.length > 0 ? (
         <section className="word-learning-chunks__section word-learning-chunks__section--collocations">
           <h3 className="word-learning-chunks__label">{t("chunks.collocations")}</h3>
-          <PhraseList items={collocationItems} inline />
+          <PhraseList items={collocationItems} userLanguage={userLanguage} inline />
         </section>
       ) : null}
 
@@ -146,6 +158,7 @@ export function WordLearningChunks({
           <h3 className="word-learning-chunks__label">{t("chunks.phrases")}</h3>
           <PhraseList
             items={chunkItems}
+            userLanguage={userLanguage}
             speakAtEnd
             speakAriaLabel={t("speak.phraseAria")}
           />

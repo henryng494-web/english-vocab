@@ -10,6 +10,8 @@ import type { WordFamilyMember } from "@/types/database";
 import type { WordRegister } from "@/lib/word-meanings";
 import { resolveWordRegister } from "@/lib/word-meanings";
 import { buildWordFamilyEntries } from "@/lib/word-family-display";
+import { resolveWordDisplay } from "@/lib/word-display";
+import { useMemo } from "react";
 
 export type DiscoverWordData = {
   word: string;
@@ -79,19 +81,20 @@ export function DiscoverCard({
   autoSpeak = true,
   hintGraceMs,
 }: DiscoverCardProps) {
-  const { learnerLocale } = useAppSettings();
+  const { learnerLocale, userLanguage } = useAppSettings();
+  const display = useMemo(
+    () => resolveWordDisplay(data, userLanguage),
+    [data, userLanguage],
+  );
   const detailsLoading =
     loading && !isCardContentReady(data, data.word, learnerLocale);
   const phonetic = displayPhonetic(data.word, data.phonetic);
   const register = resolveWordRegister(data);
+  const glossForFamily = display.primaryMeaning ?? data.vietnamese_meaning;
   const wordFamily =
     data.word_family && data.word_family.length > 0
       ? data.word_family
-      : buildWordFamilyEntries(
-          data.word,
-          data.vietnamese_meaning,
-          data.word_type,
-        );
+      : buildWordFamilyEntries(data.word, glossForFamily, data.word_type);
 
   return (
     <div className="discover-card discover-card--compact grid h-full min-h-0 w-full overflow-hidden rounded-2xl border-2 shadow-lg">
@@ -100,7 +103,7 @@ export function DiscoverCard({
         imageUrl={data.image_url}
         searchKeyword={data.search_keyword}
         wordType={data.word_type}
-        meaning={data.vietnamese_meaning}
+        meaning={display.primaryMeaning}
         badge={imageBadge}
       />
 
@@ -109,18 +112,19 @@ export function DiscoverCard({
           word={data.word}
           phonetic={phonetic}
           wordType={data.word_type}
-          meanings={data.vietnamese_meaning}
+          meanings={display.primaryMeaning}
           register={register}
           loadingPhonetic={detailsLoading && !phonetic}
           autoSpeak={autoSpeak}
         />
 
         <WordCardDetails
-          key={data.word.trim().toLowerCase()}
+          key={`${data.word.trim().toLowerCase()}:${userLanguage}`}
           word={data.word}
           examples={data.examples}
           wordType={data.word_type}
-          meaning={data.vietnamese_meaning}
+          meaning={display.primaryMeaning}
+          userLanguage={userLanguage}
           register={register}
           englishDefinition={data.english_definition}
           family={wordFamily}

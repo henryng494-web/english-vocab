@@ -50,7 +50,10 @@ export type AppSettings = {
   pronounceSpeed: PronounceSpeed;
   /** US / UK / AU neural + dictionary accent from menu. */
   pronounceAccent: PronounceAccent;
-  /** Gloss + example translation language on flashcards. */
+  /**
+   * User native / explanation language for English headwords (`userLanguage` alias).
+   * Course id: `en-vi` | `en-es`.
+   */
   learnerLocale: LearnerLocale;
 };
 

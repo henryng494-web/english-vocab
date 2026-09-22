@@ -3,9 +3,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { VocabExampleList } from "@/components/flashcard/VocabExampleList";
 import { WordLearningChunks } from "@/components/flashcard/WordLearningChunks";
-import { useAppSettings } from "@/context/AppSettingsContext";
 import { useI18n } from "@/hooks/use-i18n";
-import { isLikelyVietnameseGloss } from "@/lib/example-quality";
+import type { UserLanguage } from "@/lib/user-language";
+import { resolveWordDisplay } from "@/lib/word-display";
 import { useCardSimilarWords } from "@/hooks/use-card-similar-words";
 import { capitalizeFirst } from "@/lib/format-text";
 import { resolveLearningChunks } from "@/lib/learning-chunks";
@@ -34,6 +34,7 @@ type WordCardDetailsProps = {
   examples?: string | null;
   wordType?: string | null;
   meaning?: string | null;
+  userLanguage: UserLanguage;
   register?: WordRegister | null;
   englishDefinition?: string | null;
   family?: WordFamilyMember[] | null;
@@ -83,6 +84,7 @@ export function WordCardDetails({
   examples,
   wordType,
   meaning,
+  userLanguage,
   register,
   englishDefinition,
   family,
@@ -91,7 +93,6 @@ export function WordCardDetails({
   hintGraceMs = 0,
 }: WordCardDetailsProps) {
   const { t } = useI18n();
-  const { learnerLocale } = useAppSettings();
   const chunkEntry = useMemo(
     () => resolveLearningChunks(word, { examples, wordType, meaning }),
     [word, examples, wordType, meaning],
@@ -102,12 +103,17 @@ export function WordCardDetails({
   );
   const parsed = useMemo(() => {
     if (loading) return [];
-    const rows = parseExamples(examples);
-    if (learnerLocale === "vi") return rows;
-    return rows.filter(
-      (item) => !item.vi?.trim() || !isLikelyVietnameseGloss(item.vi),
+    const display = resolveWordDisplay(
+      { word, examples, vietnamese_meaning: meaning, word_type: wordType },
+      userLanguage,
     );
-  }, [loading, examples, learnerLocale]);
+    return display.examples
+      .map((item) => ({
+        en: item.sentence,
+        vi: item.translation ?? "",
+      }))
+      .filter((item) => item.en.trim() && item.vi.trim());
+  }, [loading, examples, meaning, userLanguage, word, wordType]);
   const rows = (family ?? []).filter((item) => item.word.trim());
   const similar = useCardSimilarWords({
     word,
@@ -210,6 +216,7 @@ export function WordCardDetails({
                 examples={examples}
                 wordType={wordType}
                 meaning={meaning}
+                userLanguage={userLanguage}
                 register={register}
                 englishDefinition={englishDefinition}
                 compact

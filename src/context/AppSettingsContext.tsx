@@ -14,6 +14,9 @@ import {
   type PronounceAccent,
   type PronounceSpeed,
 } from "@/lib/app-settings";
+import type { CourseId } from "@/types/word-content";
+import { LEARNING_LANGUAGE_ID } from "@/types/word-content";
+import { courseIdFor, type UserLanguage } from "@/lib/user-language";
 import {
   createContext,
   useCallback,
@@ -24,6 +27,12 @@ import {
 } from "react";
 
 type AppSettingsContextValue = AppSettings & {
+  /** English headwords — fixed product language. */
+  learningLanguageId: typeof LEARNING_LANGUAGE_ID;
+  /** User explanation language (vi | es). Same as `learnerLocale`. */
+  userLanguage: UserLanguage;
+  /** Active course, e.g. `en-es` for English taught in Spanish. */
+  courseId: CourseId;
   setAutoSpeakEnabled: (enabled: boolean) => void;
   setDailyGoalMinutes: (minutes: DailyGoalMinutes) => void;
   setGoalType: (goalType: GoalType) => void;
@@ -62,6 +71,9 @@ export function AppSettingsProvider({ children }: { children: React.ReactNode })
   const value = useMemo<AppSettingsContextValue>(
     () => ({
       ...settings,
+      learningLanguageId: LEARNING_LANGUAGE_ID,
+      userLanguage: settings.learnerLocale,
+      courseId: courseIdFor(settings.learnerLocale),
       setAutoSpeakEnabled: (enabled) =>
         setSettings(patchAppSettings({ autoSpeakEnabled: enabled })),
       setDailyGoalMinutes: (minutes) =>

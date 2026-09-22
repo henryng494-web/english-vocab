@@ -60,7 +60,8 @@ src/
 - **Word image API:** `src/app/api/word-image/route.ts` (fast stock lookup, no Gemini)
 - **Stock image pipeline:** `src/lib/unsplash.ts` (`fetchWordImageUrl`, `SEMANTIC_IMAGE_VERSION`)
 - **Client cache:** `src/lib/discover-word-cache.ts` (key `discover-word-cache-v106`, entries `locale:word`)
-- **Learner content stores (vi | es):** `src/lib/learner-content/` — menu language selects active store; ES bundled overrides in `src/data/learner-stores/es/overrides.ts`
+- **Learning language:** always English (`LEARNING_LANGUAGE_ID=en`). **User language** (`userLanguage` / `learnerLocale`: vi | es) controls glosses, collocations, example translations. Display binding: `src/lib/word-display.ts` (`resolveWordDisplay`). Course ids: `en-vi`, `en-es`.
+- **Learner content stores (vi | es):** `src/lib/learner-content/` — menu selects store; ES bundled overrides in `src/data/learner-stores/es/overrides.ts`
 
 ## Locked flashcard UI — do not change layout
 

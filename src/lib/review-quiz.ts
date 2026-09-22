@@ -1,4 +1,4 @@
-import { isLikelyVietnameseGloss, keepNaturalExamples } from "@/lib/example-quality";
+import { keepNaturalExamples } from "@/lib/example-quality";
 import { capitalizeFirst } from "@/lib/format-text";
 import {
   DEFAULT_LEARNER_LOCALE,
@@ -6,10 +6,10 @@ import {
   type LearnerLocale,
 } from "@/lib/learner-locale";
 import {
-  isTemplateVietnameseDefinition,
-  looksLikeEnglish,
-  stripTemplateVietnameseDefinition,
-} from "@/lib/translate-vi";
+  exampleTranslationForUserLanguage,
+  primaryMeaningForUserLanguage,
+} from "@/lib/word-display";
+import type { UserLanguage } from "@/lib/user-language";
 import { parseExamples, type VocabExample } from "@/lib/parse-examples";
 import { formatMeaningsForDisplay } from "@/lib/word-meanings";
 import { isSameRankBand } from "@/data/word-ranges";
@@ -126,10 +126,9 @@ function exampleTranslationReady(
   item: VocabExample,
   locale: LearnerLocale,
 ): boolean {
-  const gloss = item.vi?.trim() ?? "";
-  if (!gloss) return false;
-  if (locale === "vi") return isLikelyVietnameseGloss(gloss);
-  return !isLikelyVietnameseGloss(gloss);
+  return Boolean(
+    exampleTranslationForUserLanguage(item, locale as UserLanguage),
+  );
 }
 
 type SenseSource = {
@@ -258,7 +257,7 @@ export function resolveReviewSenseChoices(
   return fresh;
 }
 
-/** Compact learner gloss for review sense choices (matches WordCard rules). */
+/** Compact learner gloss for review sense choices (user-language only, no English fallback). */
 export function reviewSenseText(
   word: {
     vietnamese_meaning?: string | null;
@@ -266,20 +265,14 @@ export function reviewSenseText(
   },
   locale: LearnerLocale = DEFAULT_LEARNER_LOCALE,
 ): string {
-  const meaning = word.vietnamese_meaning?.trim();
-  if (meaning && isLearnerGlossDisplayReady(meaning, locale)) {
+  const meaning = primaryMeaningForUserLanguage(
+    word.vietnamese_meaning,
+    locale as UserLanguage,
+  );
+  if (meaning) {
     const lines = formatMeaningsForDisplay(meaning);
     if (lines.length > 0) return lines.join(" · ");
   }
-  const definition = word.english_definition?.trim();
-  if (definition && locale !== DEFAULT_LEARNER_LOCALE) {
-    return capitalizeFirst(definition);
-  }
-  if (meaning && locale === DEFAULT_LEARNER_LOCALE) {
-    const lines = formatMeaningsForDisplay(meaning);
-    if (lines.length > 0) return lines.join(" · ");
-  }
-  if (definition) return capitalizeFirst(definition);
   return "";
 }
 
@@ -679,25 +672,6 @@ export function reviewClue(
   locale: LearnerLocale = DEFAULT_LEARNER_LOCALE,
 ): string {
   const meaning = reviewSenseText(word, locale);
-  const definition = word.english_definition?.trim();
-
-  if (meaning) {
-    if (
-      !definition ||
-      isTemplateVietnameseDefinition(definition) ||
-      looksLikeEnglish(definition)
-    ) {
-      return meaning;
-    }
-  }
-
-  if (definition && !isTemplateVietnameseDefinition(definition)) {
-    return capitalizeFirst(definition);
-  }
   if (meaning) return meaning;
-  if (definition) {
-    const stripped = stripTemplateVietnameseDefinition(definition);
-    if (stripped) return stripped;
-  }
   return "Choose the matching word.";
 }
