@@ -8,7 +8,12 @@ import { getPresetRank } from "@/data/preset-word-details";
 import { readAppSettings } from "@/lib/app-settings";
 import { DEFAULT_LEARNER_LOCALE } from "@/lib/learner-locale";
 import { getLearnerContentRepository } from "@/lib/learner-content";
+import { resolveLearningChunks } from "@/lib/learning-chunks";
 import { recordNeedsExampleTranslationsForLanguage } from "@/lib/multilang-word-record";
+import {
+  parsePhraseTranslationsJson,
+  phraseTranslationsNeedLocale,
+} from "@/lib/phrase-translations";
 import type { UserLanguage } from "@/lib/user-language";
 import type { VocabWord } from "@/types/database";
 
@@ -21,13 +26,34 @@ function cacheKey(word: string, locale: UserLanguage): string {
 export function discoverDataNeedsEsExampleFetch(
   data: Pick<
     DiscoverWordData,
-    "word" | "examples" | "example_translations" | "meanings" | "vietnamese_meaning" | "english_definition" | "word_type" | "phonetic"
+    | "word"
+    | "examples"
+    | "example_translations"
+    | "phrase_translations"
+    | "meanings"
+    | "vietnamese_meaning"
+    | "english_definition"
+    | "word_type"
+    | "phonetic"
   >,
   userLanguage: UserLanguage = readAppSettings().learnerLocale,
 ): boolean {
   if (userLanguage === DEFAULT_LEARNER_LOCALE) return false;
   const record = coerceMultilangRecord(data);
-  return recordNeedsExampleTranslationsForLanguage(record, userLanguage);
+  if (recordNeedsExampleTranslationsForLanguage(record, userLanguage)) {
+    return true;
+  }
+  const entry = resolveLearningChunks(data.word, {
+    examples: record.examples,
+    wordType: data.word_type,
+    meaning: record.meanings.es ?? record.meanings.vi ?? data.vietnamese_meaning,
+  });
+  if (!entry) return false;
+  return phraseTranslationsNeedLocale(
+    entry,
+    parsePhraseTranslationsJson(data.phrase_translations),
+    userLanguage,
+  );
 }
 
 async function fetchLocalizedDiscoverWord(
@@ -105,5 +131,7 @@ export function applyLocaleToVocabWord(
     meanings: localized.meanings ?? word.meanings,
     example_translations:
       localized.example_translations ?? word.example_translations,
+    phrase_translations:
+      localized.phrase_translations ?? word.phrase_translations,
   };
 }

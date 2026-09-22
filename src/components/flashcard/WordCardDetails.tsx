@@ -44,6 +44,7 @@ type WordCardDetailsProps = {
   englishDefinition?: string | null;
   meanings?: LocalizedMeaningsJson | null;
   example_translations?: ExampleTranslationsJson | null;
+  phrase_translations?: import("@/types/word-content").PhraseTranslationsJson | null;
   family?: WordFamilyMember[] | null;
   similarWords?: string[] | null;
   loading?: boolean;
@@ -96,6 +97,7 @@ export function WordCardDetails({
   englishDefinition,
   meanings,
   example_translations,
+  phrase_translations,
   family,
   similarWords,
   loading = false,
@@ -253,6 +255,7 @@ export function WordCardDetails({
                 userLanguage={userLanguage}
                 register={register}
                 englishDefinition={englishDefinition}
+                phraseTranslations={phrase_translations}
                 compact
               />
               {!chunksOnly ? (

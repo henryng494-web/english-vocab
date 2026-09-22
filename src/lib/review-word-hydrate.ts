@@ -73,6 +73,9 @@ export function mergeReviewLearnerContent(
   if (patch.example_translations) {
     next = { ...next, example_translations: patch.example_translations };
   }
+  if (patch.phrase_translations) {
+    next = { ...next, phrase_translations: patch.phrase_translations };
+  }
   if (patch.word_type?.trim()) {
     next = { ...next, word_type: patch.word_type.trim() };
   }

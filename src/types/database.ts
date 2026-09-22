@@ -1,6 +1,7 @@
 import type {
   ExampleTranslationsJson,
   LocalizedMeaningsJson,
+  PhraseTranslationsJson,
 } from "@/types/word-content";
 
 export type LearningStatus = "new" | "learning" | "need_review" | "mastered";
@@ -26,6 +27,8 @@ export type WordDetail = {
   meanings?: LocalizedMeaningsJson | null;
   /** Index-aligned with parsed `examples`: `[ { "vi": "...", "es": "..." }, ... ]`. */
   example_translations?: ExampleTranslationsJson | null;
+  /** Goes-with / useful phrase glosses per locale (`collocations`, `chunks`). */
+  phrase_translations?: PhraseTranslationsJson | null;
   collocations: string | null;
   image_url: string | null;
 };
@@ -63,6 +66,7 @@ export type Database = {
           examples: string;
           meanings?: LocalizedMeaningsJson | null;
           example_translations?: ExampleTranslationsJson | null;
+          phrase_translations?: PhraseTranslationsJson | null;
           collocations?: string | null;
           image_url?: string | null;
         };

@@ -109,6 +109,7 @@ export async function prefetchWordsLocaleInBackground(
           examples: payload.examples,
           meanings: payload.meanings,
           example_translations: payload.example_translations,
+          phrase_translations: payload.phrase_translations ?? undefined,
           vietnamese_meaning: payload.vietnamese_meaning,
         })
         .eq("word", word);

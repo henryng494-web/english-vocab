@@ -225,6 +225,20 @@ export function englishOnlyExamplesSerialized(
   );
 }
 
+export function hasValidExampleTranslationForLanguage(
+  record: Pick<MultilangWordRecord, "examples" | "example_translations">,
+  index: number,
+  userLanguage: UserLanguage,
+): boolean {
+  if (userLanguage === "vi") {
+    const tr = record.example_translations[index]?.vi?.trim();
+    return Boolean(tr && isLikelyVietnameseGloss(tr));
+  }
+  const tr = record.example_translations[index]?.[userLanguage]?.trim();
+  if (tr && !isLikelyVietnameseGloss(tr)) return true;
+  return false;
+}
+
 export function recordNeedsExampleTranslationsForLanguage(
   record: Pick<MultilangWordRecord, "examples" | "example_translations">,
   userLanguage: UserLanguage,
@@ -232,14 +246,12 @@ export function recordNeedsExampleTranslationsForLanguage(
   if (userLanguage === "vi") return false;
   const parsed = parseExamples(record.examples);
   if (!parsed.length) return false;
-  return parsed.some((_, index) => {
-    const row = record.example_translations[index];
-    const tr = row?.[userLanguage]?.trim();
-    if (tr && !isLikelyVietnameseGloss(tr)) return false;
-    const legacy = parsed[index]?.vi?.trim();
-    if (legacy && isLikelyVietnameseGloss(legacy)) return true;
-    return !tr;
-  });
+  for (let index = 0; index < parsed.length; index += 1) {
+    if (!hasValidExampleTranslationForLanguage(record, index, userLanguage)) {
+      return true;
+    }
+  }
+  return false;
 }
 
 export function setMeaningForLanguage(

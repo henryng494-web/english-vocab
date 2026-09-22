@@ -20,12 +20,20 @@ import {
   setCachedSupplementCollocations,
 } from "@/lib/learning-chunk-supplement-cache";
 import { useAppSettings } from "@/context/AppSettingsContext";
-import { isLikelyVietnameseGloss } from "@/lib/example-quality";
+import {
+  phraseNeedsLocaleTranslation,
+  stripWrongLocalePhraseTranslations,
+} from "@/lib/phrase-locale";
+import {
+  applyStoredPhraseTranslations,
+  parsePhraseTranslationsJson,
+} from "@/lib/phrase-translations";
 import {
   DEFAULT_LEARNER_LOCALE,
   type LearnerLocale,
 } from "@/lib/learner-locale";
 import type { WordRegister } from "@/lib/word-meanings";
+import type { PhraseTranslationsJson } from "@/types/word-content";
 
 type UseLearningChunkTranslationsArgs = {
   word: string;
@@ -34,20 +42,9 @@ type UseLearningChunkTranslationsArgs = {
   meaning?: string | null;
   register?: WordRegister | null;
   englishDefinition?: string | null;
+  phraseTranslations?: PhraseTranslationsJson | null;
   entry: LearningChunkEntry | null;
 };
-
-function phrasesWithoutForeignVi(
-  items: LearningChunkPhrase[],
-  locale: LearnerLocale,
-): LearningChunkPhrase[] {
-  if (locale === "vi") return items;
-  return items.map((item) => ({
-    ...item,
-    vi:
-      item.vi?.trim() && !isLikelyVietnameseGloss(item.vi) ? item.vi.trim() : "",
-  }));
-}
 
 function mergeCollocationVi(
   base: LearningChunkPhrase[],
@@ -57,8 +54,8 @@ function mergeCollocationVi(
     translated.map((item) => [item.en.trim().toLowerCase(), item.vi]),
   );
   return base.map((item) => {
-    const vi = item.vi.trim() || byEn.get(item.en.trim().toLowerCase()) || "";
-    return vi ? { ...item, vi } : item;
+    const vi = byEn.get(item.en.trim().toLowerCase())?.trim() || "";
+    return vi ? { ...item, vi } : { ...item, vi: "" };
   });
 }
 
@@ -69,6 +66,46 @@ function entrySeedKey(word: string, entry: LearningChunkEntry | null): string {
   return `${word.trim().toLowerCase()}::${col}::${chunks}`;
 }
 
+async function fetchPhraseTranslations(
+  word: string,
+  phrases: LearningChunkPhrase[],
+  options: {
+    wordType?: string | null;
+    meaning?: string | null;
+    register?: WordRegister | null;
+    englishDefinition?: string | null;
+    learnerLocale: LearnerLocale;
+  },
+): Promise<LearningChunkPhrase[] | null> {
+  if (!phrases.length) return null;
+  const response = await fetch("/api/learning-chunks/translate", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      word,
+      wordType: options.wordType,
+      meaning: options.meaning,
+      register: options.register,
+      englishDefinition: options.englishDefinition,
+      learnerLocale: options.learnerLocale,
+      phrases: phrases.map((item) => ({
+        en: item.en,
+        contextEn: item.en,
+        contextVi: item.vi,
+        sense: item.sense,
+      })),
+    }),
+  });
+  if (!response.ok) return null;
+  const data = (await response.json()) as {
+    translations?: LearningChunkPhrase[];
+  };
+  const translated = data.translations?.filter(
+    (item) => item.en?.trim() && item.vi?.trim(),
+  );
+  return translated?.length ? translated : null;
+}
+
 export function useLearningChunkTranslations({
   word,
   examples,
@@ -76,10 +113,24 @@ export function useLearningChunkTranslations({
   meaning,
   register,
   englishDefinition,
+  phraseTranslations,
   entry,
-}: UseLearningChunkTranslationsArgs): LearningChunkEntry | null {
+}: UseLearningChunkTranslationsArgs): {
+  entry: LearningChunkEntry | null;
+  localeLoading: boolean;
+} {
   const { learnerLocale } = useAppSettings();
-  const seedKey = useMemo(() => entrySeedKey(word, entry), [word, entry]);
+  const storedPhrases = useMemo(
+    () => parsePhraseTranslationsJson(phraseTranslations),
+    [phraseTranslations],
+  );
+
+  const seededEntry = useMemo(() => {
+    if (!entry) return null;
+    return applyStoredPhraseTranslations(entry, storedPhrases, learnerLocale);
+  }, [entry, storedPhrases, learnerLocale]);
+
+  const seedKey = useMemo(() => entrySeedKey(word, seededEntry), [word, seededEntry]);
 
   const isOverride = useMemo(() => {
     const key = word.trim().toLowerCase();
@@ -87,37 +138,51 @@ export function useLearningChunkTranslations({
   }, [word]);
 
   const cachedCollocations = useMemo(
-    () => resolveHydratedCollocations(word, entry, isOverride),
-    [word, entry, isOverride, seedKey],
+    () =>
+      stripWrongLocalePhraseTranslations(
+        resolveHydratedCollocations(word, seededEntry, isOverride),
+        learnerLocale,
+      ),
+    [word, seededEntry, isOverride, learnerLocale, seedKey],
   );
 
   const [collocations, setCollocations] =
     useState<LearningChunkPhrase[]>(cachedCollocations);
   const [chunks, setChunks] = useState<LearningChunkPhrase[]>(
-    phrasesWithoutForeignVi(entry?.chunks ?? [], learnerLocale),
+    stripWrongLocalePhraseTranslations(seededEntry?.chunks ?? [], learnerLocale),
   );
+  const [localeLoading, setLocaleLoading] = useState(false);
   const hydratedKeyRef = useRef<string | null>(null);
   const supplementedKeyRef = useRef<string | null>(null);
   const chunkLocaleKeyRef = useRef<string | null>(null);
 
   useEffect(() => {
-    setCollocations(resolveHydratedCollocations(word, entry, isOverride));
-    setChunks(phrasesWithoutForeignVi(entry?.chunks ?? [], learnerLocale));
+    setCollocations(
+      stripWrongLocalePhraseTranslations(
+        resolveHydratedCollocations(word, seededEntry, isOverride),
+        learnerLocale,
+      ),
+    );
+    setChunks(
+      stripWrongLocalePhraseTranslations(seededEntry?.chunks ?? [], learnerLocale),
+    );
     hydratedKeyRef.current = null;
     supplementedKeyRef.current = null;
     chunkLocaleKeyRef.current = null;
-  }, [seedKey, word, entry, isOverride, learnerLocale]);
+  }, [seedKey, word, seededEntry, isOverride, learnerLocale]);
 
   useEffect(() => {
-    if (!entry || isOverride) return;
-    if (entry.collocations.length > 0) return;
-    if (!entry.chunks.length) return;
+    if (!seededEntry || isOverride) return;
+    if (seededEntry.collocations.length > 0) return;
+    if (!seededEntry.chunks.length) return;
     if (supplementedKeyRef.current === seedKey) return;
 
-    const usefulPhrase = entry.chunks[0];
+    const usefulPhrase = seededEntry.chunks[0];
     const cached = getCachedSupplementCollocations(word, []);
     if (cached?.length) {
-      setCollocations(cached);
+      setCollocations(
+        stripWrongLocalePhraseTranslations(cached, learnerLocale),
+      );
       supplementedKeyRef.current = seedKey;
       hydratedKeyRef.current = seedKey;
       return;
@@ -156,7 +221,9 @@ export function useLearningChunkTranslations({
         if (!supplemented?.length || cancelled) return;
 
         setCachedSupplementCollocations(word, [], supplemented);
-        setCollocations(supplemented);
+        setCollocations(
+          stripWrongLocalePhraseTranslations(supplemented, learnerLocale),
+        );
         supplementedKeyRef.current = seedKey;
         hydratedKeyRef.current = seedKey;
       } catch {
@@ -173,20 +240,27 @@ export function useLearningChunkTranslations({
     meaning,
     register,
     englishDefinition,
-    entry,
+    seededEntry,
     seedKey,
     isOverride,
     learnerLocale,
   ]);
 
   useEffect(() => {
-    if (!entry || isOverride) return;
+    if (!seededEntry || isOverride) return;
+    if (learnerLocale === DEFAULT_LEARNER_LOCALE) return;
     if (hydratedKeyRef.current === seedKey) return;
 
-    const baseCollocations = resolveHydratedCollocations(word, entry, false);
-    const pending = entry.collocations.filter((item) => !item.vi.trim());
+    const pending = seededEntry.collocations.filter((item) =>
+      phraseNeedsLocaleTranslation(item, learnerLocale),
+    );
     if (!pending.length) {
-      setCollocations(baseCollocations);
+      setCollocations(
+        stripWrongLocalePhraseTranslations(
+          resolveHydratedCollocations(word, seededEntry, false),
+          learnerLocale,
+        ),
+      );
       hydratedKeyRef.current = seedKey;
       return;
     }
@@ -197,35 +271,72 @@ export function useLearningChunkTranslations({
       learnerLocale,
     );
     if (cachedTranslations?.length) {
-      setCollocations(mergeCollocationVi(entry.collocations, cachedTranslations));
+      setCollocations(
+        stripWrongLocalePhraseTranslations(
+          mergeCollocationVi(seededEntry.collocations, cachedTranslations),
+          learnerLocale,
+        ),
+      );
       hydratedKeyRef.current = seedKey;
       return;
     }
 
     let cancelled = false;
+    setLocaleLoading(true);
 
-    void prefetchLearningChunkContent({
-      word,
-      word_type: wordType,
-      vietnamese_meaning: meaning,
-      english_definition: englishDefinition,
-      examples,
-      register,
-      collocations: null,
-    }).then(() => {
-      if (cancelled) return;
-      const warmed = getCachedCollocationTranslations(
-        word,
-        pending,
-        learnerLocale,
-      );
-      if (!warmed?.length) return;
-      setCollocations(mergeCollocationVi(entry.collocations, warmed));
-      hydratedKeyRef.current = seedKey;
-    });
+    void (async () => {
+      try {
+        const translated = await fetchPhraseTranslations(word, pending, {
+          wordType,
+          meaning,
+          register,
+          englishDefinition,
+          learnerLocale,
+        });
+        if (cancelled) return;
+        if (translated?.length) {
+          setCachedCollocationTranslations(word, pending, translated, learnerLocale);
+          setCollocations(
+            stripWrongLocalePhraseTranslations(
+              mergeCollocationVi(seededEntry.collocations, translated),
+              learnerLocale,
+            ),
+          );
+          hydratedKeyRef.current = seedKey;
+          return;
+        }
+        void prefetchLearningChunkContent({
+          word,
+          word_type: wordType,
+          vietnamese_meaning: meaning,
+          english_definition: englishDefinition,
+          examples,
+          register,
+          collocations: null,
+        }).then(() => {
+          if (cancelled) return;
+          const warmed = getCachedCollocationTranslations(
+            word,
+            pending,
+            learnerLocale,
+          );
+          if (!warmed?.length) return;
+          setCollocations(
+            stripWrongLocalePhraseTranslations(
+              mergeCollocationVi(seededEntry.collocations, warmed),
+              learnerLocale,
+            ),
+          );
+          hydratedKeyRef.current = seedKey;
+        });
+      } finally {
+        if (!cancelled) setLocaleLoading(false);
+      }
+    })();
 
     return () => {
       cancelled = true;
+      setLocaleLoading(false);
     };
   }, [
     word,
@@ -234,23 +345,27 @@ export function useLearningChunkTranslations({
     meaning,
     register,
     englishDefinition,
-    entry,
+    seededEntry,
     seedKey,
     isOverride,
     learnerLocale,
   ]);
 
   useEffect(() => {
-    if (!entry?.chunks.length || learnerLocale === "vi") {
-      setChunks(phrasesWithoutForeignVi(entry?.chunks ?? [], learnerLocale));
+    if (!seededEntry?.chunks.length || learnerLocale === DEFAULT_LEARNER_LOCALE) {
+      setChunks(
+        stripWrongLocalePhraseTranslations(seededEntry?.chunks ?? [], learnerLocale),
+      );
       return;
     }
 
-    const needsRefresh = entry.chunks.some(
-      (item) => item.vi?.trim() && isLikelyVietnameseGloss(item.vi),
+    const pending = seededEntry.chunks.filter((item) =>
+      phraseNeedsLocaleTranslation(item, learnerLocale),
     );
-    if (!needsRefresh) {
-      setChunks(phrasesWithoutForeignVi(entry.chunks, learnerLocale));
+    if (!pending.length) {
+      setChunks(
+        stripWrongLocalePhraseTranslations(seededEntry.chunks, learnerLocale),
+      );
       return;
     }
 
@@ -259,57 +374,62 @@ export function useLearningChunkTranslations({
 
     const cached = getCachedCollocationTranslations(
       word,
-      entry.chunks,
+      pending,
       learnerLocale,
     );
     if (cached?.length) {
-      setChunks(mergeCollocationVi(entry.chunks, cached));
+      setChunks(
+        stripWrongLocalePhraseTranslations(
+          mergeCollocationVi(seededEntry.chunks, cached),
+          learnerLocale,
+        ),
+      );
       chunkLocaleKeyRef.current = localeKey;
       return;
     }
 
     let cancelled = false;
+    setLocaleLoading(true);
 
-    (async () => {
+    void (async () => {
       try {
-        const response = await fetch("/api/learning-chunks/translate", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            word,
-            wordType,
-            meaning,
-            register,
-            englishDefinition,
-            learnerLocale,
-            phrases: entry.chunks.map((item) => ({
-              en: item.en,
-              contextEn: item.en,
-              contextVi: item.vi,
-              sense: item.sense,
-            })),
-          }),
+        const translated = await fetchPhraseTranslations(word, pending, {
+          wordType,
+          meaning,
+          register,
+          englishDefinition,
+          learnerLocale,
         });
-        if (!response.ok || cancelled) return;
-        const data = (await response.json()) as {
-          translations?: LearningChunkPhrase[];
-        };
-        const translated = data.translations?.filter(
-          (item) => item.en?.trim() && item.vi?.trim(),
+        if (cancelled || !translated?.length) {
+          if (!cancelled) {
+            setChunks(
+              stripWrongLocalePhraseTranslations(seededEntry.chunks, learnerLocale),
+            );
+          }
+          return;
+        }
+        setCachedCollocationTranslations(word, pending, translated, learnerLocale);
+        setChunks(
+          stripWrongLocalePhraseTranslations(
+            mergeCollocationVi(seededEntry.chunks, translated),
+            learnerLocale,
+          ),
         );
-        if (!translated?.length || cancelled) return;
-        setCachedCollocationTranslations(word, entry.chunks, translated, learnerLocale);
-        setChunks(mergeCollocationVi(entry.chunks, translated));
         chunkLocaleKeyRef.current = localeKey;
       } catch {
         if (!cancelled) {
-          setChunks(phrasesWithoutForeignVi(entry.chunks, learnerLocale));
+          setChunks(
+            stripWrongLocalePhraseTranslations(seededEntry.chunks, learnerLocale),
+          );
         }
+      } finally {
+        if (!cancelled) setLocaleLoading(false);
       }
     })();
 
     return () => {
       cancelled = true;
+      setLocaleLoading(false);
     };
   }, [
     word,
@@ -317,15 +437,20 @@ export function useLearningChunkTranslations({
     meaning,
     register,
     englishDefinition,
-    entry,
+    seededEntry,
     seedKey,
     learnerLocale,
   ]);
 
-  if (!entry) return null;
+  if (!seededEntry) {
+    return { entry: null, localeLoading: false };
+  }
 
   return {
-    collocations,
-    chunks,
+    entry: {
+      collocations,
+      chunks,
+    },
+    localeLoading,
   };
 }

@@ -80,6 +80,8 @@ export function mapApiWordToDiscoverData(
     meanings: apiWord.meanings as DiscoverWordData["meanings"],
     example_translations:
       apiWord.example_translations as DiscoverWordData["example_translations"],
+    phrase_translations:
+      apiWord.phrase_translations as DiscoverWordData["phrase_translations"],
     image_url: (apiWord.image_url as string | null | undefined) ?? null,
     collocations: apiWord.collocations as string | null | undefined,
     register: resolveWordRegister({

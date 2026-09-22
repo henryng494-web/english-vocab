@@ -35,6 +35,9 @@ export type DiscoverWordData = {
   example_translations?:
     | import("@/types/word-content").ExampleTranslationsJson
     | null;
+  phrase_translations?:
+    | import("@/types/word-content").PhraseTranslationsJson
+    | null;
 };
 
 type DiscoverCardProps = {
@@ -152,6 +155,7 @@ export function DiscoverCard({
           englishDefinition={cardData.english_definition}
           meanings={cardData.meanings}
           example_translations={cardData.example_translations}
+          phrase_translations={cardData.phrase_translations}
           family={wordFamily}
           similarWords={cardData.similar_words}
           loading={detailsLoading}

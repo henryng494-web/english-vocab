@@ -14,6 +14,7 @@ import {
   getCachedSupplementCollocations,
   setCachedSupplementCollocations,
 } from "@/lib/learning-chunk-supplement-cache";
+import { phraseNeedsLocaleTranslation } from "@/lib/phrase-locale";
 import { resolveWordRegister } from "@/lib/word-meanings";
 
 type ChunkPrefetchInput = Pick<
@@ -55,10 +56,11 @@ export function resolveHydratedCollocations(
     if (supplemented?.length) collocations = supplemented;
   }
 
-  const pending = collocations.filter((item) => !item.vi.trim());
-  if (!pending.length) return collocations;
-
   const locale = readAppSettings().learnerLocale;
+  const pending = collocations.filter((item) =>
+    phraseNeedsLocaleTranslation(item, locale),
+  );
+  if (!pending.length) return collocations;
   const cached = getCachedCollocationTranslations(word, pending, locale);
   if (cached?.length) return mergeCollocationVi(collocations, cached);
 
@@ -129,7 +131,9 @@ async function prefetchCollocationTranslations(
   data: ChunkPrefetchInput,
   entry: { collocations: LearningChunkPhrase[]; chunks: LearningChunkPhrase[] },
 ): Promise<void> {
-  const pending = entry.collocations.filter((item) => !item.vi.trim());
+  const pending = entry.collocations.filter((item) =>
+    phraseNeedsLocaleTranslation(item, learnerLocale),
+  );
   if (!pending.length) return;
 
   const learnerLocale = readAppSettings().learnerLocale;

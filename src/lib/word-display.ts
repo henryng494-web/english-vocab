@@ -1,4 +1,4 @@
-import { isLikelyVietnameseGloss } from "@/lib/example-quality";
+import { phraseTranslationForLocale } from "@/lib/phrase-locale";
 import { coerceMultilangRecord } from "@/lib/discover-word-multilang";
 import {
   pickExampleTranslation,
@@ -35,12 +35,7 @@ export function translationLineForUserLanguage(
   text: string | null | undefined,
   userLanguage: UserLanguage,
 ): string | null {
-  const trimmed = text?.trim() ?? "";
-  if (!trimmed) return null;
-  if (userLanguage === "vi") {
-    return isLikelyVietnameseGloss(trimmed) ? trimmed : null;
-  }
-  return isLikelyVietnameseGloss(trimmed) ? null : trimmed;
+  return phraseTranslationForLocale({ vi: text ?? "" }, userLanguage);
 }
 
 export function exampleTranslationForUserLanguage(

@@ -15,6 +15,16 @@ export type LocalizedMeaningsJson = LocalizedMeanings;
 /** Parallel to English examples — index-aligned translation rows. */
 export type ExampleTranslationsJson = Array<Partial<Record<UserLanguage, string>>>;
 
+/** Goes-with + useful phrase glosses keyed by English line. */
+export type PhraseTranslationRow = { en: string } & Partial<
+  Record<UserLanguage, string>
+>;
+
+export type PhraseTranslationsJson = {
+  collocations?: PhraseTranslationRow[];
+  chunks?: PhraseTranslationRow[];
+};
+
 export type LocalizedExample = {
   /** English sentence (learning language). */
   sentence: string;

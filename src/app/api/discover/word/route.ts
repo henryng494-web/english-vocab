@@ -22,6 +22,11 @@ import {
 } from "@/lib/unsplash";
 import { isClosedClassWord } from "@/lib/word-image-strategy";
 import { isExcludedVocabWord } from "@/lib/proper-noun";
+import {
+  buildLocaleBackfillPayload,
+  hydratePhraseTranslations,
+  wordDetailNeedsLocaleBackfill,
+} from "@/lib/backfill-word-detail-locale";
 import { localizeWordContent } from "@/lib/localize-word-content";
 import {
   dbPayloadFromMultilangRecord,
@@ -94,6 +99,26 @@ async function applyLearnerLocaleFields(
   detail: WordDetail,
   locale: LearnerLocale,
 ) {
+  if (
+    locale !== DEFAULT_LEARNER_LOCALE &&
+    wordDetailNeedsLocaleBackfill(detail, locale) &&
+    process.env.GEMINI_API_KEY?.trim()
+  ) {
+    const full = await buildLocaleBackfillPayload(detail, locale);
+    if (full) {
+      const merged = migrateLegacyWordDetail({ ...detail, ...full });
+      return {
+        meanings: merged.meanings,
+        example_translations: merged.example_translations,
+        examples: merged.examples,
+        record: merged,
+        vietnamese_meaning:
+          pickPrimaryMeaning(merged, locale) ?? merged.meanings[locale],
+        phrase_translations: full.phrase_translations ?? null,
+      };
+    }
+  }
+
   const record = migrateLegacyWordDetail(detail);
   const viMeaning =
     sanitizeVietnameseText(record.meanings.vi ?? detail.vietnamese_meaning) ||
@@ -117,11 +142,26 @@ async function applyLearnerLocaleFields(
     example_translations: patch.example_translations,
     examples: patch.examples ?? record.examples,
   };
+  const glossForPhrases =
+    pickPrimaryMeaning(merged, locale) ??
+    patch.active_gloss ??
+    viMeaning ??
+    detail.word;
+  const phrase_translations =
+    locale === DEFAULT_LEARNER_LOCALE
+      ? detail.phrase_translations ?? null
+      : await hydratePhraseTranslations(
+          detail,
+          merged,
+          locale,
+          glossForPhrases,
+        );
   return {
     ...patch,
     record: merged,
     vietnamese_meaning: pickPrimaryMeaning(merged, locale) ?? patch.active_gloss,
     examples: patch.examples,
+    phrase_translations,
   };
 }
 
@@ -136,6 +176,7 @@ function persistedDetailToDiscoverWord(
     examples: string | null;
     meanings?: WordDetail["meanings"];
     example_translations?: WordDetail["example_translations"];
+    phrase_translations?: WordDetail["phrase_translations"];
   },
 ) {
   const record = migrateLegacyWordDetail(detail);
@@ -171,6 +212,8 @@ function persistedDetailToDiscoverWord(
     from_cache: true,
     source: "database" as const,
     search_keyword: searchKeyword,
+    phrase_translations:
+      localized?.phrase_translations ?? detail.phrase_translations ?? null,
   });
 }
 
@@ -310,6 +353,7 @@ async function persistEnrichedWordDetail(
     image_url: string | null;
     meanings?: WordDetail["meanings"];
     example_translations?: WordDetail["example_translations"];
+    phrase_translations?: WordDetail["phrase_translations"];
   },
 ): Promise<void> {
   try {
@@ -461,6 +505,7 @@ export async function GET(request: Request) {
           image_url: dbPayload.image_url ?? null,
           meanings: dbPayload.meanings ?? undefined,
           example_translations: dbPayload.example_translations ?? undefined,
+          phrase_translations: localized.phrase_translations ?? undefined,
         });
       }
       return NextResponse.json({
@@ -471,10 +516,11 @@ export async function GET(request: Request) {
           imageUrl,
           searchKeyword,
           {
-            vietnamese_meaning: localized.vietnamese_meaning,
-            examples: localized.examples,
+            vietnamese_meaning: localized.vietnamese_meaning ?? null,
+            examples: localized.examples ?? null,
             meanings: localized.meanings,
             example_translations: localized.example_translations,
+            phrase_translations: localized.phrase_translations,
           },
         ),
       });
@@ -641,6 +687,7 @@ export async function GET(request: Request) {
           image_url: dbPayload.image_url ?? persistPayload.image_url,
           meanings: dbPayload.meanings ?? undefined,
           example_translations: dbPayload.example_translations ?? undefined,
+          phrase_translations: localizedEs.phrase_translations ?? undefined,
         });
       }
     } else {
@@ -685,10 +732,11 @@ export async function GET(request: Request) {
         imageUrl,
         searchKeyword,
         {
-          vietnamese_meaning: localizedOut.vietnamese_meaning,
-          examples: localizedOut.examples,
+          vietnamese_meaning: localizedOut.vietnamese_meaning ?? null,
+          examples: localizedOut.examples ?? null,
           meanings: localizedOut.meanings,
           example_translations: localizedOut.example_translations,
+          phrase_translations: localizedOut.phrase_translations,
         },
       ),
     });
