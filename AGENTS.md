@@ -59,7 +59,8 @@ src/
 - **Discover API:** `src/app/api/discover/word/route.ts`
 - **Word image API:** `src/app/api/word-image/route.ts` (fast stock lookup, no Gemini)
 - **Stock image pipeline:** `src/lib/unsplash.ts` (`fetchWordImageUrl`, `SEMANTIC_IMAGE_VERSION`)
-- **Client cache:** `src/lib/discover-word-cache.ts` (key `discover-word-cache-v89`)
+- **Client cache:** `src/lib/discover-word-cache.ts` (key `discover-word-cache-v106`, entries `locale:word`)
+- **Learner content stores (vi | es):** `src/lib/learner-content/` — menu language selects active store; ES bundled overrides in `src/data/learner-stores/es/overrides.ts`
 
 ## Locked flashcard UI — do not change layout
 

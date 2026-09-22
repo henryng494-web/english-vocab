@@ -8,12 +8,12 @@ export const SPANISH_MESSAGE_OVERRIDES: Record<string, string> = {
 
   "menu.title": "Menú",
   "menu.close": "Cerrar",
-  "menu.language": "Idioma",
+  "menu.language": "Idioma de estudio",
   "menu.languageHint":
-    "Idioma de la interfaz y de las traducciones en las tarjetas.",
+    "Elige el almacén de contenido (significados, ejemplos, repaso) para Recorrido, Repaso y Biblioteca.",
   "menu.learnerLocale": "Idioma de estudio",
   "menu.learnerLocaleHint":
-    "Idioma de las definiciones y ejemplos en las tarjetas.",
+    "Elige el almacén de contenido (significados, ejemplos, repaso) para Recorrido, Repaso y Biblioteca.",
   "menu.learnerLocaleVi": "Tiếng Việt",
   "menu.learnerLocaleEs": "Español",
   "menu.langVi": "Tiếng Việt",

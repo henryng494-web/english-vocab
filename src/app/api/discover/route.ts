@@ -7,6 +7,11 @@ import {
   hasStaticWordDetail,
 } from "@/data/preset-word-details";
 import { standardToDiscoverFields } from "@/lib/enrichment-helpers";
+import {
+  getBundledLearnerContent,
+  hasBundledLearnerGloss,
+} from "@/lib/learner-content";
+import { parseLearnerLocale } from "@/lib/learner-locale";
 import { hasStaticVietnamese } from "@/lib/static-vietnamese";
 import { serializeExamples } from "@/lib/parse-examples";
 import { isExcludedVocabWord } from "@/lib/proper-noun";
@@ -28,6 +33,7 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const rangeId = searchParams.get("range") ?? "1-100";
+    const learnerLocale = parseLearnerLocale(searchParams.get("locale"));
     const range = getRangeById(rangeId);
 
     if (!range) {
@@ -61,32 +67,48 @@ export async function GET(request: Request) {
       const hasStatic = Boolean(staticDetail) || Boolean(standardFields);
       const hasVi = hasStaticVietnamese(preset.word);
 
-      const preview = standardFields
-        ? {
-            phonetic: standardFields.phonetic,
-            word_type: standardFields.word_type,
-            vietnamese_meaning: standardFields.vietnamese_meaning,
-            english_definition: standardFields.english_definition,
-            examples: standardFields.examples,
-            search_keyword: standardFields.search_keyword,
-          }
-        : staticDetail
+      const bundled = getBundledLearnerContent(preset.word, learnerLocale);
+      const preview =
+        bundled?.vietnamese_meaning?.trim()
           ? {
-              phonetic: staticDetail.ipa,
-              word_type: staticDetail.pos,
-              vietnamese_meaning: staticDetail.vietnamese,
-              english_definition: staticDetail.definition,
-              examples: serializeExamples(staticDetail.examples),
-              search_keyword: preset.word,
+              phonetic: bundled.phonetic,
+              word_type: bundled.word_type,
+              vietnamese_meaning: bundled.vietnamese_meaning,
+              english_definition: bundled.english_definition,
+              examples: bundled.examples,
+              search_keyword: bundled.search_keyword ?? preset.word,
             }
-          : null;
+          : learnerLocale === "vi"
+            ? standardFields
+              ? {
+                  phonetic: standardFields.phonetic,
+                  word_type: standardFields.word_type,
+                  vietnamese_meaning: standardFields.vietnamese_meaning,
+                  english_definition: standardFields.english_definition,
+                  examples: standardFields.examples,
+                  search_keyword: standardFields.search_keyword,
+                }
+              : staticDetail
+                ? {
+                    phonetic: staticDetail.ipa,
+                    word_type: staticDetail.pos,
+                    vietnamese_meaning: staticDetail.vietnamese,
+                    english_definition: staticDetail.definition,
+                    examples: serializeExamples(staticDetail.examples),
+                    search_keyword: preset.word,
+                  }
+                : null
+            : null;
+
+      const hasLearnerGloss =
+        hasBundledLearnerGloss(preset.word, learnerLocale) || hasVi;
 
       return {
         word: preset.word,
         rank: preset.rank,
         importance_tier: getImportanceTier(preset.rank),
         from_static: hasStatic,
-        has_vietnamese: hasVi,
+        has_vietnamese: hasLearnerGloss,
         needs_fetch: !hasStatic,
         family_members: getFamilyMembers(preset.word),
         preview,

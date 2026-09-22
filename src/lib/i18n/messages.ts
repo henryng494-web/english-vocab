@@ -21,11 +21,12 @@ export const messages = {
 
     "menu.title": "Menu",
     "menu.close": "Đóng",
-    "menu.language": "Ngôn ngữ app",
-    "menu.languageHint": "Chọn ngôn ngữ giao diện (menu, nút, nhãn).",
+    "menu.language": "Ngôn ngữ học",
+    "menu.languageHint":
+      "Chọn kho nội dung (nghĩa, ví dụ, ôn tập) cho Hành trình, Ôn tập và Thư viện.",
     "menu.learnerLocale": "Ngôn ngữ học",
     "menu.learnerLocaleHint":
-      "Ngôn ngữ cho nghĩa từ và bản dịch câu ví dụ trên thẻ.",
+      "Chọn kho nội dung (nghĩa, ví dụ, ôn tập) cho Hành trình, Ôn tập và Thư viện.",
     "menu.learnerLocaleVi": "Tiếng Việt",
     "menu.learnerLocaleEs": "Español",
     "menu.langVi": "Tiếng Việt",

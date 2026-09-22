@@ -12,7 +12,8 @@ import {
   type WordLibraryFilter,
   type WordLibrarySort,
 } from "@/lib/learning-storage";
-import { getStaticVietnamese } from "@/lib/static-vietnamese";
+import { useAppSettings } from "@/context/AppSettingsContext";
+import { getLearnerContentRepository } from "@/lib/learner-content";
 import type { LearningStatus } from "@/types/database";
 
 function WordLibraryFilterTabs({
@@ -51,6 +52,7 @@ function WordsPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { t } = useI18n();
+  const { learnerLocale } = useAppSettings();
   const filter = parseFilter(searchParams.get("filter"));
   const sort = parseSort(searchParams.get("sort"));
   const [tick, setTick] = useState(0);
@@ -101,13 +103,14 @@ function WordsPageContent() {
 
   const rows = useMemo(() => {
     void tick;
+    const repo = getLearnerContentRepository(learnerLocale);
     return getLocalWordsByFilter(filter, sort).map((entry) => ({
       word: entry.word,
-      subtitle: getStaticVietnamese(entry.word) ?? null,
+      subtitle: repo.listSubtitle(entry.word),
       badge:
         filter === "review" ? statusBadge(entry.status, t) : t("status.known"),
     }));
-  }, [filter, sort, t, tick]);
+  }, [filter, sort, t, tick, learnerLocale]);
 
   return (
     <>

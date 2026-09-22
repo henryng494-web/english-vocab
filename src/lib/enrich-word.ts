@@ -40,6 +40,7 @@ import { repairWordMeanings } from "@/lib/repair-word-meanings";
 
 export type { WordEnrichment } from "@/lib/gemini-core";
 
+import { enrichmentFromBundledStore } from "@/lib/learner-content/enrich-bundled";
 import type { LearnerLocale } from "@/lib/learner-locale";
 import { DEFAULT_LEARNER_LOCALE } from "@/lib/learner-locale";
 
@@ -300,7 +301,18 @@ export async function enrichWord(
     learnerLocale,
   };
 
-  // Prefer curated cards even during repair — forceGemini only bypasses incomplete entries.
+  if (learnerLocale !== DEFAULT_LEARNER_LOCALE) {
+    const fromBundledStore = enrichmentFromBundledStore(
+      normalized,
+      presetRank ?? 10000,
+      learnerLocale,
+    );
+    if (fromBundledStore && !options?.forceGemini) {
+      return fromBundledStore;
+    }
+  }
+
+  // Prefer curated VI cards even during repair — forceGemini only bypasses incomplete entries.
   if (
     learnerLocale === "vi" &&
     (!options?.forceGemini || hasQualityStandardVocab(normalized))

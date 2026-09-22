@@ -1,34 +1,21 @@
-import { getStaticWordDetail, getPresetRank } from "@/data/preset-word-details";
-import { hasQualityStandardVocab } from "@/data/standard-vocab";
+import { getPresetRank } from "@/data/preset-word-details";
+import { vocabWordToDiscoverData } from "@/components/discover/VocabWordCard";
 import { readAppSettings } from "@/lib/app-settings";
-import {
-  discoverCacheKeyForWord,
-  loadPersistedWordCache,
-} from "@/lib/discover-word-cache";
+import { getLearnerContentRepository } from "@/lib/learner-content";
 import {
   DEFAULT_LEARNER_LOCALE,
   isLearnerGlossDisplayReady,
   type LearnerLocale,
 } from "@/lib/learner-locale";
-import { standardToDiscoverFields } from "@/lib/enrichment-helpers";
 import { resolveImageSearchKeyword } from "@/lib/image-keyword";
 import { prefetchCardContent } from "@/lib/card-content-prefetch";
 import { examplesNeedLearnerLocaleRefresh } from "@/lib/localize-examples";
-import { parseExamples, serializeExamples } from "@/lib/parse-examples";
+import { parseExamples } from "@/lib/parse-examples";
 import {
   isPlaceholderIllustrationUrl,
   isRealCardImageUrl,
 } from "@/lib/unsplash";
 import type { VocabWord } from "@/types/database";
-
-let discoverCache: ReturnType<typeof loadPersistedWordCache> | null = null;
-
-function getDiscoverCache() {
-  if (!discoverCache) {
-    discoverCache = loadPersistedWordCache();
-  }
-  return discoverCache;
-}
 
 export function hasReviewClueFields(word: {
   english_definition?: string | null;
@@ -135,93 +122,9 @@ function mergeHydratedFields(
   return next;
 }
 
-/** Curated standard cards override stale DB meanings for review clues. */
-function applyCuratedReviewFields(word: VocabWord): VocabWord | null {
-  const learnerLocale =
-    typeof window !== "undefined"
-      ? readAppSettings().learnerLocale
-      : DEFAULT_LEARNER_LOCALE;
-  if (learnerLocale !== "vi") return null;
-
-  const key = word.word.trim().toLowerCase();
-  if (!hasQualityStandardVocab(key)) return null;
-
-  const standard = standardToDiscoverFields(key);
-  if (!standard || !hasReviewClueFields(standard)) return null;
-
-  const next: VocabWord = {
-    ...word,
-    phonetic: standard.phonetic || word.phonetic,
-    word_type: standard.word_type || word.word_type,
-    vietnamese_meaning: standard.vietnamese_meaning,
-    english_definition: standard.english_definition,
-    examples: standard.examples ?? word.examples,
-    search_keyword: standard.search_keyword || word.search_keyword,
-  };
-  if (!next.search_keyword?.trim()) {
-    next.search_keyword = resolveImageSearchKeyword(next.word, {
-      pos: next.word_type,
-      meaning: next.vietnamese_meaning,
-      englishDefinition: next.english_definition,
-      searchKeyword: next.search_keyword,
-    });
-  }
-  return next;
-}
-
-/** Instant clue/meaning from discover cache, curated vocab, or preset JSON. */
+/** Instant clue/meaning from the active learner content store (bundled + session cache). */
 export function hydrateReviewWordLocal(word: VocabWord): VocabWord {
-  const curated = applyCuratedReviewFields(word);
-  if (curated) return curated;
-
-  const learnerLocale = currentLearnerLocale();
-  if (isReviewClueReadyForLocale(word, learnerLocale)) return word;
-
-  const key = word.word.trim().toLowerCase();
-  const cached = getDiscoverCache().get(
-    discoverCacheKeyForWord(key, learnerLocale),
-  );
-  if (cached && isReviewClueReadyForLocale(cached, learnerLocale)) {
-    return mergeReviewLearnerContent(word, {
-      phonetic: cached.phonetic ?? "",
-      word_type: cached.word_type ?? "",
-      vietnamese_meaning: cached.vietnamese_meaning ?? "",
-      english_definition: cached.english_definition ?? "",
-      examples: cached.examples ?? "",
-      image_url: cached.image_url,
-      search_keyword: cached.search_keyword,
-    });
-  }
-
-  const standard = standardToDiscoverFields(key);
-  if (standard && learnerLocale === "vi" && hasReviewClueFields(standard)) {
-    return mergeHydratedFields(word, {
-      phonetic: standard.phonetic,
-      word_type: standard.word_type,
-      vietnamese_meaning: standard.vietnamese_meaning,
-      english_definition: standard.english_definition,
-      examples: standard.examples ?? "",
-      search_keyword: standard.search_keyword,
-    });
-  }
-
-  const preset = getStaticWordDetail(key);
-  if (preset && learnerLocale === "vi") {
-    return mergeHydratedFields(word, {
-      phonetic: preset.ipa,
-      word_type: preset.pos,
-      vietnamese_meaning: preset.vietnamese,
-      english_definition: preset.definition,
-      examples: serializeExamples(preset.examples),
-      search_keyword: resolveImageSearchKeyword(key, {
-        pos: preset.pos,
-        meaning: preset.vietnamese,
-        englishDefinition: preset.definition,
-      }),
-    });
-  }
-
-  return word;
+  return getLearnerContentRepository().hydrateVocabWord(word);
 }
 
 /** Gemini enrich via discover API when DB/local cache has no clue text. */
@@ -248,6 +151,11 @@ export async function fetchDiscoverWordEnrichment(
     const data = (await res.json()) as { word?: VocabWord };
     const enriched = data.word;
     if (!enriched || !hasReviewClueFields(enriched)) return null;
+    const merged: VocabWord = { ...word, ...enriched };
+    getLearnerContentRepository(learnerLocale).putCached(
+      key,
+      vocabWordToDiscoverData(merged),
+    );
     return {
       phonetic: enriched.phonetic,
       word_type: enriched.word_type,

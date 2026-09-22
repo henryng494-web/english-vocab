@@ -1,5 +1,6 @@
 import type { DiscoverWordData } from "@/components/discover/DiscoverCard";
 import { readAppSettings } from "@/lib/app-settings";
+import { getLearnerContentRepository } from "@/lib/learner-content";
 import { isCardContentReady } from "@/lib/discover-word-cache";
 import { resolveWordRegister } from "@/lib/word-meanings";
 import { DISCOVER_WORD_CACHE_VERSION, stubFromListItem } from "@/lib/discover-word-cache";
@@ -58,24 +59,7 @@ export function filterDiscoverQueue(
 }
 
 export function listItemToDiscoverData(item: DiscoverListItem): DiscoverWordData {
-  const base = stubFromListItem(item);
-  const preview = item.preview;
-  const learnerLocale = readAppSettings().learnerLocale;
-  if (learnerLocale !== "vi") {
-    return base;
-  }
-  if (!preview?.vietnamese_meaning?.trim()) {
-    return base;
-  }
-  return {
-    ...base,
-    phonetic: preview.phonetic,
-    word_type: preview.word_type ?? null,
-    vietnamese_meaning: preview.vietnamese_meaning,
-    english_definition: preview.english_definition ?? null,
-    examples: preview.examples ?? null,
-    search_keyword: preview.search_keyword ?? item.word,
-  };
+  return getLearnerContentRepository().listItemToCard(item);
 }
 
 export function mapApiWordToDiscoverData(
@@ -115,9 +99,11 @@ export async function fetchDiscoverRange(
   words: DiscoverListItem[];
   stats: DiscoverRangeStats;
 }> {
+  const learnerLocale = readAppSettings().learnerLocale;
   const params = new URLSearchParams({
     range: rangeId,
     cacheVersion: String(DISCOVER_WORD_CACHE_VERSION),
+    locale: learnerLocale,
   });
   const res = await fetch(`/api/discover?${params}`, { cache: "no-store" });
   const data = await res.json();
