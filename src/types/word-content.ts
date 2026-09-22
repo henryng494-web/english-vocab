@@ -9,6 +9,12 @@ export type CourseId = `en-${UserLanguage}`;
 
 export type LocalizedMeanings = Partial<Record<UserLanguage, string>>;
 
+/** Stored in DB / cache JSON (`meanings` column). */
+export type LocalizedMeaningsJson = LocalizedMeanings;
+
+/** Parallel to English examples — index-aligned translation rows. */
+export type ExampleTranslationsJson = Array<Partial<Record<UserLanguage, string>>>;
+
 export type LocalizedExample = {
   /** English sentence (learning language). */
   sentence: string;

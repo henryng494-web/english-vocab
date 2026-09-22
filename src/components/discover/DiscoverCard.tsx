@@ -29,6 +29,10 @@ export type DiscoverWordData = {
   word_family?: WordFamilyMember[] | null;
   family_members?: string[] | null;
   similar_words?: string[] | null;
+  meanings?: import("@/types/word-content").LocalizedMeaningsJson | null;
+  example_translations?:
+    | import("@/types/word-content").ExampleTranslationsJson
+    | null;
 };
 
 type DiscoverCardProps = {

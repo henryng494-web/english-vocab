@@ -177,6 +177,17 @@ export function ReviewScreen() {
   }, []);
 
   useEffect(() => {
+    const onCacheCleared = () => {
+      prefetchedChoicesRef.current.clear();
+      prefetchInflightRef.current.clear();
+      void reload();
+    };
+    window.addEventListener("word-content-cache-cleared", onCacheCleared);
+    return () =>
+      window.removeEventListener("word-content-cache-cleared", onCacheCleared);
+  }, [reload]);
+
+  useEffect(() => {
     if (!isDailySession || !isDailySessionPhase("review")) return;
     if (queue.length === 0) return;
     if (reviewInitialCountRef.current === 0) {
@@ -830,12 +841,7 @@ export function ReviewScreen() {
     const clozeReady =
       quizKind === "cloze"
         ? Boolean(
-            pickReviewClozeExample(
-              currentWord.word,
-              currentWord.examples,
-              currentWord.vietnamese_meaning,
-              currentWord.word_type,
-            ),
+            pickReviewClozeExample(currentWord, learnerLocale),
           )
         : false;
 

@@ -17,6 +17,7 @@ import {
   LEARNER_LOCALE_LABELS,
   type LearnerLocale,
 } from "@/lib/learner-locale";
+import { clearAllWordContentCaches } from "@/lib/word-content-cache-clear";
 import {
   DEFAULT_PRONOUNCE_SPEED,
   isPronounceSpeed,
@@ -189,6 +190,9 @@ export function writeAppSettings(next: AppSettings): void {
 
 export function patchAppSettings(patch: Partial<AppSettings>): AppSettings {
   const current = readAppSettings();
+  const localeChanged =
+    patch.learnerLocale !== undefined &&
+    patch.learnerLocale !== current.learnerLocale;
   let merged: Partial<AppSettings> = {
     ...current,
     ...patch,
@@ -206,6 +210,9 @@ export function patchAppSettings(patch: Partial<AppSettings>): AppSettings {
 
   const next = syncPairedLocales(normalizeAppSettings(merged));
   writeAppSettings(next);
+  if (localeChanged) {
+    clearAllWordContentCaches();
+  }
   return next;
 }
 

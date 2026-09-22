@@ -14,6 +14,7 @@ import {
 import { withWordFamily } from "@/lib/word-family-display";
 import { normalizeSimilarWords } from "@/lib/word-synonyms";
 import { getFamilyDisplayWords } from "@/lib/word-family";
+import { splitLegacyExamples } from "@/lib/multilang-word-record";
 
 export function enrichmentToDiscoverWord(
   word: string,
@@ -26,20 +27,26 @@ export function enrichmentToDiscoverWord(
     englishDefinition: enrichment.englishDefinition,
     pos: enrichment.wordType,
   });
+  const viMeaning = sanitizeVietnameseText(
+    serializeVietnameseMeanings(
+      enrichment.vietnameseMeanings?.length
+        ? enrichment.vietnameseMeanings
+        : [enrichment.vietnameseMeaning],
+    ),
+  );
+  const legacyExamples = serializeExamples(enrichment.examples);
+  const exampleSplit = splitLegacyExamples(legacyExamples);
+
   return withWordFamily({
     word,
     phonetic: enrichment.phonetic,
     word_type:
       normalizeWordType(enrichment.wordType, word) ?? enrichment.wordType,
-    vietnamese_meaning: sanitizeVietnameseText(
-      serializeVietnameseMeanings(
-        enrichment.vietnameseMeanings?.length
-          ? enrichment.vietnameseMeanings
-          : [enrichment.vietnameseMeaning],
-      ),
-    ),
+    vietnamese_meaning: viMeaning,
     english_definition: enrichment.englishDefinition,
-    examples: serializeExamples(enrichment.examples),
+    examples: exampleSplit.examples ?? legacyExamples,
+    meanings: { vi: viMeaning },
+    example_translations: exampleSplit.example_translations,
     collocations:
       enrichment.collocations ??
       encodeRegisterCollocation(enrichment.register),

@@ -375,7 +375,10 @@ export default function DiscoverPage() {
       }
 
       const readyCached = wordCache.current.get(cacheKey);
-      if (readyCached && isCardContentReady(readyCached, item.word)) {
+      if (
+        readyCached &&
+        isCardContentReady(readyCached, item.word, learnerLocale)
+      ) {
         setCurrentWord(readyCached);
         setLoadingWord(false);
         preloadImageUrl(readyCached.image_url);
@@ -413,8 +416,23 @@ export default function DiscoverPage() {
           });
       }
     },
-    [cacheKeyForWord, ensureWordFetched],
+    [cacheKeyForWord, ensureWordFetched, learnerLocale],
   );
+
+  useEffect(() => {
+    const onCacheCleared = () => {
+      wordCache.current = new Map();
+      inflight.current.clear();
+      wordCacheHydratedRef.current = false;
+      const item = queue[currentIndex];
+      if (item) {
+        applyWordToView(item, { fetchIfNeeded: true });
+      }
+    };
+    window.addEventListener("word-content-cache-cleared", onCacheCleared);
+    return () =>
+      window.removeEventListener("word-content-cache-cleared", onCacheCleared);
+  }, [applyWordToView, currentIndex, queue]);
 
   const fetchRange = useCallback(async () => {
     const fetchGen = ++rangeFetchGenRef.current;
