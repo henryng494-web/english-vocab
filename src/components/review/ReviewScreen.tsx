@@ -71,6 +71,10 @@ import {
 import { shouldRefreshImageUrl } from "@/lib/unsplash";
 import { refreshAllStaleWordImages } from "@/lib/refresh-stale-word-images";
 import { prefetchCardContent } from "@/lib/card-content-prefetch";
+import {
+  sliceNextWordsInQueue,
+  triggerPrefetchNextWordsLocale,
+} from "@/lib/prefetch-next-word-locale-client";
 import { preloadWordPronunciations } from "@/lib/pronunciation-preload";
 import { preloadWordPronunciation } from "@/lib/speak-word";
 import {
@@ -318,11 +322,15 @@ export function ReviewScreen() {
 
   const prefetchQuestionsAhead = useCallback(
     (fromQueueIndex: number, fromSessionStep: number, count = REVIEW_PREFETCH_AHEAD) => {
+      triggerPrefetchNextWordsLocale(
+        sliceNextWordsInQueue(queueRef.current, fromQueueIndex),
+        learnerLocale,
+      );
       for (let offset = 1; offset <= count; offset++) {
         prefetchQuestionAt(fromQueueIndex + offset, fromSessionStep + offset);
       }
     },
-    [prefetchQuestionAt],
+    [prefetchQuestionAt, learnerLocale],
   );
 
   const startQuestion = useCallback((

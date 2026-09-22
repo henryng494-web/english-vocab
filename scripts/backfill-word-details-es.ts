@@ -1,4 +1,7 @@
 /**
+ * OPTIONAL batch backfill (can hit Gemini quota). Prefer runtime prefetch:
+ * POST /api/words/prefetch-locale from Journey/Review (next 10 words).
+ *
  * AI backfill Spanish glosses + example_translations.es for existing word_details.
  * (Structural migrate only copies VI — run `npm run migrate:word-details-multilang` first.)
  *
