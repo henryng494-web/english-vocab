@@ -50,7 +50,8 @@
     "re-enrich:formal": "npx tsx scripts/re-enrich-stale-words.ts -- --formal-only",
     "audit:subtlex-noise": "npx tsx scripts/audit-subtlex-noise.ts",
     "audit:vocab-abbreviations": "npx tsx scripts/audit-vocab-abbreviations.ts",
-    "migrate:word-details-multilang": "npx tsx scripts/migrate-word-details-multilang.ts"
+    "migrate:word-details-multilang": "npx tsx scripts/migrate-word-details-multilang.ts",
+    "backfill:word-details-es": "npx tsx scripts/backfill-word-details-es.ts"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.0",

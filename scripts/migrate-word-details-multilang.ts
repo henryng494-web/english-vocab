@@ -1,5 +1,7 @@
 /**
- * Backfill word_details.meanings + example_translations from legacy columns.
+ * STRUCTURAL ONLY: copy legacy vietnamese_meaning + embedded example VI lines
+ * into JSON (`meanings.vi`, `example_translations[].vi`). Does NOT call Gemini
+ * and does NOT create Spanish (`es`) — use `npm run backfill:word-details-es`.
  *
  * Usage:
  *   npm run migrate:word-details-multilang
