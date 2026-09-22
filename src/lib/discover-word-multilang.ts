@@ -55,7 +55,7 @@ export function applyMultilangToDiscoverWord(
     ...data,
     meanings: record.meanings,
     example_translations: record.example_translations,
-    examples: record.examples,
+    examples: serializedExamplesForUserLanguage(record, userLanguage),
     vietnamese_meaning: primaryMeaning,
   };
 }

@@ -1,6 +1,8 @@
 import type { DiscoverWordData } from "@/components/discover/DiscoverCard";
 import { prefetchCardSimilarWords } from "@/lib/card-similar-prefetch";
+import { ensureLearnerExampleTranslations } from "@/lib/ensure-learner-example-translations";
 import { prefetchLearningChunkContent } from "@/lib/learning-chunk-prefetch";
+import { readAppSettings } from "@/lib/app-settings";
 
 type CardPrefetchInput = Pick<
   DiscoverWordData,
@@ -19,6 +21,20 @@ export function prefetchCardContent(
   data: CardPrefetchInput | null | undefined,
 ): void {
   if (!data?.word?.trim()) return;
+  const locale = readAppSettings().learnerLocale;
+  void ensureLearnerExampleTranslations(
+    {
+      word: data.word,
+      rank: 0,
+      importance_tier: "",
+      examples: data.examples,
+      vietnamese_meaning: data.vietnamese_meaning,
+      english_definition: data.english_definition,
+      word_type: data.word_type,
+      phonetic: null,
+    },
+    locale,
+  );
   void prefetchLearningChunkContent(data);
   void prefetchCardSimilarWords({
     word: data.word,

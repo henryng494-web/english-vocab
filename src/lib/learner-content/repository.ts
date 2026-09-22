@@ -16,6 +16,7 @@ import { readAppSettings } from "@/lib/app-settings";
 import { DEFAULT_LEARNER_LOCALE } from "@/lib/learner-locale";
 import { examplesNeedLearnerLocaleRefresh } from "@/lib/localize-examples";
 import { parseExamples } from "@/lib/parse-examples";
+import { applyLocaleToVocabWord } from "@/lib/ensure-learner-example-translations";
 import type { VocabWord } from "@/types/database";
 
 let cacheSingleton: Map<string, DiscoverWordData> | null = null;
@@ -157,12 +158,15 @@ export class LearnerContentRepository {
         this.locale,
       )
     ) {
-      return word;
+      return applyLocaleToVocabWord(word, this.locale);
     }
 
     const slice = this.resolveLocalSlice(word.word);
-    if (!slice) return word;
-    return mergeSliceOnto(word, slice, this.locale);
+    if (!slice) return applyLocaleToVocabWord(word, this.locale);
+    return applyLocaleToVocabWord(
+      mergeSliceOnto(word, slice, this.locale),
+      this.locale,
+    );
   }
 
   mergeDiscoverData(

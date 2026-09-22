@@ -4,7 +4,10 @@ import {
   DiscoverCard,
   type DiscoverWordData,
 } from "@/components/discover/DiscoverCard";
+import { applyMultilangToDiscoverWord } from "@/lib/discover-word-multilang";
+import { readAppSettings } from "@/lib/app-settings";
 import { resolveWordRegister } from "@/lib/word-meanings";
+import type { UserLanguage } from "@/lib/user-language";
 import type { VocabWord } from "@/types/database";
 
 type VocabWordCardProps = {
@@ -17,8 +20,16 @@ type VocabWordCardProps = {
   hintGraceMs?: number;
 };
 
-export function vocabWordToDiscoverData(word: VocabWord): DiscoverWordData {
-  return {
+export function vocabWordToDiscoverData(
+  word: VocabWord,
+  userLanguage?: UserLanguage,
+): DiscoverWordData {
+  const locale =
+    userLanguage ??
+    (typeof window !== "undefined"
+      ? readAppSettings().learnerLocale
+      : "vi");
+  const base: DiscoverWordData = {
     word: word.word,
     rank: word.rank,
     importance_tier: word.importance_tier,
@@ -27,6 +38,8 @@ export function vocabWordToDiscoverData(word: VocabWord): DiscoverWordData {
     vietnamese_meaning: word.vietnamese_meaning,
     english_definition: word.english_definition,
     examples: word.examples,
+    meanings: word.meanings,
+    example_translations: word.example_translations,
     image_url: word.image_url,
     collocations: word.collocations,
     register: resolveWordRegister(word),
@@ -34,6 +47,7 @@ export function vocabWordToDiscoverData(word: VocabWord): DiscoverWordData {
     word_family: word.word_family,
     similar_words: word.similar_words,
   };
+  return applyMultilangToDiscoverWord(base, locale);
 }
 
 /** Standard vocabulary card shell used across Journey, Review, and Word detail. */
