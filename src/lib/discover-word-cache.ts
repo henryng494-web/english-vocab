@@ -1,5 +1,6 @@
 import type { DiscoverWordData } from "@/components/discover/DiscoverCard";
 import { hasQualityExamples, keepNaturalExamples } from "@/lib/example-quality";
+import { examplesNeedLearnerLocaleRefresh } from "@/lib/localize-examples";
 import { hasLearningChunks } from "@/lib/learning-chunks";
 import {
   DEFAULT_LEARNER_LOCALE,
@@ -20,7 +21,7 @@ import {
 } from "@/lib/word-meanings";
 
 /** Bump when Gemini/Unsplash pipeline or image quality rules change. */
-export const DISCOVER_WORD_CACHE_VERSION = 104;
+export const DISCOVER_WORD_CACHE_VERSION = 105;
 
 const STORAGE_KEY = `discover-word-cache-v${DISCOVER_WORD_CACHE_VERSION}`;
 
@@ -159,9 +160,12 @@ export function isCardContentReady(
   if (expectedWord && data.word.toLowerCase() !== expectedWord.toLowerCase()) {
     return false;
   }
-  if (isWordDetailComplete(data, expectedWord)) return true;
-
   const parsed = parseExamples(data.examples);
+  if (examplesNeedLearnerLocaleRefresh(parsed, learnerLocale)) {
+    return false;
+  }
+  if (isWordDetailComplete(data, expectedWord, learnerLocale)) return true;
+
   if (
     keepNaturalExamples(
       data.word,

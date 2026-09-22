@@ -77,11 +77,14 @@ import {
   preloadWordAudioElement,
   warmWordAudioBytes,
 } from "@/lib/word-pronunciation-audio";
+import { readAppSettings } from "@/lib/app-settings";
+import { useAppSettings } from "@/context/AppSettingsContext";
 import {
   ensureReviewWordClue,
-  fetchReviewWordDetails,
   hasReviewClueFields,
   hydrateReviewWordLocal,
+  isReviewClueReadyForLocale,
+  mergeReviewLearnerContent,
   prefetchReviewClues,
 } from "@/lib/review-word-hydrate";
 import type { LearningStatus, VocabWord } from "@/types/database";
@@ -104,6 +107,7 @@ const REVIEW_WARM_COUNT = 20;
 
 export function ReviewScreen() {
   const { t } = useI18n();
+  const { learnerLocale } = useAppSettings();
   const router = useRouter();
   const searchParams = useSearchParams();
   const isDailySession = searchParams.get("daily") === "1";
@@ -743,85 +747,18 @@ export function ReviewScreen() {
   useEffect(() => {
     if (!currentWord) return;
 
-    if (!hasReviewClueFields(currentWord)) {
-      const hydrated = hydrateReviewWordLocal(currentWord);
-      if (hasReviewClueFields(hydrated)) {
-        const patch = {
-          vietnamese_meaning: hydrated.vietnamese_meaning,
-          english_definition: hydrated.english_definition,
-          phonetic: hydrated.phonetic,
-          word_type: hydrated.word_type,
-          examples: hydrated.examples,
-          search_keyword: hydrated.search_keyword,
-          image_url: hydrated.image_url ?? currentWord.image_url,
-        };
-        setQueue((prev) =>
-          prev.map((word) =>
-            word.word === currentWord.word ? { ...word, ...patch } : word,
-          ),
-        );
-        setAllWords((prev) =>
-          prev.map((word) =>
-            word.word === currentWord.word ? { ...word, ...patch } : word,
-          ),
-        );
-        return;
-      }
-
+    if (!isReviewClueReadyForLocale(currentWord, learnerLocale)) {
       let cancelled = false;
-      void fetchReviewWordDetails(currentWord.word).then(async (details) => {
-        if (cancelled) return;
-        if (details && hasReviewClueFields(details)) {
-          const patch = {
-            vietnamese_meaning:
-              details.vietnamese_meaning ?? currentWord.vietnamese_meaning,
-            english_definition:
-              details.english_definition ?? currentWord.english_definition,
-            phonetic: details.phonetic ?? currentWord.phonetic,
-            word_type: details.word_type ?? currentWord.word_type,
-            examples: details.examples ?? currentWord.examples,
-            search_keyword: details.search_keyword ?? currentWord.search_keyword,
-            image_url: details.image_url ?? currentWord.image_url,
-          };
-          setQueue((prev) =>
-            prev.map((word) =>
-              word.word === currentWord.word ? { ...word, ...patch } : word,
-            ),
-          );
-          setAllWords((prev) =>
-            prev.map((word) =>
-              word.word === currentWord.word ? { ...word, ...patch } : word,
-            ),
-          );
+      void ensureReviewWordClue(currentWord).then((ready) => {
+        if (cancelled || !isReviewClueReadyForLocale(ready, learnerLocale)) {
           return;
         }
-        const { fetchDiscoverWordEnrichment } = await import(
-          "@/lib/review-word-hydrate"
+        patchWordFields((item) =>
+          item.word === currentWord.word
+            ? mergeReviewLearnerContent(item, ready)
+            : item,
         );
-        const discovered = await fetchDiscoverWordEnrichment(currentWord);
-        if (cancelled || !discovered || !hasReviewClueFields(discovered)) return;
-        const patch = {
-          vietnamese_meaning:
-            discovered.vietnamese_meaning ?? currentWord.vietnamese_meaning,
-          english_definition:
-            discovered.english_definition ?? currentWord.english_definition,
-          phonetic: discovered.phonetic ?? currentWord.phonetic,
-          word_type: discovered.word_type ?? currentWord.word_type,
-          examples: discovered.examples ?? currentWord.examples,
-          search_keyword: discovered.search_keyword ?? currentWord.search_keyword,
-          image_url: discovered.image_url ?? currentWord.image_url,
-        };
-        setQueue((prev) =>
-          prev.map((word) =>
-            word.word === currentWord.word ? { ...word, ...patch } : word,
-          ),
-        );
-        setAllWords((prev) =>
-          prev.map((word) =>
-            word.word === currentWord.word ? { ...word, ...patch } : word,
-          ),
-        );
-      }).catch(() => {});
+      });
       return () => {
         cancelled = true;
       };
@@ -914,6 +851,7 @@ export function ReviewScreen() {
       word: currentWord.word,
       rank: String(currentWord.rank),
       skipGemini: "false",
+      locale: learnerLocale,
     });
     fetch(`/api/discover/word?${params}`)
       .then((res) => res.json())
@@ -921,17 +859,15 @@ export function ReviewScreen() {
         if (cancelled || !data.word) return;
         patchWordFields((item) =>
           item.word === currentWord.word
-            ? {
-                ...item,
+            ? mergeReviewLearnerContent(item, {
                 image_url: data.word.image_url ?? item.image_url ?? null,
-                vietnamese_meaning:
-                  data.word.vietnamese_meaning ?? item.vietnamese_meaning,
-                english_definition:
-                  data.word.english_definition ?? item.english_definition,
-                phonetic: data.word.phonetic ?? item.phonetic,
-                word_type: data.word.word_type ?? item.word_type,
-                examples: data.word.examples ?? item.examples,
-              }
+                vietnamese_meaning: data.word.vietnamese_meaning,
+                english_definition: data.word.english_definition,
+                phonetic: data.word.phonetic,
+                word_type: data.word.word_type,
+                examples: data.word.examples,
+                search_keyword: data.word.search_keyword,
+              })
             : item,
         );
       })
@@ -953,6 +889,7 @@ export function ReviewScreen() {
     currentWord?.rank,
     quizKind,
     patchWordFields,
+    learnerLocale,
   ]);
 
   function lockAnswer(

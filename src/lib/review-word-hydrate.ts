@@ -13,7 +13,8 @@ import {
 import { standardToDiscoverFields } from "@/lib/enrichment-helpers";
 import { resolveImageSearchKeyword } from "@/lib/image-keyword";
 import { prefetchCardContent } from "@/lib/card-content-prefetch";
-import { serializeExamples } from "@/lib/parse-examples";
+import { examplesNeedLearnerLocaleRefresh } from "@/lib/localize-examples";
+import { parseExamples, serializeExamples } from "@/lib/parse-examples";
 import {
   isPlaceholderIllustrationUrl,
   isRealCardImageUrl,
@@ -55,10 +56,15 @@ export function isReviewClueReadyForLocale(
 ): boolean {
   if (!hasReviewClueFields(word)) return false;
   const meaning = word.vietnamese_meaning?.trim();
-  if (meaning) {
-    return isLearnerGlossDisplayReady(meaning, locale);
+  if (meaning && !isLearnerGlossDisplayReady(meaning, locale)) {
+    return false;
   }
-  return Boolean(word.english_definition?.trim());
+  if (
+    examplesNeedLearnerLocaleRefresh(parseExamples(word.examples), locale)
+  ) {
+    return false;
+  }
+  return Boolean(meaning || word.english_definition?.trim());
 }
 
 /** Apply discover/API gloss + examples (overwrites stale Vietnamese when switching to ES). */
@@ -241,9 +247,7 @@ export async function fetchDiscoverWordEnrichment(
     if (!res.ok) return null;
     const data = (await res.json()) as { word?: VocabWord };
     const enriched = data.word;
-    if (!enriched || !isReviewClueReadyForLocale(enriched, learnerLocale)) {
-      return null;
-    }
+    if (!enriched || !hasReviewClueFields(enriched)) return null;
     return {
       phonetic: enriched.phonetic,
       word_type: enriched.word_type,
