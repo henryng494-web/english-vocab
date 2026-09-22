@@ -1,7 +1,4 @@
-import {
-  fillExampleTranslations,
-  keepNaturalExamples,
-} from "@/lib/example-fallback";
+import { keepNaturalExamples } from "@/lib/example-fallback";
 import {
   translateDefinitionWithGemini,
   translateLearnerMeaningWithGemini,
@@ -17,6 +14,7 @@ import {
   parseVietnameseMeanings,
   serializeVietnameseMeanings,
 } from "@/lib/word-meanings";
+import { ensureExamplesForLearnerLocale } from "@/lib/localize-examples";
 import { isLikelyVietnameseGloss } from "@/lib/example-quality";
 
 type LocalizeInput = {
@@ -87,7 +85,7 @@ export async function localizeWordContent(
     input.word_type,
     meaningSerialized,
   );
-  const translated = await fillExampleTranslations(
+  const translated = await ensureExamplesForLearnerLocale(
     natural,
     word,
     input.word_type,
@@ -97,6 +95,6 @@ export async function localizeWordContent(
 
   return {
     vietnamese_meaning: meaningSerialized,
-    examples: translated.length ? serializeExamples(translated) : input.examples,
+    examples: translated.length ? serializeExamples(translated) : null,
   };
 }
