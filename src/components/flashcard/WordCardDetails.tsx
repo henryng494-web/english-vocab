@@ -48,6 +48,8 @@ type WordCardDetailsProps = {
   family?: WordFamilyMember[] | null;
   similarWords?: string[] | null;
   loading?: boolean;
+  /** Fetching missing ES example/phrase glosses (show skeleton, no VI). */
+  localeLoading?: boolean;
   /**
    * Block Family hint taps briefly after mount/word change (review reveal uses ~450ms
    * so the confirm tap cannot bleed into the hint when similar words appear async).
@@ -101,6 +103,7 @@ export function WordCardDetails({
   family,
   similarWords,
   loading = false,
+  localeLoading = false,
   hintGraceMs = 0,
 }: WordCardDetailsProps) {
   const { t } = useI18n();
@@ -265,6 +268,7 @@ export function WordCardDetails({
                   wordType={wordType}
                   meaning={meaning}
                   userLanguage={userLanguage}
+                  localeLoading={localeLoading}
                   compact
                 />
               ) : null}

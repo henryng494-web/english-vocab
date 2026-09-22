@@ -28,6 +28,11 @@ function wordCache(): Map<string, DiscoverWordData> {
   return cacheSingleton;
 }
 
+/** After locale switch — drop in-memory map so VI entries are not reused for ES. */
+export function resetLearnerContentMemoryCache(): void {
+  cacheSingleton = null;
+}
+
 function sliceToPartial(
   slice: LearnerContentSlice,
 ): Partial<DiscoverWordData> {

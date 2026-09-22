@@ -2,6 +2,7 @@ import {
   DISCOVER_WORD_CACHE_VERSION,
   purgeLegacyDiscoverWordCaches,
 } from "@/lib/discover-word-cache";
+import { resetLearnerContentMemoryCache } from "@/lib/learner-content/repository";
 
 const CHUNK_CACHE_KEYS = [
   "learning-chunk-vi-cache-v3",
@@ -13,6 +14,7 @@ export function clearAllWordContentCaches(): void {
   if (typeof window === "undefined") return;
 
   try {
+    resetLearnerContentMemoryCache();
     purgeLegacyDiscoverWordCaches();
     sessionStorage.removeItem(
       `discover-word-cache-v${DISCOVER_WORD_CACHE_VERSION}`,

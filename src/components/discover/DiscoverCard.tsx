@@ -13,7 +13,10 @@ import { buildWordFamilyEntries } from "@/lib/word-family-display";
 import { englishOnlyExamplesSerialized } from "@/lib/multilang-word-record";
 import { resolveWordDisplay } from "@/lib/word-display";
 import { useEffect, useMemo, useState } from "react";
-import { ensureLearnerExampleTranslations } from "@/lib/ensure-learner-example-translations";
+import {
+  discoverDataNeedsEsExampleFetch,
+  ensureLearnerExampleTranslations,
+} from "@/lib/ensure-learner-example-translations";
 
 export type DiscoverWordData = {
   word: string;
@@ -92,13 +95,21 @@ export function DiscoverCard({
 }: DiscoverCardProps) {
   const { learnerLocale, userLanguage } = useAppSettings();
   const [cardData, setCardData] = useState(data);
+  const [localeLoading, setLocaleLoading] = useState(false);
   useEffect(() => {
     setCardData(data);
   }, [data]);
   useEffect(() => {
-    void ensureLearnerExampleTranslations(data, userLanguage).then((fresh) => {
-      if (fresh) setCardData(fresh);
-    });
+    if (!discoverDataNeedsEsExampleFetch(data, userLanguage)) {
+      setLocaleLoading(false);
+      return;
+    }
+    setLocaleLoading(true);
+    void ensureLearnerExampleTranslations(data, userLanguage)
+      .then((fresh) => {
+        if (fresh) setCardData(fresh);
+      })
+      .finally(() => setLocaleLoading(false));
   }, [data, userLanguage]);
   const display = useMemo(
     () => resolveWordDisplay(cardData, userLanguage),
@@ -159,6 +170,7 @@ export function DiscoverCard({
           family={wordFamily}
           similarWords={cardData.similar_words}
           loading={detailsLoading}
+          localeLoading={localeLoading}
           hintGraceMs={hintGraceMs}
         />
       </div>

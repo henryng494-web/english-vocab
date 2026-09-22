@@ -10,6 +10,8 @@ type VocabExampleListProps = {
   wordType?: string | null;
   meaning?: string | null;
   userLanguage?: UserLanguage;
+  /** True while Gemini/backfill is fetching missing ES glosses. */
+  localeLoading?: boolean;
   boxed?: boolean;
   /** Tighter layout for fixed-height journey cards. */
   compact?: boolean;
@@ -21,6 +23,7 @@ export function VocabExampleList({
   wordType,
   meaning,
   userLanguage = "vi",
+  localeLoading = false,
   boxed = false,
   compact = false,
 }: VocabExampleListProps) {
@@ -52,12 +55,28 @@ export function VocabExampleList({
         compact ? "vocab-examples vocab-examples--compact" : "space-y-2"
       }
     >
-      {visible.map((ex, i) => (
-        <li key={`${word}-ex-${i}`} className={itemClass}>
-          <p className={enClass}>{ex.en}</p>
-          {ex.vi ? <p className={viClass}>{ex.vi}</p> : null}
-        </li>
-      ))}
+      {visible.map((ex, i) => {
+        const awaitingLocale =
+          userLanguage === "es" &&
+          localeLoading &&
+          ex.en.trim() &&
+          !ex.vi.trim();
+        return (
+          <li key={`${word}-ex-${i}`} className={itemClass}>
+            <p className={enClass}>{ex.en}</p>
+            {awaitingLocale ? (
+              <p className="mt-0.5">
+                <span
+                  className="inline-block h-3.5 w-40 max-w-full animate-pulse rounded bg-primary-100/80"
+                  aria-hidden
+                />
+              </p>
+            ) : ex.vi ? (
+              <p className={viClass}>{ex.vi}</p>
+            ) : null}
+          </li>
+        );
+      })}
     </ul>
   );
 }

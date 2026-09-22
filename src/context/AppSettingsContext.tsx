@@ -31,6 +31,8 @@ type AppSettingsContextValue = AppSettings & {
   learningLanguageId: typeof LEARNING_LANGUAGE_ID;
   /** User explanation language (vi | es). Same as `learnerLocale`. */
   userLanguage: UserLanguage;
+  /** Card gloss locale — `es` when menu is Español (alias of `userLanguage`). */
+  learningLanguage: UserLanguage;
   /** Active course, e.g. `en-es` for English taught in Spanish. */
   courseId: CourseId;
   setAutoSpeakEnabled: (enabled: boolean) => void;
@@ -73,6 +75,7 @@ export function AppSettingsProvider({ children }: { children: React.ReactNode })
       ...settings,
       learningLanguageId: LEARNING_LANGUAGE_ID,
       userLanguage: settings.learnerLocale,
+      learningLanguage: settings.learnerLocale,
       courseId: courseIdFor(settings.learnerLocale),
       setAutoSpeakEnabled: (enabled) =>
         setSettings(patchAppSettings({ autoSpeakEnabled: enabled })),
