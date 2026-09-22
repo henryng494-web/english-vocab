@@ -25,6 +25,7 @@ import { isExcludedVocabWord } from "@/lib/proper-noun";
 import { localizeWordContent } from "@/lib/localize-word-content";
 import {
   dbPayloadFromMultilangRecord,
+  mergeExampleTranslationRows,
   migrateLegacyWordDetail,
   pickPrimaryMeaning,
   splitLegacyExamples,
@@ -566,8 +567,19 @@ export async function GET(request: Request) {
 
     const exampleSplit = splitLegacyExamples(examples);
     const enExamples = exampleSplit.examples ?? examples;
-    const meaningsPayload = { vi: vietnameseMeaningFinal };
-    const exampleTranslationsPayload = exampleSplit.example_translations;
+    const existingMultilang = dbDetail
+      ? migrateLegacyWordDetail({ ...dbDetail, id: dbDetail.id ?? "" })
+      : null;
+    const meaningsPayload = {
+      ...(existingMultilang?.meanings ?? {}),
+      vi: vietnameseMeaningFinal,
+    };
+    const exampleTranslationsPayload = existingMultilang
+      ? mergeExampleTranslationRows(
+          existingMultilang.example_translations,
+          exampleSplit.example_translations,
+        )
+      : exampleSplit.example_translations;
 
     const persistPayload = {
       phonetic: phonetic ?? `/${word}/`,
