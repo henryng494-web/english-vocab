@@ -3,7 +3,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { VocabExampleList } from "@/components/flashcard/VocabExampleList";
 import { WordLearningChunks } from "@/components/flashcard/WordLearningChunks";
+import { useAppSettings } from "@/context/AppSettingsContext";
 import { useI18n } from "@/hooks/use-i18n";
+import { isLikelyVietnameseGloss } from "@/lib/example-quality";
 import { useCardSimilarWords } from "@/hooks/use-card-similar-words";
 import { capitalizeFirst } from "@/lib/format-text";
 import { resolveLearningChunks } from "@/lib/learning-chunks";
@@ -89,6 +91,7 @@ export function WordCardDetails({
   hintGraceMs = 0,
 }: WordCardDetailsProps) {
   const { t } = useI18n();
+  const { learnerLocale } = useAppSettings();
   const chunkEntry = useMemo(
     () => resolveLearningChunks(word, { examples, wordType, meaning }),
     [word, examples, wordType, meaning],
@@ -97,7 +100,14 @@ export function WordCardDetails({
     (chunkEntry?.collocations.length ?? 0) > 0 ||
       (chunkEntry?.chunks.length ?? 0) > 0,
   );
-  const parsed = loading ? [] : parseExamples(examples);
+  const parsed = useMemo(() => {
+    if (loading) return [];
+    const rows = parseExamples(examples);
+    if (learnerLocale === "vi") return rows;
+    return rows.filter(
+      (item) => !item.vi?.trim() || !isLikelyVietnameseGloss(item.vi),
+    );
+  }, [loading, examples, learnerLocale]);
   const rows = (family ?? []).filter((item) => item.word.trim());
   const similar = useCardSimilarWords({
     word,

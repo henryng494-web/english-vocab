@@ -182,7 +182,7 @@ export function hydrateReviewWordLocal(word: VocabWord): VocabWord {
     discoverCacheKeyForWord(key, learnerLocale),
   );
   if (cached && isReviewClueReadyForLocale(cached, learnerLocale)) {
-    return mergeHydratedFields(word, {
+    return mergeReviewLearnerContent(word, {
       phonetic: cached.phonetic ?? "",
       word_type: cached.word_type ?? "",
       vietnamese_meaning: cached.vietnamese_meaning ?? "",
@@ -287,6 +287,46 @@ export async function enrichReviewQueueClues(
         if (discovered) {
           enriched[index] = mergeReviewLearnerContent(word, discovered);
           prefetchCardContent(enriched[index]!);
+        }
+      }),
+    );
+  }
+
+  return enriched;
+}
+
+/** Localize review pool glosses used as sense-quiz distractors (ES must not keep DB Vietnamese). */
+export async function enrichReviewPoolClues(
+  pool: VocabWord[],
+  limit = 48,
+): Promise<VocabWord[]> {
+  const locale = currentLearnerLocale();
+  if (locale === DEFAULT_LEARNER_LOCALE) return pool;
+
+  const enriched = pool.map((item) => hydrateReviewWordLocal(item));
+  const targets: { index: number; word: VocabWord }[] = [];
+
+  for (let index = 0; index < enriched.length && targets.length < limit; index++) {
+    const word = enriched[index]!;
+    const meaning = word.vietnamese_meaning?.trim();
+    if (meaning && isLearnerGlossDisplayReady(meaning, locale)) continue;
+    if (!meaning && !word.english_definition?.trim()) continue;
+    targets.push({ index, word });
+  }
+
+  const concurrency = 3;
+  for (let offset = 0; offset < targets.length; offset += concurrency) {
+    const batch = targets.slice(offset, offset + concurrency);
+    await Promise.all(
+      batch.map(async ({ index, word }) => {
+        const discovered = await fetchDiscoverWordEnrichment(word);
+        if (!discovered) return;
+        const merged = mergeReviewLearnerContent(word, discovered);
+        if (
+          isLearnerGlossDisplayReady(merged.vietnamese_meaning, locale) ||
+          merged.english_definition?.trim()
+        ) {
+          enriched[index] = merged;
         }
       }),
     );

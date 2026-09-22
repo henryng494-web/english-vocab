@@ -1,5 +1,10 @@
-import { keepNaturalExamples } from "@/lib/example-quality";
+import { isLikelyVietnameseGloss, keepNaturalExamples } from "@/lib/example-quality";
 import { capitalizeFirst } from "@/lib/format-text";
+import {
+  DEFAULT_LEARNER_LOCALE,
+  isLearnerGlossDisplayReady,
+  type LearnerLocale,
+} from "@/lib/learner-locale";
 import {
   isTemplateVietnameseDefinition,
   looksLikeEnglish,
@@ -83,7 +88,7 @@ export function clozePrefixHintLength(wordLength: number): number {
 const LETTERS = ["A", "B", "C", "D"] as const;
 const SENSE_LETTERS = ["A", "B", "C"] as const;
 
-const FALLBACK_SENSE_DISTRACTORS: Array<{
+const FALLBACK_SENSE_DISTRACTORS_VI: Array<{
   word: string;
   vietnamese_meaning: string;
 }> = [
@@ -96,6 +101,36 @@ const FALLBACK_SENSE_DISTRACTORS: Array<{
   { word: "paper", vietnamese_meaning: "Tờ giấy" },
   { word: "table", vietnamese_meaning: "Cái bàn" },
 ];
+
+const FALLBACK_SENSE_DISTRACTORS_ES: Array<{
+  word: string;
+  vietnamese_meaning: string;
+}> = [
+  { word: "apple", vietnamese_meaning: "Manzana" },
+  { word: "river", vietnamese_meaning: "Río" },
+  { word: "window", vietnamese_meaning: "Ventana" },
+  { word: "family", vietnamese_meaning: "Familia" },
+  { word: "garden", vietnamese_meaning: "Jardín" },
+  { word: "school", vietnamese_meaning: "Escuela" },
+  { word: "paper", vietnamese_meaning: "Papel" },
+  { word: "table", vietnamese_meaning: "Mesa" },
+];
+
+function fallbackSenseDistractors(locale: LearnerLocale) {
+  return locale === "es"
+    ? FALLBACK_SENSE_DISTRACTORS_ES
+    : FALLBACK_SENSE_DISTRACTORS_VI;
+}
+
+function exampleTranslationReady(
+  item: VocabExample,
+  locale: LearnerLocale,
+): boolean {
+  const gloss = item.vi?.trim() ?? "";
+  if (!gloss) return false;
+  if (locale === "vi") return isLikelyVietnameseGloss(gloss);
+  return !isLikelyVietnameseGloss(gloss);
+}
 
 type SenseSource = {
   word: string;
@@ -165,13 +200,14 @@ export function senseChoicesAreValidForPrompt(
   choices: ReviewChoice[],
   promptWord: string,
   pool: SenseSource[],
+  locale: LearnerLocale = DEFAULT_LEARNER_LOCALE,
 ): boolean {
   const correct = promptWord.trim().toLowerCase();
   if (!correct || choices.length !== 3) return false;
   if (!senseChoicesIncludeCorrectWord(choices, promptWord)) return false;
 
   const poolItem = pool.find((item) => item.word.trim().toLowerCase() === correct);
-  const expectedMeaning = reviewSenseText(poolItem ?? {});
+  const expectedMeaning = reviewSenseText(poolItem ?? {}, locale);
   if (!expectedMeaning) return false;
 
   const correctChoice = choices.find(
@@ -207,30 +243,42 @@ export function resolveReviewSenseChoices(
   promptWord: string,
   pool: SenseSource[],
   cached?: ReviewChoice[] | null,
+  locale: LearnerLocale = DEFAULT_LEARNER_LOCALE,
 ): ReviewChoice[] {
-  const fresh = buildReviewSenseChoices(promptWord, pool);
-  if (senseChoicesAreValidForPrompt(fresh, promptWord, pool)) {
+  const fresh = buildReviewSenseChoices(promptWord, pool, locale);
+  if (senseChoicesAreValidForPrompt(fresh, promptWord, pool, locale)) {
     return cached ? mergeChoiceImages(fresh, cached) : fresh;
   }
   if (
     cached &&
-    senseChoicesAreValidForPrompt(cached, promptWord, pool)
+    senseChoicesAreValidForPrompt(cached, promptWord, pool, locale)
   ) {
     return cached;
   }
   return fresh;
 }
 
-/** Compact Vietnamese gloss for review sense choices (matches WordCard rules). */
-export function reviewSenseText(word: {
-  vietnamese_meaning?: string | null;
-  english_definition?: string | null;
-}): string {
-  const lines = formatMeaningsForDisplay(word.vietnamese_meaning);
-  if (lines.length > 0) {
-    return lines.join(" · ");
+/** Compact learner gloss for review sense choices (matches WordCard rules). */
+export function reviewSenseText(
+  word: {
+    vietnamese_meaning?: string | null;
+    english_definition?: string | null;
+  },
+  locale: LearnerLocale = DEFAULT_LEARNER_LOCALE,
+): string {
+  const meaning = word.vietnamese_meaning?.trim();
+  if (meaning && isLearnerGlossDisplayReady(meaning, locale)) {
+    const lines = formatMeaningsForDisplay(meaning);
+    if (lines.length > 0) return lines.join(" · ");
   }
   const definition = word.english_definition?.trim();
+  if (definition && locale !== DEFAULT_LEARNER_LOCALE) {
+    return capitalizeFirst(definition);
+  }
+  if (meaning && locale === DEFAULT_LEARNER_LOCALE) {
+    const lines = formatMeaningsForDisplay(meaning);
+    if (lines.length > 0) return lines.join(" · ");
+  }
   if (definition) return capitalizeFirst(definition);
   return "";
 }
@@ -238,13 +286,21 @@ export function reviewSenseText(word: {
 export function buildReviewSenseChoices(
   correctWord: string,
   pool: SenseSource[],
+  locale: LearnerLocale = DEFAULT_LEARNER_LOCALE,
 ): ReviewChoice[] {
   const correct = correctWord.trim().toLowerCase();
   const correctItem = pool.find(
     (item) => item.word.trim().toLowerCase() === correct,
   );
-  const correctMeaning = reviewSenseText(correctItem ?? {});
+  const correctMeaning = reviewSenseText(correctItem ?? {}, locale);
   if (!correctMeaning) return [];
+  if (
+    correctItem?.vietnamese_meaning?.trim() &&
+    !isLearnerGlossDisplayReady(correctItem.vietnamese_meaning, locale) &&
+    locale !== DEFAULT_LEARNER_LOCALE
+  ) {
+    return [];
+  }
 
   const correctHead = familyKey(correct, correctItem?.family_head);
   const distractors = pickSameRankDistractors(
@@ -253,11 +309,11 @@ export function buildReviewSenseChoices(
     pool,
     2,
     (item) =>
-      Boolean(reviewSenseText(item)) &&
+      Boolean(reviewSenseText(item, locale)) &&
       familyKey(item.word, item.family_head) !== correctHead,
   );
   if (distractors.length < 2) {
-    for (const fallback of FALLBACK_SENSE_DISTRACTORS) {
+    for (const fallback of fallbackSenseDistractors(locale)) {
       if (distractors.length === 2) break;
       if (fallback.word === correct) continue;
       if (distractors.some((item) => item.word.trim().toLowerCase() === fallback.word)) {
@@ -285,7 +341,7 @@ export function buildReviewSenseChoices(
       word: capitalizeFirst(item.word),
       meaning: isCorrect
         ? correctMeaning
-        : reviewSenseText(item) || correctMeaning,
+        : reviewSenseText(item, locale) || correctMeaning,
       imageUrl: item.image_url ?? null,
       searchKeyword: item.search_keyword ?? null,
       wordType: item.word_type ?? null,
@@ -313,15 +369,20 @@ export function pickReviewClozeExample(
   rawExamples: unknown,
   meaning?: string | null,
   pos?: string | null,
+  locale: LearnerLocale = DEFAULT_LEARNER_LOCALE,
 ): VocabExample | null {
   const parsed = parseExamples(rawExamples);
   const natural = keepNaturalExamples(word, parsed, pos, meaning);
   const withWordAndVi =
     natural.find(
-      (item) => sentenceHasWord(item.en, word) && Boolean(item.vi.trim()),
+      (item) =>
+        sentenceHasWord(item.en, word) &&
+        exampleTranslationReady(item, locale),
     ) ??
     parsed.find(
-      (item) => sentenceHasWord(item.en, word) && Boolean(item.vi.trim()),
+      (item) =>
+        sentenceHasWord(item.en, word) &&
+        exampleTranslationReady(item, locale),
     );
   return withWordAndVi ?? null;
 }
@@ -410,6 +471,7 @@ export function buildReviewClozeData(
   word: ReviewPoolWord,
   _pool: ReviewPoolWord[],
   questionIndex: number,
+  locale: LearnerLocale = DEFAULT_LEARNER_LOCALE,
 ): ReviewClozeData | null {
   const normalized = word.word.trim().toLowerCase();
   if (!/^[a-z]{3,14}$/.test(normalized)) return null;
@@ -419,6 +481,7 @@ export function buildReviewClozeData(
     word.examples,
     word.vietnamese_meaning,
     word.word_type,
+    locale,
   );
   if (!example) return null;
 
@@ -443,6 +506,7 @@ export function buildReviewQuestionPlan(
   word: ReviewPoolWord,
   pool: ReviewPoolWord[],
   questionIndex: number,
+  locale: LearnerLocale = DEFAULT_LEARNER_LOCALE,
 ): { kind: ReviewQuizKind; choices: ReviewChoice[]; cloze?: ReviewClozeData } {
   const wanted = reviewQuizKindForIndex(questionIndex);
   const choiceSeed = reviewSenseCacheKey(questionIndex, word.word);
@@ -458,8 +522,8 @@ export function buildReviewQuestionPlan(
   );
 
   if (wanted === "sense") {
-    const senseChoices = buildReviewSenseChoices(word.word, pool);
-    if (senseChoicesAreValidForPrompt(senseChoices, word.word, pool)) {
+    const senseChoices = buildReviewSenseChoices(word.word, pool, locale);
+    if (senseChoicesAreValidForPrompt(senseChoices, word.word, pool, locale)) {
       kind = "sense";
       choices = senseChoices;
     }
@@ -474,7 +538,7 @@ export function buildReviewQuestionPlan(
       kind = "recall";
     }
   } else if (wanted === "cloze") {
-    const clozeData = buildReviewClozeData(word, pool, questionIndex);
+    const clozeData = buildReviewClozeData(word, pool, questionIndex, locale);
     if (clozeData) {
       kind = "cloze";
       cloze = clozeData;
@@ -607,11 +671,14 @@ export function buildReviewChoices(
   }));
 }
 
-export function reviewClue(word: {
-  english_definition?: string | null;
-  vietnamese_meaning?: string | null;
-}): string {
-  const meaning = reviewSenseText(word);
+export function reviewClue(
+  word: {
+    english_definition?: string | null;
+    vietnamese_meaning?: string | null;
+  },
+  locale: LearnerLocale = DEFAULT_LEARNER_LOCALE,
+): string {
+  const meaning = reviewSenseText(word, locale);
   const definition = word.english_definition?.trim();
 
   if (meaning) {

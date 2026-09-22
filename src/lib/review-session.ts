@@ -1,6 +1,9 @@
 import { getPresetRank } from "@/data/preset-word-details";
 import { resolveLearnableWordKey } from "@/data/vocab-abbreviations";
-import { enrichReviewQueueClues } from "@/lib/review-word-hydrate";
+import {
+  enrichReviewPoolClues,
+  enrichReviewQueueClues,
+} from "@/lib/review-word-hydrate";
 import {
   hydrateLocalLearningFromApi,
   mergeLocalLearning,
@@ -322,12 +325,13 @@ async function enrichQueue(
     enrichedQueue.length > 0 ? enrichedQueue : queue,
     24,
   );
+  const localizedPool = await enrichReviewPoolClues(allWords, 48);
 
-  void prefetchReviewQuestionRange(withClues, allWords, 0, 20);
+  void prefetchReviewQuestionRange(withClues, localizedPool, 0, 20);
 
   return {
     queue: withClues.length > 0 ? withClues : queue,
-    pool: allWords,
+    pool: localizedPool,
   };
 }
 

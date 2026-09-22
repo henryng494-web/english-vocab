@@ -202,7 +202,14 @@ export function ReviewScreen() {
       for (const [questionIndex, cachedChoices] of senseChoices.entries()) {
         const word = q[questionIndex];
         if (!word) continue;
-        if (!senseChoicesAreValidForPrompt(cachedChoices, word.word, pool)) {
+        if (
+          !senseChoicesAreValidForPrompt(
+            cachedChoices,
+            word.word,
+            pool,
+            learnerLocale,
+          )
+        ) {
           continue;
         }
         prefetchedChoicesRef.current.set(
@@ -211,7 +218,7 @@ export function ReviewScreen() {
         );
       }
     },
-    [],
+    [learnerLocale],
   );
 
   const warmReviewImages = useCallback(
@@ -244,7 +251,12 @@ export function ReviewScreen() {
         );
         if (
           plan.kind === "sense" &&
-          senseChoicesAreValidForPrompt(plan.choices, word.word, pool)
+          senseChoicesAreValidForPrompt(
+            plan.choices,
+            word.word,
+            pool,
+            learnerLocale,
+          )
         ) {
           prefetchedChoicesRef.current.set(
             reviewSenseCacheKey(sessionStepForQuiz, word.word),
@@ -290,7 +302,7 @@ export function ReviewScreen() {
 
       prefetchInflightRef.current.set(queueIndex, promise);
     },
-    [patchWordFields],
+    [patchWordFields, learnerLocale],
   );
 
   const prefetchQuestionsAhead = useCallback(
@@ -313,7 +325,12 @@ export function ReviewScreen() {
     choiceSeedRef.current = cacheKey;
     senseUpgradeRef.current = null;
     const cachedSenseChoices = prefetchedChoicesRef.current.get(cacheKey);
-    const planned = buildReviewQuestionPlan(word, pool, questionIndex);
+    const planned = buildReviewQuestionPlan(
+      word,
+      pool,
+      questionIndex,
+      learnerLocale,
+    );
     let kind = planned.kind;
     let nextChoices = planned.choices;
     let nextCloze = planned.cloze ?? null;
@@ -323,8 +340,16 @@ export function ReviewScreen() {
         word.word,
         pool,
         cachedSenseChoices,
+        learnerLocale,
       );
-      if (!senseChoicesAreValidForPrompt(nextChoices, word.word, pool)) {
+      if (
+        !senseChoicesAreValidForPrompt(
+          nextChoices,
+          word.word,
+          pool,
+          learnerLocale,
+        )
+      ) {
         kind = "word";
         nextCloze = null;
         nextChoices = buildReviewChoices(
@@ -424,24 +449,52 @@ export function ReviewScreen() {
     }
 
     prefetchQuestionsAhead(queueIndex ?? indexRef.current, questionIndex);
-  }, [patchWordFields, prefetchQuestionsAhead]);
+  }, [patchWordFields, prefetchQuestionsAhead, learnerLocale]);
 
   useEffect(() => {
     if (phase !== "question" || quizKind !== "sense" || !currentWord || locked) {
       return;
     }
-    if (senseChoicesAreValidForPrompt(choices, currentWord.word, allWords)) {
+    if (
+      senseChoicesAreValidForPrompt(
+        choices,
+        currentWord.word,
+        allWords,
+        learnerLocale,
+      )
+    ) {
       return;
     }
     const cacheKey = reviewSenseCacheKey(sessionStep, currentWord.word);
     if (senseUpgradeRef.current === cacheKey) return;
 
-    const rebuilt = resolveReviewSenseChoices(currentWord.word, allWords);
-    if (senseChoicesAreValidForPrompt(rebuilt, currentWord.word, allWords)) {
+    const rebuilt = resolveReviewSenseChoices(
+      currentWord.word,
+      allWords,
+      undefined,
+      learnerLocale,
+    );
+    if (
+      senseChoicesAreValidForPrompt(
+        rebuilt,
+        currentWord.word,
+        allWords,
+        learnerLocale,
+      )
+    ) {
       senseUpgradeRef.current = cacheKey;
       setChoices(rebuilt);
     }
-  }, [phase, quizKind, currentWord, locked, choices, allWords, sessionStep]);
+  }, [
+    phase,
+    quizKind,
+    currentWord,
+    locked,
+    choices,
+    allWords,
+    sessionStep,
+    learnerLocale,
+  ]);
 
   useEffect(() => {
     if (phase !== "question" || locked) return;
@@ -1176,9 +1229,10 @@ export function ReviewScreen() {
           wordType={currentWord.word_type}
           meaning={currentWord.vietnamese_meaning}
           clue={
-            reviewClue(currentWord) === "Choose the matching word."
+            reviewClue(currentWord, learnerLocale) ===
+            "Choose the matching word."
               ? t("review.chooseMatching")
-              : reviewClue(currentWord)
+              : reviewClue(currentWord, learnerLocale)
           }
           choices={choices}
           selectedKey={selectedKey}

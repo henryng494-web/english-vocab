@@ -13,12 +13,14 @@ import {
 } from "@/lib/learning-chunk-prefetch";
 import {
   getCachedCollocationTranslations,
+  setCachedCollocationTranslations,
 } from "@/lib/learning-chunk-vi-cache";
 import {
   getCachedSupplementCollocations,
   setCachedSupplementCollocations,
 } from "@/lib/learning-chunk-supplement-cache";
 import { useAppSettings } from "@/context/AppSettingsContext";
+import { isLikelyVietnameseGloss } from "@/lib/example-quality";
 import type { WordRegister } from "@/lib/word-meanings";
 
 type UseLearningChunkTranslationsArgs = {
@@ -75,13 +77,19 @@ export function useLearningChunkTranslations({
 
   const [collocations, setCollocations] =
     useState<LearningChunkPhrase[]>(cachedCollocations);
+  const [chunks, setChunks] = useState<LearningChunkPhrase[]>(
+    entry?.chunks ?? [],
+  );
   const hydratedKeyRef = useRef<string | null>(null);
   const supplementedKeyRef = useRef<string | null>(null);
+  const chunkLocaleKeyRef = useRef<string | null>(null);
 
   useEffect(() => {
     setCollocations(resolveHydratedCollocations(word, entry, isOverride));
+    setChunks(entry?.chunks ?? []);
     hydratedKeyRef.current = null;
     supplementedKeyRef.current = null;
+    chunkLocaleKeyRef.current = null;
   }, [seedKey, word, entry, isOverride]);
 
   useEffect(() => {
@@ -216,10 +224,90 @@ export function useLearningChunkTranslations({
     learnerLocale,
   ]);
 
+  useEffect(() => {
+    if (!entry?.chunks.length || learnerLocale === "vi") {
+      setChunks(entry?.chunks ?? []);
+      return;
+    }
+
+    const needsRefresh = entry.chunks.some(
+      (item) => item.vi?.trim() && isLikelyVietnameseGloss(item.vi),
+    );
+    if (!needsRefresh) {
+      setChunks(entry.chunks);
+      return;
+    }
+
+    const localeKey = `${seedKey}::${learnerLocale}`;
+    if (chunkLocaleKeyRef.current === localeKey) return;
+
+    const cached = getCachedCollocationTranslations(
+      word,
+      entry.chunks,
+      learnerLocale,
+    );
+    if (cached?.length) {
+      setChunks(mergeCollocationVi(entry.chunks, cached));
+      chunkLocaleKeyRef.current = localeKey;
+      return;
+    }
+
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const response = await fetch("/api/learning-chunks/translate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            word,
+            wordType,
+            meaning,
+            register,
+            englishDefinition,
+            learnerLocale,
+            phrases: entry.chunks.map((item) => ({
+              en: item.en,
+              contextEn: item.en,
+              contextVi: item.vi,
+              sense: item.sense,
+            })),
+          }),
+        });
+        if (!response.ok || cancelled) return;
+        const data = (await response.json()) as {
+          translations?: LearningChunkPhrase[];
+        };
+        const translated = data.translations?.filter(
+          (item) => item.en?.trim() && item.vi?.trim(),
+        );
+        if (!translated?.length || cancelled) return;
+        setCachedCollocationTranslations(word, entry.chunks, translated, learnerLocale);
+        setChunks(mergeCollocationVi(entry.chunks, translated));
+        chunkLocaleKeyRef.current = localeKey;
+      } catch {
+        if (!cancelled) setChunks(entry.chunks);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    word,
+    wordType,
+    meaning,
+    register,
+    englishDefinition,
+    entry,
+    seedKey,
+    learnerLocale,
+  ]);
+
   if (!entry) return null;
 
   return {
     collocations,
-    chunks: entry.chunks,
+    chunks,
   };
 }

@@ -1,3 +1,4 @@
+import { readAppSettings } from "@/lib/app-settings";
 import {
   buildReviewQuestionPlan,
   senseChoicesAreValidForPrompt,
@@ -27,7 +28,13 @@ export function collectReviewQuestionImageTargets(
   choices: ReviewChoice[];
   targets: ReviewImageTarget[];
 } {
-  const { kind, choices } = buildReviewQuestionPlan(word, pool, questionIndex);
+  const learnerLocale = readAppSettings().learnerLocale;
+  const { kind, choices } = buildReviewQuestionPlan(
+    word,
+    pool,
+    questionIndex,
+    learnerLocale,
+  );
   const targets =
     kind === "sense"
       ? choices.map((choice) => ({
@@ -105,7 +112,12 @@ export async function prefetchReviewQuestionRange(
     const plan = collectReviewQuestionImageTargets(word, pool, questionIndex);
     if (
       plan.kind === "sense" &&
-      senseChoicesAreValidForPrompt(plan.choices, word.word, pool)
+      senseChoicesAreValidForPrompt(
+        plan.choices,
+        word.word,
+        pool,
+        readAppSettings().learnerLocale,
+      )
     ) {
       senseChoices.set(questionIndex, plan.choices);
     }
