@@ -72,6 +72,10 @@ import {
 } from "@/lib/learning-storage";
 import { seedWordImageCacheFromEntries } from "@/lib/word-image-cache";
 import { prefetchCardContent } from "@/lib/card-content-prefetch";
+import {
+  sliceNextWordsInQueue,
+  triggerPrefetchNextWordsLocale,
+} from "@/lib/prefetch-next-word-locale-client";
 import { readOnboarding, shouldShowOnboarding } from "@/lib/onboarding";
 import { useSyncExternalStore } from "react";
 import {
@@ -353,6 +357,10 @@ export default function DiscoverPage() {
       preloadWordImagesFromCache(imageTargets);
       preloadWordPronunciations(pronunciationWords);
       void prefetchWordImages(imageTargets, 4);
+      triggerPrefetchNextWordsLocale(
+        sliceNextWordsInQueue(items, startIndex),
+        learnerLocale,
+      );
     },
     [cacheKeyForWord, ensureWordFetched, learnerLocale],
   );
