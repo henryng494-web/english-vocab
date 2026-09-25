@@ -114,9 +114,11 @@ function normalizeAppSettings(parsed: Partial<AppSettings>): AppSettings {
           ? parsed.reminderEnabled
           : DEFAULT_SETTINGS.reminderEnabled,
       reminderTime: normalizeReminderTime(parsed.reminderTime),
-      appLanguage: isAppLocale(parsed.appLanguage)
-        ? parsed.appLanguage
-        : DEFAULT_SETTINGS.appLanguage,
+      appLanguage: (() => {
+        const lang = (parsed as { appLanguage?: unknown }).appLanguage;
+        if (lang === "es") return DEFAULT_APP_LOCALE;
+        return isAppLocale(lang) ? lang : DEFAULT_SETTINGS.appLanguage;
+      })(),
     pronounceSpeed: isPronounceSpeed(parsed.pronounceSpeed)
       ? parsed.pronounceSpeed
       : DEFAULT_SETTINGS.pronounceSpeed,

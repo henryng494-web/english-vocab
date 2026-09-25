@@ -1,2 +1,2 @@
 /** Bump when mobile shell / viewport layout changes (visible on Account page). */
-export const LAYOUT_VERSION = "2026-08-31-v68-chunk-vertical-balance";
+export const LAYOUT_VERSION = "2026-09-25-v69-purge-es-locale";

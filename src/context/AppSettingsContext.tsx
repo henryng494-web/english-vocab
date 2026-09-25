@@ -12,6 +12,7 @@ import {
   type PronounceAccent,
   type PronounceSpeed,
 } from "@/lib/app-settings";
+import { purgeStaleSpanishLocaleStorage } from "@/lib/purge-stale-spanish-locale";
 import {
   createContext,
   useCallback,
@@ -44,6 +45,7 @@ export function AppSettingsProvider({ children }: { children: React.ReactNode })
   }, []);
 
   useEffect(() => {
+    purgeStaleSpanishLocaleStorage();
     refresh();
     const onChange = () => refresh();
     window.addEventListener("app-settings-changed", onChange);

@@ -1,6 +1,7 @@
 export type AppLocale = "vi" | "en";
 
-export const APP_LOCALES: readonly AppLocale[] = ["vi", "en"] as const;
+/** UI language — Vietnamese only (Spanish learner locale removed). */
+export const APP_LOCALES: readonly AppLocale[] = ["vi"] as const;
 
 export const DEFAULT_APP_LOCALE: AppLocale = "vi";
 

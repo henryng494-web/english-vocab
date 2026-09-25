@@ -73,7 +73,7 @@ async function main(): Promise<void> {
     }
     if (!data?.length) break;
 
-    for (const row of data as Row[]) {
+    for (const row of data as unknown as Row[]) {
       total += 1;
       const m = row.vietnamese_meaning?.trim() ?? "";
       if (m.startsWith("{") && m.includes('"vi"')) jsonMeanings += 1;
