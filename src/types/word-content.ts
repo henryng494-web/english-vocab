@@ -9,3 +9,14 @@ export type ExampleTranslationRow = Partial<Record<GlossLanguage, string>>;
 
 /** `word_details.example_translations` — index-aligned with parsed EN examples. */
 export type ExampleTranslationsJson = ExampleTranslationRow[];
+
+/** One row in `phrase_translations.collocations` or `.chunks` (matched by `en`). */
+export type PhraseTranslationRow = Partial<Record<GlossLanguage, string>> & {
+  en?: string;
+};
+
+/** Goes-with collocations + useful phrase rows for the card chunk UI. */
+export type PhraseTranslationsJson = {
+  collocations?: PhraseTranslationRow[];
+  chunks?: PhraseTranslationRow[];
+};

@@ -35,6 +35,7 @@ import {
   mergeLegacyViIntoMeanings,
   parseExampleTranslationsJson,
   parseMeaningsJson,
+  parsePhraseTranslationsJson,
 } from "@/lib/multilang-record";
 import {
   DEFAULT_LEARNER_LOCALE,
@@ -102,6 +103,9 @@ function persistedDetailToDiscoverWord(
   const example_translations = parseExampleTranslationsJson(
     detail.example_translations,
   );
+  const phrase_translations = parsePhraseTranslationsJson(
+    detail.phrase_translations,
+  );
   const displayMeaning = pickLocalizedMeaning(
     meanings,
     learnerLocale,
@@ -117,6 +121,7 @@ function persistedDetailToDiscoverWord(
     examples: detail.examples,
     meanings,
     example_translations,
+    phrase_translations,
     collocations: detail.collocations,
     register: resolveWordRegister(detail),
     image_url: imageUrl,
@@ -145,12 +150,14 @@ async function maybeHydrateSpanishAndPersist(
     ...detail,
     meanings: patch.meanings,
     example_translations: patch.example_translations,
+    phrase_translations: patch.phrase_translations,
   };
   const { error } = await supabase
     .from("word_details")
     .update({
       meanings: patch.meanings,
       example_translations: patch.example_translations,
+      phrase_translations: patch.phrase_translations,
     })
     .eq("word", word);
   if (error) {
@@ -573,6 +580,9 @@ export async function GET(request: Request) {
       meanings: parseMeaningsJson(dbDetail?.meanings),
       example_translations: parseExampleTranslationsJson(
         dbDetail?.example_translations,
+      ),
+      phrase_translations: parsePhraseTranslationsJson(
+        dbDetail?.phrase_translations,
       ),
     };
     const localizedDetail = await maybeHydrateSpanishAndPersist(

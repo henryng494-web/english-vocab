@@ -20,6 +20,7 @@ import { buildWordFamilyEntries } from "@/lib/word-family-display";
 import type {
   ExampleTranslationsJson,
   LocalizedMeaningsJson,
+  PhraseTranslationsJson,
 } from "@/types/word-content";
 
 export type DiscoverWordData = {
@@ -33,6 +34,7 @@ export type DiscoverWordData = {
   examples?: string | null;
   meanings?: LocalizedMeaningsJson | null;
   example_translations?: ExampleTranslationsJson | null;
+  phrase_translations?: PhraseTranslationsJson | null;
   image_url?: string | null;
   collocations?: string | null;
   register?: WordRegister | null;
@@ -124,6 +126,7 @@ export function DiscoverCard({
     data.examples,
     data.meanings,
     data.example_translations,
+    data.phrase_translations,
     data.vietnamese_meaning,
     learnerLocale,
   ]);
@@ -187,6 +190,9 @@ export function DiscoverCard({
           meaning={meaningForUi}
           register={register}
           englishDefinition={cardData.english_definition}
+          phraseTranslations={cardData.phrase_translations}
+          exampleTranslations={cardData.example_translations}
+          learnerLocale={learnerLocale}
           family={wordFamily}
           similarWords={cardData.similar_words}
           loading={detailsLoading}

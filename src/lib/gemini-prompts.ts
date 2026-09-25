@@ -291,6 +291,26 @@ Rules:
 Reply with ONLY the Spanish meaning line(s).`;
 }
 
+export function buildSpanishCollocationPrompt(
+  englishPhrase: string,
+  word: string,
+  vietnameseGloss?: string | null,
+): string {
+  const viHint = vietnameseGloss?.trim()
+    ? `Vietnamese gloss hint: "${vietnameseGloss.trim()}".`
+    : "";
+  return `Translate this short English collocation into natural Spanish for a vocabulary flashcard.
+
+English phrase: "${englishPhrase}"
+Headword: "${word}"
+${viHint}
+
+Rules:
+- Keep it short (typical 2–6 words)
+- Natural Spanish for learners
+- Reply with ONLY the Spanish phrase. No quotes, no explanation.`;
+}
+
 export function buildSpanishExampleTranslationPrompt(
   englishSentence: string,
   word: string,

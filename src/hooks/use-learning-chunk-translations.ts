@@ -19,6 +19,7 @@ import {
   setCachedSupplementCollocations,
 } from "@/lib/learning-chunk-supplement-cache";
 import type { WordRegister } from "@/lib/word-meanings";
+import type { LearnerLocale } from "@/lib/learner-locale";
 
 type UseLearningChunkTranslationsArgs = {
   word: string;
@@ -28,6 +29,7 @@ type UseLearningChunkTranslationsArgs = {
   register?: WordRegister | null;
   englishDefinition?: string | null;
   entry: LearningChunkEntry | null;
+  learnerLocale?: LearnerLocale;
 };
 
 function mergeCollocationVi(
@@ -58,6 +60,7 @@ export function useLearningChunkTranslations({
   register,
   englishDefinition,
   entry,
+  learnerLocale = "vi",
 }: UseLearningChunkTranslationsArgs): LearningChunkEntry | null {
   const seedKey = useMemo(() => entrySeedKey(word, entry), [word, entry]);
 
@@ -83,6 +86,7 @@ export function useLearningChunkTranslations({
   }, [seedKey, word, entry, isOverride]);
 
   useEffect(() => {
+    if (learnerLocale === "es") return;
     if (!entry || isOverride) return;
     if (entry.collocations.length > 0) return;
     if (!entry.chunks.length) return;
@@ -149,9 +153,11 @@ export function useLearningChunkTranslations({
     entry,
     seedKey,
     isOverride,
+    learnerLocale,
   ]);
 
   useEffect(() => {
+    if (learnerLocale === "es") return;
     if (!entry || isOverride) return;
     if (hydratedKeyRef.current === seedKey) return;
 
@@ -201,9 +207,14 @@ export function useLearningChunkTranslations({
     entry,
     seedKey,
     isOverride,
+    learnerLocale,
   ]);
 
   if (!entry) return null;
+
+  if (learnerLocale === "es") {
+    return entry;
+  }
 
   return {
     collocations,

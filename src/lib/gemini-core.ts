@@ -8,6 +8,7 @@ import {
   buildExampleTranslationPrompt,
   buildExamplesPrompt,
   buildMeaningPrompt,
+  buildSpanishCollocationPrompt,
   buildSpanishExampleTranslationPrompt,
   buildSpanishMeaningPrompt,
   buildSimilarWordsPrompt,
@@ -384,6 +385,30 @@ export async function translateMeaningToSpanishWithGemini(
     return text || null;
   } catch (error) {
     console.warn(`Gemini ES meaning failed for "${word}":`, error);
+    return null;
+  }
+}
+
+/** Gemini — short Spanish gloss for a Goes-with collocation. */
+export async function translateCollocationToSpanishWithGemini(
+  englishPhrase: string,
+  word: string,
+  vietnameseGloss?: string | null,
+): Promise<string | null> {
+  if (!process.env.GEMINI_API_KEY?.trim()) return null;
+  const en = englishPhrase.trim();
+  if (!en) return null;
+  try {
+    const text = (
+      await generateGeminiText(
+        buildSpanishCollocationPrompt(en, word, vietnameseGloss),
+      )
+    )
+      .trim()
+      .replace(/^["']|["']$/g, "");
+    return text || null;
+  } catch (error) {
+    console.warn(`Gemini ES collocation failed for "${word}":`, error);
     return null;
   }
 }

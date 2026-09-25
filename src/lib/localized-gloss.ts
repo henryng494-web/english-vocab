@@ -2,6 +2,7 @@ import type { LearnerLocale } from "@/lib/learner-locale";
 import type {
   ExampleTranslationsJson,
   LocalizedMeaningsJson,
+  PhraseTranslationRow,
 } from "@/types/word-content";
 
 /**
@@ -40,4 +41,20 @@ export function pickExampleTranslationForLocale(
     return row.vi?.trim() || null;
   }
   return row.vi?.trim() || null;
+}
+
+/** Secondary gloss for Goes-with / useful-phrase rows (matched by `en`). */
+export function pickPhraseTranslationForLocale(
+  row: PhraseTranslationRow | null | undefined,
+  learnerLocale: LearnerLocale,
+  legacyVietnamese?: string | null,
+): string | null {
+  if (learnerLocale === "es") {
+    const es = row?.es?.trim();
+    if (es) return es;
+    const vi = row?.vi?.trim() || legacyVietnamese?.trim();
+    if (vi) return vi;
+    return null;
+  }
+  return row?.vi?.trim() || legacyVietnamese?.trim() || null;
 }

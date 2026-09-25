@@ -10,6 +10,11 @@ import { resolveLearningChunks } from "@/lib/learning-chunks";
 import { parseExamples, type VocabExample } from "@/lib/parse-examples";
 import type { WordFamilyMember } from "@/types/database";
 import type { WordRegister } from "@/lib/word-meanings";
+import type { LearnerLocale } from "@/lib/learner-locale";
+import type {
+  ExampleTranslationsJson,
+  PhraseTranslationsJson,
+} from "@/types/word-content";
 
 const POS_ABBREV: Record<string, string> = {
   noun: "n.",
@@ -36,6 +41,9 @@ type WordCardDetailsProps = {
   meaning?: string | null;
   register?: WordRegister | null;
   englishDefinition?: string | null;
+  phraseTranslations?: PhraseTranslationsJson | null;
+  exampleTranslations?: ExampleTranslationsJson | null;
+  learnerLocale?: LearnerLocale;
   family?: WordFamilyMember[] | null;
   similarWords?: string[] | null;
   loading?: boolean;
@@ -87,6 +95,9 @@ export function WordCardDetails({
   meaning,
   register,
   englishDefinition,
+  phraseTranslations,
+  exampleTranslations,
+  learnerLocale = "vi",
   family,
   similarWords,
   loading = false,
@@ -209,6 +220,10 @@ export function WordCardDetails({
                 meaning={meaning}
                 register={register}
                 englishDefinition={englishDefinition}
+                phraseTranslations={phraseTranslations}
+                exampleTranslations={exampleTranslations}
+                learnerLocale={learnerLocale}
+                localeLoadingGloss={localeLoadingExamples}
                 compact
               />
               {!chunksOnly ? (

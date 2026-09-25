@@ -29,6 +29,7 @@ export function vocabWordToDiscoverData(word: VocabWord): DiscoverWordData {
     examples: word.examples,
     meanings: word.meanings,
     example_translations: word.example_translations,
+    phrase_translations: word.phrase_translations,
     image_url: word.image_url,
     collocations: word.collocations,
     register: resolveWordRegister(word),

@@ -4,7 +4,10 @@ import {
   hasStoredEsMeaning,
   mergeLegacyViIntoMeanings,
   exampleTranslationsNeedEs,
+  parsePhraseTranslationsJson,
+  phraseTranslationsNeedEs,
 } from "@/lib/multilang-record";
+import { resolveLearningChunks } from "@/lib/learning-chunks";
 import {
   pickExampleTranslationForLocale,
   pickLocalizedMeaning,
@@ -16,19 +19,30 @@ import type { VocabExample } from "@/lib/parse-examples";
 export function discoverDataNeedsSpanishHydration(
   data: DiscoverWordData,
 ): boolean {
+  const examples = data.examples ?? "";
   const detailLike = {
+    word: data.word,
     meanings: data.meanings,
     vietnamese_meaning: data.vietnamese_meaning ?? "",
-    examples: data.examples ?? "",
+    examples,
     example_translations: data.example_translations,
+    phrase_translations: data.phrase_translations,
+    word_type: data.word_type,
   };
   const meanings = mergeLegacyViIntoMeanings(detailLike);
-  const parsed = parseExamples(data.examples);
+  const parsed = parseExamples(examples);
   const rows = exampleRowsFromDetail(detailLike);
   const count = Math.min(parsed.length, 2);
+  const chunkEntry = resolveLearningChunks(data.word, {
+    examples,
+    wordType: data.word_type,
+    meaning: data.vietnamese_meaning,
+  });
+  const phrases = parsePhraseTranslationsJson(data.phrase_translations);
   return (
     !hasStoredEsMeaning(meanings) ||
-    (count > 0 && exampleTranslationsNeedEs(rows, count))
+    (count > 0 && exampleTranslationsNeedEs(rows, count)) ||
+    (chunkEntry != null && phraseTranslationsNeedEs(phrases, chunkEntry))
   );
 }
 

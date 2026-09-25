@@ -10,8 +10,14 @@ import {
 } from "@/data/demo-learning-chunks";
 import { SpeakButton } from "@/components/flashcard/SpeakButton";
 import { capitalizeFirst } from "@/lib/format-text";
+import { localizedLearningChunkEntry } from "@/lib/localized-chunks-display";
 import { resolveLearningChunks } from "@/lib/learning-chunks";
+import type { LearnerLocale } from "@/lib/learner-locale";
 import type { WordRegister } from "@/lib/word-meanings";
+import type {
+  ExampleTranslationsJson,
+  PhraseTranslationsJson,
+} from "@/types/word-content";
 
 type WordLearningChunksProps = {
   word: string;
@@ -20,6 +26,10 @@ type WordLearningChunksProps = {
   meaning?: string | null;
   register?: WordRegister | null;
   englishDefinition?: string | null;
+  phraseTranslations?: PhraseTranslationsJson | null;
+  exampleTranslations?: ExampleTranslationsJson | null;
+  learnerLocale?: LearnerLocale;
+  localeLoadingGloss?: boolean;
   compact?: boolean;
 };
 
@@ -28,11 +38,13 @@ function PhraseList({
   inline = false,
   speakAtEnd = false,
   speakAriaLabel,
+  localeLoadingGloss = false,
 }: {
   items: LearningChunkPhrase[];
   inline?: boolean;
   speakAtEnd?: boolean;
   speakAriaLabel?: string;
+  localeLoadingGloss?: boolean;
 }) {
   return (
     <ul className="vocab-examples vocab-examples--compact word-learning-chunks__examples">
@@ -50,7 +62,17 @@ function PhraseList({
               <span className="vocab-examples__en italic">
                 {capitalizeFirst(item.en)}
               </span>
-              {item.vi ? (
+              {localeLoadingGloss && !item.vi.trim() ? (
+                <>
+                  <span className="word-learning-chunks__sep" aria-hidden="true">
+                    ·
+                  </span>
+                  <span
+                    className="vocab-examples__vi vocab-examples__vi--loading inline-block h-4 w-24 animate-pulse rounded bg-primary-50"
+                    aria-hidden
+                  />
+                </>
+              ) : item.vi ? (
                 <>
                   <span className="word-learning-chunks__sep" aria-hidden="true">
                     ·
@@ -75,7 +97,12 @@ function PhraseList({
                   className="word-learning-chunks__speak !inline-flex !h-7 !w-7"
                 />
               </p>
-              {item.vi ? (
+              {localeLoadingGloss && !item.vi.trim() ? (
+                <span
+                  className="vocab-examples__vi vocab-examples__vi--loading mt-0.5 block h-4 w-4/5 max-w-xs animate-pulse rounded bg-primary-50"
+                  aria-hidden
+                />
+              ) : item.vi ? (
                 <p className="vocab-examples__vi mt-0.5 italic">
                   {capitalizeFirst(item.vi)}
                 </p>
@@ -84,7 +111,12 @@ function PhraseList({
           ) : (
             <>
               <p className="vocab-examples__en italic">{capitalizeFirst(item.en)}</p>
-              {item.vi ? (
+              {localeLoadingGloss && !item.vi.trim() ? (
+                <span
+                  className="vocab-examples__vi vocab-examples__vi--loading mt-0.5 block h-4 w-4/5 max-w-xs animate-pulse rounded bg-primary-50"
+                  aria-hidden
+                />
+              ) : item.vi ? (
                 <p className="vocab-examples__vi mt-0.5 italic">
                   {capitalizeFirst(item.vi)}
                 </p>
@@ -104,6 +136,10 @@ export function WordLearningChunks({
   meaning,
   register,
   englishDefinition,
+  phraseTranslations,
+  exampleTranslations,
+  learnerLocale = "vi",
+  localeLoadingGloss = false,
   compact = false,
 }: WordLearningChunksProps) {
   const { t } = useI18n();
@@ -111,7 +147,7 @@ export function WordLearningChunks({
     () => resolveLearningChunks(word, { examples, wordType, meaning }),
     [word, examples, wordType, meaning],
   );
-  const entry = useLearningChunkTranslations({
+  const viEntry = useLearningChunkTranslations({
     word,
     examples,
     wordType,
@@ -119,7 +155,39 @@ export function WordLearningChunks({
     register,
     englishDefinition,
     entry: baseEntry,
+    learnerLocale,
   });
+
+  const entry = useMemo(() => {
+    if (learnerLocale === "es") {
+      return (
+        localizedLearningChunkEntry(
+          {
+            word,
+            examples,
+            word_type: wordType,
+            vietnamese_meaning: meaning,
+            phrase_translations: phraseTranslations,
+            example_translations: exampleTranslations,
+          },
+          learnerLocale,
+          { allowViFallback: !localeLoadingGloss },
+        ) ?? viEntry
+      );
+    }
+    return viEntry;
+  }, [
+    learnerLocale,
+    word,
+    examples,
+    wordType,
+    meaning,
+    phraseTranslations,
+    exampleTranslations,
+    viEntry,
+    localeLoadingGloss,
+  ]);
+
   if (!entry) return null;
 
   const collocationItems = entry.collocations.slice(0, MAX_LEARNING_COLLOCATIONS);
@@ -137,7 +205,11 @@ export function WordLearningChunks({
       {collocationItems.length > 0 ? (
         <section className="word-learning-chunks__section word-learning-chunks__section--collocations">
           <h3 className="word-learning-chunks__label">{t("chunks.collocations")}</h3>
-          <PhraseList items={collocationItems} inline />
+          <PhraseList
+            items={collocationItems}
+            inline
+            localeLoadingGloss={localeLoadingGloss}
+          />
         </section>
       ) : null}
 
@@ -148,6 +220,7 @@ export function WordLearningChunks({
             items={chunkItems}
             speakAtEnd
             speakAriaLabel={t("speak.phraseAria")}
+            localeLoadingGloss={localeLoadingGloss}
           />
         </section>
       ) : null}
