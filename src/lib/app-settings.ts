@@ -6,10 +6,18 @@ import {
   type PronounceAccent,
 } from "@/lib/pronounce-accent";
 import {
+  DEFAULT_LEARNER_LOCALE,
+  parseLearnerLocale,
+  type LearnerLocale,
+} from "@/lib/learner-locale";
+import {
   DEFAULT_PRONOUNCE_SPEED,
   isPronounceSpeed,
   type PronounceSpeed,
 } from "@/lib/pronounce-speed";
+
+export type { LearnerLocale };
+export { DEFAULT_LEARNER_LOCALE, LEARNER_LOCALE_MENU_OPTIONS } from "@/lib/learner-locale";
 
 export type { PronounceAccent, PronounceSpeed };
 export { PRONOUNCE_ACCENT_OPTIONS } from "@/lib/pronounce-accent";
@@ -31,8 +39,10 @@ export type AppSettings = {
   reminderEnabled: boolean;
   /** 24h local time HH:MM */
   reminderTime: string;
-  /** Interface language — word content stays bilingual. */
+  /** Interface language — menus and labels. */
   appLanguage: AppLocale;
+  /** Gloss language on flashcards (Vietnamese only). */
+  learnerLocale: LearnerLocale;
   /** MP3 playback speed — learner preference from menu. */
   pronounceSpeed: PronounceSpeed;
   /** US / UK / AU neural + dictionary accent from menu. */
@@ -72,6 +82,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   reminderEnabled: false,
   reminderTime: "19:00",
   appLanguage: DEFAULT_APP_LOCALE,
+  learnerLocale: DEFAULT_LEARNER_LOCALE,
   pronounceSpeed: DEFAULT_PRONOUNCE_SPEED,
   pronounceAccent: DEFAULT_PRONOUNCE_ACCENT,
 };
@@ -119,6 +130,9 @@ function normalizeAppSettings(parsed: Partial<AppSettings>): AppSettings {
         if (lang === "es") return DEFAULT_APP_LOCALE;
         return isAppLocale(lang) ? lang : DEFAULT_SETTINGS.appLanguage;
       })(),
+      learnerLocale: parseLearnerLocale(
+        (parsed as { learnerLocale?: unknown }).learnerLocale,
+      ),
     pronounceSpeed: isPronounceSpeed(parsed.pronounceSpeed)
       ? parsed.pronounceSpeed
       : DEFAULT_SETTINGS.pronounceSpeed,
@@ -135,7 +149,12 @@ export function readAppSettings(): AppSettings {
     if (!raw) return DEFAULT_SETTINGS;
     const parsed = JSON.parse(raw) as Partial<AppSettings>;
     const normalized = normalizeAppSettings(parsed);
-    if (parsed.goalType && parsed.goalType !== "minutes") {
+    const legacyLocale = (parsed as { learnerLocale?: unknown }).learnerLocale;
+    if (
+      (parsed.goalType && parsed.goalType !== "minutes") ||
+      legacyLocale === "es" ||
+      !("learnerLocale" in (parsed as object))
+    ) {
       writeAppSettings(normalized);
     }
     return normalized;

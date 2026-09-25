@@ -1,2 +1,2 @@
 /** Bump when mobile shell / viewport layout changes (visible on Account page). */
-export const LAYOUT_VERSION = "2026-09-25-v69-purge-es-locale";
+export const LAYOUT_VERSION = "2026-09-25-v70-menu-learning-locale";

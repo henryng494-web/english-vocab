@@ -1,7 +1,6 @@
 export type AppLocale = "vi" | "en";
 
-/** UI language — Vietnamese only (Spanish learner locale removed). */
-export const APP_LOCALES: readonly AppLocale[] = ["vi"] as const;
+export const APP_LOCALES: readonly AppLocale[] = ["vi", "en"] as const;
 
 export const DEFAULT_APP_LOCALE: AppLocale = "vi";
 
@@ -24,6 +23,9 @@ export const messages: Record<AppLocale, MessageTree> = {
     "menu.langVi": "Tiếng Việt",
     "menu.langEn": "English",
     "menu.learning": "Học tập",
+    "menu.learnerLocale": "Ngôn ngữ đang học",
+    "menu.learnerLocaleHint": "Ngôn ngữ giải thích nghĩa và ví dụ trên thẻ từ.",
+    "menu.learnerLocaleVi": "Tiếng Việt",
     "menu.autoSpeak": "Tự động phát âm",
     "menu.autoSpeakDesc": "Đọc mỗi từ mới khi xuất hiện",
     "menu.pronounceSpeed": "Tốc độ phát âm",
@@ -311,6 +313,9 @@ export const messages: Record<AppLocale, MessageTree> = {
     "menu.langVi": "Tiếng Việt",
     "menu.langEn": "English",
     "menu.learning": "Learning",
+    "menu.learnerLocale": "Learning language",
+    "menu.learnerLocaleHint": "Language for meanings and examples on word cards.",
+    "menu.learnerLocaleVi": "Tiếng Việt",
     "menu.autoSpeak": "Auto-pronounce",
     "menu.autoSpeakDesc": "Speak each new word automatically",
     "menu.pronounceSpeed": "Pronunciation speed",

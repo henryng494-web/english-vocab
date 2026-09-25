@@ -136,6 +136,19 @@ export function AppMenuDrawer({ open, onClose }: AppMenuDrawerProps) {
 
           <section className="app-menu__section">
             <h3 className="app-menu__section-title">{t("menu.learning")}</h3>
+            <div className="app-menu__subblock">
+              <p className="app-menu__subblock-title">{t("menu.learnerLocale")}</p>
+              <p className="app-menu__hint">{t("menu.learnerLocaleHint")}</p>
+              <div className="app-menu__chips">
+                <button
+                  type="button"
+                  className="app-menu__chip is-active"
+                  aria-pressed
+                >
+                  {t("menu.learnerLocaleVi")}
+                </button>
+              </div>
+            </div>
             <ToggleRow
               label={t("menu.autoSpeak")}
               description={t("menu.autoSpeakDesc")}

@@ -1,5 +1,6 @@
 import { purgeLegacyDiscoverWordCaches } from "@/lib/discover-word-cache";
 import { DEFAULT_APP_LOCALE } from "@/lib/i18n/messages";
+import { DEFAULT_LEARNER_LOCALE } from "@/lib/learner-locale";
 
 const SETTINGS_KEY = "vocab-app-settings-v1";
 const PURGE_FLAG_KEY = "vocab-es-locale-purge-v1";
@@ -81,12 +82,15 @@ export function purgeStaleSpanishLocaleStorage(): boolean {
         stripSpanishFromSettingsRecord(parsed);
       if (settingsChanged || settingsBlobHasSpanish(raw)) {
         changed = true;
-        for (const field of LOCALE_FIELD_NAMES) {
-          delete cleaned[field];
-        }
         if (cleaned.appLanguage === "es") {
           cleaned.appLanguage = DEFAULT_APP_LOCALE;
         }
+        cleaned.learnerLocale = DEFAULT_LEARNER_LOCALE;
+        for (const field of LOCALE_FIELD_NAMES) {
+          if (field !== "learnerLocale") delete cleaned[field];
+        }
+        delete cleaned.userLanguage;
+        delete cleaned.learningLanguage;
         localStorage.setItem(SETTINGS_KEY, JSON.stringify(cleaned));
         window.dispatchEvent(new CustomEvent("app-settings-changed"));
       }
