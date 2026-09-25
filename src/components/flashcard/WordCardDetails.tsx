@@ -7,7 +7,7 @@ import { useI18n } from "@/hooks/use-i18n";
 import { useCardSimilarWords } from "@/hooks/use-card-similar-words";
 import { capitalizeFirst } from "@/lib/format-text";
 import { resolveLearningChunks } from "@/lib/learning-chunks";
-import { parseExamples } from "@/lib/parse-examples";
+import { parseExamples, type VocabExample } from "@/lib/parse-examples";
 import type { WordFamilyMember } from "@/types/database";
 import type { WordRegister } from "@/lib/word-meanings";
 
@@ -30,6 +30,8 @@ const HINT_TAP_SLOP_PX = 10;
 type WordCardDetailsProps = {
   word: string;
   examples?: string | null;
+  /** Localized example rows (overrides parseExamples when set). */
+  displayExamples?: VocabExample[];
   wordType?: string | null;
   meaning?: string | null;
   register?: WordRegister | null;
@@ -37,6 +39,7 @@ type WordCardDetailsProps = {
   family?: WordFamilyMember[] | null;
   similarWords?: string[] | null;
   loading?: boolean;
+  localeLoadingExamples?: boolean;
   /**
    * Block Family hint taps briefly after mount/word change (review reveal uses ~450ms
    * so the confirm tap cannot bleed into the hint when similar words appear async).
@@ -79,6 +82,7 @@ function DetailsLoadingSkeleton() {
 export function WordCardDetails({
   word,
   examples,
+  displayExamples,
   wordType,
   meaning,
   register,
@@ -86,6 +90,7 @@ export function WordCardDetails({
   family,
   similarWords,
   loading = false,
+  localeLoadingExamples = false,
   hintGraceMs = 0,
 }: WordCardDetailsProps) {
   const { t } = useI18n();
@@ -97,7 +102,9 @@ export function WordCardDetails({
     (chunkEntry?.collocations.length ?? 0) > 0 ||
       (chunkEntry?.chunks.length ?? 0) > 0,
   );
-  const parsed = loading ? [] : parseExamples(examples);
+  const parsed = loading
+    ? []
+    : displayExamples ?? parseExamples(examples);
   const rows = (family ?? []).filter((item) => item.word.trim());
   const similar = useCardSimilarWords({
     word,
@@ -210,6 +217,7 @@ export function WordCardDetails({
                   examples={parsed}
                   wordType={wordType}
                   meaning={meaning}
+                  localeLoadingGloss={localeLoadingExamples}
                   compact
                 />
               ) : null}

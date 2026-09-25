@@ -8,6 +8,8 @@ import {
   buildExampleTranslationPrompt,
   buildExamplesPrompt,
   buildMeaningPrompt,
+  buildSpanishExampleTranslationPrompt,
+  buildSpanishMeaningPrompt,
   buildSimilarWordsPrompt,
   type CollocationTranslationInput,
 } from "@/lib/gemini-prompts";
@@ -358,6 +360,55 @@ export async function supplementCollocationsWithGemini(
     return out.length ? out.slice(0, count) : null;
   } catch (error) {
     console.warn(`Gemini supplement collocations failed for "${word}":`, error);
+    return null;
+  }
+}
+
+/** Gemini — Spanish gloss line(s) from Vietnamese + context. */
+export async function translateMeaningToSpanishWithGemini(
+  word: string,
+  vietnameseMeaning: string,
+  englishDefinition?: string | null,
+): Promise<string | null> {
+  if (!process.env.GEMINI_API_KEY?.trim()) return null;
+  const vi = vietnameseMeaning.trim();
+  if (!vi) return null;
+  try {
+    const text = (
+      await generateGeminiText(
+        buildSpanishMeaningPrompt(word, vi, englishDefinition),
+      )
+    )
+      .trim()
+      .replace(/^["']|["']$/g, "");
+    return text || null;
+  } catch (error) {
+    console.warn(`Gemini ES meaning failed for "${word}":`, error);
+    return null;
+  }
+}
+
+/** Gemini — natural Spanish for one example sentence. */
+export async function translateExampleToSpanishWithGemini(
+  englishSentence: string,
+  word: string,
+  pos?: string | null,
+  meaning?: string | null,
+): Promise<string | null> {
+  if (!process.env.GEMINI_API_KEY?.trim()) return null;
+  const en = englishSentence.trim();
+  if (!en) return null;
+  try {
+    const text = (
+      await generateGeminiText(
+        buildSpanishExampleTranslationPrompt(en, word, pos, meaning),
+      )
+    )
+      .trim()
+      .replace(/^["']|["']$/g, "");
+    return text || null;
+  } catch (error) {
+    console.warn(`Gemini ES example failed for "${word}":`, error);
     return null;
   }
 }

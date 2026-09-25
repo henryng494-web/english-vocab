@@ -27,6 +27,8 @@ export function vocabWordToDiscoverData(word: VocabWord): DiscoverWordData {
     vietnamese_meaning: word.vietnamese_meaning,
     english_definition: word.english_definition,
     examples: word.examples,
+    meanings: word.meanings,
+    example_translations: word.example_translations,
     image_url: word.image_url,
     collocations: word.collocations,
     register: resolveWordRegister(word),

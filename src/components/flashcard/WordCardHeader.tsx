@@ -17,6 +17,7 @@ type WordCardHeaderProps = {
   meanings?: string | null;
   register?: WordRegister | null;
   loadingPhonetic?: boolean;
+  loadingMeaning?: boolean;
   /** Auto-pronounce when the word changes (default: true). */
   autoSpeak?: boolean;
 };
@@ -28,6 +29,7 @@ export function WordCardHeader({
   meanings,
   register,
   loadingPhonetic,
+  loadingMeaning,
   autoSpeak = true,
 }: WordCardHeaderProps) {
   useAutoSpeakWord(word, autoSpeak);
@@ -59,9 +61,13 @@ export function WordCardHeader({
         </div>
       </div>
 
-      {meaningLines.length > 0 || showMeta ? (
+      {meaningLines.length > 0 || loadingMeaning || showMeta ? (
         <div className="word-card-header__body">
-          {meaningLines.length > 0 ? (
+          {loadingMeaning ? (
+            <div className="word-card-header__meanings" aria-busy="true" aria-label="Loading meaning">
+              <span className="word-card-header__meaning word-card-header__meaning--loading" />
+            </div>
+          ) : meaningLines.length > 0 ? (
             <div className="word-card-header__meanings" aria-label="Meanings">
               {meaningLines.map((line, index) => (
                 <p key={`${line}-${index}`} className="word-card-header__meaning">

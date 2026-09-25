@@ -8,6 +8,7 @@ type VocabExampleListProps = {
   examples: VocabExample[];
   wordType?: string | null;
   meaning?: string | null;
+  localeLoadingGloss?: boolean;
   boxed?: boolean;
   /** Tighter layout for fixed-height journey cards. */
   compact?: boolean;
@@ -18,6 +19,7 @@ export function VocabExampleList({
   examples,
   wordType,
   meaning,
+  localeLoadingGloss = false,
   boxed = false,
   compact = false,
 }: VocabExampleListProps) {
@@ -44,7 +46,14 @@ export function VocabExampleList({
       {visible.map((ex, i) => (
         <li key={`${word}-ex-${i}`} className={itemClass}>
           <p className={enClass}>{ex.en}</p>
-          {ex.vi ? <p className={viClass}>{ex.vi}</p> : null}
+          {localeLoadingGloss ? (
+            <span
+              className="vocab-examples__vi vocab-examples__vi--loading mt-0.5 block h-4 w-4/5 max-w-xs animate-pulse rounded bg-primary-50"
+              aria-hidden
+            />
+          ) : ex.vi ? (
+            <p className={viClass}>{ex.vi}</p>
+          ) : null}
         </li>
       ))}
     </ul>

@@ -26,6 +26,21 @@ import { sanitizeVietnameseText } from "@/lib/sanitize-vi";
 import { resolveWordRegister } from "@/lib/word-meanings";
 import { normalizeVocabInput } from "@/lib/word-validation";
 import { getFamilyHeadword } from "@/lib/word-family";
+import {
+  hydrateSpanishWordContent,
+  wordDetailNeedsSpanishHydration,
+} from "@/lib/localize-word-content";
+import { pickLocalizedMeaning } from "@/lib/localized-gloss";
+import {
+  mergeLegacyViIntoMeanings,
+  parseExampleTranslationsJson,
+  parseMeaningsJson,
+} from "@/lib/multilang-record";
+import {
+  DEFAULT_LEARNER_LOCALE,
+  parseLearnerLocale,
+  type LearnerLocale,
+} from "@/lib/learner-locale";
 import type { WordDetail } from "@/types/database";
 import { NextResponse } from "next/server";
 
@@ -81,14 +96,27 @@ function persistedDetailToDiscoverWord(
   rank: number,
   imageUrl: string,
   searchKeyword: string,
+  learnerLocale: LearnerLocale = DEFAULT_LEARNER_LOCALE,
 ) {
+  const meanings = mergeLegacyViIntoMeanings(detail);
+  const example_translations = parseExampleTranslationsJson(
+    detail.example_translations,
+  );
+  const displayMeaning = pickLocalizedMeaning(
+    meanings,
+    learnerLocale,
+    detail.vietnamese_meaning,
+    detail.english_definition,
+  );
   return withWordFamily({
     word,
     phonetic: detail.phonetic,
     word_type: detail.word_type,
-    vietnamese_meaning: sanitizeVietnameseText(detail.vietnamese_meaning),
+    vietnamese_meaning: displayMeaning ?? sanitizeVietnameseText(detail.vietnamese_meaning),
     english_definition: detail.english_definition,
     examples: detail.examples,
+    meanings,
+    example_translations,
     collocations: detail.collocations,
     register: resolveWordRegister(detail),
     image_url: imageUrl,
@@ -100,6 +128,35 @@ function persistedDetailToDiscoverWord(
     source: "database" as const,
     search_keyword: searchKeyword,
   });
+}
+
+async function maybeHydrateSpanishAndPersist(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  word: string,
+  detail: WordDetail,
+  learnerLocale: LearnerLocale,
+): Promise<WordDetail> {
+  if (learnerLocale !== "es") return detail;
+  if (!wordDetailNeedsSpanishHydration(detail)) return detail;
+  if (!process.env.GEMINI_API_KEY?.trim()) return detail;
+
+  const patch = await hydrateSpanishWordContent(detail);
+  const next: WordDetail = {
+    ...detail,
+    meanings: patch.meanings,
+    example_translations: patch.example_translations,
+  };
+  const { error } = await supabase
+    .from("word_details")
+    .update({
+      meanings: patch.meanings,
+      example_translations: patch.example_translations,
+    })
+    .eq("word", word);
+  if (error) {
+    console.warn(`Spanish hydrate persist skipped for "${word}":`, error.message);
+  }
+  return next;
 }
 
 /** Self-heal: persist a freshly regenerated image URL so it's fixed for good. */
@@ -264,6 +321,7 @@ export async function GET(request: Request) {
       searchParams.get("skipGemini") === "true" &&
       hasQualityStandardVocab(word ?? "");
     const forceRepair = searchParams.get("forceRepair") === "true";
+    const learnerLocale = parseLearnerLocale(searchParams.get("locale"));
 
     if (!word) {
       return NextResponse.json(
@@ -367,13 +425,20 @@ export async function GET(request: Request) {
             .eq("word", word);
         }
       }
+      const localizedDetail = await maybeHydrateSpanishAndPersist(
+        supabase,
+        word,
+        repairedDbDetail!,
+        learnerLocale,
+      );
       return NextResponse.json({
         word: persistedDetailToDiscoverWord(
           word,
-          repairedDbDetail!,
+          localizedDetail,
           frequencyRank,
           imageUrl,
           searchKeyword,
+          learnerLocale,
         ),
       });
     }
@@ -495,14 +560,44 @@ export async function GET(request: Request) {
       );
     }
 
+    const enrichedDetail: WordDetail = {
+      id: dbDetail?.id ?? "",
+      word,
+      phonetic: phonetic ?? `/${word}/`,
+      word_type: responseWord.word_type ?? "unknown",
+      vietnamese_meaning: vietnameseMeaningFinal,
+      english_definition: responseWord.english_definition ?? "",
+      examples,
+      collocations: responseWord.collocations ?? null,
+      image_url: isPersistableWordImageUrl(imageUrl, word) ? imageUrl : null,
+      meanings: parseMeaningsJson(dbDetail?.meanings),
+      example_translations: parseExampleTranslationsJson(
+        dbDetail?.example_translations,
+      ),
+    };
+    const localizedDetail = await maybeHydrateSpanishAndPersist(
+      supabase,
+      word,
+      enrichedDetail,
+      learnerLocale,
+    );
+    const searchKeywordEnriched =
+      responseWord.search_keyword ??
+      imageSearchKeyword(
+        word,
+        localizedDetail.word_type,
+        localizedDetail.vietnamese_meaning,
+        localizedDetail.english_definition,
+      );
     return NextResponse.json({
-      word: {
-        ...responseWord,
-        vietnamese_meaning: vietnameseMeaningFinal,
-        examples,
-        phonetic,
-        from_cache: hasQualityStandardVocab(word),
-      },
+      word: persistedDetailToDiscoverWord(
+        word,
+        localizedDetail,
+        frequencyRank,
+        imageUrl,
+        searchKeywordEnriched,
+        learnerLocale,
+      ),
     });
   } catch (error) {
     console.error("Discover word preview error:", error);

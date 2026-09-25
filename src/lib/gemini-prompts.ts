@@ -267,6 +267,50 @@ Rules:
 Reply with ONLY the Vietnamese sentence. No quotes, no explanation.`;
 }
 
+export function buildSpanishMeaningPrompt(
+  word: string,
+  vietnameseMeaning: string,
+  englishDefinition?: string | null,
+): string {
+  const def = englishDefinition?.trim()
+    ? `English definition: "${englishDefinition.trim()}".`
+    : "";
+  return `Translate the Vietnamese gloss(es) for the English headword "${word}" into natural Spanish for a vocabulary flashcard.
+
+Vietnamese gloss(es):
+${vietnameseMeaning.trim()}
+
+${def}
+
+Rules:
+- Keep the same number of meaning lines as Vietnamese (newline-separated)
+- Primary learner language is Spanish — natural Latin American / neutral Spanish
+- Match the sense of the Vietnamese gloss; do not invent new senses
+- No English, no JSON, no quotes
+
+Reply with ONLY the Spanish meaning line(s).`;
+}
+
+export function buildSpanishExampleTranslationPrompt(
+  englishSentence: string,
+  word: string,
+  pos?: string | null,
+  meaning?: string | null,
+): string {
+  const posHint = pos?.trim() ? `Part of speech: ${pos}.` : "";
+  const meaningHint = meaning?.trim() ? `Word meaning (Spanish/Vietnamese sense): ${meaning}.` : "";
+  return `Translate this English example sentence to natural Spanish for a vocabulary learner.
+
+Sentence: "${englishSentence}"
+Headword: "${word}"
+${posHint} ${meaningHint}
+
+Rules:
+- Natural Spanish (not word-by-word)
+- Keep the same register as the English sentence
+- Reply with ONLY the Spanish sentence. No quotes, no explanation.`;
+}
+
 export type CollocationTranslationInput = {
   en: string;
   /** Full example sentence for context (optional). */

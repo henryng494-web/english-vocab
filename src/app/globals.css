@@ -1173,6 +1173,15 @@ body {
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
+.word-card-header__meaning--loading {
+  display: block;
+  height: 1.35rem;
+  width: min(14rem, 72%);
+  border-radius: 0.375rem;
+  background: var(--primary-50);
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
 .word-card-header__pos.word-type-badge {
   border-radius: 9999px;
   background: var(--badge-bg, var(--primary-50));
