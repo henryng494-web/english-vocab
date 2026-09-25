@@ -31,6 +31,7 @@ import {
   wordDetailNeedsSpanishHydration,
 } from "@/lib/localize-word-content";
 import { pickLocalizedMeaning } from "@/lib/localized-gloss";
+import { persistMultilangPatch } from "@/lib/persist-multilang-patch";
 import {
   mergeLegacyViIntoMeanings,
   parseExampleTranslationsJson,
@@ -152,16 +153,12 @@ async function maybeHydrateSpanishAndPersist(
     example_translations: patch.example_translations,
     phrase_translations: patch.phrase_translations,
   };
-  const { error } = await supabase
-    .from("word_details")
-    .update({
-      meanings: patch.meanings,
-      example_translations: patch.example_translations,
-      phrase_translations: patch.phrase_translations,
-    })
-    .eq("word", word);
-  if (error) {
-    console.warn(`Spanish hydrate persist skipped for "${word}":`, error.message);
+  const persist = await persistMultilangPatch(supabase, word, patch);
+  if (!persist.ok) {
+    console.warn(
+      `Spanish hydrate persist skipped for "${word}":`,
+      persist.error ?? "unknown",
+    );
   }
   return next;
 }

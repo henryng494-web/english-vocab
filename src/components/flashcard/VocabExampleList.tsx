@@ -46,7 +46,7 @@ export function VocabExampleList({
       {visible.map((ex, i) => (
         <li key={`${word}-ex-${i}`} className={itemClass}>
           <p className={enClass}>{ex.en}</p>
-          {localeLoadingGloss ? (
+          {localeLoadingGloss && !ex.vi ? (
             <span
               className="vocab-examples__vi vocab-examples__vi--loading mt-0.5 block h-4 w-4/5 max-w-xs animate-pulse rounded bg-primary-50"
               aria-hidden

@@ -30,6 +30,7 @@ type WordLearningChunksProps = {
   exampleTranslations?: ExampleTranslationsJson | null;
   learnerLocale?: LearnerLocale;
   localeLoadingGloss?: boolean;
+  localeSettled?: boolean;
   compact?: boolean;
 };
 
@@ -140,6 +141,7 @@ export function WordLearningChunks({
   exampleTranslations,
   learnerLocale = "vi",
   localeLoadingGloss = false,
+  localeSettled = true,
   compact = false,
 }: WordLearningChunksProps) {
   const { t } = useI18n();
@@ -171,7 +173,7 @@ export function WordLearningChunks({
             example_translations: exampleTranslations,
           },
           learnerLocale,
-          { allowViFallback: !localeLoadingGloss },
+          { allowViFallback: localeSettled && !localeLoadingGloss },
         ) ?? viEntry
       );
     }

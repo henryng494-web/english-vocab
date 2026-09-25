@@ -99,6 +99,9 @@ export function DiscoverCard({
   const needsSpanishHydration =
     learnerLocale === "es" && discoverDataNeedsSpanishHydration(data);
   const [localeLoading, setLocaleLoading] = useState(needsSpanishHydration);
+  const [localeSettled, setLocaleSettled] = useState(
+    !needsSpanishHydration,
+  );
 
   useEffect(() => {
     setCardData(data);
@@ -109,15 +112,22 @@ export function DiscoverCard({
       learnerLocale === "es" && discoverDataNeedsSpanishHydration(data);
     if (!needs) {
       setLocaleLoading(false);
+      setLocaleSettled(true);
       return;
     }
     let cancelled = false;
     setLocaleLoading(true);
-    void ensureCardSpanishContent(data, learnerLocale).then((updated) => {
-      if (cancelled) return;
-      if (updated) setCardData(updated);
-      setLocaleLoading(false);
-    });
+    setLocaleSettled(false);
+    void ensureCardSpanishContent(data, learnerLocale)
+      .then((updated) => {
+        if (cancelled) return;
+        if (updated) setCardData(updated);
+      })
+      .finally(() => {
+        if (cancelled) return;
+        setLocaleLoading(false);
+        setLocaleSettled(true);
+      });
     return () => {
       cancelled = true;
     };
@@ -144,19 +154,20 @@ export function DiscoverCard({
           cardData.word_type,
         );
 
-  const meaningSkeleton =
-    learnerLocale === "es" &&
-    localeLoading &&
-    discoverDataNeedsSpanishHydration(cardData);
+  const esContentPending =
+    learnerLocale === "es" && discoverDataNeedsSpanishHydration(cardData);
+  const strictEs = learnerLocale === "es" && !localeSettled;
+  const meaningSkeleton = esContentPending && !localeSettled;
   const displayMeaning = useMemo(
-    () => primaryGlossForCard(cardData, learnerLocale),
-    [cardData, learnerLocale],
+    () => primaryGlossForCard(cardData, learnerLocale, strictEs),
+    [cardData, learnerLocale, strictEs],
   );
   const displayExamples = useMemo(
-    () => examplesForCard(cardData, learnerLocale),
-    [cardData, learnerLocale],
+    () => examplesForCard(cardData, learnerLocale, strictEs),
+    [cardData, learnerLocale, strictEs],
   );
   const meaningForUi = meaningSkeleton ? null : displayMeaning;
+  const glossSkeleton = meaningSkeleton;
 
   return (
     <div className="discover-card discover-card--compact grid h-full min-h-0 w-full overflow-hidden rounded-2xl border-2 shadow-lg">
@@ -165,7 +176,7 @@ export function DiscoverCard({
         imageUrl={cardData.image_url}
         searchKeyword={cardData.search_keyword}
         wordType={cardData.word_type}
-        meaning={meaningForUi ?? cardData.vietnamese_meaning}
+        meaning={meaningForUi ?? (strictEs ? null : cardData.vietnamese_meaning)}
         badge={imageBadge}
       />
 
@@ -196,7 +207,8 @@ export function DiscoverCard({
           family={wordFamily}
           similarWords={cardData.similar_words}
           loading={detailsLoading}
-          localeLoadingExamples={meaningSkeleton}
+          localeLoadingExamples={glossSkeleton}
+          localeSettled={localeSettled}
           hintGraceMs={hintGraceMs}
         />
       </div>

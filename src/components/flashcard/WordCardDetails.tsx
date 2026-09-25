@@ -48,6 +48,7 @@ type WordCardDetailsProps = {
   similarWords?: string[] | null;
   loading?: boolean;
   localeLoadingExamples?: boolean;
+  localeSettled?: boolean;
   /**
    * Block Family hint taps briefly after mount/word change (review reveal uses ~450ms
    * so the confirm tap cannot bleed into the hint when similar words appear async).
@@ -102,6 +103,7 @@ export function WordCardDetails({
   similarWords,
   loading = false,
   localeLoadingExamples = false,
+  localeSettled = true,
   hintGraceMs = 0,
 }: WordCardDetailsProps) {
   const { t } = useI18n();
@@ -224,6 +226,7 @@ export function WordCardDetails({
                 exampleTranslations={exampleTranslations}
                 learnerLocale={learnerLocale}
                 localeLoadingGloss={localeLoadingExamples}
+                localeSettled={localeSettled}
                 compact
               />
               {!chunksOnly ? (

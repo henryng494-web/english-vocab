@@ -35,7 +35,12 @@ function mapPhraseList(
         return { ...item, vi: fromExample };
       }
       if (allowViFallback) {
-        const gloss = pickPhraseTranslationForLocale(row, learnerLocale, item.vi);
+        const gloss = pickPhraseTranslationForLocale(
+          row,
+          learnerLocale,
+          item.vi,
+          { strictEs: false },
+        );
         if (gloss) return { ...item, vi: gloss };
       }
       return { ...item, vi: "" };

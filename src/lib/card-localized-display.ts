@@ -49,6 +49,7 @@ export function discoverDataNeedsSpanishHydration(
 export function primaryGlossForCard(
   data: DiscoverWordData,
   learnerLocale: LearnerLocale,
+  strictEs = false,
 ): string | null {
   const meanings = mergeLegacyViIntoMeanings({
     meanings: data.meanings,
@@ -59,12 +60,14 @@ export function primaryGlossForCard(
     learnerLocale,
     data.vietnamese_meaning,
     data.english_definition,
+    { strictEs },
   );
 }
 
 export function examplesForCard(
   data: DiscoverWordData,
   learnerLocale: LearnerLocale,
+  strictEs = false,
 ): VocabExample[] {
   const examples = data.examples ?? "";
   const parsed = parseExamples(examples);
@@ -75,8 +78,9 @@ export function examplesForCard(
   return parsed.slice(0, 2).map((item, index) => ({
     en: item.en,
     vi:
-      pickExampleTranslationForLocale(rows, index, learnerLocale) ??
-      (learnerLocale === "vi" ? item.vi : ""),
+      pickExampleTranslationForLocale(rows, index, learnerLocale, {
+        strictEs,
+      }) ?? (learnerLocale === "vi" ? item.vi : ""),
     senseIndex: item.senseIndex,
   }));
 }
