@@ -17,7 +17,11 @@ import {
 } from "@/lib/pronounce-speed";
 
 export type { LearnerLocale };
-export { DEFAULT_LEARNER_LOCALE, LEARNER_LOCALE_MENU_OPTIONS } from "@/lib/learner-locale";
+export {
+  DEFAULT_LEARNER_LOCALE,
+  LEARNER_LOCALE_LABELS,
+  LEARNER_LOCALE_MENU_OPTIONS,
+} from "@/lib/learner-locale";
 
 export type { PronounceAccent, PronounceSpeed };
 export { PRONOUNCE_ACCENT_OPTIONS } from "@/lib/pronounce-accent";
@@ -41,7 +45,7 @@ export type AppSettings = {
   reminderTime: string;
   /** Interface language — menus and labels. */
   appLanguage: AppLocale;
-  /** Gloss language on flashcards (Vietnamese only). */
+  /** Gloss language on flashcards (`vi` | `es`). */
   learnerLocale: LearnerLocale;
   /** MP3 playback speed — learner preference from menu. */
   pronounceSpeed: PronounceSpeed;
@@ -149,10 +153,8 @@ export function readAppSettings(): AppSettings {
     if (!raw) return DEFAULT_SETTINGS;
     const parsed = JSON.parse(raw) as Partial<AppSettings>;
     const normalized = normalizeAppSettings(parsed);
-    const legacyLocale = (parsed as { learnerLocale?: unknown }).learnerLocale;
     if (
       (parsed.goalType && parsed.goalType !== "minutes") ||
-      legacyLocale === "es" ||
       !("learnerLocale" in (parsed as object))
     ) {
       writeAppSettings(normalized);

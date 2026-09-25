@@ -161,3 +161,7 @@ export function useI18n() {
 export function useLocale(): AppLocale {
   return useAppSettings().appLanguage;
 }
+
+export function useLearnerLocale() {
+  return useAppSettings().learnerLocale;
+}

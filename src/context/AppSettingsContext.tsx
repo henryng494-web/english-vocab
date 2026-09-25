@@ -9,10 +9,11 @@ import {
   type CountGoalTarget,
   type DailyGoalMinutes,
   type GoalType,
+  type LearnerLocale,
   type PronounceAccent,
   type PronounceSpeed,
 } from "@/lib/app-settings";
-import { purgeStaleSpanishLocaleStorage } from "@/lib/purge-stale-spanish-locale";
+import { applyLegacySettingsCleanup } from "@/lib/purge-stale-spanish-locale";
 import {
   createContext,
   useCallback,
@@ -30,6 +31,7 @@ type AppSettingsContextValue = AppSettings & {
   setReminderEnabled: (enabled: boolean) => void;
   setReminderTime: (time: string) => void;
   setAppLanguage: (language: AppLocale) => void;
+  setLearnerLocale: (locale: LearnerLocale) => void;
   setPronounceSpeed: (speed: PronounceSpeed) => void;
   setPronounceAccent: (accent: PronounceAccent) => void;
   refresh: () => void;
@@ -45,7 +47,7 @@ export function AppSettingsProvider({ children }: { children: React.ReactNode })
   }, []);
 
   useEffect(() => {
-    purgeStaleSpanishLocaleStorage();
+    applyLegacySettingsCleanup();
     refresh();
     const onChange = () => refresh();
     window.addEventListener("app-settings-changed", onChange);
@@ -73,6 +75,8 @@ export function AppSettingsProvider({ children }: { children: React.ReactNode })
         setSettings(patchAppSettings({ reminderTime: time })),
       setAppLanguage: (language) =>
         setSettings(patchAppSettings({ appLanguage: language })),
+      setLearnerLocale: (learnerLocale) =>
+        setSettings(patchAppSettings({ learnerLocale })),
       setPronounceSpeed: (speed) =>
         setSettings(patchAppSettings({ pronounceSpeed: speed })),
       setPronounceAccent: (accent) =>

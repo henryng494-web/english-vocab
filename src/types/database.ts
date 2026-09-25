@@ -1,3 +1,8 @@
+import type {
+  ExampleTranslationsJson,
+  LocalizedMeaningsJson,
+} from "@/types/word-content";
+
 export type LearningStatus = "new" | "learning" | "need_review" | "mastered";
 
 export type WordBank = {
@@ -11,9 +16,15 @@ export type WordDetail = {
   word: string;
   phonetic: string;
   word_type: string;
+  /** @deprecated Prefer `meanings.vi` — kept for Supabase compatibility. */
   vietnamese_meaning: string;
   english_definition: string;
+  /** English example sentences (legacy rows may embed `|||vi` pairs). */
   examples: string;
+  /** Optional per-locale glosses `{ vi, es }`. */
+  meanings?: LocalizedMeaningsJson | null;
+  /** Optional index-aligned example glosses. */
+  example_translations?: ExampleTranslationsJson | null;
   collocations: string | null;
   image_url: string | null;
 };
@@ -49,6 +60,8 @@ export type Database = {
           vietnamese_meaning: string;
           english_definition: string;
           examples: string;
+          meanings?: LocalizedMeaningsJson | null;
+          example_translations?: ExampleTranslationsJson | null;
           collocations?: string | null;
           image_url?: string | null;
         };
