@@ -163,10 +163,13 @@ export async function fetchDiscoverWordEnrichment(
   const key = word.word.trim().toLowerCase();
   if (!key) return null;
   try {
+    const { readAppSettings } = await import("@/lib/app-settings");
+    const learnerLocale = readAppSettings().learnerLocale;
     const params = new URLSearchParams({
       word: key,
       rank: String(word.rank ?? getPresetRank(key) ?? 10000),
       skipGemini: "false",
+      locale: learnerLocale,
     });
     const res = await fetch(`/api/discover/word?${params}`, {
       cache: "no-store",
@@ -183,6 +186,9 @@ export async function fetchDiscoverWordEnrichment(
       examples: enriched.examples,
       image_url: enriched.image_url,
       search_keyword: enriched.search_keyword,
+      meanings: enriched.meanings,
+      example_translations: enriched.example_translations,
+      phrase_translations: enriched.phrase_translations,
     };
   } catch {
     return null;

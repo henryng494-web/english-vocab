@@ -144,23 +144,33 @@ async function maybeHydrateSpanishAndPersist(
 ): Promise<WordDetail> {
   if (learnerLocale !== "es") return detail;
   if (!wordDetailNeedsSpanishHydration(detail)) return detail;
-  if (!process.env.GEMINI_API_KEY?.trim()) return detail;
-
-  const patch = await hydrateSpanishWordContent(detail);
-  const next: WordDetail = {
-    ...detail,
-    meanings: patch.meanings,
-    example_translations: patch.example_translations,
-    phrase_translations: patch.phrase_translations,
-  };
-  const persist = await persistMultilangPatch(supabase, word, patch);
-  if (!persist.ok) {
+  if (!process.env.GEMINI_API_KEY?.trim()) {
     console.warn(
-      `Spanish hydrate persist skipped for "${word}":`,
-      persist.error ?? "unknown",
+      `Spanish hydrate skipped for "${word}": GEMINI_API_KEY is not set on server`,
     );
+    return detail;
   }
-  return next;
+
+  try {
+    const patch = await hydrateSpanishWordContent(detail);
+    const next: WordDetail = {
+      ...detail,
+      meanings: patch.meanings,
+      example_translations: patch.example_translations,
+      phrase_translations: patch.phrase_translations,
+    };
+    const persist = await persistMultilangPatch(supabase, word, patch);
+    if (!persist.ok) {
+      console.warn(
+        `Spanish hydrate persist skipped for "${word}":`,
+        persist.error ?? "unknown",
+      );
+    }
+    return next;
+  } catch (error) {
+    console.error(`Spanish hydrate failed for "${word}":`, error);
+    return detail;
+  }
 }
 
 /** Self-heal: persist a freshly regenerated image URL so it's fixed for good. */

@@ -1,4 +1,5 @@
 import type { DiscoverWordData } from "@/components/discover/DiscoverCard";
+import { readAppSettings } from "@/lib/app-settings";
 import { isCardContentReady } from "@/lib/discover-word-cache";
 import { resolveWordRegister } from "@/lib/word-meanings";
 import { DISCOVER_WORD_CACHE_VERSION, stubFromListItem } from "@/lib/discover-word-cache";
@@ -101,6 +102,13 @@ export function mapApiWordToDiscoverData(
     similar_words: Array.isArray(apiWord.similar_words)
       ? (apiWord.similar_words as string[])
       : null,
+    meanings: (apiWord.meanings as DiscoverWordData["meanings"]) ?? null,
+    example_translations:
+      (apiWord.example_translations as DiscoverWordData["example_translations"]) ??
+      null,
+    phrase_translations:
+      (apiWord.phrase_translations as DiscoverWordData["phrase_translations"]) ??
+      null,
   };
 }
 
@@ -184,11 +192,13 @@ export async function fetchDiscoverWordDetail(
   options?: { forceRepair?: boolean; bootstrap?: boolean },
 ): Promise<DiscoverWordData> {
   const fetchOnce = async (forceRepair: boolean): Promise<DiscoverWordData> => {
+    const learnerLocale = readAppSettings().learnerLocale;
     const params = new URLSearchParams({
       word: item.word,
       rank: String(item.rank),
       skipGemini: item.from_static && !forceRepair ? "true" : "false",
       cacheVersion: String(DISCOVER_WORD_CACHE_VERSION),
+      locale: learnerLocale,
     });
     if (forceRepair) {
       params.set("forceRepair", "true");

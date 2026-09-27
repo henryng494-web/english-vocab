@@ -46,8 +46,29 @@ async function fetchSpanishWord(
     skipGemini: "false",
   });
   const res = await fetch(`/api/discover/word?${params}`, { cache: "no-store" });
-  if (!res.ok) return null;
+  if (!res.ok) {
+    let detail = "";
+    try {
+      const errBody = (await res.json()) as { error?: string; details?: string };
+      detail = errBody.details ?? errBody.error ?? "";
+    } catch {
+      // ignore
+    }
+    console.warn(
+      `[Locale Debug] discover/word failed (${res.status}) for "${word}":`,
+      detail || res.statusText,
+    );
+    return null;
+  }
   const payload = (await res.json()) as { word?: DiscoverWordData };
-  if (!payload.word?.word?.trim()) return null;
+  if (!payload.word?.word?.trim()) {
+    console.warn(`[Locale Debug] discover/word empty payload for "${word}"`);
+    return null;
+  }
+  console.info("[Locale Debug] discover/word es hydrate ok", {
+    word,
+    meaningsEs: payload.word.meanings?.es?.slice(0, 40),
+    phraseEs: Boolean(payload.word.phrase_translations),
+  });
   return { ...data, ...payload.word };
 }

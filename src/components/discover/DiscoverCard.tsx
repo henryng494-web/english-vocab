@@ -177,6 +177,32 @@ export function DiscoverCard({
   );
   const meaningForUi = meaningSkeleton ? null : displayMeaning;
 
+  useEffect(() => {
+    console.log("[Locale Debug]", {
+      word: cardData.word,
+      learnerLocale,
+      localeLoading,
+      localeSettled,
+      esContentPending,
+      strictEs,
+      needsHydration: discoverDataNeedsSpanishHydration(cardData),
+      meaningsEs: cardData.meanings?.es?.slice(0, 48),
+      hasPhraseEs: JSON.stringify(cardData.phrase_translations ?? {}).includes(
+        '"es"',
+      ),
+    });
+  }, [
+    cardData.word,
+    learnerLocale,
+    localeLoading,
+    localeSettled,
+    esContentPending,
+    strictEs,
+    cardData.meanings,
+    cardData.phrase_translations,
+    cardData.example_translations,
+  ]);
+
   return (
     <div className="discover-card discover-card--compact grid h-full min-h-0 w-full overflow-hidden rounded-2xl border-2 shadow-lg">
       <CardImage
