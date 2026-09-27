@@ -64,6 +64,15 @@ function mergeHydratedFields(
   if (!next.search_keyword?.trim() && patch.search_keyword?.trim()) {
     next.search_keyword = patch.search_keyword;
   }
+  if (patch.meanings && typeof patch.meanings === "object") {
+    next.meanings = { ...(next.meanings ?? {}), ...patch.meanings };
+  }
+  if (Array.isArray(patch.example_translations)) {
+    next.example_translations = patch.example_translations;
+  }
+  if (patch.phrase_translations && typeof patch.phrase_translations === "object") {
+    next.phrase_translations = patch.phrase_translations;
+  }
   if (!hasReviewClueFields(next)) return word;
   if (!next.search_keyword?.trim()) {
     next.search_keyword = resolveImageSearchKeyword(next.word, {
