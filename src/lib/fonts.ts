@@ -1,23 +1,8 @@
-import { Inter, Nunito } from "next/font/google";
-
-/** UI / body — brand-board “Clean • Readable • Modern”. */
-export const inter = Inter({
-  subsets: ["latin", "latin-ext", "vietnamese"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-inter",
-  display: "swap",
-});
-
 /**
- * Display / logo — rounded sans close to Fredoka, with a Vietnamese subset
- * so clues and meanings keep their diacritics.
- * CSS still reads `--font-fredoka` so existing display rules keep working.
+ * Typography tokens — Inter (body) + Nunito (display).
+ * Fonts load at runtime via `globals.css` + preconnect in root layout, not
+ * `next/font/google`, so production builds on Vercel never call
+ * `nextFontGoogleFontLoader` (avoids null metadata failures when Google Fonts
+ * is unreachable at build time).
  */
-export const nunito = Nunito({
-  subsets: ["latin", "latin-ext", "vietnamese"],
-  weight: ["400", "500", "600", "700", "800"],
-  variable: "--font-fredoka",
-  display: "swap",
-});
-
-export const displayFontClass = nunito.className;
+export const displayFontClass = "font-display";

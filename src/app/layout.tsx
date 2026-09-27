@@ -1,7 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import type { CSSProperties } from "react";
 import { ThemeRoot } from "@/components/theme/ThemeRoot";
-import { inter, nunito } from "@/lib/fonts";
 import { viewportBootstrapScript } from "@/lib/viewport-bootstrap-script";
 import "./globals.css";
 
@@ -41,21 +39,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      suppressHydrationWarning
-      className={`${inter.variable} ${nunito.variable}`}
-      style={
-        {
-          "--font-inter": inter.style.fontFamily,
-          "--font-fredoka": nunito.style.fontFamily,
-        } as CSSProperties
-      }
-    >
+    <html lang="en" suppressHydrationWarning>
       <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link
+          rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossOrigin="anonymous"
+        />
         <script dangerouslySetInnerHTML={{ __html: viewportBootstrapScript }} />
       </head>
-      <body className={`${inter.className} antialiased`}>
+      <body className="antialiased">
         <ThemeRoot>{children}</ThemeRoot>
       </body>
     </html>

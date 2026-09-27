@@ -1,6 +1,9 @@
 @import "tailwindcss";
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap");
 
 :root {
+  --font-inter: "Inter", "Segoe UI", system-ui, sans-serif;
+  --font-fredoka: "Nunito", "Segoe UI", system-ui, sans-serif;
   /* Jungle Jokers 4-Mascot Balanced Brand Palette:
      - Monkey Violet: #8B5CF6 / #7C3AED (Learn, Header & Core Identity)
      - Crocodile Lime: #65A30D / #84CC16 (Fresh Discovery, Success & Growth)

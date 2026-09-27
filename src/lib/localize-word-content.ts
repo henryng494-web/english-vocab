@@ -104,11 +104,11 @@ export async function hydrateSpanishWordContent(
   let phrase_translations = parsePhraseTranslationsJson(detail.phrase_translations);
 
   if (chunkEntry) {
-    let collocations = mergePhraseRowsFromEntry(
+    const collocations = mergePhraseRowsFromEntry(
       chunkEntry.collocations,
       phrase_translations.collocations,
     );
-    let chunks = mergePhraseRowsFromEntry(
+    const chunks = mergePhraseRowsFromEntry(
       chunkEntry.chunks,
       phrase_translations.chunks,
     );
