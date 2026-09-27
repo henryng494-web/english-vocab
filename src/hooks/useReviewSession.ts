@@ -10,6 +10,7 @@ import {
   enrichReviewSession,
   resolveReviewSession,
 } from "@/lib/review-session";
+import { REVIEW_LEARNER_LOCALE_CHANGED } from "@/lib/review-learner-locale-cache";
 import {
   hasReviewClueFields,
   hydrateReviewWordLocal,
@@ -252,6 +253,22 @@ export function useReviewSession() {
     void reload();
     return () => {
       mountedRef.current = false;
+    };
+  }, [reload]);
+
+  useEffect(() => {
+    const onLearnerLocaleChanged = () => {
+      void reload();
+    };
+    window.addEventListener(
+      REVIEW_LEARNER_LOCALE_CHANGED,
+      onLearnerLocaleChanged,
+    );
+    return () => {
+      window.removeEventListener(
+        REVIEW_LEARNER_LOCALE_CHANGED,
+        onLearnerLocaleChanged,
+      );
     };
   }, [reload]);
 

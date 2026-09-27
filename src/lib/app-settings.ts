@@ -5,6 +5,7 @@ import {
   isPronounceAccent,
   type PronounceAccent,
 } from "@/lib/pronounce-accent";
+import { clearReviewCachesForLearnerLocaleChange } from "@/lib/review-learner-locale-cache";
 import {
   DEFAULT_LEARNER_LOCALE,
   parseLearnerLocale,
@@ -172,7 +173,21 @@ export function writeAppSettings(next: AppSettings): void {
 }
 
 export function patchAppSettings(patch: Partial<AppSettings>): AppSettings {
-  const next = normalizeAppSettings({ ...readAppSettings(), ...patch, goalType: "minutes" });
+  const previous = readAppSettings();
+  const next = normalizeAppSettings({
+    ...previous,
+    ...patch,
+    goalType: "minutes",
+  });
+  if (
+    patch.learnerLocale !== undefined &&
+    patch.learnerLocale !== previous.learnerLocale
+  ) {
+    clearReviewCachesForLearnerLocaleChange(
+      patch.learnerLocale,
+      previous.learnerLocale,
+    );
+  }
   writeAppSettings(next);
   return next;
 }

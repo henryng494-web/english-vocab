@@ -1,6 +1,11 @@
 import { getStaticWordDetail, getPresetRank } from "@/data/preset-word-details";
 import { hasQualityStandardVocab } from "@/data/standard-vocab";
+import { readAppSettings } from "@/lib/app-settings";
 import { loadPersistedWordCache } from "@/lib/discover-word-cache";
+import {
+  hasStoredEsMeaning,
+  mergeLegacyViIntoMeanings,
+} from "@/lib/multilang-record";
 import { standardToDiscoverFields } from "@/lib/enrichment-helpers";
 import { resolveImageSearchKeyword } from "@/lib/image-keyword";
 import { prefetchCardContent } from "@/lib/card-content-prefetch";
@@ -89,6 +94,14 @@ function mergeHydratedFields(
 function applyCuratedReviewFields(word: VocabWord): VocabWord | null {
   const key = word.word.trim().toLowerCase();
   if (!hasQualityStandardVocab(key)) return null;
+
+  if (typeof window !== "undefined") {
+    const locale = readAppSettings().learnerLocale;
+    const meanings = mergeLegacyViIntoMeanings(word);
+    if (locale === "es" && hasStoredEsMeaning(meanings)) {
+      return null;
+    }
+  }
 
   const standard = standardToDiscoverFields(key);
   if (!standard || !hasReviewClueFields(standard)) return null;

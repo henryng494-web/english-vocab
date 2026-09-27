@@ -34,6 +34,7 @@ import {
   pickReviewClozeExample,
 } from "@/lib/review-quiz";
 import { useAppSettings } from "@/context/AppSettingsContext";
+import { REVIEW_LEARNER_LOCALE_CHANGED } from "@/lib/review-learner-locale-cache";
 import {
   collectReviewQuestionImageTargets,
   prefetchReviewImages,
@@ -508,6 +509,25 @@ export function ReviewScreen() {
     index,
     startQuestion,
   ]);
+
+  useEffect(() => {
+    const onLearnerLocaleChanged = () => {
+      prefetchedChoicesRef.current.clear();
+      prefetchInflightRef.current.clear();
+      senseUpgradeRef.current = null;
+      void reload();
+    };
+    window.addEventListener(
+      REVIEW_LEARNER_LOCALE_CHANGED,
+      onLearnerLocaleChanged,
+    );
+    return () => {
+      window.removeEventListener(
+        REVIEW_LEARNER_LOCALE_CHANGED,
+        onLearnerLocaleChanged,
+      );
+    };
+  }, [reload]);
 
   useEffect(() => {
     if (phase !== "question" || locked) return;
