@@ -1,5 +1,6 @@
 import {
   buildReviewQuestionPlan,
+  reviewSenseText,
   senseChoicesAreValidForPrompt,
   type ReviewChoice,
   type ReviewQuizKind,
@@ -14,6 +15,7 @@ import {
 import { peekCachedWordImageUrl } from "@/lib/word-image-cache";
 import { isRealCardImageUrl } from "@/lib/unsplash";
 import { preloadWordPronunciations } from "@/lib/pronunciation-preload";
+import type { LearnerLocale } from "@/lib/learner-locale";
 import type { VocabWord } from "@/types/database";
 
 export type ReviewImageTarget = WordImagePrefetchTarget;
@@ -22,12 +24,18 @@ export function collectReviewQuestionImageTargets(
   word: VocabWord,
   pool: VocabWord[],
   questionIndex: number,
+  locale: LearnerLocale = "vi",
 ): {
   kind: ReviewQuizKind;
   choices: ReviewChoice[];
   targets: ReviewImageTarget[];
 } {
-  const { kind, choices } = buildReviewQuestionPlan(word, pool, questionIndex);
+  const { kind, choices } = buildReviewQuestionPlan(
+    word,
+    pool,
+    questionIndex,
+    locale,
+  );
   const targets =
     kind === "sense"
       ? choices.map((choice) => ({
@@ -43,7 +51,7 @@ export function collectReviewQuestionImageTargets(
             imageUrl: word.image_url,
             searchKeyword: word.search_keyword,
             wordType: word.word_type,
-            meaning: word.vietnamese_meaning,
+            meaning: reviewSenseText(word, locale),
           },
         ];
   return { kind, choices, targets };
@@ -94,6 +102,7 @@ export async function prefetchReviewQuestionRange(
   pool: VocabWord[],
   startIndex: number,
   count: number,
+  locale: LearnerLocale = "vi",
 ): Promise<Map<number, ReviewChoice[]>> {
   const senseChoices = new Map<number, ReviewChoice[]>();
   const batches: ReviewImageTarget[] = [];
@@ -102,10 +111,15 @@ export async function prefetchReviewQuestionRange(
     const questionIndex = startIndex + offset;
     const word = queue[questionIndex];
     if (!word) break;
-    const plan = collectReviewQuestionImageTargets(word, pool, questionIndex);
+    const plan = collectReviewQuestionImageTargets(
+      word,
+      pool,
+      questionIndex,
+      locale,
+    );
     if (
       plan.kind === "sense" &&
-      senseChoicesAreValidForPrompt(plan.choices, word.word, pool)
+      senseChoicesAreValidForPrompt(plan.choices, word.word, pool, locale)
     ) {
       senseChoices.set(questionIndex, plan.choices);
     }

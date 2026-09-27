@@ -131,6 +131,9 @@ export function hydrateReviewWordLocal(word: VocabWord): VocabWord {
       examples: cached.examples ?? "",
       image_url: cached.image_url,
       search_keyword: cached.search_keyword,
+      meanings: cached.meanings,
+      example_translations: cached.example_translations,
+      phrase_translations: cached.phrase_translations,
     });
   }
 

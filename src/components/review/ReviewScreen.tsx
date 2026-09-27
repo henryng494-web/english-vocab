@@ -25,6 +25,7 @@ import {
   pickReviewRecallSentence,
   reviewClue,
   reviewSenseCacheKey,
+  reviewSenseText,
   resolveReviewSenseChoices,
   senseChoicesAreValidForPrompt,
   type ReviewChoice,
@@ -32,6 +33,7 @@ import {
   type ReviewQuizKind,
   pickReviewClozeExample,
 } from "@/lib/review-quiz";
+import { useAppSettings } from "@/context/AppSettingsContext";
 import {
   collectReviewQuestionImageTargets,
   prefetchReviewImages,
@@ -104,6 +106,7 @@ const REVIEW_WARM_COUNT = 20;
 
 export function ReviewScreen() {
   const { t } = useI18n();
+  const { learnerLocale } = useAppSettings();
   const router = useRouter();
   const searchParams = useSearchParams();
   const isDailySession = searchParams.get("daily") === "1";
@@ -148,6 +151,8 @@ export function ReviewScreen() {
   const indexRef = useRef(0);
   const queueRef = useRef<VocabWord[]>([]);
   const allWordsRef = useRef<VocabWord[]>([]);
+  const learnerLocaleRef = useRef(learnerLocale);
+  learnerLocaleRef.current = learnerLocale;
   const prefetchedChoicesRef = useRef<Map<string, ReviewChoice[]>>(new Map());
   const prefetchInflightRef = useRef<Map<number, Promise<void>>>(new Map());
   const activeQuestionRef = useRef<{ word: string; index: number } | null>(null);
@@ -195,10 +200,18 @@ export function ReviewScreen() {
     (senseChoices: Map<number, ReviewChoice[]>) => {
       const q = queueRef.current;
       const pool = allWordsRef.current.length > 0 ? allWordsRef.current : q;
+      const locale = learnerLocaleRef.current;
       for (const [questionIndex, cachedChoices] of senseChoices.entries()) {
         const word = q[questionIndex];
         if (!word) continue;
-        if (!senseChoicesAreValidForPrompt(cachedChoices, word.word, pool)) {
+        if (
+          !senseChoicesAreValidForPrompt(
+            cachedChoices,
+            word.word,
+            pool,
+            locale,
+          )
+        ) {
           continue;
         }
         prefetchedChoicesRef.current.set(
@@ -217,6 +230,7 @@ export function ReviewScreen() {
         pool,
         startIndex,
         REVIEW_WARM_COUNT,
+        learnerLocaleRef.current,
       ).then(mergePrefetchedSenseChoices);
     },
     [mergePrefetchedSenseChoices],
@@ -233,14 +247,16 @@ export function ReviewScreen() {
         const word = q[queueIndex];
         if (!word) return;
 
+        const locale = learnerLocaleRef.current;
         const plan = collectReviewQuestionImageTargets(
           word,
           pool,
           sessionStepForQuiz,
+          locale,
         );
         if (
           plan.kind === "sense" &&
-          senseChoicesAreValidForPrompt(plan.choices, word.word, pool)
+          senseChoicesAreValidForPrompt(plan.choices, word.word, pool, locale)
         ) {
           prefetchedChoicesRef.current.set(
             reviewSenseCacheKey(sessionStepForQuiz, word.word),
@@ -309,7 +325,8 @@ export function ReviewScreen() {
     choiceSeedRef.current = cacheKey;
     senseUpgradeRef.current = null;
     const cachedSenseChoices = prefetchedChoicesRef.current.get(cacheKey);
-    const planned = buildReviewQuestionPlan(word, pool, questionIndex);
+    const locale = learnerLocaleRef.current;
+    const planned = buildReviewQuestionPlan(word, pool, questionIndex, locale);
     let kind = planned.kind;
     let nextChoices = planned.choices;
     let nextCloze = planned.cloze ?? null;
@@ -319,8 +336,9 @@ export function ReviewScreen() {
         word.word,
         pool,
         cachedSenseChoices,
+        locale,
       );
-      if (!senseChoicesAreValidForPrompt(nextChoices, word.word, pool)) {
+      if (!senseChoicesAreValidForPrompt(nextChoices, word.word, pool, locale)) {
         kind = "word";
         nextCloze = null;
         nextChoices = buildReviewChoices(
@@ -381,7 +399,12 @@ export function ReviewScreen() {
 
     prefetchCardContent(vocabWordToDiscoverData(word));
 
-    const { targets } = collectReviewQuestionImageTargets(word, pool, questionIndex);
+    const { targets } = collectReviewQuestionImageTargets(
+      word,
+      pool,
+      questionIndex,
+      locale,
+    );
     if (kind === "sense") {
       const senseTargets = nextChoices.map((choice) => ({
         word: choice.word,
@@ -426,18 +449,65 @@ export function ReviewScreen() {
     if (phase !== "question" || quizKind !== "sense" || !currentWord || locked) {
       return;
     }
-    if (senseChoicesAreValidForPrompt(choices, currentWord.word, allWords)) {
+    if (
+      senseChoicesAreValidForPrompt(
+        choices,
+        currentWord.word,
+        allWords,
+        learnerLocale,
+      )
+    ) {
       return;
     }
     const cacheKey = reviewSenseCacheKey(sessionStep, currentWord.word);
     if (senseUpgradeRef.current === cacheKey) return;
 
-    const rebuilt = resolveReviewSenseChoices(currentWord.word, allWords);
-    if (senseChoicesAreValidForPrompt(rebuilt, currentWord.word, allWords)) {
+    const rebuilt = resolveReviewSenseChoices(
+      currentWord.word,
+      allWords,
+      null,
+      learnerLocale,
+    );
+    if (
+      senseChoicesAreValidForPrompt(
+        rebuilt,
+        currentWord.word,
+        allWords,
+        learnerLocale,
+      )
+    ) {
       senseUpgradeRef.current = cacheKey;
       setChoices(rebuilt);
     }
-  }, [phase, quizKind, currentWord, locked, choices, allWords, sessionStep]);
+  }, [
+    phase,
+    quizKind,
+    currentWord,
+    locked,
+    choices,
+    allWords,
+    sessionStep,
+    learnerLocale,
+  ]);
+
+  const prevLearnerLocaleRef = useRef(learnerLocale);
+  useEffect(() => {
+    if (prevLearnerLocaleRef.current === learnerLocale) return;
+    prevLearnerLocaleRef.current = learnerLocale;
+    if (phase !== "question" || !currentWord || locked) return;
+    const pool = allWords.length > 0 ? allWords : queue;
+    startQuestion(currentWord, pool, sessionStep, index);
+  }, [
+    learnerLocale,
+    phase,
+    currentWord,
+    locked,
+    allWords,
+    queue,
+    sessionStep,
+    index,
+    startQuestion,
+  ]);
 
   useEffect(() => {
     if (phase !== "question" || locked) return;
@@ -499,7 +569,12 @@ export function ReviewScreen() {
       preloadWordPronunciations(
         sessionQueue.slice(0, 3).map((item) => item.word),
       );
-      const { targets } = collectReviewQuestionImageTargets(first, pool, 0);
+      const { targets } = collectReviewQuestionImageTargets(
+        first,
+        pool,
+        0,
+        learnerLocaleRef.current,
+      );
       void prefetchReviewImages(targets)
         .then((updates) => {
           if (Object.keys(updates).length === 0) return;
@@ -1213,7 +1288,7 @@ export function ReviewScreen() {
           imageUrl={currentWord.image_url}
           searchKeyword={currentWord.search_keyword}
           wordType={currentWord.word_type}
-          meaning={currentWord.vietnamese_meaning}
+          meaning={reviewSenseText(currentWord, learnerLocale)}
           sentence={pickReviewRecallSentence(
             currentWord.word,
             currentWord.examples,
@@ -1237,11 +1312,11 @@ export function ReviewScreen() {
           imageUrl={currentWord.image_url}
           searchKeyword={currentWord.search_keyword}
           wordType={currentWord.word_type}
-          meaning={currentWord.vietnamese_meaning}
+          meaning={reviewSenseText(currentWord, learnerLocale)}
           clue={
-            reviewClue(currentWord) === "Choose the matching word."
+            reviewClue(currentWord, learnerLocale) === "Choose the matching word."
               ? t("review.chooseMatching")
-              : reviewClue(currentWord)
+              : reviewClue(currentWord, learnerLocale)
           }
           choices={choices}
           selectedKey={selectedKey}

@@ -1,5 +1,11 @@
 import { keepNaturalExamples } from "@/lib/example-quality";
 import { capitalizeFirst } from "@/lib/format-text";
+import type { LearnerLocale } from "@/lib/learner-locale";
+import {
+  pickExampleTranslationForLocale,
+  pickLocalizedMeaning,
+} from "@/lib/localized-gloss";
+import { mergeLegacyViIntoMeanings } from "@/lib/multilang-record";
 import {
   isTemplateVietnameseDefinition,
   looksLikeEnglish,
@@ -8,6 +14,10 @@ import {
 import { parseExamples, type VocabExample } from "@/lib/parse-examples";
 import { formatMeaningsForDisplay } from "@/lib/word-meanings";
 import { isSameRankBand } from "@/data/word-ranges";
+import type {
+  ExampleTranslationsJson,
+  LocalizedMeaningsJson,
+} from "@/types/word-content";
 
 const FALLBACK_DISTRACTORS = [
   "apple",
@@ -86,15 +96,16 @@ const SENSE_LETTERS = ["A", "B", "C"] as const;
 const FALLBACK_SENSE_DISTRACTORS: Array<{
   word: string;
   vietnamese_meaning: string;
+  es_meaning: string;
 }> = [
-  { word: "apple", vietnamese_meaning: "Quả táo" },
-  { word: "river", vietnamese_meaning: "Con sông" },
-  { word: "window", vietnamese_meaning: "Cửa sổ" },
-  { word: "family", vietnamese_meaning: "Gia đình" },
-  { word: "garden", vietnamese_meaning: "Khu vườn" },
-  { word: "school", vietnamese_meaning: "Trường học" },
-  { word: "paper", vietnamese_meaning: "Tờ giấy" },
-  { word: "table", vietnamese_meaning: "Cái bàn" },
+  { word: "apple", vietnamese_meaning: "Quả táo", es_meaning: "Manzana" },
+  { word: "river", vietnamese_meaning: "Con sông", es_meaning: "Río" },
+  { word: "window", vietnamese_meaning: "Cửa sổ", es_meaning: "Ventana" },
+  { word: "family", vietnamese_meaning: "Gia đình", es_meaning: "Familia" },
+  { word: "garden", vietnamese_meaning: "Khu vườn", es_meaning: "Jardín" },
+  { word: "school", vietnamese_meaning: "Trường học", es_meaning: "Escuela" },
+  { word: "paper", vietnamese_meaning: "Tờ giấy", es_meaning: "Papel" },
+  { word: "table", vietnamese_meaning: "Cái bàn", es_meaning: "Mesa" },
 ];
 
 type SenseSource = {
@@ -103,6 +114,8 @@ type SenseSource = {
   family_head?: string | null;
   vietnamese_meaning?: string | null;
   english_definition?: string | null;
+  meanings?: LocalizedMeaningsJson | null;
+  example_translations?: ExampleTranslationsJson | null;
   image_url?: string | null;
   search_keyword?: string | null;
   word_type?: string | null;
@@ -165,13 +178,17 @@ export function senseChoicesAreValidForPrompt(
   choices: ReviewChoice[],
   promptWord: string,
   pool: SenseSource[],
+  locale: LearnerLocale = "vi",
 ): boolean {
   const correct = promptWord.trim().toLowerCase();
   if (!correct || choices.length !== 3) return false;
   if (!senseChoicesIncludeCorrectWord(choices, promptWord)) return false;
 
   const poolItem = pool.find((item) => item.word.trim().toLowerCase() === correct);
-  const expectedMeaning = reviewSenseText(poolItem ?? {});
+  const expectedMeaning = reviewSenseText(
+    poolItem ?? { word: correct },
+    locale,
+  );
   if (!expectedMeaning) return false;
 
   const correctChoice = choices.find(
@@ -207,26 +224,44 @@ export function resolveReviewSenseChoices(
   promptWord: string,
   pool: SenseSource[],
   cached?: ReviewChoice[] | null,
+  locale: LearnerLocale = "vi",
 ): ReviewChoice[] {
-  const fresh = buildReviewSenseChoices(promptWord, pool);
-  if (senseChoicesAreValidForPrompt(fresh, promptWord, pool)) {
+  const fresh = buildReviewSenseChoices(promptWord, pool, locale);
+  if (senseChoicesAreValidForPrompt(fresh, promptWord, pool, locale)) {
     return cached ? mergeChoiceImages(fresh, cached) : fresh;
   }
   if (
     cached &&
-    senseChoicesAreValidForPrompt(cached, promptWord, pool)
+    senseChoicesAreValidForPrompt(cached, promptWord, pool, locale)
   ) {
     return cached;
   }
   return fresh;
 }
 
-/** Compact Vietnamese gloss for review sense choices (matches WordCard rules). */
-export function reviewSenseText(word: {
-  vietnamese_meaning?: string | null;
-  english_definition?: string | null;
-}): string {
-  const lines = formatMeaningsForDisplay(word.vietnamese_meaning);
+function fallbackSenseGloss(
+  item: (typeof FALLBACK_SENSE_DISTRACTORS)[number],
+  locale: LearnerLocale,
+): string {
+  if (locale === "es") return item.es_meaning;
+  return item.vietnamese_meaning;
+}
+
+/** Localized gloss for review clues and sense-quiz options (WordCard rules). */
+export function reviewSenseText(
+  word: SenseSource,
+  locale: LearnerLocale = "vi",
+): string {
+  const picked = pickLocalizedMeaning(
+    mergeLegacyViIntoMeanings({
+      meanings: word.meanings,
+      vietnamese_meaning: word.vietnamese_meaning ?? "",
+    }),
+    locale,
+    word.vietnamese_meaning,
+    word.english_definition,
+  );
+  const lines = formatMeaningsForDisplay(picked ?? "");
   if (lines.length > 0) {
     return lines.join(" · ");
   }
@@ -238,12 +273,16 @@ export function reviewSenseText(word: {
 export function buildReviewSenseChoices(
   correctWord: string,
   pool: SenseSource[],
+  locale: LearnerLocale = "vi",
 ): ReviewChoice[] {
   const correct = correctWord.trim().toLowerCase();
   const correctItem = pool.find(
     (item) => item.word.trim().toLowerCase() === correct,
   );
-  const correctMeaning = reviewSenseText(correctItem ?? {});
+  const correctMeaning = reviewSenseText(
+    correctItem ?? { word: correct },
+    locale,
+  );
   if (!correctMeaning) return [];
 
   const correctHead = familyKey(correct, correctItem?.family_head);
@@ -253,7 +292,7 @@ export function buildReviewSenseChoices(
     pool,
     2,
     (item) =>
-      Boolean(reviewSenseText(item)) &&
+      Boolean(reviewSenseText(item, locale)) &&
       familyKey(item.word, item.family_head) !== correctHead,
   );
   if (distractors.length < 2) {
@@ -263,7 +302,11 @@ export function buildReviewSenseChoices(
       if (distractors.some((item) => item.word.trim().toLowerCase() === fallback.word)) {
         continue;
       }
-      distractors.push(fallback);
+      distractors.push({
+        word: fallback.word,
+        vietnamese_meaning: fallback.vietnamese_meaning,
+        meanings: { vi: fallback.vietnamese_meaning, es: fallback.es_meaning },
+      });
     }
   }
 
@@ -279,13 +322,19 @@ export function buildReviewSenseChoices(
   return options.slice(0, 3).map((item, index) => {
     const itemWord = item.word.trim().toLowerCase();
     const isCorrect = itemWord === correct;
+    const fallback = FALLBACK_SENSE_DISTRACTORS.find(
+      (row) => row.word === itemWord,
+    );
+    const distractorGloss = fallback
+      ? fallbackSenseGloss(fallback, locale)
+      : reviewSenseText(item, locale);
     return {
       key: `${itemWord}-${index}`,
       letter: SENSE_LETTERS[index] ?? String(index + 1),
       word: capitalizeFirst(item.word),
       meaning: isCorrect
         ? correctMeaning
-        : reviewSenseText(item) || correctMeaning,
+        : distractorGloss || correctMeaning,
       imageUrl: item.image_url ?? null,
       searchKeyword: item.search_keyword ?? null,
       wordType: item.word_type ?? null,
@@ -307,23 +356,53 @@ type ReviewPoolWord = SenseSource & {
   examples?: string | null;
 };
 
-/** Example with EN sentence containing the word and a Vietnamese gloss line. */
+function reviewExampleLocaleLine(
+  word: ReviewPoolWord,
+  example: VocabExample,
+  exampleIndex: number,
+  locale: LearnerLocale,
+): string {
+  const fromJson = pickExampleTranslationForLocale(
+    word.example_translations,
+    exampleIndex,
+    locale,
+  );
+  if (fromJson?.trim()) return fromJson.trim();
+  if (locale === "vi") return example.vi.trim();
+  return "";
+}
+
+/** Example with EN sentence containing the word and a locale gloss line. */
 export function pickReviewClozeExample(
   word: string,
   rawExamples: unknown,
   meaning?: string | null,
   pos?: string | null,
+  locale: LearnerLocale = "vi",
+  exampleTranslations?: ExampleTranslationsJson | null,
 ): VocabExample | null {
   const parsed = parseExamples(rawExamples);
   const natural = keepNaturalExamples(word, parsed, pos, meaning);
-  const withWordAndVi =
-    natural.find(
-      (item) => sentenceHasWord(item.en, word) && Boolean(item.vi.trim()),
-    ) ??
-    parsed.find(
-      (item) => sentenceHasWord(item.en, word) && Boolean(item.vi.trim()),
-    );
-  return withWordAndVi ?? null;
+  const poolWord: ReviewPoolWord = {
+    word,
+    examples: typeof rawExamples === "string" ? rawExamples : undefined,
+    example_translations: exampleTranslations,
+  };
+
+  const pickFrom = (list: VocabExample[]) => {
+    for (let index = 0; index < list.length; index += 1) {
+      const item = list[index]!;
+      if (
+        sentenceHasWord(item.en, word) &&
+        Boolean(reviewExampleLocaleLine(poolWord, item, index, locale))
+      ) {
+        return item;
+      }
+    }
+    return null;
+  };
+
+  return pickFrom(natural) ?? pickFrom(parsed);
 }
 
 export function buildClozeBlankParts(
@@ -410,6 +489,7 @@ export function buildReviewClozeData(
   word: ReviewPoolWord,
   _pool: ReviewPoolWord[],
   questionIndex: number,
+  locale: LearnerLocale = "vi",
 ): ReviewClozeData | null {
   const normalized = word.word.trim().toLowerCase();
   if (!/^[a-z]{3,14}$/.test(normalized)) return null;
@@ -419,8 +499,31 @@ export function buildReviewClozeData(
     word.examples,
     word.vietnamese_meaning,
     word.word_type,
+    locale,
+    word.example_translations,
   );
   if (!example) return null;
+
+  const parsed = parseExamples(word.examples);
+  const natural = keepNaturalExamples(
+    word.word,
+    parsed,
+    word.word_type,
+    word.vietnamese_meaning,
+  );
+  const lists = [natural, parsed];
+  let exampleIndex = 0;
+  outer: for (const list of lists) {
+    for (let index = 0; index < list.length; index += 1) {
+      if (list[index]?.en === example.en) {
+        exampleIndex = index;
+        break outer;
+      }
+    }
+  }
+
+  const localeLine = reviewExampleLocaleLine(word, example, exampleIndex, locale);
+  if (!localeLine) return null;
 
   const parts = buildClozeBlankParts(example.en, word.word);
   if (!parts.some((part) => part.isBlank)) return null;
@@ -430,7 +533,7 @@ export function buildReviewClozeData(
   if (!letterPlan || letterPlan.letterTiles.length === 0) return null;
 
   return {
-    sentenceVi: example.vi.trim(),
+    sentenceVi: localeLine,
     parts,
     correctWord: normalized,
     letterSlots: letterPlan.letterSlots,
@@ -443,6 +546,7 @@ export function buildReviewQuestionPlan(
   word: ReviewPoolWord,
   pool: ReviewPoolWord[],
   questionIndex: number,
+  locale: LearnerLocale = "vi",
 ): { kind: ReviewQuizKind; choices: ReviewChoice[]; cloze?: ReviewClozeData } {
   const wanted = reviewQuizKindForIndex(questionIndex);
   const choiceSeed = reviewSenseCacheKey(questionIndex, word.word);
@@ -458,8 +562,8 @@ export function buildReviewQuestionPlan(
   );
 
   if (wanted === "sense") {
-    const senseChoices = buildReviewSenseChoices(word.word, pool);
-    if (senseChoicesAreValidForPrompt(senseChoices, word.word, pool)) {
+    const senseChoices = buildReviewSenseChoices(word.word, pool, locale);
+    if (senseChoicesAreValidForPrompt(senseChoices, word.word, pool, locale)) {
       kind = "sense";
       choices = senseChoices;
     }
@@ -474,7 +578,7 @@ export function buildReviewQuestionPlan(
       kind = "recall";
     }
   } else if (wanted === "cloze") {
-    const clozeData = buildReviewClozeData(word, pool, questionIndex);
+    const clozeData = buildReviewClozeData(word, pool, questionIndex, locale);
     if (clozeData) {
       kind = "cloze";
       cloze = clozeData;
@@ -607,11 +711,11 @@ export function buildReviewChoices(
   }));
 }
 
-export function reviewClue(word: {
-  english_definition?: string | null;
-  vietnamese_meaning?: string | null;
-}): string {
-  const meaning = reviewSenseText(word);
+export function reviewClue(
+  word: SenseSource,
+  locale: LearnerLocale = "vi",
+): string {
+  const meaning = reviewSenseText(word, locale);
   const definition = word.english_definition?.trim();
 
   if (meaning) {

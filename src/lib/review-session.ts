@@ -20,6 +20,7 @@ import {
   writeReviewSessionSnapshot,
 } from "@/lib/review-session-storage";
 import { resolveImageSearchKeyword } from "@/lib/image-keyword";
+import { readAppSettings } from "@/lib/app-settings";
 import { getImportanceTier } from "@/lib/word-rank";
 import type { LearningStatus, VocabWord } from "@/types/database";
 
@@ -282,7 +283,13 @@ async function enrichDueWordsOnly(
     12,
   );
 
-  void prefetchReviewQuestionRange(withClues, pool, 0, 20);
+  void prefetchReviewQuestionRange(
+    withClues,
+    pool,
+    0,
+    20,
+    readAppSettings().learnerLocale,
+  );
 
   return {
     queue: withClues.length > 0 ? withClues : queue,
@@ -318,7 +325,13 @@ async function enrichQueue(
     buildQueueFromKeys(dueKeys, allWords, extraWords),
   );
 
-  void prefetchReviewQuestionRange(enrichedQueue, allWords, 0, 20);
+  void prefetchReviewQuestionRange(
+    enrichedQueue,
+    allWords,
+    0,
+    20,
+    readAppSettings().learnerLocale,
+  );
 
   return {
     queue: enrichedQueue.length > 0 ? enrichedQueue : queue,
