@@ -105,11 +105,19 @@ export function DiscoverCard({
 
   useEffect(() => {
     setCardData(data);
-  }, [data]);
+    const pending =
+      learnerLocale === "es" && discoverDataNeedsSpanishHydration(data);
+    setLocaleSettled(!pending);
+    setLocaleLoading(pending);
+  }, [data, learnerLocale]);
 
   useEffect(() => {
-    const needs =
-      learnerLocale === "es" && discoverDataNeedsSpanishHydration(data);
+    if (learnerLocale !== "es") {
+      setLocaleLoading(false);
+      setLocaleSettled(true);
+      return;
+    }
+    const needs = discoverDataNeedsSpanishHydration(data);
     if (!needs) {
       setLocaleLoading(false);
       setLocaleSettled(true);
@@ -158,6 +166,7 @@ export function DiscoverCard({
     learnerLocale === "es" && discoverDataNeedsSpanishHydration(cardData);
   const strictEs = learnerLocale === "es" && !localeSettled;
   const meaningSkeleton = esContentPending && !localeSettled;
+  const glossSkeleton = meaningSkeleton || (strictEs && esContentPending);
   const displayMeaning = useMemo(
     () => primaryGlossForCard(cardData, learnerLocale, strictEs),
     [cardData, learnerLocale, strictEs],
@@ -167,7 +176,6 @@ export function DiscoverCard({
     [cardData, learnerLocale, strictEs],
   );
   const meaningForUi = meaningSkeleton ? null : displayMeaning;
-  const glossSkeleton = meaningSkeleton;
 
   return (
     <div className="discover-card discover-card--compact grid h-full min-h-0 w-full overflow-hidden rounded-2xl border-2 shadow-lg">

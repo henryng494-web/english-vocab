@@ -16,6 +16,11 @@ import type { LearnerLocale } from "@/lib/learner-locale";
 import { parseExamples } from "@/lib/parse-examples";
 import type { VocabExample } from "@/lib/parse-examples";
 
+/** True when card can show Spanish glosses without calling `/api/discover/word?locale=es`. */
+export function hasCompleteEsCardContent(data: DiscoverWordData): boolean {
+  return !discoverDataNeedsSpanishHydration(data);
+}
+
 export function discoverDataNeedsSpanishHydration(
   data: DiscoverWordData,
 ): boolean {

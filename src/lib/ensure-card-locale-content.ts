@@ -1,5 +1,8 @@
 import type { DiscoverWordData } from "@/components/discover/DiscoverCard";
-import { discoverDataNeedsSpanishHydration } from "@/lib/card-localized-display";
+import {
+  discoverDataNeedsSpanishHydration,
+  hasCompleteEsCardContent,
+} from "@/lib/card-localized-display";
 import { getPresetRank } from "@/data/preset-word-details";
 import type { LearnerLocale } from "@/lib/learner-locale";
 import { DEFAULT_LEARNER_LOCALE } from "@/lib/learner-locale";
@@ -16,7 +19,7 @@ export function ensureCardSpanishContent(
   learnerLocale: LearnerLocale = DEFAULT_LEARNER_LOCALE,
 ): Promise<DiscoverWordData | null> {
   if (learnerLocale !== "es") return Promise.resolve(null);
-  if (!discoverDataNeedsSpanishHydration(data)) return Promise.resolve(null);
+  if (hasCompleteEsCardContent(data)) return Promise.resolve(null);
 
   const key = cacheKey(data.word, learnerLocale);
   const existing = inflight.get(key);

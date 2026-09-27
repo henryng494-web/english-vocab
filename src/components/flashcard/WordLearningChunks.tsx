@@ -6,6 +6,7 @@ import { useLearningChunkTranslations } from "@/hooks/use-learning-chunk-transla
 import {
   MAX_LEARNING_CHUNKS,
   MAX_LEARNING_COLLOCATIONS,
+  type LearningChunkEntry,
   type LearningChunkPhrase,
 } from "@/data/demo-learning-chunks";
 import { SpeakButton } from "@/components/flashcard/SpeakButton";
@@ -34,22 +35,51 @@ type WordLearningChunksProps = {
   compact?: boolean;
 };
 
+function stripViForEsPending(
+  items: LearningChunkPhrase[],
+  learnerLocale: LearnerLocale,
+  allowViFallback: boolean,
+): LearningChunkPhrase[] {
+  if (learnerLocale !== "es" || allowViFallback) return items;
+  return items.map((item) => ({ ...item, vi: "" }));
+}
+
+function stripEntryViForEsPending(
+  entry: LearningChunkEntry,
+  learnerLocale: LearnerLocale,
+  allowViFallback: boolean,
+): LearningChunkEntry {
+  return {
+    collocations: stripViForEsPending(
+      entry.collocations,
+      learnerLocale,
+      allowViFallback,
+    ),
+    chunks: stripViForEsPending(entry.chunks, learnerLocale, allowViFallback),
+  };
+}
+
 function PhraseList({
   items,
   inline = false,
   speakAtEnd = false,
   speakAriaLabel,
   localeLoadingGloss = false,
+  learnerLocale = "vi",
+  allowViFallback = true,
 }: {
   items: LearningChunkPhrase[];
   inline?: boolean;
   speakAtEnd?: boolean;
   speakAriaLabel?: string;
   localeLoadingGloss?: boolean;
+  learnerLocale?: LearnerLocale;
+  allowViFallback?: boolean;
 }) {
+  const visible = stripViForEsPending(items, learnerLocale, allowViFallback);
   return (
     <ul className="vocab-examples vocab-examples--compact word-learning-chunks__examples">
-      {items.map((item) => (
+      {visible.map((item) => (
         <li
           key={`${item.sense ?? 0}-${item.en}`}
           className={
@@ -63,7 +93,8 @@ function PhraseList({
               <span className="vocab-examples__en italic">
                 {capitalizeFirst(item.en)}
               </span>
-              {localeLoadingGloss && !item.vi.trim() ? (
+              {(localeLoadingGloss || (learnerLocale === "es" && !allowViFallback)) &&
+              !item.vi.trim() ? (
                 <>
                   <span className="word-learning-chunks__sep" aria-hidden="true">
                     ·
@@ -98,7 +129,8 @@ function PhraseList({
                   className="word-learning-chunks__speak !inline-flex !h-7 !w-7"
                 />
               </p>
-              {localeLoadingGloss && !item.vi.trim() ? (
+              {(localeLoadingGloss || (learnerLocale === "es" && !allowViFallback)) &&
+              !item.vi.trim() ? (
                 <span
                   className="vocab-examples__vi vocab-examples__vi--loading mt-0.5 block h-4 w-4/5 max-w-xs animate-pulse rounded bg-primary-50"
                   aria-hidden
@@ -112,7 +144,8 @@ function PhraseList({
           ) : (
             <>
               <p className="vocab-examples__en italic">{capitalizeFirst(item.en)}</p>
-              {localeLoadingGloss && !item.vi.trim() ? (
+              {(localeLoadingGloss || (learnerLocale === "es" && !allowViFallback)) &&
+              !item.vi.trim() ? (
                 <span
                   className="vocab-examples__vi vocab-examples__vi--loading mt-0.5 block h-4 w-4/5 max-w-xs animate-pulse rounded bg-primary-50"
                   aria-hidden
@@ -160,22 +193,25 @@ export function WordLearningChunks({
     learnerLocale,
   });
 
+  const allowViFallback = localeSettled && !localeLoadingGloss;
+
   const entry = useMemo(() => {
     if (learnerLocale === "es") {
-      return (
-        localizedLearningChunkEntry(
-          {
-            word,
-            examples,
-            word_type: wordType,
-            vietnamese_meaning: meaning,
-            phrase_translations: phraseTranslations,
-            example_translations: exampleTranslations,
-          },
-          learnerLocale,
-          { allowViFallback: localeSettled && !localeLoadingGloss },
-        ) ?? viEntry
+      const localized = localizedLearningChunkEntry(
+        {
+          word,
+          examples,
+          word_type: wordType,
+          vietnamese_meaning: meaning,
+          phrase_translations: phraseTranslations,
+          example_translations: exampleTranslations,
+        },
+        learnerLocale,
+        { allowViFallback },
       );
+      if (localized) return localized;
+      if (!baseEntry) return null;
+      return stripEntryViForEsPending(baseEntry, learnerLocale, allowViFallback);
     }
     return viEntry;
   }, [
@@ -187,7 +223,10 @@ export function WordLearningChunks({
     phraseTranslations,
     exampleTranslations,
     viEntry,
+    baseEntry,
+    allowViFallback,
     localeLoadingGloss,
+    localeSettled,
   ]);
 
   if (!entry) return null;
@@ -211,6 +250,8 @@ export function WordLearningChunks({
             items={collocationItems}
             inline
             localeLoadingGloss={localeLoadingGloss}
+            learnerLocale={learnerLocale}
+            allowViFallback={allowViFallback}
           />
         </section>
       ) : null}
@@ -223,6 +264,8 @@ export function WordLearningChunks({
             speakAtEnd
             speakAriaLabel={t("speak.phraseAria")}
             localeLoadingGloss={localeLoadingGloss}
+            learnerLocale={learnerLocale}
+            allowViFallback={allowViFallback}
           />
         </section>
       ) : null}
