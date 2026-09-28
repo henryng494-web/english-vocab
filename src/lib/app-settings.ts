@@ -132,7 +132,6 @@ function normalizeAppSettings(parsed: Partial<AppSettings>): AppSettings {
       reminderTime: normalizeReminderTime(parsed.reminderTime),
       appLanguage: (() => {
         const lang = (parsed as { appLanguage?: unknown }).appLanguage;
-        if (lang === "en") return DEFAULT_APP_LOCALE;
         return isAppLocale(lang) ? lang : DEFAULT_SETTINGS.appLanguage;
       })(),
       learnerLocale: parseLearnerLocale(
@@ -153,15 +152,7 @@ export function readAppSettings(): AppSettings {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return DEFAULT_SETTINGS;
     const parsed = JSON.parse(raw) as Partial<AppSettings>;
-    let normalized = normalizeAppSettings(parsed);
-    if (normalized.appLanguage !== normalized.learnerLocale) {
-      normalized = {
-        ...normalized,
-        appLanguage: normalized.learnerLocale,
-      };
-      writeAppSettings(normalized);
-      return normalized;
-    }
+    const normalized = normalizeAppSettings(parsed);
     if (
       (parsed.goalType && parsed.goalType !== "minutes") ||
       !("learnerLocale" in (parsed as object))

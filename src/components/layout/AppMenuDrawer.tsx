@@ -12,7 +12,7 @@ import {
   recommendedNewWordsForMinutes,
   recommendedReviewsForMinutes,
 } from "@/lib/daily-goal";
-import { APP_LOCALES } from "@/lib/i18n/messages";
+import { APP_LOCALES, APP_LOCALE_LABELS } from "@/lib/i18n/messages";
 import { useAppSettings } from "@/context/AppSettingsContext";
 import { useI18n } from "@/hooks/use-i18n";
 import { displayFontClass } from "@/lib/fonts";
@@ -132,7 +132,7 @@ export function AppMenuDrawer({ open, onClose }: AppMenuDrawerProps) {
                   className={`app-menu__chip${appLanguage === locale ? " is-active" : ""}`}
                   onClick={() => setAppLanguage(locale)}
                 >
-                  {LEARNER_LOCALE_LABELS[locale]}
+                  {APP_LOCALE_LABELS[locale]}
                 </button>
               ))}
             </div>

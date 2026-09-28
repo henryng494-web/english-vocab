@@ -1,13 +1,22 @@
 import localeMessagesJson from "@/lib/i18n/locale-messages.json";
 import {
+  LEARNER_LOCALE_LABELS,
   LEARNER_LOCALE_OPTIONS,
   type LearnerLocale,
 } from "@/lib/learner-locale";
 
-/** Interface language — same codes as learning (gloss) language. */
-export type AppLocale = LearnerLocale;
+/** Interface language — 13 gloss locales plus English UI. */
+export type AppLocale = LearnerLocale | "en";
 
-export const APP_LOCALES: readonly AppLocale[] = LEARNER_LOCALE_OPTIONS;
+export const APP_LOCALES: readonly AppLocale[] = [
+  "en",
+  ...LEARNER_LOCALE_OPTIONS,
+] as const;
+
+export const APP_LOCALE_LABELS: Record<AppLocale, string> = {
+  en: "English",
+  ...LEARNER_LOCALE_LABELS,
+};
 
 export const DEFAULT_APP_LOCALE: AppLocale = "vi";
 
@@ -603,31 +612,32 @@ export const enFallbackMessages = {
 export type MessageKey = keyof typeof viMessages;
 
 const localeMessagesFromJson = localeMessagesJson as Record<
-  Exclude<AppLocale, "vi">,
+  Exclude<LearnerLocale, "vi">,
   Partial<MessageTree>
 >;
 
-function buildNonViLocaleTree(
-  locale: Exclude<AppLocale, "vi">,
+function buildLearnerUiLocaleTree(
+  locale: Exclude<LearnerLocale, "vi">,
 ): MessageTree {
   const partial = localeMessagesFromJson[locale] ?? {};
   return { ...enFallbackMessages, ...partial };
 }
 
 export const messages: Record<AppLocale, MessageTree> = {
+  en: enFallbackMessages,
   vi: viMessages,
   ...(Object.fromEntries(
     LEARNER_LOCALE_OPTIONS.filter((code) => code !== "vi").map((code) => [
       code,
-      buildNonViLocaleTree(code),
+      buildLearnerUiLocaleTree(code),
     ]),
-  ) as Record<Exclude<AppLocale, "vi">, MessageTree>),
+  ) as Record<Exclude<LearnerLocale, "vi">, MessageTree>),
 };
 
 export function isAppLocale(value: unknown): value is AppLocale {
   return (
     typeof value === "string" &&
-    (LEARNER_LOCALE_OPTIONS as readonly string[]).includes(value)
+    (APP_LOCALES as readonly string[]).includes(value)
   );
 }
 
