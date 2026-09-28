@@ -1,5 +1,8 @@
 /** Shared POS + register rules for Gemini vocabulary prompts. */
 
+import type { LearnerLocale } from "@/lib/learner-locale";
+import { LEARNER_LOCALE_LABELS } from "@/lib/learner-locale";
+
 export const VALID_POS =
   "noun|verb|adjective|adverb|pronoun|preposition|conjunction|article|number|interjection|determiner";
 
@@ -265,6 +268,102 @@ Rules:
 - Latin Vietnamese only
 
 Reply with ONLY the Vietnamese sentence. No quotes, no explanation.`;
+}
+
+const ON_DEMAND_TARGET_LANGUAGE: Partial<Record<LearnerLocale, string>> = {
+  es: "Spanish (Latin American / neutral)",
+  pt: "Portuguese (Brazilian / neutral)",
+  ja: "Japanese",
+  ko: "Korean",
+  zh: "Chinese (Simplified)",
+  th: "Thai",
+  id: "Indonesian",
+  fr: "French",
+  de: "German",
+  it: "Italian",
+  tr: "Turkish",
+  ar: "Modern Standard Arabic",
+};
+
+function targetLanguageName(locale: LearnerLocale): string {
+  if (locale === "vi") return "Vietnamese";
+  return (
+    ON_DEMAND_TARGET_LANGUAGE[locale] ??
+    LEARNER_LOCALE_LABELS[locale] ??
+    locale
+  );
+}
+
+export function buildLearnerLocaleMeaningPrompt(
+  locale: LearnerLocale,
+  word: string,
+  vietnameseMeaning: string,
+  englishDefinition?: string | null,
+): string {
+  const language = targetLanguageName(locale);
+  const def = englishDefinition?.trim()
+    ? `English definition: "${englishDefinition.trim()}".`
+    : "";
+  return `Translate the Vietnamese gloss(es) for the English headword "${word}" into natural ${language} for a vocabulary flashcard.
+
+Vietnamese gloss(es):
+${vietnameseMeaning.trim()}
+
+${def}
+
+Rules:
+- Keep the same number of meaning lines as Vietnamese (newline-separated)
+- Natural ${language} for learners
+- Match the sense of the Vietnamese gloss; do not invent new senses
+- No English, no JSON, no quotes
+
+Reply with ONLY the ${language} meaning line(s).`;
+}
+
+export function buildLearnerLocaleCollocationPrompt(
+  locale: LearnerLocale,
+  englishPhrase: string,
+  word: string,
+  vietnameseGloss?: string | null,
+): string {
+  const language = targetLanguageName(locale);
+  const viHint = vietnameseGloss?.trim()
+    ? `Vietnamese gloss hint: "${vietnameseGloss.trim()}".`
+    : "";
+  return `Translate this short English collocation into natural ${language} for a vocabulary flashcard.
+
+English phrase: "${englishPhrase}"
+Headword: "${word}"
+${viHint}
+
+Rules:
+- Keep it short (typical 2–6 words)
+- Natural ${language} for learners
+- Reply with ONLY the ${language} phrase. No quotes, no explanation.`;
+}
+
+export function buildLearnerLocaleExampleTranslationPrompt(
+  locale: LearnerLocale,
+  englishSentence: string,
+  word: string,
+  pos?: string | null,
+  meaning?: string | null,
+): string {
+  const language = targetLanguageName(locale);
+  const posHint = pos?.trim() ? `Part of speech: ${pos}.` : "";
+  const meaningHint = meaning?.trim()
+    ? `Word meaning (learner gloss): ${meaning}.`
+    : "";
+  return `Translate this English example sentence to natural ${language} for a vocabulary learner.
+
+Sentence: "${englishSentence}"
+Headword: "${word}"
+${posHint} ${meaningHint}
+
+Rules:
+- Natural ${language} (not word-by-word)
+- Keep the same register as the English sentence
+- Reply with ONLY the ${language} sentence. No quotes, no explanation.`;
 }
 
 export function buildSpanishMeaningPrompt(

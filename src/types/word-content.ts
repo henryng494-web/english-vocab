@@ -1,5 +1,7 @@
-/** Learner gloss languages stored in JSONB (Step 1 — schema only). */
-export type GlossLanguage = "vi" | "es";
+import type { LearnerLocale } from "@/lib/learner-locale";
+
+/** Learner gloss languages stored in JSONB. */
+export type GlossLanguage = LearnerLocale;
 
 /** `word_details.meanings` — per-locale primary gloss. */
 export type LocalizedMeaningsJson = Partial<Record<GlossLanguage, string>>;

@@ -243,8 +243,16 @@ function fallbackSenseGloss(
   item: (typeof FALLBACK_SENSE_DISTRACTORS)[number],
   locale: LearnerLocale,
 ): string {
-  if (locale === "es") return item.es_meaning;
-  return item.vietnamese_meaning;
+  if (locale === "vi") return item.vietnamese_meaning;
+  const fromMeanings = reviewSenseText(
+    {
+      word: item.word,
+      meanings: { vi: item.vietnamese_meaning, es: item.es_meaning },
+    },
+    locale,
+  );
+  if (fromMeanings) return fromMeanings;
+  return locale === "es" ? item.es_meaning : item.vietnamese_meaning;
 }
 
 /** Localized gloss for review clues and sense-quiz options (WordCard rules). */

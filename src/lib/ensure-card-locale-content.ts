@@ -1,11 +1,14 @@
 import type { DiscoverWordData } from "@/components/discover/DiscoverCard";
 import {
-  discoverDataNeedsSpanishHydration,
-  hasCompleteEsCardContent,
+  discoverDataNeedsLocaleHydration,
+  hasCompleteLocaleCardContent,
 } from "@/lib/card-localized-display";
 import { getPresetRank } from "@/data/preset-word-details";
 import type { LearnerLocale } from "@/lib/learner-locale";
-import { DEFAULT_LEARNER_LOCALE } from "@/lib/learner-locale";
+import {
+  DEFAULT_LEARNER_LOCALE,
+  learnerLocaleNeedsHydration,
+} from "@/lib/learner-locale";
 
 const inflight = new Map<string, Promise<DiscoverWordData | null>>();
 
@@ -13,36 +16,48 @@ function cacheKey(word: string, locale: LearnerLocale): string {
   return `${locale}:${word.trim().toLowerCase()}`;
 }
 
-/** On-demand Spanish hydration for the visible card only (no batch prefetch). */
-export function ensureCardSpanishContent(
+/** On-demand locale hydration for the visible card only (no batch prefetch). */
+export function ensureCardLocaleContent(
   data: DiscoverWordData,
   learnerLocale: LearnerLocale = DEFAULT_LEARNER_LOCALE,
 ): Promise<DiscoverWordData | null> {
-  if (learnerLocale !== "es") return Promise.resolve(null);
-  if (hasCompleteEsCardContent(data)) return Promise.resolve(null);
+  if (!learnerLocaleNeedsHydration(learnerLocale)) {
+    return Promise.resolve(null);
+  }
+  if (hasCompleteLocaleCardContent(data, learnerLocale)) {
+    return Promise.resolve(null);
+  }
 
   const key = cacheKey(data.word, learnerLocale);
   const existing = inflight.get(key);
   if (existing) return existing;
 
-  const task = fetchSpanishWord(data)
-    .finally(() => {
-      inflight.delete(key);
-    });
+  const task = fetchLocaleWord(data, learnerLocale).finally(() => {
+    inflight.delete(key);
+  });
 
   inflight.set(key, task);
   return task;
 }
 
-async function fetchSpanishWord(
+/** @deprecated Use `ensureCardLocaleContent`. */
+export function ensureCardSpanishContent(
   data: DiscoverWordData,
+  learnerLocale: LearnerLocale = DEFAULT_LEARNER_LOCALE,
+): Promise<DiscoverWordData | null> {
+  return ensureCardLocaleContent(data, learnerLocale);
+}
+
+async function fetchLocaleWord(
+  data: DiscoverWordData,
+  locale: LearnerLocale,
 ): Promise<DiscoverWordData | null> {
   const word = data.word.trim().toLowerCase();
   if (!word) return null;
   const params = new URLSearchParams({
     word,
     rank: String(data.rank ?? getPresetRank(word) ?? 10000),
-    locale: "es",
+    locale,
     skipGemini: "false",
   });
   const res = await fetch(`/api/discover/word?${params}`, { cache: "no-store" });
@@ -55,20 +70,17 @@ async function fetchSpanishWord(
       // ignore
     }
     console.warn(
-      `[Locale Debug] discover/word failed (${res.status}) for "${word}":`,
+      `[Locale Debug] discover/word failed (${res.status}) for "${word}" locale=${locale}:`,
       detail || res.statusText,
     );
     return null;
   }
   const payload = (await res.json()) as { word?: DiscoverWordData };
   if (!payload.word?.word?.trim()) {
-    console.warn(`[Locale Debug] discover/word empty payload for "${word}"`);
+    console.warn(
+      `[Locale Debug] discover/word empty payload for "${word}" locale=${locale}`,
+    );
     return null;
   }
-  console.info("[Locale Debug] discover/word es hydrate ok", {
-    word,
-    meaningsEs: payload.word.meanings?.es?.slice(0, 40),
-    phraseEs: Boolean(payload.word.phrase_translations),
-  });
   return { ...data, ...payload.word };
 }

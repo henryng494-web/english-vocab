@@ -11,6 +11,7 @@ import {
 } from "@/lib/localized-gloss";
 import { resolveLearningChunks } from "@/lib/learning-chunks";
 import type { LearnerLocale } from "@/lib/learner-locale";
+import { learnerLocaleNeedsHydration } from "@/lib/learner-locale";
 import { parseExamples } from "@/lib/parse-examples";
 
 function normalizeEn(text: string): string {
@@ -21,16 +22,17 @@ function mapPhraseList(
   items: LearningChunkPhrase[],
   rows: ReturnType<typeof parsePhraseTranslationsJson>["collocations"],
   learnerLocale: LearnerLocale,
-  exampleEsByEn: Map<string, string>,
+  exampleLocaleByEn: Map<string, string>,
   allowViFallback: boolean,
 ): LearningChunkPhrase[] {
   return items.map((item) => {
     const row = findPhraseRow(rows, item.en);
-    if (learnerLocale === "es") {
-      if (row?.es?.trim()) {
-        return { ...item, vi: row.es.trim() };
+    if (learnerLocaleNeedsHydration(learnerLocale)) {
+      const localized = row?.[learnerLocale]?.trim();
+      if (localized) {
+        return { ...item, vi: localized };
       }
-      const fromExample = exampleEsByEn.get(normalizeEn(item.en));
+      const fromExample = exampleLocaleByEn.get(normalizeEn(item.en));
       if (fromExample) {
         return { ...item, vi: fromExample };
       }
@@ -39,7 +41,7 @@ function mapPhraseList(
           row,
           learnerLocale,
           item.vi,
-          { strictEs: false },
+          { strictLearnerLocale: false },
         );
         if (gloss) return { ...item, vi: gloss };
       }
@@ -79,10 +81,16 @@ export function localizedLearningChunkEntry(
     example_translations: data.example_translations,
   });
   const parsedExamples = parseExamples(data.examples ?? "");
-  const exampleEsByEn = new Map<string, string>();
+  const exampleLocaleByEn = new Map<string, string>();
   parsedExamples.forEach((item, index) => {
-    const es = pickExampleTranslationForLocale(exampleRows, index, "es");
-    if (es?.trim()) exampleEsByEn.set(normalizeEn(item.en), es.trim());
+    const localized = pickExampleTranslationForLocale(
+      exampleRows,
+      index,
+      learnerLocale,
+    );
+    if (localized?.trim()) {
+      exampleLocaleByEn.set(normalizeEn(item.en), localized.trim());
+    }
   });
 
   return {
@@ -90,14 +98,14 @@ export function localizedLearningChunkEntry(
       base.collocations,
       phrases.collocations,
       learnerLocale,
-      exampleEsByEn,
+      exampleLocaleByEn,
       allowViFallback,
     ),
     chunks: mapPhraseList(
       base.chunks,
       phrases.chunks,
       learnerLocale,
-      exampleEsByEn,
+      exampleLocaleByEn,
       allowViFallback,
     ),
   };
@@ -115,14 +123,16 @@ export function chunkSecondaryGlossPending(
   >,
   learnerLocale: LearnerLocale,
 ): boolean {
-  if (learnerLocale !== "es") return false;
+  if (!learnerLocaleNeedsHydration(learnerLocale)) return false;
   const entry = resolveLearningChunks(data.word, {
     examples: data.examples,
     wordType: data.word_type,
     meaning: data.vietnamese_meaning,
   });
   if (!entry) return false;
-  const localized = localizedLearningChunkEntry(data, learnerLocale);
+  const localized = localizedLearningChunkEntry(data, learnerLocale, {
+    allowViFallback: false,
+  });
   if (!localized) return false;
   const check = (items: LearningChunkPhrase[]) =>
     items.some((item) => !item.vi.trim());

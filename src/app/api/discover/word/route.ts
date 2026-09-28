@@ -27,8 +27,8 @@ import { resolveWordRegister } from "@/lib/word-meanings";
 import { normalizeVocabInput } from "@/lib/word-validation";
 import { getFamilyHeadword } from "@/lib/word-family";
 import {
-  hydrateSpanishWordContent,
-  wordDetailNeedsSpanishHydration,
+  hydrateLearnerLocaleWordContent,
+  wordDetailNeedsLocaleHydration,
 } from "@/lib/localize-word-content";
 import { pickLocalizedMeaning } from "@/lib/localized-gloss";
 import { persistMultilangPatch } from "@/lib/persist-multilang-patch";
@@ -136,23 +136,22 @@ function persistedDetailToDiscoverWord(
   });
 }
 
-async function maybeHydrateSpanishAndPersist(
+async function maybeHydrateLearnerLocaleAndPersist(
   supabase: Awaited<ReturnType<typeof createClient>>,
   word: string,
   detail: WordDetail,
   learnerLocale: LearnerLocale,
 ): Promise<WordDetail> {
-  if (learnerLocale !== "es") return detail;
-  if (!wordDetailNeedsSpanishHydration(detail)) return detail;
+  if (!wordDetailNeedsLocaleHydration(detail, learnerLocale)) return detail;
   if (!process.env.GEMINI_API_KEY?.trim()) {
     console.warn(
-      `Spanish hydrate skipped for "${word}": GEMINI_API_KEY is not set on server`,
+      `Locale hydrate skipped for "${word}" (${learnerLocale}): GEMINI_API_KEY is not set on server`,
     );
     return detail;
   }
 
   try {
-    const patch = await hydrateSpanishWordContent(detail);
+    const patch = await hydrateLearnerLocaleWordContent(detail, learnerLocale);
     const next: WordDetail = {
       ...detail,
       meanings: patch.meanings,
@@ -162,13 +161,16 @@ async function maybeHydrateSpanishAndPersist(
     const persist = await persistMultilangPatch(supabase, word, patch);
     if (!persist.ok) {
       console.warn(
-        `Spanish hydrate persist skipped for "${word}":`,
+        `Locale hydrate persist skipped for "${word}" (${learnerLocale}):`,
         persist.error ?? "unknown",
       );
     }
     return next;
   } catch (error) {
-    console.error(`Spanish hydrate failed for "${word}":`, error);
+    console.error(
+      `Locale hydrate failed for "${word}" (${learnerLocale}):`,
+      error,
+    );
     return detail;
   }
 }
@@ -439,7 +441,7 @@ export async function GET(request: Request) {
             .eq("word", word);
         }
       }
-      const localizedDetail = await maybeHydrateSpanishAndPersist(
+      const localizedDetail = await maybeHydrateLearnerLocaleAndPersist(
         supabase,
         word,
         repairedDbDetail!,
@@ -592,7 +594,7 @@ export async function GET(request: Request) {
         dbDetail?.phrase_translations,
       ),
     };
-    const localizedDetail = await maybeHydrateSpanishAndPersist(
+    const localizedDetail = await maybeHydrateLearnerLocaleAndPersist(
       supabase,
       word,
       enrichedDetail,

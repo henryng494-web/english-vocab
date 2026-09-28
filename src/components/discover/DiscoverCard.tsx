@@ -6,13 +6,14 @@ import { WordCardDetails } from "@/components/flashcard/WordCardDetails";
 import { WordImage } from "@/components/word/WordImage";
 import { useAppSettings } from "@/context/AppSettingsContext";
 import {
-  discoverDataNeedsSpanishHydration,
+  discoverDataNeedsLocaleHydration,
   examplesForCard,
   primaryGlossForCard,
 } from "@/lib/card-localized-display";
 import { displayPhonetic } from "@/lib/phonetic";
 import { isCardContentReady } from "@/lib/discover-word-cache";
-import { ensureCardSpanishContent } from "@/lib/ensure-card-locale-content";
+import { ensureCardLocaleContent } from "@/lib/ensure-card-locale-content";
+import { learnerLocaleNeedsHydration } from "@/lib/learner-locale";
 import type { WordFamilyMember } from "@/types/database";
 import type { WordRegister } from "@/lib/word-meanings";
 import { resolveWordRegister } from "@/lib/word-meanings";
@@ -96,28 +97,30 @@ export function DiscoverCard({
 }: DiscoverCardProps) {
   const { learnerLocale } = useAppSettings();
   const [cardData, setCardData] = useState(data);
-  const needsSpanishHydration =
-    learnerLocale === "es" && discoverDataNeedsSpanishHydration(data);
-  const [localeLoading, setLocaleLoading] = useState(needsSpanishHydration);
+  const needsLocaleHydration =
+    learnerLocaleNeedsHydration(learnerLocale) &&
+    discoverDataNeedsLocaleHydration(data, learnerLocale);
+  const [localeLoading, setLocaleLoading] = useState(needsLocaleHydration);
   const [localeSettled, setLocaleSettled] = useState(
-    !needsSpanishHydration,
+    !needsLocaleHydration,
   );
 
   useEffect(() => {
     setCardData(data);
     const pending =
-      learnerLocale === "es" && discoverDataNeedsSpanishHydration(data);
+      learnerLocaleNeedsHydration(learnerLocale) &&
+      discoverDataNeedsLocaleHydration(data, learnerLocale);
     setLocaleSettled(!pending);
     setLocaleLoading(pending);
   }, [data, learnerLocale]);
 
   useEffect(() => {
-    if (learnerLocale !== "es") {
+    if (!learnerLocaleNeedsHydration(learnerLocale)) {
       setLocaleLoading(false);
       setLocaleSettled(true);
       return;
     }
-    const needs = discoverDataNeedsSpanishHydration(data);
+    const needs = discoverDataNeedsLocaleHydration(data, learnerLocale);
     if (!needs) {
       setLocaleLoading(false);
       setLocaleSettled(true);
@@ -126,7 +129,7 @@ export function DiscoverCard({
     let cancelled = false;
     setLocaleLoading(true);
     setLocaleSettled(false);
-    void ensureCardSpanishContent(data, learnerLocale)
+    void ensureCardLocaleContent(data, learnerLocale)
       .then((updated) => {
         if (cancelled) return;
         if (updated) setCardData(updated);
@@ -162,18 +165,21 @@ export function DiscoverCard({
           cardData.word_type,
         );
 
-  const esContentPending =
-    learnerLocale === "es" && discoverDataNeedsSpanishHydration(cardData);
-  const strictEs = learnerLocale === "es" && !localeSettled;
-  const meaningSkeleton = esContentPending && !localeSettled;
-  const glossSkeleton = meaningSkeleton || (strictEs && esContentPending);
+  const localeContentPending =
+    learnerLocaleNeedsHydration(learnerLocale) &&
+    discoverDataNeedsLocaleHydration(cardData, learnerLocale);
+  const strictLearnerLocale =
+    learnerLocaleNeedsHydration(learnerLocale) && !localeSettled;
+  const meaningSkeleton = localeContentPending && !localeSettled;
+  const glossSkeleton =
+    meaningSkeleton || (strictLearnerLocale && localeContentPending);
   const displayMeaning = useMemo(
-    () => primaryGlossForCard(cardData, learnerLocale, strictEs),
-    [cardData, learnerLocale, strictEs],
+    () => primaryGlossForCard(cardData, learnerLocale, strictLearnerLocale),
+    [cardData, learnerLocale, strictLearnerLocale],
   );
   const displayExamples = useMemo(
-    () => examplesForCard(cardData, learnerLocale, strictEs),
-    [cardData, learnerLocale, strictEs],
+    () => examplesForCard(cardData, learnerLocale, strictLearnerLocale),
+    [cardData, learnerLocale, strictLearnerLocale],
   );
   const meaningForUi = meaningSkeleton ? null : displayMeaning;
 
@@ -183,21 +189,21 @@ export function DiscoverCard({
       learnerLocale,
       localeLoading,
       localeSettled,
-      esContentPending,
-      strictEs,
-      needsHydration: discoverDataNeedsSpanishHydration(cardData),
-      meaningsEs: cardData.meanings?.es?.slice(0, 48),
-      hasPhraseEs: JSON.stringify(cardData.phrase_translations ?? {}).includes(
-        '"es"',
+      localeContentPending,
+      strictLearnerLocale,
+      needsHydration: discoverDataNeedsLocaleHydration(
+        cardData,
+        learnerLocale,
       ),
+      meaningsLocale: cardData.meanings?.[learnerLocale]?.slice(0, 48),
     });
   }, [
     cardData.word,
     learnerLocale,
     localeLoading,
     localeSettled,
-    esContentPending,
-    strictEs,
+    localeContentPending,
+    strictLearnerLocale,
     cardData.meanings,
     cardData.phrase_translations,
     cardData.example_translations,
@@ -210,7 +216,10 @@ export function DiscoverCard({
         imageUrl={cardData.image_url}
         searchKeyword={cardData.search_keyword}
         wordType={cardData.word_type}
-        meaning={meaningForUi ?? (strictEs ? null : cardData.vietnamese_meaning)}
+        meaning={
+          meaningForUi ??
+          (strictLearnerLocale ? null : cardData.vietnamese_meaning)
+        }
         badge={imageBadge}
       />
 

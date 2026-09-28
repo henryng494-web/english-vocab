@@ -1,9 +1,10 @@
-import { discoverDataNeedsSpanishHydration } from "@/lib/card-localized-display";
+import { discoverDataNeedsLocaleHydration } from "@/lib/card-localized-display";
 import {
   loadPersistedWordCache,
   persistWordCache,
 } from "@/lib/discover-word-cache";
 import type { LearnerLocale } from "@/lib/learner-locale";
+import { learnerLocaleNeedsHydration } from "@/lib/learner-locale";
 import {
   readReviewSessionSnapshot,
   writeReviewSessionSnapshot,
@@ -11,13 +12,16 @@ import {
 
 export const REVIEW_LEARNER_LOCALE_CHANGED = "review-learner-locale-changed";
 
-/** Drop discover session entries that would show Vietnamese under `es`. */
-export function purgeDiscoverCacheForSpanishLocale(): void {
+/** Drop discover session entries missing glosses for the active learner locale. */
+export function purgeDiscoverCacheForLearnerLocale(
+  locale: LearnerLocale,
+): void {
   if (typeof window === "undefined") return;
+  if (!learnerLocaleNeedsHydration(locale)) return;
   const cache = loadPersistedWordCache();
   let changed = false;
   for (const [key, value] of cache.entries()) {
-    if (discoverDataNeedsSpanishHydration(value)) {
+    if (discoverDataNeedsLocaleHydration(value, locale)) {
       cache.delete(key);
       changed = true;
     }
@@ -27,7 +31,7 @@ export function purgeDiscoverCacheForSpanishLocale(): void {
 
 /**
  * Clear review quiz caches when gloss language changes so clues/options rebuild
- * from Supabase / discover instead of stale VI-only session data.
+ * from Supabase / discover instead of stale session data.
  */
 export function clearReviewCachesForLearnerLocaleChange(
   nextLocale: LearnerLocale,
@@ -36,8 +40,8 @@ export function clearReviewCachesForLearnerLocaleChange(
   if (typeof window === "undefined") return;
   if (nextLocale === previousLocale) return;
 
-  if (nextLocale === "es") {
-    purgeDiscoverCacheForSpanishLocale();
+  if (learnerLocaleNeedsHydration(nextLocale)) {
+    purgeDiscoverCacheForLearnerLocale(nextLocale);
   }
 
   const snapshot = readReviewSessionSnapshot();

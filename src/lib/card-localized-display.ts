@@ -1,11 +1,11 @@
 import type { DiscoverWordData } from "@/components/discover/DiscoverCard";
 import {
   exampleRowsFromDetail,
-  hasStoredEsMeaning,
+  hasStoredLocaleMeaning,
   mergeLegacyViIntoMeanings,
-  exampleTranslationsNeedEs,
+  exampleTranslationsNeedLocale,
   parsePhraseTranslationsJson,
-  phraseTranslationsNeedEs,
+  phraseTranslationsNeedLocale,
 } from "@/lib/multilang-record";
 import { resolveLearningChunks } from "@/lib/learning-chunks";
 import {
@@ -13,17 +13,27 @@ import {
   pickLocalizedMeaning,
 } from "@/lib/localized-gloss";
 import type { LearnerLocale } from "@/lib/learner-locale";
+import { learnerLocaleNeedsHydration } from "@/lib/learner-locale";
 import { parseExamples } from "@/lib/parse-examples";
 import type { VocabExample } from "@/lib/parse-examples";
 
-/** True when card can show Spanish glosses without calling `/api/discover/word?locale=es`. */
-export function hasCompleteEsCardContent(data: DiscoverWordData): boolean {
-  return !discoverDataNeedsSpanishHydration(data);
+export function hasCompleteLocaleCardContent(
+  data: DiscoverWordData,
+  learnerLocale: LearnerLocale,
+): boolean {
+  return !discoverDataNeedsLocaleHydration(data, learnerLocale);
 }
 
-export function discoverDataNeedsSpanishHydration(
+/** @deprecated Use `hasCompleteLocaleCardContent(data, "es")`. */
+export function hasCompleteEsCardContent(data: DiscoverWordData): boolean {
+  return hasCompleteLocaleCardContent(data, "es");
+}
+
+export function discoverDataNeedsLocaleHydration(
   data: DiscoverWordData,
+  learnerLocale: LearnerLocale,
 ): boolean {
+  if (!learnerLocaleNeedsHydration(learnerLocale)) return false;
   const examples = data.examples ?? "";
   const detailLike = {
     word: data.word,
@@ -45,16 +55,24 @@ export function discoverDataNeedsSpanishHydration(
   });
   const phrases = parsePhraseTranslationsJson(data.phrase_translations);
   return (
-    !hasStoredEsMeaning(meanings) ||
-    (count > 0 && exampleTranslationsNeedEs(rows, count)) ||
-    (chunkEntry != null && phraseTranslationsNeedEs(phrases, chunkEntry))
+    !hasStoredLocaleMeaning(meanings, learnerLocale) ||
+    (count > 0 && exampleTranslationsNeedLocale(rows, count, learnerLocale)) ||
+    (chunkEntry != null &&
+      phraseTranslationsNeedLocale(phrases, chunkEntry, learnerLocale))
   );
+}
+
+/** @deprecated Use `discoverDataNeedsLocaleHydration(data, "es")`. */
+export function discoverDataNeedsSpanishHydration(
+  data: DiscoverWordData,
+): boolean {
+  return discoverDataNeedsLocaleHydration(data, "es");
 }
 
 export function primaryGlossForCard(
   data: DiscoverWordData,
   learnerLocale: LearnerLocale,
-  strictEs = false,
+  strictLearnerLocale = false,
 ): string | null {
   const meanings = mergeLegacyViIntoMeanings({
     meanings: data.meanings,
@@ -65,26 +83,25 @@ export function primaryGlossForCard(
     learnerLocale,
     data.vietnamese_meaning,
     data.english_definition,
-    { strictEs },
+    { strictLearnerLocale },
   );
 }
 
 export function examplesForCard(
   data: DiscoverWordData,
   learnerLocale: LearnerLocale,
-  strictEs = false,
+  strictLearnerLocale = false,
 ): VocabExample[] {
-  const examples = data.examples ?? "";
-  const parsed = parseExamples(examples);
+  const parsed = parseExamples(data.examples ?? "");
   const rows = exampleRowsFromDetail({
-    examples,
+    examples: data.examples ?? "",
     example_translations: data.example_translations,
   });
   return parsed.slice(0, 2).map((item, index) => ({
     en: item.en,
     vi:
       pickExampleTranslationForLocale(rows, index, learnerLocale, {
-        strictEs,
+        strictLearnerLocale,
       }) ?? (learnerLocale === "vi" ? item.vi : ""),
     senseIndex: item.senseIndex,
   }));

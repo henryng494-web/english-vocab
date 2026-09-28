@@ -13,7 +13,10 @@ import { SpeakButton } from "@/components/flashcard/SpeakButton";
 import { capitalizeFirst } from "@/lib/format-text";
 import { localizedLearningChunkEntry } from "@/lib/localized-chunks-display";
 import { resolveLearningChunks } from "@/lib/learning-chunks";
-import type { LearnerLocale } from "@/lib/learner-locale";
+import {
+  learnerLocaleNeedsHydration,
+  type LearnerLocale,
+} from "@/lib/learner-locale";
 import type { WordRegister } from "@/lib/word-meanings";
 import type {
   ExampleTranslationsJson,
@@ -35,27 +38,29 @@ type WordLearningChunksProps = {
   compact?: boolean;
 };
 
-function stripViForEsPending(
+function stripViForLocalePending(
   items: LearningChunkPhrase[],
   learnerLocale: LearnerLocale,
   allowViFallback: boolean,
 ): LearningChunkPhrase[] {
-  if (learnerLocale !== "es" || allowViFallback) return items;
+  if (!learnerLocaleNeedsHydration(learnerLocale) || allowViFallback) {
+    return items;
+  }
   return items.map((item) => ({ ...item, vi: "" }));
 }
 
-function stripEntryViForEsPending(
+function stripEntryViForLocalePending(
   entry: LearningChunkEntry,
   learnerLocale: LearnerLocale,
   allowViFallback: boolean,
 ): LearningChunkEntry {
   return {
-    collocations: stripViForEsPending(
+    collocations: stripViForLocalePending(
       entry.collocations,
       learnerLocale,
       allowViFallback,
     ),
-    chunks: stripViForEsPending(entry.chunks, learnerLocale, allowViFallback),
+    chunks: stripViForLocalePending(entry.chunks, learnerLocale, allowViFallback),
   };
 }
 
@@ -76,7 +81,7 @@ function PhraseList({
   learnerLocale?: LearnerLocale;
   allowViFallback?: boolean;
 }) {
-  const visible = stripViForEsPending(items, learnerLocale, allowViFallback);
+  const visible = stripViForLocalePending(items, learnerLocale, allowViFallback);
   return (
     <ul className="vocab-examples vocab-examples--compact word-learning-chunks__examples">
       {visible.map((item) => (
@@ -93,7 +98,9 @@ function PhraseList({
               <span className="vocab-examples__en italic">
                 {capitalizeFirst(item.en)}
               </span>
-              {(localeLoadingGloss || (learnerLocale === "es" && !allowViFallback)) &&
+              {(localeLoadingGloss ||
+                (learnerLocaleNeedsHydration(learnerLocale) &&
+                  !allowViFallback)) &&
               !item.vi.trim() ? (
                 <>
                   <span className="word-learning-chunks__sep" aria-hidden="true">
@@ -129,7 +136,9 @@ function PhraseList({
                   className="word-learning-chunks__speak !inline-flex !h-7 !w-7"
                 />
               </p>
-              {(localeLoadingGloss || (learnerLocale === "es" && !allowViFallback)) &&
+              {(localeLoadingGloss ||
+                (learnerLocaleNeedsHydration(learnerLocale) &&
+                  !allowViFallback)) &&
               !item.vi.trim() ? (
                 <span
                   className="vocab-examples__vi vocab-examples__vi--loading mt-0.5 block h-4 w-4/5 max-w-xs animate-pulse rounded bg-primary-50"
@@ -144,7 +153,9 @@ function PhraseList({
           ) : (
             <>
               <p className="vocab-examples__en italic">{capitalizeFirst(item.en)}</p>
-              {(localeLoadingGloss || (learnerLocale === "es" && !allowViFallback)) &&
+              {(localeLoadingGloss ||
+                (learnerLocaleNeedsHydration(learnerLocale) &&
+                  !allowViFallback)) &&
               !item.vi.trim() ? (
                 <span
                   className="vocab-examples__vi vocab-examples__vi--loading mt-0.5 block h-4 w-4/5 max-w-xs animate-pulse rounded bg-primary-50"
@@ -196,7 +207,7 @@ export function WordLearningChunks({
   const allowViFallback = localeSettled && !localeLoadingGloss;
 
   const entry = useMemo(() => {
-    if (learnerLocale === "es") {
+    if (learnerLocaleNeedsHydration(learnerLocale)) {
       const localized = localizedLearningChunkEntry(
         {
           word,
@@ -211,7 +222,11 @@ export function WordLearningChunks({
       );
       if (localized) return localized;
       if (!baseEntry) return null;
-      return stripEntryViForEsPending(baseEntry, learnerLocale, allowViFallback);
+      return stripEntryViForLocalePending(
+        baseEntry,
+        learnerLocale,
+        allowViFallback,
+      );
     }
     return viEntry;
   }, [

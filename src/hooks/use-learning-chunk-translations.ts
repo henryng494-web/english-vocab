@@ -19,7 +19,10 @@ import {
   setCachedSupplementCollocations,
 } from "@/lib/learning-chunk-supplement-cache";
 import type { WordRegister } from "@/lib/word-meanings";
-import type { LearnerLocale } from "@/lib/learner-locale";
+import {
+  learnerLocaleNeedsHydration,
+  type LearnerLocale,
+} from "@/lib/learner-locale";
 
 type UseLearningChunkTranslationsArgs = {
   word: string;
@@ -86,7 +89,7 @@ export function useLearningChunkTranslations({
   }, [seedKey, word, entry, isOverride]);
 
   useEffect(() => {
-    if (learnerLocale === "es") return;
+    if (learnerLocaleNeedsHydration(learnerLocale)) return;
     if (!entry || isOverride) return;
     if (entry.collocations.length > 0) return;
     if (!entry.chunks.length) return;
@@ -157,7 +160,7 @@ export function useLearningChunkTranslations({
   ]);
 
   useEffect(() => {
-    if (learnerLocale === "es") return;
+    if (learnerLocaleNeedsHydration(learnerLocale)) return;
     if (!entry || isOverride) return;
     if (hydratedKeyRef.current === seedKey) return;
 
@@ -212,7 +215,7 @@ export function useLearningChunkTranslations({
 
   if (!entry) return null;
 
-  if (learnerLocale === "es") {
+  if (learnerLocaleNeedsHydration(learnerLocale)) {
     return entry;
   }
 

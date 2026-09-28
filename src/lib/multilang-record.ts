@@ -1,3 +1,4 @@
+import { LEARNER_LOCALE_OPTIONS, type LearnerLocale } from "@/lib/learner-locale";
 import { parseExamples } from "@/lib/parse-examples";
 import type { WordDetail } from "@/types/database";
 import type {
@@ -8,29 +9,25 @@ import type {
 } from "@/types/word-content";
 import type { LearningChunkEntry } from "@/data/demo-learning-chunks";
 
-export function parseMeaningsJson(raw: unknown): LocalizedMeaningsJson {
+function parseLocaleStringRecord(raw: unknown): Partial<Record<LearnerLocale, string>> {
   if (!raw || typeof raw !== "object") return {};
-  const out: LocalizedMeaningsJson = {};
-  for (const lang of ["vi", "es"] as const) {
+  const out: Partial<Record<LearnerLocale, string>> = {};
+  for (const lang of LEARNER_LOCALE_OPTIONS) {
     const value = (raw as Record<string, unknown>)[lang];
     if (typeof value === "string" && value.trim()) out[lang] = value.trim();
   }
   return out;
 }
 
+export function parseMeaningsJson(raw: unknown): LocalizedMeaningsJson {
+  return parseLocaleStringRecord(raw);
+}
+
 export function parseExampleTranslationsJson(
   raw: unknown,
 ): ExampleTranslationsJson {
   if (!Array.isArray(raw)) return [];
-  return raw.map((row) => {
-    if (!row || typeof row !== "object") return {};
-    const out: Partial<Record<"vi" | "es", string>> = {};
-    for (const lang of ["vi", "es"] as const) {
-      const value = (row as Record<string, unknown>)[lang];
-      if (typeof value === "string" && value.trim()) out[lang] = value.trim();
-    }
-    return out;
-  });
+  return raw.map((row) => parseLocaleStringRecord(row));
 }
 
 export function mergeLegacyViIntoMeanings(
@@ -55,20 +52,41 @@ export function exampleRowsFromDetail(
   });
 }
 
+export function hasStoredLocaleMeaning(
+  meanings: LocalizedMeaningsJson | null | undefined,
+  locale: LearnerLocale,
+): boolean {
+  if (locale === "vi") {
+    return Boolean(meanings?.vi?.trim());
+  }
+  return Boolean(meanings?.[locale]?.trim());
+}
+
+/** @deprecated Use `hasStoredLocaleMeaning(meanings, "es")`. */
 export function hasStoredEsMeaning(
   meanings: LocalizedMeaningsJson | null | undefined,
 ): boolean {
-  return Boolean(meanings?.es?.trim());
+  return hasStoredLocaleMeaning(meanings, "es");
 }
 
+export function exampleTranslationsNeedLocale(
+  rows: ExampleTranslationsJson,
+  exampleCount: number,
+  locale: LearnerLocale,
+): boolean {
+  if (locale === "vi") return false;
+  for (let i = 0; i < exampleCount; i += 1) {
+    if (!rows[i]?.[locale]?.trim()) return true;
+  }
+  return false;
+}
+
+/** @deprecated Use `exampleTranslationsNeedLocale(rows, count, "es")`. */
 export function exampleTranslationsNeedEs(
   rows: ExampleTranslationsJson,
   exampleCount: number,
 ): boolean {
-  for (let i = 0; i < exampleCount; i += 1) {
-    if (!rows[i]?.es?.trim()) return true;
-  }
-  return false;
+  return exampleTranslationsNeedLocale(rows, exampleCount, "es");
 }
 
 function normalizePhraseEn(en: string): string {
@@ -87,7 +105,7 @@ export function parsePhraseTranslationsJson(
       const out: PhraseTranslationRow = {};
       const en = (row as Record<string, unknown>).en;
       if (typeof en === "string" && en.trim()) out.en = en.trim();
-      for (const lang of ["vi", "es"] as const) {
+      for (const lang of LEARNER_LOCALE_OPTIONS) {
         const gloss = (row as Record<string, unknown>)[lang];
         if (typeof gloss === "string" && gloss.trim()) out[lang] = gloss.trim();
       }
@@ -109,24 +127,40 @@ export function findPhraseRow(
   return rows?.find((row) => normalizePhraseEn(row.en ?? "") === key);
 }
 
-export function phraseListNeedsEs(
+export function phraseListNeedsLocale(
   items: { en: string }[],
   rows: PhraseTranslationRow[] | undefined,
+  locale: LearnerLocale,
 ): boolean {
+  if (locale === "vi") return false;
   for (const item of items) {
     const row = findPhraseRow(rows, item.en);
-    if (!row?.es?.trim()) return true;
+    if (!row?.[locale]?.trim()) return true;
   }
   return false;
 }
 
+export function phraseTranslationsNeedLocale(
+  phrases: PhraseTranslationsJson,
+  entry: LearningChunkEntry,
+  locale: LearnerLocale,
+): boolean {
+  if (locale === "vi") return false;
+  if (phraseListNeedsLocale(entry.collocations, phrases.collocations, locale)) {
+    return true;
+  }
+  if (phraseListNeedsLocale(entry.chunks, phrases.chunks, locale)) {
+    return true;
+  }
+  return false;
+}
+
+/** @deprecated Use `phraseTranslationsNeedLocale(phrases, entry, "es")`. */
 export function phraseTranslationsNeedEs(
   phrases: PhraseTranslationsJson,
   entry: LearningChunkEntry,
 ): boolean {
-  if (phraseListNeedsEs(entry.collocations, phrases.collocations)) return true;
-  if (phraseListNeedsEs(entry.chunks, phrases.chunks)) return true;
-  return false;
+  return phraseTranslationsNeedLocale(phrases, entry, "es");
 }
 
 export function mergePhraseRowsFromEntry(

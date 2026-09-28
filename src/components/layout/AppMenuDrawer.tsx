@@ -4,6 +4,7 @@ import {
   DAILY_GOAL_OPTIONS,
   PRONOUNCE_ACCENT_OPTIONS,
   PRONOUNCE_SPEED_OPTIONS,
+  LEARNER_LOCALE_LABELS,
   LEARNER_LOCALE_MENU_OPTIONS,
   type DailyGoalMinutes,
 } from "@/lib/app-settings";
@@ -152,9 +153,7 @@ export function AppMenuDrawer({ open, onClose }: AppMenuDrawerProps) {
                     }`}
                     onClick={() => setLearnerLocale(locale)}
                   >
-                    {locale === "vi"
-                      ? t("menu.learnerLocaleVi")
-                      : t("menu.learnerLocaleEs")}
+                    {LEARNER_LOCALE_LABELS[locale]}
                   </button>
                 ))}
               </div>

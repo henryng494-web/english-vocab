@@ -3,7 +3,7 @@ import { hasQualityStandardVocab } from "@/data/standard-vocab";
 import { readAppSettings } from "@/lib/app-settings";
 import { loadPersistedWordCache } from "@/lib/discover-word-cache";
 import {
-  hasStoredEsMeaning,
+  hasStoredLocaleMeaning,
   mergeLegacyViIntoMeanings,
 } from "@/lib/multilang-record";
 import { standardToDiscoverFields } from "@/lib/enrichment-helpers";
@@ -98,7 +98,10 @@ function applyCuratedReviewFields(word: VocabWord): VocabWord | null {
   if (typeof window !== "undefined") {
     const locale = readAppSettings().learnerLocale;
     const meanings = mergeLegacyViIntoMeanings(word);
-    if (locale === "es" && hasStoredEsMeaning(meanings)) {
+    if (
+      locale !== "vi" &&
+      hasStoredLocaleMeaning(meanings, locale)
+    ) {
       return null;
     }
   }

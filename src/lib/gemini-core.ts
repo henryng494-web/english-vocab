@@ -1,4 +1,6 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import type { LearnerLocale } from "@/lib/learner-locale";
+import { learnerLocaleNeedsHydration } from "@/lib/learner-locale";
 import { capitalizeFirst } from "@/lib/format-text";
 import {
   buildDefinitionPrompt,
@@ -8,6 +10,9 @@ import {
   buildExampleTranslationPrompt,
   buildExamplesPrompt,
   buildMeaningPrompt,
+  buildLearnerLocaleCollocationPrompt,
+  buildLearnerLocaleExampleTranslationPrompt,
+  buildLearnerLocaleMeaningPrompt,
   buildSpanishCollocationPrompt,
   buildSpanishExampleTranslationPrompt,
   buildSpanishMeaningPrompt,
@@ -118,6 +123,116 @@ async function generateGeminiText(prompt: string): Promise<string> {
   const model = genAI.getGenerativeModel({ model: primaryModelName() });
   const result = await model.generateContent(prompt);
   return result.response.text().trim();
+}
+
+/** On-demand learner gloss translations — cost-optimized flash model. */
+export const ON_DEMAND_TRANSLATION_MODEL =
+  process.env.GEMINI_TRANSLATION_MODEL?.trim() || "gemini-1.5-flash";
+
+export function isGeminiQuotaOrBillingError(error: unknown): boolean {
+  const msg = error instanceof Error ? error.message : String(error);
+  return /429|quota|RESOURCE_EXHAUSTED|rate limit|billing|exceeded/i.test(msg);
+}
+
+async function generateTranslationGeminiText(
+  prompt: string,
+): Promise<string | null> {
+  if (!process.env.GEMINI_API_KEY?.trim()) return null;
+  try {
+    const genAI = getGeminiClient();
+    const model = genAI.getGenerativeModel({
+      model: ON_DEMAND_TRANSLATION_MODEL,
+    });
+    const result = await model.generateContent(prompt);
+    return result.response.text().trim();
+  } catch (error) {
+    if (isGeminiQuotaOrBillingError(error)) {
+      console.warn(
+        `[gemini] translation quota/rate limit (${ON_DEMAND_TRANSLATION_MODEL}):`,
+        error,
+      );
+    } else {
+      console.warn(
+        `[gemini] translation failed (${ON_DEMAND_TRANSLATION_MODEL}):`,
+        error,
+      );
+    }
+    return null;
+  }
+}
+
+export async function translateMeaningToLearnerLocaleWithGemini(
+  locale: LearnerLocale,
+  word: string,
+  vietnameseMeaning: string,
+  englishDefinition?: string | null,
+): Promise<string | null> {
+  if (!learnerLocaleNeedsHydration(locale)) return null;
+  const vi = vietnameseMeaning.trim();
+  if (!vi) return null;
+  const text = (
+    await generateTranslationGeminiText(
+      buildLearnerLocaleMeaningPrompt(
+        locale,
+        word,
+        vi,
+        englishDefinition,
+      ),
+    )
+  )
+    ?.trim()
+    .replace(/^["']|["']$/g, "");
+  return text || null;
+}
+
+export async function translateCollocationToLearnerLocaleWithGemini(
+  locale: LearnerLocale,
+  englishPhrase: string,
+  word: string,
+  vietnameseGloss?: string | null,
+): Promise<string | null> {
+  if (!learnerLocaleNeedsHydration(locale)) return null;
+  const en = englishPhrase.trim();
+  if (!en) return null;
+  const text = (
+    await generateTranslationGeminiText(
+      buildLearnerLocaleCollocationPrompt(
+        locale,
+        en,
+        word,
+        vietnameseGloss,
+      ),
+    )
+  )
+    ?.trim()
+    .replace(/^["']|["']$/g, "");
+  return text || null;
+}
+
+export async function translateExampleToLearnerLocaleWithGemini(
+  locale: LearnerLocale,
+  englishSentence: string,
+  word: string,
+  pos?: string | null,
+  meaning?: string | null,
+): Promise<string | null> {
+  if (!learnerLocaleNeedsHydration(locale)) return null;
+  const en = englishSentence.trim();
+  if (!en) return null;
+  const text = (
+    await generateTranslationGeminiText(
+      buildLearnerLocaleExampleTranslationPrompt(
+        locale,
+        en,
+        word,
+        pos,
+        meaning,
+      ),
+    )
+  )
+    ?.trim()
+    .replace(/^["']|["']$/g, "");
+  return text || null;
 }
 
 function parseExamples(
@@ -371,22 +486,12 @@ export async function translateMeaningToSpanishWithGemini(
   vietnameseMeaning: string,
   englishDefinition?: string | null,
 ): Promise<string | null> {
-  if (!process.env.GEMINI_API_KEY?.trim()) return null;
-  const vi = vietnameseMeaning.trim();
-  if (!vi) return null;
-  try {
-    const text = (
-      await generateGeminiText(
-        buildSpanishMeaningPrompt(word, vi, englishDefinition),
-      )
-    )
-      .trim()
-      .replace(/^["']|["']$/g, "");
-    return text || null;
-  } catch (error) {
-    console.warn(`Gemini ES meaning failed for "${word}":`, error);
-    return null;
-  }
+  return translateMeaningToLearnerLocaleWithGemini(
+    "es",
+    word,
+    vietnameseMeaning,
+    englishDefinition,
+  );
 }
 
 /** Gemini — short Spanish gloss for a Goes-with collocation. */
@@ -395,22 +500,12 @@ export async function translateCollocationToSpanishWithGemini(
   word: string,
   vietnameseGloss?: string | null,
 ): Promise<string | null> {
-  if (!process.env.GEMINI_API_KEY?.trim()) return null;
-  const en = englishPhrase.trim();
-  if (!en) return null;
-  try {
-    const text = (
-      await generateGeminiText(
-        buildSpanishCollocationPrompt(en, word, vietnameseGloss),
-      )
-    )
-      .trim()
-      .replace(/^["']|["']$/g, "");
-    return text || null;
-  } catch (error) {
-    console.warn(`Gemini ES collocation failed for "${word}":`, error);
-    return null;
-  }
+  return translateCollocationToLearnerLocaleWithGemini(
+    "es",
+    englishPhrase,
+    word,
+    vietnameseGloss,
+  );
 }
 
 /** Gemini — natural Spanish for one example sentence. */
@@ -420,22 +515,13 @@ export async function translateExampleToSpanishWithGemini(
   pos?: string | null,
   meaning?: string | null,
 ): Promise<string | null> {
-  if (!process.env.GEMINI_API_KEY?.trim()) return null;
-  const en = englishSentence.trim();
-  if (!en) return null;
-  try {
-    const text = (
-      await generateGeminiText(
-        buildSpanishExampleTranslationPrompt(en, word, pos, meaning),
-      )
-    )
-      .trim()
-      .replace(/^["']|["']$/g, "");
-    return text || null;
-  } catch (error) {
-    console.warn(`Gemini ES example failed for "${word}":`, error);
-    return null;
-  }
+  return translateExampleToLearnerLocaleWithGemini(
+    "es",
+    englishSentence,
+    word,
+    pos,
+    meaning,
+  );
 }
 
 /** Gemini — natural Vietnamese for one example sentence. */

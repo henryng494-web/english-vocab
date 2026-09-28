@@ -1,18 +1,38 @@
-import type { LearnerLocale } from "@/lib/learner-locale";
+import {
+  DEFAULT_LEARNER_LOCALE,
+  type LearnerLocale,
+  learnerLocaleNeedsHydration,
+} from "@/lib/learner-locale";
 import type {
   ExampleTranslationsJson,
   LocalizedMeaningsJson,
   PhraseTranslationRow,
 } from "@/types/word-content";
 
-/**
- * Primary gloss for display — Step 1: `es` when set, else safe fallback to `vi`
- * / legacy `vietnamese_meaning` (no Gemini, no prefetch).
- */
 export type LocalePickOptions = {
-  /** When true, `es` locale returns null until `meanings.es` exists (no immediate VI fallback). */
+  /**
+   * When true, non-VI locales return null until `meanings[locale]` exists
+   * (no immediate VI fallback while on-demand hydrate is in flight).
+   */
+  strictLearnerLocale?: boolean;
+  /** @deprecated Use `strictLearnerLocale`. */
   strictEs?: boolean;
 };
+
+function strictMode(options?: LocalePickOptions): boolean {
+  return Boolean(options?.strictLearnerLocale ?? options?.strictEs);
+}
+
+function fallbackGloss(
+  meanings: LocalizedMeaningsJson | null | undefined,
+  legacyVietnameseMeaning?: string | null,
+  englishDefinition?: string | null,
+): string | null {
+  const vi =
+    meanings?.vi?.trim() || legacyVietnameseMeaning?.trim() || null;
+  if (vi) return vi;
+  return englishDefinition?.trim() || null;
+}
 
 export function pickLocalizedMeaning(
   meanings: LocalizedMeaningsJson | null | undefined,
@@ -21,18 +41,14 @@ export function pickLocalizedMeaning(
   englishDefinition?: string | null,
   options?: LocalePickOptions,
 ): string | null {
-  const vi =
-    meanings?.vi?.trim() ||
-    legacyVietnameseMeaning?.trim() ||
-    null;
-  if (learnerLocale === "es") {
-    const es = meanings?.es?.trim();
-    if (es) return es;
-    if (options?.strictEs) return null;
-    if (vi) return vi;
-    return englishDefinition?.trim() || null;
+  if (learnerLocale === DEFAULT_LEARNER_LOCALE) {
+    return fallbackGloss(meanings, legacyVietnameseMeaning, englishDefinition);
   }
-  return vi || englishDefinition?.trim() || null;
+
+  const localized = meanings?.[learnerLocale]?.trim();
+  if (localized) return localized;
+  if (strictMode(options)) return null;
+  return fallbackGloss(meanings, legacyVietnameseMeaning, englishDefinition);
 }
 
 export function pickExampleTranslationForLocale(
@@ -43,12 +59,12 @@ export function pickExampleTranslationForLocale(
 ): string | null {
   const row = rows?.[index];
   if (!row) return null;
-  if (learnerLocale === "es") {
-    const es = row.es?.trim();
-    if (es) return es;
-    if (options?.strictEs) return null;
+  if (learnerLocale === DEFAULT_LEARNER_LOCALE) {
     return row.vi?.trim() || null;
   }
+  const localized = row[learnerLocale]?.trim();
+  if (localized) return localized;
+  if (strictMode(options)) return null;
   return row.vi?.trim() || null;
 }
 
@@ -59,13 +75,19 @@ export function pickPhraseTranslationForLocale(
   legacyVietnamese?: string | null,
   options?: LocalePickOptions,
 ): string | null {
-  if (learnerLocale === "es") {
-    const es = row?.es?.trim();
-    if (es) return es;
-    if (options?.strictEs) return null;
-    const vi = row?.vi?.trim() || legacyVietnamese?.trim();
-    if (vi) return vi;
-    return null;
+  if (learnerLocale === DEFAULT_LEARNER_LOCALE) {
+    return row?.vi?.trim() || legacyVietnamese?.trim() || null;
   }
-  return row?.vi?.trim() || legacyVietnamese?.trim() || null;
+  const localized = row?.[learnerLocale]?.trim();
+  if (localized) return localized;
+  if (strictMode(options)) return null;
+  const vi = row?.vi?.trim() || legacyVietnamese?.trim();
+  if (vi) return vi;
+  return null;
+}
+
+export function isNonDefaultLearnerLocale(
+  locale: LearnerLocale,
+): locale is Exclude<LearnerLocale, "vi"> {
+  return learnerLocaleNeedsHydration(locale);
 }
