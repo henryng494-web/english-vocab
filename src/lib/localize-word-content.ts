@@ -15,6 +15,7 @@ import {
   parsePhraseTranslationsJson,
   phraseTranslationsNeedLocale,
 } from "@/lib/multilang-record";
+import { fallbackLearnerMeaningGloss } from "@/lib/localized-gloss";
 import { parseExamples } from "@/lib/parse-examples";
 import type { WordDetail } from "@/types/database";
 import type {
@@ -88,12 +89,19 @@ export async function hydrateLearnerLocaleWordContent(
     learnerLocaleNeedsHydration(locale) &&
     !hasStoredLocaleMeaning(meanings, locale)
   ) {
-    const localized = await translateMeaningToLearnerLocaleWithGemini(
+    let localized = await translateMeaningToLearnerLocaleWithGemini(
       locale,
       detail.word,
       meanings.vi ?? detail.vietnamese_meaning,
       detail.english_definition,
     );
+    if (!localized?.trim()) {
+      localized = fallbackLearnerMeaningGloss(
+        meanings,
+        detail.vietnamese_meaning,
+        detail.english_definition,
+      );
+    }
     if (localized?.trim()) meanings[locale] = localized.trim();
   }
 

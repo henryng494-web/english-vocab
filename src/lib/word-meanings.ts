@@ -1,5 +1,7 @@
 import { getRegisterOverride } from "@/data/register-overrides";
 import { capitalizeFirst } from "@/lib/format-text";
+import type { LearnerLocale } from "@/lib/learner-locale";
+import { DEFAULT_LEARNER_LOCALE } from "@/lib/learner-locale";
 import { sanitizeVietnameseText } from "@/lib/sanitize-vi";
 
 export const WORD_REGISTERS = ["informal", "neutral", "formal"] as const;
@@ -84,6 +86,29 @@ export function registerLabelVi(register: WordRegister | null | undefined): stri
 /** Parse up to 2 Vietnamese gloss lines from stored text. */
 export function parseVietnameseMeanings(text: string | null | undefined): string[] {
   const raw = sanitizeVietnameseText(text);
+  if (!raw) return [];
+
+  const byLine = raw
+    .split(MEANING_LINE_DELIMITER)
+    .map((line) => line.trim())
+    .filter(Boolean);
+  if (byLine.length > 1) return byLine.slice(0, 2);
+
+  const single = byLine[0] ?? raw;
+  if (single.includes(" / ")) {
+    return single
+      .split(/\s+\/\s+/)
+      .map((part) => part.trim())
+      .filter(Boolean)
+      .slice(0, 2);
+  }
+
+  return [single];
+}
+
+/** Parse gloss lines for non-VI learner locales (do not strip CJK/kana). */
+export function parseLearnerGlossLines(text: string | null | undefined): string[] {
+  const raw = text?.trim() ?? "";
   if (!raw) return [];
 
   const byLine = raw
@@ -264,7 +289,17 @@ export function compactMeaningLineForDisplay(
   return capitalizeFirst(synonyms);
 }
 
-export function formatMeaningsForDisplay(text: string | null | undefined): string[] {
+export function formatMeaningsForDisplay(
+  text: string | null | undefined,
+  learnerLocale: LearnerLocale = DEFAULT_LEARNER_LOCALE,
+): string[] {
+  if (learnerLocale !== DEFAULT_LEARNER_LOCALE) {
+    return parseLearnerGlossLines(text)
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .slice(0, 2);
+  }
+
   const meanings = parseVietnameseMeanings(text)
     .map((line) => line.trim())
     .filter(Boolean);

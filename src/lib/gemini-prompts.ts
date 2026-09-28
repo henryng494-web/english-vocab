@@ -312,10 +312,11 @@ ${vietnameseMeaning.trim()}
 ${def}
 
 Rules:
+- REQUIRED: output at least one non-empty ${language} gloss line (never blank)
 - Keep the same number of meaning lines as Vietnamese (newline-separated)
 - Natural ${language} for learners
 - Match the sense of the Vietnamese gloss; do not invent new senses
-- No English, no JSON, no quotes
+- Short flashcard gloss only — no English, no JSON, no quotes, no labels like "gloss:"
 
 Reply with ONLY the ${language} meaning line(s).`;
 }

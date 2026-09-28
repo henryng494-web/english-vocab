@@ -34,6 +34,19 @@ function fallbackGloss(
   return englishDefinition?.trim() || null;
 }
 
+/** When Gemini leaves `meanings[locale]` empty — never show a blank card header. */
+export function fallbackLearnerMeaningGloss(
+  meanings: LocalizedMeaningsJson | null | undefined,
+  legacyVietnameseMeaning?: string | null,
+  englishDefinition?: string | null,
+): string {
+  const en = englishDefinition?.trim();
+  if (en) return en;
+  return (
+    fallbackGloss(meanings, legacyVietnameseMeaning, englishDefinition) ?? ""
+  );
+}
+
 export function pickLocalizedMeaning(
   meanings: LocalizedMeaningsJson | null | undefined,
   learnerLocale: LearnerLocale,

@@ -269,7 +269,7 @@ export function reviewSenseText(
     word.vietnamese_meaning,
     word.english_definition,
   );
-  const lines = formatMeaningsForDisplay(picked ?? "");
+  const lines = formatMeaningsForDisplay(picked ?? "", locale);
   if (lines.length > 0) {
     return lines.join(" · ");
   }

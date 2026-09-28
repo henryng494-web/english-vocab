@@ -3,6 +3,8 @@
 import { useAutoSpeakWord } from "@/hooks/use-auto-speak-word";
 import { useI18n } from "@/hooks/use-i18n";
 import { capitalizeFirst } from "@/lib/format-text";
+import type { LearnerLocale } from "@/lib/learner-locale";
+import { DEFAULT_LEARNER_LOCALE } from "@/lib/learner-locale";
 import {
   displayWordRegister,
   formatMeaningsForDisplay,
@@ -18,6 +20,7 @@ type WordCardHeaderProps = {
   register?: WordRegister | null;
   loadingPhonetic?: boolean;
   loadingMeaning?: boolean;
+  learnerLocale?: LearnerLocale;
   /** Auto-pronounce when the word changes (default: true). */
   autoSpeak?: boolean;
 };
@@ -30,12 +33,15 @@ export function WordCardHeader({
   register,
   loadingPhonetic,
   loadingMeaning,
+  learnerLocale = DEFAULT_LEARNER_LOCALE,
   autoSpeak = true,
 }: WordCardHeaderProps) {
   useAutoSpeakWord(word, autoSpeak);
   const { registerLabel, wordTypeLabel } = useI18n();
   const wordTypeLabelText = wordTypeLabel(wordType, word);
-  const meaningLines = meanings ? formatMeaningsForDisplay(meanings) : [];
+  const meaningLines = meanings
+    ? formatMeaningsForDisplay(meanings, learnerLocale)
+    : [];
   const displayedRegister = displayWordRegister(register, word);
   const registerLabelText = registerLabel(displayedRegister);
   const showMeta =

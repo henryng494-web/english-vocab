@@ -173,7 +173,11 @@ export function DiscoverCard({
     () => examplesForCard(cardData, learnerLocale, strictLearnerLocale),
     [cardData, learnerLocale, strictLearnerLocale],
   );
-  const meaningForUi = meaningSkeleton ? null : displayMeaning;
+  const meaningForUi = meaningSkeleton
+    ? null
+    : displayMeaning?.trim() ||
+      primaryGlossForCard(cardData, learnerLocale, false)?.trim() ||
+      null;
 
   return (
     <div className="discover-card discover-card--compact grid h-full min-h-0 w-full overflow-hidden rounded-2xl border-2 shadow-lg">
@@ -195,6 +199,7 @@ export function DiscoverCard({
           register={register}
           loadingPhonetic={detailsLoading && !phonetic}
           loadingMeaning={meaningSkeleton}
+          learnerLocale={learnerLocale}
           autoSpeak={autoSpeak}
         />
 

@@ -9,6 +9,7 @@ import {
 } from "@/lib/multilang-record";
 import { resolveLearningChunks } from "@/lib/learning-chunks";
 import {
+  fallbackLearnerMeaningGloss,
   pickExampleTranslationForLocale,
   pickLocalizedMeaning,
 } from "@/lib/localized-gloss";
@@ -97,13 +98,21 @@ export function primaryGlossForCard(
     meanings: data.meanings,
     vietnamese_meaning: data.vietnamese_meaning ?? "",
   });
-  return pickLocalizedMeaning(
+  const picked = pickLocalizedMeaning(
     meanings,
     learnerLocale,
     data.vietnamese_meaning,
     data.english_definition,
     { strictLearnerLocale },
   );
+  if (picked?.trim()) return picked.trim();
+  if (learnerLocale === "vi" || strictLearnerLocale) return picked;
+  const fallback = fallbackLearnerMeaningGloss(
+    meanings,
+    data.vietnamese_meaning,
+    data.english_definition,
+  );
+  return fallback.trim() || null;
 }
 
 export function examplesForCard(
