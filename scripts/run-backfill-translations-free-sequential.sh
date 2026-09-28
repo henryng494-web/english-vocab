@@ -22,8 +22,8 @@ write_progress() {
     echo "model=${GEMINI_TRANSLATION_MODEL}"
     echo "max_rpm=${GEMINI_MAX_RPM}"
     if [[ -f "$LOG" ]]; then
-      echo "processed_total=$(grep -c 'Processed word' "$LOG" 2>/dev/null || echo 0)"
-      echo "failed_total=$(grep -cE " failed '" "$LOG" 2>/dev/null || echo 0)"
+      echo "processed_total=$(grep -c 'Processed word' "$LOG" 2>/dev/null || true)"
+      echo "failed_total=$(grep -cE " failed '" "$LOG" 2>/dev/null || true)"
     fi
   } >"$PROGRESS"
 }
