@@ -9,6 +9,7 @@ export function AppLocaleSync() {
 
   useEffect(() => {
     document.documentElement.lang = appLanguage;
+    document.documentElement.dir = appLanguage === "ar" ? "rtl" : "ltr";
   }, [appLanguage]);
 
   return null;

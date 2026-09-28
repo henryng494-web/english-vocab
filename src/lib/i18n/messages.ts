@@ -1,15 +1,19 @@
-export type AppLocale = "vi" | "en";
+import localeMessagesJson from "@/lib/i18n/locale-messages.json";
+import {
+  LEARNER_LOCALE_OPTIONS,
+  type LearnerLocale,
+} from "@/lib/learner-locale";
 
-export const APP_LOCALES: readonly AppLocale[] = ["vi", "en"] as const;
+/** Interface language — same codes as learning (gloss) language. */
+export type AppLocale = LearnerLocale;
+
+export const APP_LOCALES: readonly AppLocale[] = LEARNER_LOCALE_OPTIONS;
 
 export const DEFAULT_APP_LOCALE: AppLocale = "vi";
 
-export type MessageKey = keyof typeof messages.vi;
-
 type MessageTree = Record<string, string>;
 
-export const messages: Record<AppLocale, MessageTree> = {
-  vi: {
+const viMessages = {
     "tab.home": "Trang chủ",
     "tab.journey": "Hành trình",
     "tab.review": "Ôn tập",
@@ -19,7 +23,8 @@ export const messages: Record<AppLocale, MessageTree> = {
     "menu.title": "Menu",
     "menu.close": "Đóng",
     "menu.language": "Ngôn ngữ app",
-    "menu.languageHint": "Chọn ngôn ngữ giao diện (nghĩa từ vựng vẫn hiển thị tiếng Việt).",
+    "menu.languageHint":
+      "Ngôn ngữ menu và nút bấm. Tự khớp khi bạn đổi ngôn ngữ đang học.",
     "menu.langVi": "Tiếng Việt",
     "menu.langEn": "English",
     "menu.learning": "Học tập",
@@ -299,8 +304,10 @@ export const messages: Record<AppLocale, MessageTree> = {
     "session.newWords": "Từ mới",
     "session.done": "Về trang chủ",
     "session.endEarly": "Kết thúc buổi học",
-  },
-  en: {
+} satisfies MessageTree;
+
+/** English fallback for missing keys and legacy stored `en` UI preference. */
+export const enFallbackMessages = {
     "tab.home": "Home",
     "tab.journey": "Journey",
     "tab.review": "Review",
@@ -310,7 +317,8 @@ export const messages: Record<AppLocale, MessageTree> = {
     "menu.title": "Menu",
     "menu.close": "Close",
     "menu.language": "App language",
-    "menu.languageHint": "Choose interface language (word meanings stay in Vietnamese).",
+    "menu.languageHint":
+      "Menus and buttons. Auto-syncs when you change learning language.",
     "menu.langVi": "Tiếng Việt",
     "menu.langEn": "English",
     "menu.learning": "Learning",
@@ -590,11 +598,37 @@ export const messages: Record<AppLocale, MessageTree> = {
     "session.newWords": "New words",
     "session.done": "Back to home",
     "session.endEarly": "Finish session",
-  },
+} satisfies MessageTree;
+
+export type MessageKey = keyof typeof viMessages;
+
+const localeMessagesFromJson = localeMessagesJson as Record<
+  Exclude<AppLocale, "vi">,
+  Partial<MessageTree>
+>;
+
+function buildNonViLocaleTree(
+  locale: Exclude<AppLocale, "vi">,
+): MessageTree {
+  const partial = localeMessagesFromJson[locale] ?? {};
+  return { ...enFallbackMessages, ...partial };
+}
+
+export const messages: Record<AppLocale, MessageTree> = {
+  vi: viMessages,
+  ...(Object.fromEntries(
+    LEARNER_LOCALE_OPTIONS.filter((code) => code !== "vi").map((code) => [
+      code,
+      buildNonViLocaleTree(code),
+    ]),
+  ) as Record<Exclude<AppLocale, "vi">, MessageTree>),
 };
 
 export function isAppLocale(value: unknown): value is AppLocale {
-  return value === "vi" || value === "en";
+  return (
+    typeof value === "string" &&
+    (LEARNER_LOCALE_OPTIONS as readonly string[]).includes(value)
+  );
 }
 
 export function translate(
@@ -602,7 +636,9 @@ export function translate(
   key: MessageKey,
   params?: Record<string, string | number>,
 ): string {
-  const template = messages[locale][key] ?? messages.en[key] ?? key;
+  const tree = messages[locale] ?? viMessages;
+  const template =
+    tree[key] ?? enFallbackMessages[key] ?? viMessages[key] ?? key;
   if (!params) return template;
   return template.replace(/\{(\w+)\}/g, (_, name: string) => {
     const value = params[name];

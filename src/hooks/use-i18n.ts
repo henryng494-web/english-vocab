@@ -96,7 +96,7 @@ export function useI18n() {
       const key = `pos.${normalized}` as MessageKey;
       const localized = translate(locale, key);
       if (localized !== key) return localized;
-      return locale === "en" ? capitalizeFirst(normalized) : null;
+      return capitalizeFirst(normalized);
     },
     [locale],
   );

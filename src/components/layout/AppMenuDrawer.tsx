@@ -132,7 +132,7 @@ export function AppMenuDrawer({ open, onClose }: AppMenuDrawerProps) {
                   className={`app-menu__chip${appLanguage === locale ? " is-active" : ""}`}
                   onClick={() => setAppLanguage(locale)}
                 >
-                  {locale === "vi" ? t("menu.langVi") : t("menu.langEn")}
+                  {LEARNER_LOCALE_LABELS[locale]}
                 </button>
               ))}
             </div>

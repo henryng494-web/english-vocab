@@ -5,9 +5,6 @@ export function normalizeLegacySettingsBlob(
   parsed: Record<string, unknown>,
 ): Record<string, unknown> {
   const cleaned = { ...parsed };
-  if (cleaned.appLanguage === "es") {
-    cleaned.appLanguage = "vi";
-  }
   delete cleaned.userLanguage;
   delete cleaned.learningLanguage;
   return cleaned;
