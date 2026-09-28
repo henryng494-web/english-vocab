@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { getSupabaseWriteClient } from "@/lib/supabase/db-write";
 import type {
   ExampleTranslationsJson,
   LocalizedMeaningsJson,
@@ -14,9 +15,11 @@ export type MultilangPersistPatch = {
 let cachedColumns: Set<string> | null = null;
 
 export async function probeMultilangColumns(
-  supabase: SupabaseClient,
+  supabase?: SupabaseClient | null,
 ): Promise<Set<string>> {
   if (cachedColumns) return cachedColumns;
+  const client = supabase ?? getSupabaseWriteClient();
+  if (!client) return new Set();
   const candidates = [
     "meanings",
     "example_translations",
@@ -24,19 +27,27 @@ export async function probeMultilangColumns(
   ] as const;
   const present = new Set<string>();
   for (const col of candidates) {
-    const { error } = await supabase.from("word_details").select(col).limit(1);
+    const { error } = await client.from("word_details").select(col).limit(1);
     if (!error) present.add(col);
   }
   cachedColumns = present;
   return present;
 }
 
-/** Persist ES hydrate fields that exist on `word_details` (skips missing columns). */
+/** Persist learner-locale JSONB on `word_details` via service role (server-only). */
 export async function persistMultilangPatch(
-  supabase: SupabaseClient,
   word: string,
   patch: MultilangPersistPatch,
 ): Promise<{ ok: boolean; persisted: string[]; error?: string }> {
+  const supabase = getSupabaseWriteClient();
+  if (!supabase) {
+    return {
+      ok: false,
+      persisted: [],
+      error: "SUPABASE_SERVICE_ROLE_KEY not configured for writes",
+    };
+  }
+
   const columns = await probeMultilangColumns(supabase);
   const payload: Record<string, unknown> = {};
   if (columns.has("meanings") && patch.meanings) {
@@ -63,6 +74,10 @@ export async function persistMultilangPatch(
     .eq("word", word);
 
   if (error) {
+    console.warn(
+      `[persistMultilangPatch] failed for "${word}":`,
+      error.message,
+    );
     return { ok: false, persisted: [], error: error.message };
   }
   return { ok: true, persisted: Object.keys(payload) };

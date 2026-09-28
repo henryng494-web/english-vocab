@@ -76,7 +76,7 @@ async function processWord(detail: WordDetail): Promise<"updated" | "skipped" | 
   if (!wordDetailNeedsSpanishHydration(detail)) return "skipped";
   try {
     const patch = await hydrateSpanishWordContent(detail);
-    const persist = await persistMultilangPatch(supabase, word, patch);
+    const persist = await persistMultilangPatch(word, patch);
     if (!persist.ok) {
       console.warn(`persist failed for "${word}":`, persist.error);
       return "failed";

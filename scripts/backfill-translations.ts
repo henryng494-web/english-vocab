@@ -166,7 +166,7 @@ async function processOneWord(
         current = merged;
         continue;
       }
-      const persist = await persistMultilangPatch(supabase, word, patch);
+      const persist = await persistMultilangPatch(word, patch);
       if (!persist.ok) {
         console.warn(
           `${label} persist failed '${word}' '${locale}':`,

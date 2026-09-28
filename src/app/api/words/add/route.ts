@@ -1,5 +1,7 @@
 import { getPresetRank } from "@/data/preset-word-details";
 import { createClient } from "@/lib/supabase/server";
+import { getSupabaseWriteClient } from "@/lib/supabase/db-write";
+import { isRlsOrPermissionError } from "@/lib/user-facing-error";
 import { enrichWord } from "@/lib/enrich-word";
 import { serializeExamples } from "@/lib/parse-examples";
 import { fetchWordImageUrl, isPersistableWordImageUrl, shouldRefreshImageUrl } from "@/lib/unsplash";
@@ -19,6 +21,7 @@ function errorMessage(error: unknown): string {
 export async function POST(request: Request) {
   try {
     const supabase = await createClient();
+    const writeDb = getSupabaseWriteClient();
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -72,7 +75,8 @@ export async function POST(request: Request) {
           ? existingDetails.image_url
           : null;
 
-      const { error: detailUpdateError } = await supabase
+      const catalogDb = writeDb ?? supabase;
+      const { error: detailUpdateError } = await catalogDb
         .from("word_details")
         .update({
           image_url: persistableImage,
@@ -83,13 +87,25 @@ export async function POST(request: Request) {
           examples: serializeExamples(standard.examples),
         })
         .eq("word", trimmedWord);
-      if (detailUpdateError) throw detailUpdateError;
+      if (detailUpdateError) {
+        console.warn(
+          `[words/add] word_details update failed for "${trimmedWord}":`,
+          detailUpdateError.message,
+        );
+      }
 
-      const { error: bankUpdateError } = await supabase
-        .from("word_bank")
-        .update({ rank: frequencyRank })
-        .eq("word", trimmedWord);
-      if (bankUpdateError) throw bankUpdateError;
+      if (writeDb) {
+        const { error: bankUpdateError } = await writeDb
+          .from("word_bank")
+          .update({ rank: frequencyRank })
+          .eq("word", trimmedWord);
+        if (bankUpdateError) {
+          console.warn(
+            `[words/add] word_bank update failed for "${trimmedWord}":`,
+            bankUpdateError.message,
+          );
+        }
+      }
 
       return NextResponse.json({
         word: {
@@ -118,28 +134,40 @@ export async function POST(request: Request) {
       ? fetchedImageUrl
       : null;
 
-    const { data: existingBank } = await supabase
+    const catalogDb = writeDb ?? supabase;
+    const { data: existingBank } = await catalogDb
       .from("word_bank")
       .select("id")
       .eq("word", trimmedWord)
       .maybeSingle();
 
-    if (!existingBank) {
-      const { error: wordError } = await supabase.from("word_bank").insert({
-        word: trimmedWord,
-        rank: enrichment.frequencyRank,
-      });
-
-      if (wordError) throw wordError;
-    } else {
-      const { error: bankUpdateError } = await supabase
-        .from("word_bank")
-        .update({ rank: enrichment.frequencyRank })
-        .eq("word", trimmedWord);
-      if (bankUpdateError) throw bankUpdateError;
+    if (writeDb) {
+      if (!existingBank) {
+        const { error: wordError } = await writeDb.from("word_bank").insert({
+          word: trimmedWord,
+          rank: enrichment.frequencyRank,
+        });
+        if (wordError) {
+          console.warn(
+            `[words/add] word_bank insert failed for "${trimmedWord}":`,
+            wordError.message,
+          );
+        }
+      } else {
+        const { error: bankUpdateError } = await writeDb
+          .from("word_bank")
+          .update({ rank: enrichment.frequencyRank })
+          .eq("word", trimmedWord);
+        if (bankUpdateError) {
+          console.warn(
+            `[words/add] word_bank update failed for "${trimmedWord}":`,
+            bankUpdateError.message,
+          );
+        }
+      }
     }
 
-    const { data: wordData, error: detailError } = await supabase
+    const { data: wordData, error: detailError } = await catalogDb
       .from("word_details")
       .upsert(
         {
@@ -158,7 +186,25 @@ export async function POST(request: Request) {
       .single();
 
     if (detailError || !wordData) {
-      throw detailError ?? new Error("Failed to create word details");
+      console.warn(
+        `[words/add] word_details upsert failed for "${trimmedWord}":`,
+        detailError?.message ?? "no row returned",
+      );
+      return NextResponse.json({
+        word: {
+          word: trimmedWord,
+          phonetic: enrichment.phonetic,
+          word_type: enrichment.wordType,
+          english_definition: enrichment.englishDefinition,
+          vietnamese_meaning: enrichment.vietnameseMeaning,
+          examples: serializeExamples(enrichment.examples),
+          collocations: enrichment.collocations,
+          image_url: imageUrl,
+          rank: enrichment.frequencyRank,
+          importance_tier: enrichment.importanceTier,
+        },
+        catalog_persist_skipped: true,
+      });
     }
 
     const existingLearningQuery = supabase
@@ -193,8 +239,12 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     console.error("Add word error:", error);
+    const details = errorMessage(error);
     return NextResponse.json(
-      { error: "Failed to add word", details: errorMessage(error) },
+      {
+        error: "Failed to add word",
+        details: isRlsOrPermissionError(details) ? undefined : details,
+      },
       { status: 500 },
     );
   }

@@ -1,6 +1,7 @@
 import { hasQualityStandardVocab, getStandardSearchKeyword } from "@/data/standard-vocab";
 import { getPresetRank } from "@/data/preset-word-details";
 import { createClient } from "@/lib/supabase/server";
+import { getSupabaseWriteClient } from "@/lib/supabase/db-write";
 import { enrichmentToDiscoverWord } from "@/lib/enrichment-helpers";
 import { enrichWord } from "@/lib/enrich-word";
 import { isPersistedWordDetailComplete } from "@/lib/persisted-word-detail";
@@ -43,6 +44,7 @@ import {
   type LearnerLocale,
 } from "@/lib/learner-locale";
 import type { WordDetail } from "@/types/database";
+import { isRlsOrPermissionError } from "@/lib/user-facing-error";
 import { NextResponse } from "next/server";
 
 function errorMessage(error: unknown): string {
@@ -132,7 +134,6 @@ function persistedDetailToDiscoverWord(
 }
 
 async function maybeHydrateLearnerLocaleAndPersist(
-  supabase: Awaited<ReturnType<typeof createClient>>,
   word: string,
   detail: WordDetail,
   learnerLocale: LearnerLocale,
@@ -172,7 +173,7 @@ async function maybeHydrateLearnerLocaleAndPersist(
       example_translations: patch.example_translations,
       phrase_translations: patch.phrase_translations,
     };
-    const persist = await persistMultilangPatch(supabase, word, patch);
+    const persist = await persistMultilangPatch(word, patch);
     if (!persist.ok) {
       console.warn(
         `Locale hydrate persist skipped for "${word}" (${learnerLocale}):`,
@@ -197,13 +198,14 @@ function parseOptionalRank(rankParam: string | null): number | undefined {
 }
 
 async function persistRepairField(
-  supabase: Awaited<ReturnType<typeof createClient>>,
   word: string,
   field: "phonetic" | "examples" | "vietnamese_meaning",
   value: string,
   previous: string | null | undefined,
 ): Promise<void> {
   if (value === previous) return;
+  const supabase = getSupabaseWriteClient();
+  if (!supabase) return;
   const { error } = await supabase
     .from("word_details")
     .update({ [field]: value })
@@ -214,13 +216,14 @@ async function persistRepairField(
 }
 /** Self-heal: persist a freshly regenerated image URL so it's fixed for good. */
 async function persistImageUrlIfChanged(
-  supabase: Awaited<ReturnType<typeof createClient>>,
   word: string,
   previousUrl: string | null | undefined,
   resolvedUrl: string,
 ): Promise<void> {
   if (!isPersistableWordImageUrl(resolvedUrl, word)) return;
   if (previousUrl?.trim() === resolvedUrl) return;
+  const supabase = getSupabaseWriteClient();
+  if (!supabase) return;
   const { error } = await supabase
     .from("word_details")
     .update({ image_url: resolvedUrl })
@@ -231,7 +234,6 @@ async function persistImageUrlIfChanged(
 }
 
 async function repairPersistedExamplesIfNeeded(
-  supabase: Awaited<ReturnType<typeof createClient>>,
   word: string,
   detail: WordDetail,
 ): Promise<string> {
@@ -250,7 +252,7 @@ async function repairPersistedExamplesIfNeeded(
       detail.vietnamese_meaning,
     )
   ) {
-    await persistRepairField(supabase, word, "examples", repaired, detail.examples);
+    await persistRepairField(word, "examples", repaired, detail.examples);
     return repaired;
   }
   if (
@@ -279,17 +281,15 @@ async function repairPhoneticIfNeeded(
 }
 
 async function repairPersistedPhoneticIfNeeded(
-  supabase: Awaited<ReturnType<typeof createClient>>,
   word: string,
   detail: WordDetail,
 ): Promise<string> {
   const repaired = await repairPhoneticIfNeeded(word, detail.phonetic);
-  await persistRepairField(supabase, word, "phonetic", repaired, detail.phonetic);
+  await persistRepairField(word, "phonetic", repaired, detail.phonetic);
   return repaired;
 }
 
 async function repairPersistedMeaningIfNeeded(
-  supabase: Awaited<ReturnType<typeof createClient>>,
   word: string,
   detail: WordDetail,
 ): Promise<string> {
@@ -302,7 +302,6 @@ async function repairPersistedMeaningIfNeeded(
   );
   if (repaired) {
     await persistRepairField(
-      supabase,
       word,
       "vietnamese_meaning",
       repaired,
@@ -313,7 +312,6 @@ async function repairPersistedMeaningIfNeeded(
 }
 
 async function persistEnrichedWordDetail(
-  supabase: Awaited<ReturnType<typeof createClient>>,
   word: string,
   payload: {
     phonetic: string;
@@ -325,6 +323,8 @@ async function persistEnrichedWordDetail(
     image_url: string | null;
   },
 ): Promise<void> {
+  const supabase = getSupabaseWriteClient();
+  if (!supabase) return;
   try {
     const { error } = await supabase
       .from("word_details")
@@ -379,17 +379,14 @@ export async function GET(request: Request) {
     let repairedDbDetail = dbDetail ?? null;
     if (dbDetail) {
       const vietnamese_meaning = await repairPersistedMeaningIfNeeded(
-        supabase,
         word,
         dbDetail,
       );
       const examples = await repairPersistedExamplesIfNeeded(
-        supabase,
         word,
         { ...dbDetail, vietnamese_meaning },
       );
       const phonetic = await repairPersistedPhoneticIfNeeded(
-        supabase,
         word,
         { ...dbDetail, examples, vietnamese_meaning },
       );
@@ -440,7 +437,6 @@ export async function GET(request: Request) {
       if (repairedDbDetail!.image_url !== imageUrl) {
         if (isPersistableWordImageUrl(imageUrl, word)) {
           await persistImageUrlIfChanged(
-            supabase,
             word,
             repairedDbDetail!.image_url,
             imageUrl,
@@ -449,14 +445,16 @@ export async function GET(request: Request) {
           isClosedClassWord(word, repairedDbDetail!.word_type) &&
           repairedDbDetail!.image_url
         ) {
-          await supabase
-            .from("word_details")
-            .update({ image_url: null })
-            .eq("word", word);
+          const writeDb = getSupabaseWriteClient();
+          if (writeDb) {
+            await writeDb
+              .from("word_details")
+              .update({ image_url: null })
+              .eq("word", word);
+          }
         }
       }
       const localizedDetail = await maybeHydrateLearnerLocaleAndPersist(
-        supabase,
         word,
         repairedDbDetail!,
         learnerLocale,
@@ -574,7 +572,7 @@ export async function GET(request: Request) {
         responseWord.english_definition,
       )
     ) {
-      void persistEnrichedWordDetail(supabase, word, persistPayload);
+      void persistEnrichedWordDetail(word, persistPayload);
     } else {
       console.warn(
         `[discover/word] Gemini content still misaligned for "${word}" — not persisting bad rows`,
@@ -583,7 +581,6 @@ export async function GET(request: Request) {
 
     if (dbDetail) {
       await persistImageUrlIfChanged(
-        supabase,
         word,
         dbDetail.image_url,
         imageUrl,
@@ -609,7 +606,6 @@ export async function GET(request: Request) {
       ),
     };
     const localizedDetail = await maybeHydrateLearnerLocaleAndPersist(
-      supabase,
       word,
       enrichedDetail,
       learnerLocale,
@@ -634,8 +630,12 @@ export async function GET(request: Request) {
     });
   } catch (error) {
     console.error("Discover word preview error:", error);
+    const details = errorMessage(error);
     return NextResponse.json(
-      { error: "Failed to load word", details: errorMessage(error) },
+      {
+        error: "Failed to load word",
+        details: isRlsOrPermissionError(details) ? undefined : details,
+      },
       { status: 500 },
     );
   }

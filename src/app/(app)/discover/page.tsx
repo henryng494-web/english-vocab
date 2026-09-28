@@ -27,6 +27,7 @@ import {
   repairDiscoverWordDetail,
   type DiscoverListItem,
 } from "@/lib/discover-fetch";
+import { sanitizeUserFacingError } from "@/lib/user-facing-error";
 import {
   isCacheEntryValid,
   isCardContentReady,
@@ -115,6 +116,12 @@ const SERVER_GOAL_PROGRESS = {
   target: 20,
   met: false,
 };
+
+function userFacingErrorMessage(err: unknown, fallback: string): string | null {
+  const raw =
+    err instanceof Error ? err.message : typeof err === "string" ? err : fallback;
+  return sanitizeUserFacingError(raw, fallback);
+}
 
 export default function DiscoverPage() {
   const pathname = usePathname();
@@ -411,7 +418,7 @@ export default function DiscoverPage() {
               return;
             }
             setError(
-              err instanceof Error ? err.message : "Failed to load word details",
+              userFacingErrorMessage(err, "Failed to load word details"),
             );
             setLoadingWord(false);
           });
@@ -434,7 +441,7 @@ export default function DiscoverPage() {
       setStats(nextStats);
     } catch (err) {
       if (fetchGen !== rangeFetchGenRef.current) return;
-      setError(err instanceof Error ? err.message : "Failed to load data");
+      setError(userFacingErrorMessage(err, "Failed to load data"));
       setQueue([]);
       setCurrentWord(null);
     } finally {
@@ -681,9 +688,11 @@ export default function DiscoverPage() {
           });
           if (!addRes.ok) {
             const addData = await addRes.json();
-            throw new Error(
+            const addMsg = userFacingErrorMessage(
               addData.details ?? addData.error ?? "Failed to add word",
+              "Failed to add word",
             );
+            if (addMsg) throw new Error(addMsg);
           }
         }
 
@@ -706,11 +715,13 @@ export default function DiscoverPage() {
             }
             return;
           }
-          throw new Error(
+          const statusMsg = userFacingErrorMessage(
             statusData.details ??
               statusData.error ??
               "Failed to update word status",
+            "Failed to update word status",
           );
+          if (statusMsg) throw new Error(statusMsg);
         }
         lastCompletedSaveRef.current = saveId;
         setWordsKnown(countMasteredWords());
@@ -731,7 +742,7 @@ export default function DiscoverPage() {
         setTodayLearned(snapshot.todayLearned);
         setWordsKnown(snapshot.wordsKnown);
         setWordsReviewing(snapshot.wordsReviewing);
-        setError(err instanceof Error ? err.message : "Update failed");
+        setError(userFacingErrorMessage(err, "Update failed"));
       } finally {
         inflightSaves.current.delete(word);
       }
