@@ -139,9 +139,14 @@ function translationModelCandidates(): string[] {
   if (isGeminiFreeTierMode()) {
     return [
       ...new Set(
-        [preferred, "gemini-2.0-flash", "gemini-1.5-flash"].filter(
-          (name): name is string => Boolean(name?.trim()),
-        ),
+        [
+          preferred,
+          "gemini-2.0-flash",
+          "gemini-1.5-flash",
+          // New AI Studio aliases when legacy 1.5/2.0 IDs return 404.
+          "gemini-flash-latest",
+          "gemini-flash-lite-latest",
+        ].filter((name): name is string => Boolean(name?.trim())),
       ),
     ];
   }
