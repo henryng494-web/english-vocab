@@ -60,7 +60,24 @@ async function fetchLocaleWord(
     locale,
     skipGemini: "false",
   });
-  const res = await fetch(`/api/discover/word?${params}`, { cache: "no-store" });
+  const controller = new AbortController();
+  const clientTimeoutMs = 12_000;
+  const timeoutId = setTimeout(() => controller.abort(), clientTimeoutMs);
+  let res: Response;
+  try {
+    res = await fetch(`/api/discover/word?${params}`, {
+      cache: "no-store",
+      signal: controller.signal,
+    });
+  } catch (error) {
+    console.warn(
+      `[Locale Debug] discover/word request failed for "${word}" locale=${locale}:`,
+      error,
+    );
+    return null;
+  } finally {
+    clearTimeout(timeoutId);
+  }
   if (!res.ok) {
     let detail = "";
     try {

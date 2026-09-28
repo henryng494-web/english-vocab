@@ -98,10 +98,10 @@ export function DiscoverCard({
 }: DiscoverCardProps) {
   const { learnerLocale } = useAppSettings();
   const [cardData, setCardData] = useState(data);
-  const localeContentPending =
+  const [localeLoading, setLocaleLoading] = useState(() =>
     learnerLocaleNeedsHydration(learnerLocale) &&
-    !hasCompleteLocaleCardContent(cardData, learnerLocale);
-  const [localeLoading, setLocaleLoading] = useState(localeContentPending);
+    !hasCompleteLocaleCardContent(data, learnerLocale),
+  );
 
   useEffect(() => {
     setCardData(data);
@@ -159,9 +159,9 @@ export function DiscoverCard({
           cardData.word_type,
         );
 
+  /** Skeleton only while the on-demand fetch is in flight — never hang after failure. */
   const strictLearnerLocale =
-    learnerLocaleNeedsHydration(learnerLocale) &&
-    (localeLoading || localeContentPending);
+    learnerLocaleNeedsHydration(learnerLocale) && localeLoading;
   const meaningSkeleton = strictLearnerLocale;
   const glossSkeleton = strictLearnerLocale;
 

@@ -145,8 +145,27 @@ async function maybeHydrateLearnerLocaleAndPersist(
     return detail;
   }
 
+  const hydrateBudgetMs = Math.min(
+    15_000,
+    Math.max(
+      5000,
+      Number(process.env.LOCALE_HYDRATE_TIMEOUT_MS ?? 8000) || 8000,
+    ),
+  );
+
   try {
-    const patch = await hydrateLearnerLocaleWordContent(detail, learnerLocale);
+    const patch = await Promise.race([
+      hydrateLearnerLocaleWordContent(detail, learnerLocale),
+      new Promise<null>((resolve) => {
+        setTimeout(() => resolve(null), hydrateBudgetMs);
+      }),
+    ]);
+    if (!patch) {
+      console.warn(
+        `Locale hydrate budget (${hydrateBudgetMs}ms) exceeded for "${word}" (${learnerLocale})`,
+      );
+      return detail;
+    }
     const next: WordDetail = {
       ...detail,
       meanings: patch.meanings,

@@ -129,36 +129,91 @@ async function generateGeminiText(prompt: string): Promise<string> {
 export const ON_DEMAND_TRANSLATION_MODEL =
   process.env.GEMINI_TRANSLATION_MODEL?.trim() || "gemini-1.5-flash";
 
+const TRANSLATION_MODEL_CANDIDATES: string[] = [
+  ...new Set(
+    [
+      process.env.GEMINI_TRANSLATION_MODEL?.trim(),
+      "gemini-1.5-flash",
+      "gemini-flash-lite-latest",
+      "gemini-2.0-flash",
+      "gemini-2.0-flash-lite",
+    ].filter((name): name is string => Boolean(name?.trim())),
+  ),
+];
+
+export const GEMINI_TRANSLATION_TIMEOUT_MS = Math.min(
+  15_000,
+  Math.max(
+    3000,
+    Number(process.env.GEMINI_TRANSLATION_TIMEOUT_MS ?? 5000) || 5000,
+  ),
+);
+
 export function isGeminiQuotaOrBillingError(error: unknown): boolean {
   const msg = error instanceof Error ? error.message : String(error);
   return /429|quota|RESOURCE_EXHAUSTED|rate limit|billing|exceeded/i.test(msg);
+}
+
+function isGeminiModelNotFoundError(error: unknown): boolean {
+  const msg = error instanceof Error ? error.message : String(error);
+  return /404|not found|not supported for generateContent/i.test(msg);
+}
+
+function withTimeout<T>(
+  promise: Promise<T>,
+  ms: number,
+  label: string,
+): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(
+      () => reject(new Error(`${label} timed out after ${ms}ms`)),
+      ms,
+    );
+    promise
+      .then((value) => {
+        clearTimeout(timer);
+        resolve(value);
+      })
+      .catch((error) => {
+        clearTimeout(timer);
+        reject(error);
+      });
+  });
 }
 
 async function generateTranslationGeminiText(
   prompt: string,
 ): Promise<string | null> {
   if (!process.env.GEMINI_API_KEY?.trim()) return null;
-  try {
-    const genAI = getGeminiClient();
-    const model = genAI.getGenerativeModel({
-      model: ON_DEMAND_TRANSLATION_MODEL,
-    });
-    const result = await model.generateContent(prompt);
-    return result.response.text().trim();
-  } catch (error) {
-    if (isGeminiQuotaOrBillingError(error)) {
-      console.warn(
-        `[gemini] translation quota/rate limit (${ON_DEMAND_TRANSLATION_MODEL}):`,
-        error,
+  const genAI = getGeminiClient();
+  const timeoutMs = GEMINI_TRANSLATION_TIMEOUT_MS;
+
+  for (const modelName of TRANSLATION_MODEL_CANDIDATES) {
+    try {
+      const model = genAI.getGenerativeModel({ model: modelName });
+      const result = await withTimeout(
+        model.generateContent(prompt),
+        timeoutMs,
+        `translation (${modelName})`,
       );
-    } else {
-      console.warn(
-        `[gemini] translation failed (${ON_DEMAND_TRANSLATION_MODEL}):`,
-        error,
-      );
+      const text = result.response.text().trim();
+      if (text) return text;
+    } catch (error) {
+      if (isGeminiModelNotFoundError(error)) {
+        console.warn(`[gemini] translation model unavailable: ${modelName}`);
+        continue;
+      }
+      if (isGeminiQuotaOrBillingError(error)) {
+        console.warn(
+          `[gemini] translation quota/rate limit (${modelName}):`,
+          error,
+        );
+        continue;
+      }
+      console.warn(`[gemini] translation failed (${modelName}):`, error);
     }
-    return null;
   }
+  return null;
 }
 
 export async function translateMeaningToLearnerLocaleWithGemini(
