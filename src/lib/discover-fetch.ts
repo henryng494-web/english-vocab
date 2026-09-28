@@ -1,5 +1,6 @@
 import type { DiscoverWordData } from "@/components/discover/DiscoverCard";
 import { readAppSettings } from "@/lib/app-settings";
+import { isDiscoverWordReadyForLocale } from "@/lib/card-localized-display";
 import { isCardContentReady } from "@/lib/discover-word-cache";
 import { resolveWordRegister } from "@/lib/word-meanings";
 import { DISCOVER_WORD_CACHE_VERSION, stubFromListItem } from "@/lib/discover-word-cache";
@@ -191,8 +192,9 @@ export async function fetchDiscoverWordDetail(
   item: DiscoverListItem,
   options?: { forceRepair?: boolean; bootstrap?: boolean },
 ): Promise<DiscoverWordData> {
+  const learnerLocale = readAppSettings().learnerLocale;
+
   const fetchOnce = async (forceRepair: boolean): Promise<DiscoverWordData> => {
-    const learnerLocale = readAppSettings().learnerLocale;
     const params = new URLSearchParams({
       word: item.word,
       rank: String(item.rank),
@@ -222,6 +224,10 @@ export async function fetchDiscoverWordDetail(
         needsContentRepair(item.word, loaded);
 
       if (!needsRepair || options?.forceRepair) {
+        return loaded;
+      }
+
+      if (isDiscoverWordReadyForLocale(loaded, item.word, learnerLocale)) {
         return loaded;
       }
 

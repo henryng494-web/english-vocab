@@ -24,6 +24,25 @@ export function hasCompleteLocaleCardContent(
   return !discoverDataNeedsLocaleHydration(data, learnerLocale);
 }
 
+/** Journey cache / fetch: VI baseline plus learner gloss when locale ≠ vi. */
+export function isDiscoverWordReadyForLocale(
+  data: DiscoverWordData | undefined,
+  expectedWord: string,
+  learnerLocale: LearnerLocale,
+): boolean {
+  if (!data?.word?.trim()) return false;
+  if (
+    expectedWord &&
+    data.word.trim().toLowerCase() !== expectedWord.trim().toLowerCase()
+  ) {
+    return false;
+  }
+  if (!data.vietnamese_meaning?.trim() && !data.meanings?.vi?.trim()) {
+    return false;
+  }
+  return hasCompleteLocaleCardContent(data, learnerLocale);
+}
+
 /** @deprecated Use `hasCompleteLocaleCardContent(data, "es")`. */
 export function hasCompleteEsCardContent(data: DiscoverWordData): boolean {
   return hasCompleteLocaleCardContent(data, "es");

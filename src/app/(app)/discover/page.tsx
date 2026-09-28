@@ -15,6 +15,11 @@ import {
 } from "@/data/word-ranges";
 import { DEFAULT_BOOTSTRAP_RANGE } from "@/lib/app-bootstrap";
 import {
+  discoverDataNeedsLocaleHydration,
+  isDiscoverWordReadyForLocale,
+} from "@/lib/card-localized-display";
+import { REVIEW_LEARNER_LOCALE_CHANGED } from "@/lib/review-learner-locale-cache";
+import {
   fetchDiscoverRange,
   fetchDiscoverWordDetail,
   filterDiscoverQueue,
@@ -287,8 +292,12 @@ export default function DiscoverPage() {
 
   const ensureWordFetched = useCallback(
     async (item: DiscoverListItem): Promise<DiscoverWordData> => {
+      const learnerLocale = readAppSettings().learnerLocale;
       const cached = wordCache.current.get(item.word);
-      if (cached && isCardContentReady(cached, item.word)) {
+      if (
+        cached &&
+        isDiscoverWordReadyForLocale(cached, item.word, learnerLocale)
+      ) {
         return cached;
       }
       if (cached && !isCardContentReady(cached, item.word)) {
@@ -365,8 +374,12 @@ export default function DiscoverPage() {
         wordCache.current.delete(item.word);
       }
 
+      const learnerLocale = readAppSettings().learnerLocale;
       const readyCached = wordCache.current.get(item.word);
-      if (readyCached && isCardContentReady(readyCached, item.word)) {
+      if (
+        readyCached &&
+        isDiscoverWordReadyForLocale(readyCached, item.word, learnerLocale)
+      ) {
         setCurrentWord(readyCached);
         setLoadingWord(false);
         preloadImageUrl(readyCached.image_url);
@@ -432,6 +445,31 @@ export default function DiscoverPage() {
   }, [rangeId]);
 
   const currentItem = queue[currentIndex];
+
+  useEffect(() => {
+    const onLearnerLocaleChanged = () => {
+      const locale = readAppSettings().learnerLocale;
+      for (const [word, entry] of wordCache.current.entries()) {
+        if (discoverDataNeedsLocaleHydration(entry, locale)) {
+          wordCache.current.delete(word);
+        }
+      }
+      persistWordCache(wordCache.current);
+      const active = activeWordRef.current;
+      if (!active || !currentItem || currentItem.word !== active) return;
+      applyWordToView(currentItem, { fetchIfNeeded: true });
+    };
+    window.addEventListener(
+      REVIEW_LEARNER_LOCALE_CHANGED,
+      onLearnerLocaleChanged,
+    );
+    return () => {
+      window.removeEventListener(
+        REVIEW_LEARNER_LOCALE_CHANGED,
+        onLearnerLocaleChanged,
+      );
+    };
+  }, [applyWordToView, currentItem]);
 
   useEffect(() => {
     seedJourneyBootstrapRanges(bootstrapRanges ?? null);

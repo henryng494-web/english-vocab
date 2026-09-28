@@ -30,7 +30,6 @@ import {
   hydrateLearnerLocaleWordContent,
   wordDetailNeedsLocaleHydration,
 } from "@/lib/localize-word-content";
-import { pickLocalizedMeaning } from "@/lib/localized-gloss";
 import { persistMultilangPatch } from "@/lib/persist-multilang-patch";
 import {
   mergeLegacyViIntoMeanings,
@@ -107,17 +106,13 @@ function persistedDetailToDiscoverWord(
   const phrase_translations = parsePhraseTranslationsJson(
     detail.phrase_translations,
   );
-  const displayMeaning = pickLocalizedMeaning(
-    meanings,
-    learnerLocale,
-    detail.vietnamese_meaning,
-    detail.english_definition,
-  );
   return withWordFamily({
     word,
     phonetic: detail.phonetic,
     word_type: detail.word_type,
-    vietnamese_meaning: displayMeaning ?? sanitizeVietnameseText(detail.vietnamese_meaning),
+    vietnamese_meaning: sanitizeVietnameseText(
+      meanings.vi ?? detail.vietnamese_meaning,
+    ),
     english_definition: detail.english_definition,
     examples: detail.examples,
     meanings,

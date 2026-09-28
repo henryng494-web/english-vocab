@@ -8,6 +8,7 @@ import { useAppSettings } from "@/context/AppSettingsContext";
 import {
   discoverDataNeedsLocaleHydration,
   examplesForCard,
+  hasCompleteLocaleCardContent,
   primaryGlossForCard,
 } from "@/lib/card-localized-display";
 import { displayPhonetic } from "@/lib/phonetic";
@@ -97,38 +98,31 @@ export function DiscoverCard({
 }: DiscoverCardProps) {
   const { learnerLocale } = useAppSettings();
   const [cardData, setCardData] = useState(data);
-  const needsLocaleHydration =
+  const localeContentPending =
     learnerLocaleNeedsHydration(learnerLocale) &&
-    discoverDataNeedsLocaleHydration(data, learnerLocale);
-  const [localeLoading, setLocaleLoading] = useState(needsLocaleHydration);
-  const [localeSettled, setLocaleSettled] = useState(
-    !needsLocaleHydration,
-  );
+    !hasCompleteLocaleCardContent(cardData, learnerLocale);
+  const [localeLoading, setLocaleLoading] = useState(localeContentPending);
 
   useEffect(() => {
     setCardData(data);
     const pending =
       learnerLocaleNeedsHydration(learnerLocale) &&
-      discoverDataNeedsLocaleHydration(data, learnerLocale);
-    setLocaleSettled(!pending);
+      !hasCompleteLocaleCardContent(data, learnerLocale);
     setLocaleLoading(pending);
   }, [data, learnerLocale]);
 
   useEffect(() => {
     if (!learnerLocaleNeedsHydration(learnerLocale)) {
       setLocaleLoading(false);
-      setLocaleSettled(true);
       return;
     }
-    const needs = discoverDataNeedsLocaleHydration(data, learnerLocale);
-    if (!needs) {
+    if (hasCompleteLocaleCardContent(data, learnerLocale)) {
       setLocaleLoading(false);
-      setLocaleSettled(true);
       return;
     }
+
     let cancelled = false;
     setLocaleLoading(true);
-    setLocaleSettled(false);
     void ensureCardLocaleContent(data, learnerLocale)
       .then((updated) => {
         if (cancelled) return;
@@ -137,12 +131,12 @@ export function DiscoverCard({
       .finally(() => {
         if (cancelled) return;
         setLocaleLoading(false);
-        setLocaleSettled(true);
       });
     return () => {
       cancelled = true;
     };
   }, [
+    data,
     data.word,
     data.examples,
     data.meanings,
@@ -165,14 +159,12 @@ export function DiscoverCard({
           cardData.word_type,
         );
 
-  const localeContentPending =
-    learnerLocaleNeedsHydration(learnerLocale) &&
-    discoverDataNeedsLocaleHydration(cardData, learnerLocale);
   const strictLearnerLocale =
-    learnerLocaleNeedsHydration(learnerLocale) && !localeSettled;
-  const meaningSkeleton = localeContentPending && !localeSettled;
-  const glossSkeleton =
-    meaningSkeleton || (strictLearnerLocale && localeContentPending);
+    learnerLocaleNeedsHydration(learnerLocale) &&
+    (localeLoading || localeContentPending);
+  const meaningSkeleton = strictLearnerLocale;
+  const glossSkeleton = strictLearnerLocale;
+
   const displayMeaning = useMemo(
     () => primaryGlossForCard(cardData, learnerLocale, strictLearnerLocale),
     [cardData, learnerLocale, strictLearnerLocale],
@@ -183,32 +175,6 @@ export function DiscoverCard({
   );
   const meaningForUi = meaningSkeleton ? null : displayMeaning;
 
-  useEffect(() => {
-    console.log("[Locale Debug]", {
-      word: cardData.word,
-      learnerLocale,
-      localeLoading,
-      localeSettled,
-      localeContentPending,
-      strictLearnerLocale,
-      needsHydration: discoverDataNeedsLocaleHydration(
-        cardData,
-        learnerLocale,
-      ),
-      meaningsLocale: cardData.meanings?.[learnerLocale]?.slice(0, 48),
-    });
-  }, [
-    cardData.word,
-    learnerLocale,
-    localeLoading,
-    localeSettled,
-    localeContentPending,
-    strictLearnerLocale,
-    cardData.meanings,
-    cardData.phrase_translations,
-    cardData.example_translations,
-  ]);
-
   return (
     <div className="discover-card discover-card--compact grid h-full min-h-0 w-full overflow-hidden rounded-2xl border-2 shadow-lg">
       <CardImage
@@ -216,10 +182,7 @@ export function DiscoverCard({
         imageUrl={cardData.image_url}
         searchKeyword={cardData.search_keyword}
         wordType={cardData.word_type}
-        meaning={
-          meaningForUi ??
-          (strictLearnerLocale ? null : cardData.vietnamese_meaning)
-        }
+        meaning={meaningForUi}
         badge={imageBadge}
       />
 
@@ -236,7 +199,7 @@ export function DiscoverCard({
         />
 
         <WordCardDetails
-          key={cardData.word.trim().toLowerCase()}
+          key={`${cardData.word.trim().toLowerCase()}-${learnerLocale}`}
           word={cardData.word}
           examples={cardData.examples}
           displayExamples={displayExamples}
@@ -251,7 +214,7 @@ export function DiscoverCard({
           similarWords={cardData.similar_words}
           loading={detailsLoading}
           localeLoadingExamples={glossSkeleton}
-          localeSettled={localeSettled}
+          localeSettled={!strictLearnerLocale}
           hintGraceMs={hintGraceMs}
         />
       </div>

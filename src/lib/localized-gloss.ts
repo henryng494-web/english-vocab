@@ -48,7 +48,9 @@ export function pickLocalizedMeaning(
   const localized = meanings?.[learnerLocale]?.trim();
   if (localized) return localized;
   if (strictMode(options)) return null;
-  return fallbackGloss(meanings, legacyVietnameseMeaning, englishDefinition);
+  const enDef = englishDefinition?.trim();
+  if (enDef) return enDef;
+  return null;
 }
 
 export function pickExampleTranslationForLocale(
@@ -65,7 +67,7 @@ export function pickExampleTranslationForLocale(
   const localized = row[learnerLocale]?.trim();
   if (localized) return localized;
   if (strictMode(options)) return null;
-  return row.vi?.trim() || null;
+  return null;
 }
 
 /** Secondary gloss for Goes-with / useful-phrase rows (matched by `en`). */
@@ -81,8 +83,6 @@ export function pickPhraseTranslationForLocale(
   const localized = row?.[learnerLocale]?.trim();
   if (localized) return localized;
   if (strictMode(options)) return null;
-  const vi = row?.vi?.trim() || legacyVietnamese?.trim();
-  if (vi) return vi;
   return null;
 }
 
