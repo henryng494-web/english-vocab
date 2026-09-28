@@ -1,18 +1,21 @@
 "use client";
 
-import { createClient } from "@/lib/supabase/client";
+import { createClientIfConfigured } from "@/lib/supabase/client";
+import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { displayFontClass } from "@/lib/fonts";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+
+const SUPABASE_UNAVAILABLE =
+  "Sign-in is unavailable: Supabase is not configured on this deployment.";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [supabaseReady] = useState(() => isSupabaseConfigured());
   const mountedRef = useRef(true);
-
-  const supabase = createClient();
 
   useEffect(() => {
     mountedRef.current = true;
@@ -25,6 +28,13 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
     setMessage(null);
+
+    const supabase = createClientIfConfigured();
+    if (!supabase) {
+      setMessage(SUPABASE_UNAVAILABLE);
+      setLoading(false);
+      return;
+    }
 
     const { error } = await supabase.auth.signInWithPassword({
       email,
@@ -44,6 +54,13 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
     setMessage(null);
+
+    const supabase = createClientIfConfigured();
+    if (!supabase) {
+      setMessage(SUPABASE_UNAVAILABLE);
+      setLoading(false);
+      return;
+    }
 
     const { error } = await supabase.auth.signUp({
       email,
@@ -77,6 +94,12 @@ export default function LoginPage() {
         <p className="mt-2 text-sm text-foreground/60">
           Use your Supabase Auth account to save learning progress
         </p>
+
+        {!supabaseReady ? (
+          <p className="mt-4 rounded-lg bg-primary-50 px-3 py-2 text-sm text-primary-800">
+            {SUPABASE_UNAVAILABLE}
+          </p>
+        ) : null}
 
         <form className="mt-6 space-y-4" onSubmit={handleSignIn}>
           <div>
@@ -122,14 +145,14 @@ export default function LoginPage() {
           <div className="flex gap-3">
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || !supabaseReady}
               className="flex-1 rounded-lg bg-primary px-4 py-2 font-medium text-foreground hover:bg-primary-hover disabled:opacity-50"
             >
               {loading ? "Processing..." : "Sign in"}
             </button>
             <button
               type="button"
-              disabled={loading}
+              disabled={loading || !supabaseReady}
               onClick={handleSignUp}
               className="flex-1 rounded-lg border border-primary-200 px-4 py-2 font-medium text-primary-800 hover:bg-primary-50 disabled:opacity-50"
             >

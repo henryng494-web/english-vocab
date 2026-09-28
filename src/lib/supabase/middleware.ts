@@ -1,13 +1,17 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { getSupabaseConfig } from "@/lib/supabase/env";
+import { getSupabaseConfigOptional } from "@/lib/supabase/env";
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
   });
 
-  const { url, anonKey } = getSupabaseConfig();
+  const config = getSupabaseConfigOptional();
+  if (!config) {
+    return supabaseResponse;
+  }
+  const { url, anonKey } = config;
 
   const supabase = createServerClient(url, anonKey, {
       cookies: {
