@@ -31,8 +31,7 @@ import { sanitizeUserFacingError } from "@/lib/user-facing-error";
 import {
   isCacheEntryValid,
   isCardContentReady,
-  isWordDetailComplete,
-  loadPersistedWordCache,
+  getDiscoverWordCacheMemory,
   persistWordCache,
   preloadImageUrl,
   stubFromListItem,
@@ -76,6 +75,10 @@ import {
 } from "@/lib/learning-storage";
 import { seedWordImageCacheFromEntries } from "@/lib/word-image-cache";
 import { prefetchCardContent } from "@/lib/card-content-prefetch";
+import {
+  clearLocalePrefetchSession,
+  prefetchCardLocaleContent,
+} from "@/lib/locale-content-prefetch";
 import { readOnboarding, shouldShowOnboarding } from "@/lib/onboarding";
 import { useSyncExternalStore } from "react";
 import {
@@ -94,7 +97,9 @@ import {
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-const PRELOAD_AHEAD = 10;
+const WORD_DETAIL_PREFETCH_AHEAD = 3;
+const LOCALE_PREFETCH_AHEAD = 3;
+const IMAGE_PRONOUNCE_PRELOAD_AHEAD = 10;
 const IMAGE_WARM_COUNT = 12;
 
 function formatJourneyBadge(index: number, total: number): string {
@@ -225,7 +230,7 @@ export default function DiscoverPage() {
     setTodayLearned(getTodayWordsLearned());
   }, [queue.length, currentIndex]);
 
-  const wordCache = useRef<Map<string, DiscoverWordData>>(new Map());
+  const wordCache = useRef(getDiscoverWordCacheMemory());
   const inflight = useRef<Map<string, Promise<DiscoverWordData>>>(new Map());
   const activeWordRef = useRef<string | null>(null);
   const initializedRangeRef = useRef<string | null>(null);
@@ -326,6 +331,15 @@ export default function DiscoverPage() {
           persistWordCache(wordCache.current);
           preloadImageUrl(loaded.image_url);
           prefetchCardContent(loaded);
+          prefetchCardLocaleContent(loaded, {
+            onUpdated: (updated) => {
+              wordCache.current.set(item.word, updated);
+              persistWordCache(wordCache.current);
+              if (activeWordRef.current === item.word) {
+                setCurrentWord(updated);
+              }
+            },
+          });
           scheduleBackgroundRepair(item, loaded);
           inflight.current.delete(item.word);
           return loaded;
@@ -343,21 +357,46 @@ export default function DiscoverPage() {
 
   const preloadWords = useCallback(
     (startIndex: number, items: DiscoverListItem[]) => {
+      const learnerLocale = readAppSettings().learnerLocale;
       const imageTargets: WordImagePrefetchTarget[] = [];
       const pronunciationWords: string[] = [];
-      for (let offset = 0; offset <= PRELOAD_AHEAD; offset++) {
+      for (let offset = 0; offset <= IMAGE_PRONOUNCE_PRELOAD_AHEAD; offset++) {
         const item = items[startIndex + offset];
         if (!item) break;
         imageTargets.push(listItemImageTarget(item));
         pronunciationWords.push(item.word);
+      }
+
+      for (let offset = 0; offset <= WORD_DETAIL_PREFETCH_AHEAD; offset++) {
+        const item = items[startIndex + offset];
+        if (!item) break;
 
         const cached = wordCache.current.get(item.word);
-        if (isWordDetailComplete(cached, item.word)) {
+        if (
+          cached &&
+          isDiscoverWordReadyForLocale(cached, item.word, learnerLocale)
+        ) {
           prefetchCardContent(cached);
+          if (offset >= 1 && offset <= LOCALE_PREFETCH_AHEAD) {
+            prefetchCardLocaleContent(cached);
+          }
           continue;
         }
-        ensureWordFetched(item).catch(() => {});
+
+        ensureWordFetched(item)
+          .then((loaded) => {
+            if (offset >= 1 && offset <= LOCALE_PREFETCH_AHEAD) {
+              prefetchCardLocaleContent(loaded, {
+                onUpdated: (updated) => {
+                  wordCache.current.set(item.word, updated);
+                  persistWordCache(wordCache.current);
+                },
+              });
+            }
+          })
+          .catch(() => {});
       }
+
       preloadWordImagesFromCache(imageTargets);
       preloadWordPronunciations(pronunciationWords);
       void prefetchWordImages(imageTargets, 4);
@@ -455,6 +494,7 @@ export default function DiscoverPage() {
 
   useEffect(() => {
     const onLearnerLocaleChanged = () => {
+      clearLocalePrefetchSession();
       const locale = readAppSettings().learnerLocale;
       for (const [word, entry] of wordCache.current.entries()) {
         if (discoverDataNeedsLocaleHydration(entry, locale)) {
@@ -489,7 +529,7 @@ export default function DiscoverPage() {
 
   useEffect(() => {
     if (!wordCacheHydratedRef.current) {
-      wordCache.current = loadPersistedWordCache();
+      wordCache.current = getDiscoverWordCacheMemory();
       if (bootstrapWordCache) {
         for (const [word, entry] of Object.entries(bootstrapWordCache)) {
           if (isCacheEntryValid(entry, word)) {

@@ -14,6 +14,8 @@ import {
 import { displayPhonetic } from "@/lib/phonetic";
 import { isCardContentReady } from "@/lib/discover-word-cache";
 import { ensureCardLocaleContent } from "@/lib/ensure-card-locale-content";
+import { mergeDiscoverWordCacheEntry } from "@/lib/discover-word-cache";
+import { peekLocaleHydratedCard } from "@/lib/locale-content-prefetch";
 import { learnerLocaleNeedsHydration } from "@/lib/learner-locale";
 import type { WordFamilyMember } from "@/types/database";
 import type { WordRegister } from "@/lib/word-meanings";
@@ -121,12 +123,22 @@ export function DiscoverCard({
       return;
     }
 
+    const prefetched = peekLocaleHydratedCard(data, learnerLocale);
+    if (prefetched) {
+      setCardData(prefetched);
+      setLocaleLoading(false);
+      return;
+    }
+
     let cancelled = false;
     setLocaleLoading(true);
     void ensureCardLocaleContent(data, learnerLocale)
       .then((updated) => {
         if (cancelled) return;
-        if (updated) setCardData(updated);
+        if (updated) {
+          setCardData(updated);
+          mergeDiscoverWordCacheEntry(updated.word, updated);
+        }
       })
       .finally(() => {
         if (cancelled) return;

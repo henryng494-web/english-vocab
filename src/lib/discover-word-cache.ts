@@ -98,6 +98,35 @@ const LEGACY_STORAGE_KEYS = [
 
 const MAX_ENTRIES = 250;
 
+let sessionMemoryCache: Map<string, DiscoverWordData> | null = null;
+
+/** Single in-memory discover cache (mirrors sessionStorage, shared by Journey + Review). */
+export function getDiscoverWordCacheMemory(): Map<string, DiscoverWordData> {
+  if (!sessionMemoryCache) {
+    sessionMemoryCache = loadPersistedWordCache();
+  }
+  return sessionMemoryCache;
+}
+
+export function mergeDiscoverWordCacheEntry(
+  word: string,
+  patch: Partial<DiscoverWordData>,
+): DiscoverWordData | null {
+  const key = word.trim().toLowerCase();
+  if (!key) return null;
+  const map = getDiscoverWordCacheMemory();
+  const prev = map.get(key);
+  if (!prev) return null;
+  const next: DiscoverWordData = {
+    ...prev,
+    ...patch,
+    word: prev.word,
+  };
+  map.set(key, next);
+  persistWordCache(map);
+  return next;
+}
+
 export function isWordDetailComplete(
   data: DiscoverWordData | undefined,
   expectedWord?: string,

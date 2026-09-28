@@ -1,7 +1,7 @@
 import { getStaticWordDetail, getPresetRank } from "@/data/preset-word-details";
 import { hasQualityStandardVocab } from "@/data/standard-vocab";
 import { readAppSettings } from "@/lib/app-settings";
-import { loadPersistedWordCache } from "@/lib/discover-word-cache";
+import { getDiscoverWordCacheMemory } from "@/lib/discover-word-cache";
 import {
   hasStoredLocaleMeaning,
   mergeLegacyViIntoMeanings,
@@ -16,13 +16,8 @@ import {
 } from "@/lib/unsplash";
 import type { VocabWord } from "@/types/database";
 
-let discoverCache: ReturnType<typeof loadPersistedWordCache> | null = null;
-
 function getDiscoverCache() {
-  if (!discoverCache) {
-    discoverCache = loadPersistedWordCache();
-  }
-  return discoverCache;
+  return getDiscoverWordCacheMemory();
 }
 
 export function hasReviewClueFields(word: {

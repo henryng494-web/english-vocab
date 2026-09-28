@@ -16,7 +16,7 @@ function cacheKey(word: string, locale: LearnerLocale): string {
   return `${locale}:${word.trim().toLowerCase()}`;
 }
 
-/** On-demand locale hydration for the visible card only (no batch prefetch). */
+/** On-demand locale hydration (also used by background prefetch ahead of the card). */
 export function ensureCardLocaleContent(
   data: DiscoverWordData,
   learnerLocale: LearnerLocale = DEFAULT_LEARNER_LOCALE,

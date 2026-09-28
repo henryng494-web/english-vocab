@@ -74,6 +74,7 @@ import {
 import { shouldRefreshImageUrl } from "@/lib/unsplash";
 import { refreshAllStaleWordImages } from "@/lib/refresh-stale-word-images";
 import { prefetchCardContent } from "@/lib/card-content-prefetch";
+import { prefetchReviewLocaleAhead } from "@/lib/locale-content-prefetch";
 import { preloadWordPronunciations } from "@/lib/pronunciation-preload";
 import { preloadWordPronunciation } from "@/lib/speak-word";
 import {
@@ -765,6 +766,45 @@ export function ReviewScreen() {
     if (!firstWord) return;
     preloadWordPronunciation(firstWord);
   }, [queue[0]?.word]);
+
+  /** Prefetch meanings + learner locale for the next cards while the user reviews. */
+  useEffect(() => {
+    if (!sessionReady) return;
+    const q = queueRef.current;
+    if (q.length === 0) return;
+    const start = index;
+    void prefetchReviewClues(q, start, 4).then((clueUpdates) => {
+      if (Object.keys(clueUpdates).length === 0) return;
+      patchWordFields((item) => {
+        const key = item.word.trim().toLowerCase();
+        const patch = clueUpdates[key];
+        if (!patch) return item;
+        return {
+          ...item,
+          vietnamese_meaning:
+            patch.vietnamese_meaning ?? item.vietnamese_meaning,
+          english_definition:
+            patch.english_definition ?? item.english_definition,
+          phonetic: patch.phonetic ?? item.phonetic,
+          word_type: patch.word_type ?? item.word_type,
+          examples: patch.examples ?? item.examples,
+          search_keyword: patch.search_keyword ?? item.search_keyword,
+          image_url: patch.image_url ?? item.image_url,
+          meanings: patch.meanings ?? item.meanings,
+          example_translations:
+            patch.example_translations ?? item.example_translations,
+          phrase_translations:
+            patch.phrase_translations ?? item.phrase_translations,
+        };
+      });
+    });
+    prefetchReviewLocaleAhead(q, start, 3, (key, patch) => {
+      patchWordFields((item) => {
+        if (item.word.trim().toLowerCase() !== key) return item;
+        return { ...item, ...patch };
+      });
+    });
+  }, [sessionReady, index, learnerLocale, patchWordFields]);
 
   /** During reveal transition, finish buffering pronunciation before the card speaks. */
   useEffect(() => {
