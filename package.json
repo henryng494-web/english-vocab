@@ -45,6 +45,7 @@
     "backfill:images": "npx tsx scripts/backfill-stock-images.ts",
     "refresh:all-images": "npm run backfill:images -- --force",
     "translate:all-es": "npx tsx scripts/translate-all-words-es.ts",
+    "backfill:translations": "npx tsx scripts/backfill-translations.ts",
     "re-enrich:stale": "npx tsx scripts/re-enrich-stale-words.ts",
     "re-enrich:all": "npx tsx scripts/re-enrich-stale-all.ts",
     "backfill:register": "npx tsx scripts/backfill-register-offline.ts",
