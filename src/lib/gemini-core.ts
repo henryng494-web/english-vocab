@@ -129,17 +129,59 @@ async function generateGeminiText(prompt: string): Promise<string> {
 export const ON_DEMAND_TRANSLATION_MODEL =
   process.env.GEMINI_TRANSLATION_MODEL?.trim() || "gemini-1.5-flash";
 
-const TRANSLATION_MODEL_CANDIDATES: string[] = [
-  ...new Set(
-    [
-      process.env.GEMINI_TRANSLATION_MODEL?.trim(),
-      "gemini-1.5-flash",
-      "gemini-flash-lite-latest",
-      "gemini-2.0-flash",
-      "gemini-2.0-flash-lite",
-    ].filter((name): name is string => Boolean(name?.trim())),
-  ),
-];
+function isGeminiFreeTierMode(): boolean {
+  const v = process.env.GEMINI_FREE_TIER?.trim().toLowerCase();
+  return v === "1" || v === "true" || v === "yes";
+}
+
+function translationModelCandidates(): string[] {
+  const preferred = process.env.GEMINI_TRANSLATION_MODEL?.trim();
+  if (isGeminiFreeTierMode()) {
+    return [
+      ...new Set(
+        [preferred, "gemini-2.0-flash", "gemini-1.5-flash"].filter(
+          (name): name is string => Boolean(name?.trim()),
+        ),
+      ),
+    ];
+  }
+  return [
+    ...new Set(
+      [
+        preferred,
+        "gemini-1.5-flash",
+        "gemini-flash-lite-latest",
+        "gemini-2.0-flash",
+        "gemini-2.0-flash-lite",
+      ].filter((name): name is string => Boolean(name?.trim())),
+    ),
+  ];
+}
+
+let lastTranslationRequestAt = 0;
+
+function geminiMinRequestIntervalMs(): number {
+  const rpm = Number(process.env.GEMINI_MAX_RPM ?? "0");
+  if (Number.isFinite(rpm) && rpm > 0) {
+    return Math.ceil(60000 / rpm);
+  }
+  const explicit = Number(process.env.GEMINI_MIN_REQUEST_INTERVAL_MS ?? "0");
+  return Number.isFinite(explicit) && explicit > 0 ? explicit : 0;
+}
+
+async function awaitTranslationRateLimit(): Promise<void> {
+  const gap = geminiMinRequestIntervalMs();
+  if (gap <= 0) return;
+  const now = Date.now();
+  const wait = lastTranslationRequestAt + gap - now;
+  if (wait > 0) {
+    await new Promise((resolve) => setTimeout(resolve, wait));
+  }
+}
+
+function markTranslationRequestDone(): void {
+  lastTranslationRequestAt = Date.now();
+}
 
 export const GEMINI_TRANSLATION_TIMEOUT_MS = Math.min(
   15_000,
@@ -151,7 +193,9 @@ export const GEMINI_TRANSLATION_TIMEOUT_MS = Math.min(
 
 export function isGeminiQuotaOrBillingError(error: unknown): boolean {
   const msg = error instanceof Error ? error.message : String(error);
-  return /429|quota|RESOURCE_EXHAUSTED|rate limit|billing|exceeded/i.test(msg);
+  return /402|429|quota|RESOURCE_EXHAUSTED|rate limit|billing|exceeded|payment required|depleted/i.test(
+    msg,
+  );
 }
 
 function isGeminiModelNotFoundError(error: unknown): boolean {
@@ -188,7 +232,9 @@ async function generateTranslationGeminiText(
   const genAI = getGeminiClient();
   const timeoutMs = GEMINI_TRANSLATION_TIMEOUT_MS;
 
-  for (const modelName of TRANSLATION_MODEL_CANDIDATES) {
+  const candidates = translationModelCandidates();
+  for (const modelName of candidates) {
+    await awaitTranslationRateLimit();
     try {
       const model = genAI.getGenerativeModel({ model: modelName });
       const result = await withTimeout(
@@ -196,9 +242,11 @@ async function generateTranslationGeminiText(
         timeoutMs,
         `translation (${modelName})`,
       );
+      markTranslationRequestDone();
       const text = result.response.text().trim();
       if (text) return text;
     } catch (error) {
+      markTranslationRequestDone();
       if (isGeminiModelNotFoundError(error)) {
         console.warn(`[gemini] translation model unavailable: ${modelName}`);
         continue;
@@ -208,6 +256,17 @@ async function generateTranslationGeminiText(
           `[gemini] translation quota/rate limit (${modelName}):`,
           error,
         );
+        if (isGeminiFreeTierMode() && !isGeminiModelNotFoundError(error)) {
+          const cooldownMs = Math.max(
+            60_000,
+            Number(process.env.GEMINI_FREE_TIER_COOLDOWN_MS ?? 120_000) || 120_000,
+          );
+          console.warn(
+            `[gemini] free tier cooldown ${cooldownMs}ms before retry…`,
+          );
+          await new Promise((resolve) => setTimeout(resolve, cooldownMs));
+          continue;
+        }
         continue;
       }
       console.warn(`[gemini] translation failed (${modelName}):`, error);

@@ -15,6 +15,8 @@
  *   BATCH_DELAY_MS=2000
  *   LOCALE_DELAY_MS=400 — pause after each word×locale hydrate
  *   CONCURRENCY=2      — parallel words (keep low for Gemini quota)
+ *   GEMINI_FREE_TIER=1 — force CONCURRENCY=1, GEMINI_MAX_RPM=15, free flash models only
+ *   GEMINI_MAX_RPM=15  — min interval between translation API calls (see gemini-core)
  *   DRY_RUN=1          — scan + log only, no Gemini / DB writes
  */
 import { createClient } from "@supabase/supabase-js";
@@ -27,8 +29,21 @@ import { ON_DEMAND_LEARNER_LOCALES } from "@/lib/learner-locale";
 import { persistMultilangPatch } from "@/lib/persist-multilang-patch";
 import type { WordDetail } from "@/types/database";
 
+const freeTier =
+  process.env.GEMINI_FREE_TIER === "1" ||
+  process.env.GEMINI_FREE_TIER === "true";
+
 if (!process.env.GEMINI_TRANSLATION_MODEL?.trim()) {
-  process.env.GEMINI_TRANSLATION_MODEL = "gemini-1.5-flash";
+  process.env.GEMINI_TRANSLATION_MODEL = freeTier
+    ? "gemini-2.0-flash"
+    : "gemini-1.5-flash";
+}
+
+if (freeTier) {
+  process.env.GEMINI_MAX_RPM = process.env.GEMINI_MAX_RPM?.trim() || "15";
+  process.env.CONCURRENCY = "1";
+  process.env.BATCH_DELAY_MS = process.env.BATCH_DELAY_MS?.trim() || "0";
+  process.env.LOCALE_DELAY_MS = process.env.LOCALE_DELAY_MS?.trim() || "0";
 }
 
 const TARGET_LOCALES: readonly LearnerLocale[] = ON_DEMAND_LEARNER_LOCALES;
@@ -220,7 +235,7 @@ function countTasks(rows: WordDetail[], locales: LearnerLocale[]): number {
 async function main(): Promise<void> {
   const locales = parseLocales();
   console.log(
-    `Model: ${process.env.GEMINI_TRANSLATION_MODEL} | locales: ${locales.join(", ")} | concurrency=${concurrency} | dryRun=${dryRun}`,
+    `Model: ${process.env.GEMINI_TRANSLATION_MODEL} | locales: ${locales.join(", ")} | concurrency=${concurrency} | maxRpm=${process.env.GEMINI_MAX_RPM ?? "off"} | freeTier=${freeTier} | dryRun=${dryRun}`,
   );
 
   console.log("Loading word_details…");
