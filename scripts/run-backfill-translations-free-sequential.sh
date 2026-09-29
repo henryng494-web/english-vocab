@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
-# Single-worker, sequential locale backfill for Gemini free tier (15 RPM).
+# Sequential one-locale-at-a-time translation backfill (2605 words × N locales).
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-export GEMINI_FREE_TIER=1
-export GEMINI_MAX_RPM=15
+export GEMINI_TRANSLATION_MODEL="${GEMINI_TRANSLATION_MODEL:-gemini-3.6-flash}"
+export GEMINI_MAX_RPM="${GEMINI_MAX_RPM:-5}"
+export GEMINI_TRANSLATION_TIMEOUT_MS="${GEMINI_TRANSLATION_TIMEOUT_MS:-20000}"
 export CONCURRENCY=1
 export BATCH_DELAY_MS=0
 export LOCALE_DELAY_MS=0
-export GEMINI_TRANSLATION_MODEL="${GEMINI_TRANSLATION_MODEL:-gemini-3.6-flash}"
 
 LOG="${BACKFILL_FREE_LOG:-/opt/cursor/artifacts/backfill-free-tier.log}"
 PROGRESS="${BACKFILL_FREE_PROGRESS:-/opt/cursor/artifacts/backfill-free-progress.txt}"
@@ -30,6 +30,7 @@ write_progress() {
     echo "current_locale=${CURRENT_LOCALE:-idle}"
     echo "model=${GEMINI_TRANSLATION_MODEL}"
     echo "max_rpm=${GEMINI_MAX_RPM}"
+    echo "translation_timeout_ms=${GEMINI_TRANSLATION_TIMEOUT_MS}"
     if [[ -f "$LOG" ]]; then
       echo "processed_total=$(grep -c 'Processed word' "$LOG" 2>/dev/null || true)"
       echo "failed_total=$(grep -cE " failed '" "$LOG" 2>/dev/null || true)"
@@ -47,7 +48,7 @@ for loc in $LOCALES_ORDER; do
     echo ""
     echo "======== $(date -u +%Y-%m-%dT%H:%M:%SZ) LOCALE $loc ========"
   } | tee -a "$LOG"
-  LOCALES=$loc npm run backfill:translations:free 2>&1 | tee -a "$LOG"
+  LOCALES=$loc npm run backfill:translations 2>&1 | tee -a "$LOG"
   write_progress
 done
 

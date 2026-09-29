@@ -154,8 +154,9 @@ function translationModelCandidates(): string[] {
     ...new Set(
       [
         preferred,
-        "gemini-1.5-flash",
+        "gemini-3.6-flash",
         "gemini-flash-lite-latest",
+        "gemini-1.5-flash",
         "gemini-2.0-flash",
         "gemini-2.0-flash-lite",
       ].filter((name): name is string => Boolean(name?.trim())),
