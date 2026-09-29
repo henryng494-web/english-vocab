@@ -8,12 +8,21 @@ export GEMINI_MAX_RPM=15
 export CONCURRENCY=1
 export BATCH_DELAY_MS=0
 export LOCALE_DELAY_MS=0
-export GEMINI_TRANSLATION_MODEL="${GEMINI_TRANSLATION_MODEL:-gemini-2.0-flash}"
+export GEMINI_TRANSLATION_MODEL="${GEMINI_TRANSLATION_MODEL:-gemini-3.6-flash}"
 
 LOG="${BACKFILL_FREE_LOG:-/opt/cursor/artifacts/backfill-free-tier.log}"
 PROGRESS="${BACKFILL_FREE_PROGRESS:-/opt/cursor/artifacts/backfill-free-progress.txt}"
 
 LOCALES_ORDER="${LOCALES_ORDER:-es pt ja ko zh th id fr de it tr ar}"
+
+for arg in "$@"; do
+  case "$arg" in
+    --locales=*)
+      LOCALES_ORDER="${arg#--locales=}"
+      LOCALES_ORDER="${LOCALES_ORDER//,/ }"
+      ;;
+  esac
+done
 
 write_progress() {
   {
@@ -38,7 +47,7 @@ for loc in $LOCALES_ORDER; do
     echo ""
     echo "======== $(date -u +%Y-%m-%dT%H:%M:%SZ) LOCALE $loc ========"
   } | tee -a "$LOG"
-  LOCALES=$loc npm run backfill:translations 2>&1 | tee -a "$LOG"
+  LOCALES=$loc npm run backfill:translations:free 2>&1 | tee -a "$LOG"
   write_progress
 done
 

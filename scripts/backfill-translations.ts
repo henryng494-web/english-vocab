@@ -33,9 +33,7 @@ const freeTier =
   process.env.GEMINI_FREE_TIER === "true";
 
 if (!process.env.GEMINI_TRANSLATION_MODEL?.trim()) {
-  process.env.GEMINI_TRANSLATION_MODEL = freeTier
-    ? "gemini-2.0-flash"
-    : "gemini-3.6-flash";
+  process.env.GEMINI_TRANSLATION_MODEL = "gemini-3.6-flash";
 }
 
 if (!process.env.GEMINI_MAX_RPM?.trim()) {
