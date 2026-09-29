@@ -1,4 +1,15 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import {
+  awaitGeminiKeyRateLimit,
+  classifyGeminiError,
+  describeGeminiError,
+  earliestGeminiCooldownWaitMs,
+  geminiPoolSize,
+  markGeminiKeyDead,
+  markGeminiKeyRateLimited,
+  markGeminiKeyRequestDone,
+  pickNextGeminiKey,
+} from "@/lib/gemini-key-pool";
 import type { LearnerLocale } from "@/lib/learner-locale";
 import { learnerLocaleNeedsHydration } from "@/lib/learner-locale";
 import { capitalizeFirst } from "@/lib/format-text";
@@ -164,31 +175,6 @@ function translationModelCandidates(): string[] {
   ];
 }
 
-let lastTranslationRequestAt = 0;
-
-function geminiMinRequestIntervalMs(): number {
-  const rpm = Number(process.env.GEMINI_MAX_RPM ?? "0");
-  if (Number.isFinite(rpm) && rpm > 0) {
-    return Math.ceil(60000 / rpm);
-  }
-  const explicit = Number(process.env.GEMINI_MIN_REQUEST_INTERVAL_MS ?? "0");
-  return Number.isFinite(explicit) && explicit > 0 ? explicit : 0;
-}
-
-async function awaitTranslationRateLimit(): Promise<void> {
-  const gap = geminiMinRequestIntervalMs();
-  if (gap <= 0) return;
-  const now = Date.now();
-  const wait = lastTranslationRequestAt + gap - now;
-  if (wait > 0) {
-    await new Promise((resolve) => setTimeout(resolve, wait));
-  }
-}
-
-function markTranslationRequestDone(): void {
-  lastTranslationRequestAt = Date.now();
-}
-
 export const GEMINI_TRANSLATION_TIMEOUT_MS = Math.min(
   15_000,
   Math.max(
@@ -202,11 +188,6 @@ export function isGeminiQuotaOrBillingError(error: unknown): boolean {
   return /402|429|quota|RESOURCE_EXHAUSTED|rate limit|billing|exceeded|payment required|depleted/i.test(
     msg,
   );
-}
-
-function isGeminiModelNotFoundError(error: unknown): boolean {
-  const msg = error instanceof Error ? error.message : String(error);
-  return /404|not found|not supported for generateContent/i.test(msg);
 }
 
 function withTimeout<T>(
@@ -231,51 +212,94 @@ function withTimeout<T>(
   });
 }
 
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
+ * Rotates across the GEMINI_API_KEYS pool (falls back to a single
+ * GEMINI_API_KEY). On 429 the key gets a short cooldown and the next key is
+ * tried immediately; on 402/401/malformed-key (billing depleted / invalid /
+ * non-ASCII garbled key) the key is marked dead for the rest of the process.
+ *
+ * Bounding strategy: each model gets at most `poolSize` real key attempts
+ * (cheap — one per key). Waiting only happens when literally every key is
+ * simultaneously cooling down, and that "all busy" wait is capped at
+ * MAX_GLOBAL_WAITS total for the whole call (not per model) — otherwise a
+ * request could re-wait ~65s for every model in the fallback list and rack
+ * up many minutes on a single translation, which defeats the point of
+ * rotating keys instead of blocking.
+ */
 async function generateTranslationGeminiText(
   prompt: string,
 ): Promise<string | null> {
-  if (!process.env.GEMINI_API_KEY?.trim()) return null;
-  const genAI = getGeminiClient();
+  const poolSize = geminiPoolSize();
+  if (poolSize === 0) return null;
   const timeoutMs = GEMINI_TRANSLATION_TIMEOUT_MS;
-
   const candidates = translationModelCandidates();
+
+  const MAX_GLOBAL_WAITS = 2;
+  let globalWaitsUsed = 0;
+
   for (const modelName of candidates) {
-    await awaitTranslationRateLimit();
-    try {
-      const model = genAI.getGenerativeModel({ model: modelName });
-      const result = await withTimeout(
-        model.generateContent(prompt),
-        timeoutMs,
-        `translation (${modelName})`,
-      );
-      markTranslationRequestDone();
-      const text = result.response.text().trim();
-      if (text) return text;
-    } catch (error) {
-      markTranslationRequestDone();
-      if (isGeminiModelNotFoundError(error)) {
-        console.warn(`[gemini] translation model unavailable: ${modelName}`);
+    let keyAttempts = 0;
+
+    while (keyAttempts < poolSize) {
+      const handle = pickNextGeminiKey();
+
+      if (!handle) {
+        const wait = earliestGeminiCooldownWaitMs();
+        if (wait === null) {
+          // Every key is permanently dead (billing depleted / invalid) — stop.
+          return null;
+        }
+        if (globalWaitsUsed >= MAX_GLOBAL_WAITS) {
+          // Already waited out a full cooldown cycle for this request and
+          // keys are busy again — bail instead of piling up more waits
+          // across the remaining model fallbacks.
+          return null;
+        }
+        globalWaitsUsed += 1;
+        console.warn(
+          `[gemini] all keys cooling down, waiting ${Math.round(wait / 1000)}s… (${globalWaitsUsed}/${MAX_GLOBAL_WAITS})`,
+        );
+        await sleep(Math.min(wait, 65_000));
         continue;
       }
-      if (isGeminiQuotaOrBillingError(error)) {
-        console.warn(
-          `[gemini] translation quota/rate limit (${modelName}):`,
-          error,
+
+      keyAttempts += 1;
+      await awaitGeminiKeyRateLimit(handle.key);
+      try {
+        const model = handle.client.getGenerativeModel({ model: modelName });
+        const result = await withTimeout(
+          model.generateContent(prompt),
+          timeoutMs,
+          `translation (${modelName}, ${handle.masked})`,
         );
-        if (isGeminiFreeTierMode() && !isGeminiModelNotFoundError(error)) {
-          const cooldownMs = Math.max(
-            60_000,
-            Number(process.env.GEMINI_FREE_TIER_COOLDOWN_MS ?? 120_000) || 120_000,
-          );
-          console.warn(
-            `[gemini] free tier cooldown ${cooldownMs}ms before retry…`,
-          );
-          await new Promise((resolve) => setTimeout(resolve, cooldownMs));
+        markGeminiKeyRequestDone(handle.key);
+        const text = result.response.text().trim();
+        if (text) return text;
+      } catch (error) {
+        markGeminiKeyRequestDone(handle.key);
+        const errorClass = classifyGeminiError(error);
+
+        if (errorClass === "model-not-found") {
+          console.warn(`[gemini] translation model unavailable: ${modelName}`);
+          break;
+        }
+        if (errorClass === "rate-limit") {
+          markGeminiKeyRateLimited(handle.key);
           continue;
         }
-        continue;
+        if (errorClass === "dead-key") {
+          markGeminiKeyDead(handle.key, describeGeminiError(error));
+          continue;
+        }
+        console.warn(
+          `[gemini] translation failed (${modelName}, ${handle.masked}):`,
+          error,
+        );
       }
-      console.warn(`[gemini] translation failed (${modelName}):`, error);
     }
   }
   return null;
