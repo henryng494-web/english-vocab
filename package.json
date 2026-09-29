@@ -45,7 +45,7 @@
     "backfill:images": "npx tsx scripts/backfill-stock-images.ts",
     "refresh:all-images": "npm run backfill:images -- --force",
     "translate:all-es": "npx tsx scripts/translate-all-words-es.ts",
-    "backfill:translations": "npx tsx scripts/backfill-translations.ts",
+    "backfill:translations": "bash scripts/run-backfill-translations.sh",
     "backfill:translations:free": "GEMINI_FREE_TIER=1 GEMINI_MAX_RPM=15 CONCURRENCY=1 BATCH_DELAY_MS=0 LOCALE_DELAY_MS=0 npx tsx scripts/backfill-translations.ts",
     "backfill:translations:free:sequential": "bash scripts/run-backfill-translations-free-sequential.sh",
     "re-enrich:stale": "npx tsx scripts/re-enrich-stale-words.ts",
