@@ -5,8 +5,7 @@
  *
  * Env:
  *   NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, GEMINI_API_KEY (required)
- *   GEMINI_TRANSLATION_MODEL=gemini-1.5-flash  (default if unset; if 404, try
- *     gemini-2.0-flash-lite or gemini-flash-lite-latest on your API key)
+ *   GEMINI_TRANSLATION_MODEL=gemini-3.6-flash  (default via run-backfill-translations.sh)
  *   LOCALES=es,pt,ja   — subset (default: all 12 below)
  *   WORD=apple         — single word only
  *   LIMIT=100 OFFSET=0 — paginate words (0 = all)
@@ -16,7 +15,7 @@
  *   LOCALE_DELAY_MS=400 — pause after each word×locale hydrate
  *   CONCURRENCY=2      — parallel words (keep low for Gemini quota)
  *   GEMINI_FREE_TIER=1 — force CONCURRENCY=1, GEMINI_MAX_RPM=15, free flash models only
- *   GEMINI_MAX_RPM=15  — min interval between translation API calls (see gemini-core)
+ *   GEMINI_MAX_RPM=5   — default via run-backfill-translations.sh (15 when GEMINI_FREE_TIER=1)
  *   DRY_RUN=1          — scan + log only, no Gemini / DB writes
  */
 import { createClient } from "@supabase/supabase-js";
@@ -36,11 +35,14 @@ const freeTier =
 if (!process.env.GEMINI_TRANSLATION_MODEL?.trim()) {
   process.env.GEMINI_TRANSLATION_MODEL = freeTier
     ? "gemini-2.0-flash"
-    : "gemini-1.5-flash";
+    : "gemini-3.6-flash";
+}
+
+if (!process.env.GEMINI_MAX_RPM?.trim()) {
+  process.env.GEMINI_MAX_RPM = freeTier ? "15" : "5";
 }
 
 if (freeTier) {
-  process.env.GEMINI_MAX_RPM = process.env.GEMINI_MAX_RPM?.trim() || "15";
   process.env.CONCURRENCY = "1";
   process.env.BATCH_DELAY_MS = process.env.BATCH_DELAY_MS?.trim() || "0";
   process.env.LOCALE_DELAY_MS = process.env.LOCALE_DELAY_MS?.trim() || "0";
