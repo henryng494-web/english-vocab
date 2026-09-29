@@ -18,6 +18,8 @@
  *   GEMINI_MAX_RPM=5   — default via run-backfill-translations.sh (15 when GEMINI_FREE_TIER=1)
  *   DRY_RUN=1          — scan + log only, no Gemini / DB writes
  */
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { createClient } from "@supabase/supabase-js";
 import {
   hydrateLearnerLocaleWordContent,
@@ -26,7 +28,28 @@ import {
 import type { LearnerLocale } from "@/lib/learner-locale";
 import { ON_DEMAND_LEARNER_LOCALES } from "@/lib/learner-locale";
 import { persistMultilangPatch } from "@/lib/persist-multilang-patch";
+import { geminiPoolAllDead, logGeminiPoolSummary } from "@/lib/gemini-key-pool";
 import type { WordDetail } from "@/types/database";
+
+function loadEnv(): void {
+  const envPath = resolve(process.cwd(), ".env.local");
+  try {
+    const content = readFileSync(envPath, "utf8");
+    for (const line of content.split("\n")) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith("#")) continue;
+      const eq = trimmed.indexOf("=");
+      if (eq === -1) continue;
+      const key = trimmed.slice(0, eq);
+      const val = trimmed.slice(eq + 1);
+      if (!process.env[key]) process.env[key] = val;
+    }
+  } catch {
+    console.warn("Warning: .env.local not found — set env vars manually.");
+  }
+}
+
+loadEnv();
 
 const freeTier =
   process.env.GEMINI_FREE_TIER === "1" ||
@@ -50,11 +73,12 @@ const TARGET_LOCALES: readonly LearnerLocale[] = ON_DEMAND_LEARNER_LOCALES;
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
 const key = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
-const gemini = process.env.GEMINI_API_KEY?.trim();
+const gemini =
+  process.env.GEMINI_API_KEYS?.trim() || process.env.GEMINI_API_KEY?.trim();
 
 if (!url || !key || !gemini) {
   console.error(
-    "Need NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, GEMINI_API_KEY",
+    "Need NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, and GEMINI_API_KEYS (or GEMINI_API_KEY)",
   );
   process.exit(1);
 }
@@ -235,8 +259,9 @@ function countTasks(rows: WordDetail[], locales: LearnerLocale[]): number {
 async function main(): Promise<void> {
   const locales = parseLocales();
   console.log(
-    `Model: ${process.env.GEMINI_TRANSLATION_MODEL} | locales: ${locales.join(", ")} | concurrency=${concurrency} | maxRpm=${process.env.GEMINI_MAX_RPM ?? "off"} | freeTier=${freeTier} | dryRun=${dryRun}`,
+    `Model: ${process.env.GEMINI_TRANSLATION_MODEL} | locales: ${locales.join(", ")} | concurrency=${concurrency} | maxRpm(perKey)=${process.env.GEMINI_MAX_RPM ?? "off"} | freeTier=${freeTier} | dryRun=${dryRun}`,
   );
+  if (!dryRun) logGeminiPoolSummary();
 
   console.log("Loading word_details…");
   const rows = await fetchWordDetails();
@@ -259,6 +284,13 @@ async function main(): Promise<void> {
       `\n--- Batch ${Math.floor(i / batchSize) + 1} (words ${i + 1}-${i + batch.length} of ${rows.length}) ---`,
     );
     await runWordPool(batch, locales, progress, counters);
+    logGeminiPoolSummary();
+    if (!dryRun && geminiPoolAllDead()) {
+      console.error(
+        "\nAll Gemini keys exhausted (429 cooldown expired with nothing left, or 402/401 dead) — stopping run instead of spinning.",
+      );
+      break;
+    }
     if (i + batchSize < rows.length && batchDelayMs > 0) {
       console.log(`Batch delay ${batchDelayMs}ms…`);
       await sleep(batchDelayMs);
