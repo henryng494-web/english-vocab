@@ -163,12 +163,15 @@ function translationModelCandidates(): string[] {
       ),
     ];
   }
+  // Cost/latency-optimized default: "-latest" flash-lite is cheap, fast, and
+  // has the most generous free-tier quota. Only try heavier gemini-3.6-flash
+  // as a fallback (it's slower and quota-restricted), never Pro/Preview tiers.
   return [
     ...new Set(
       [
-        preferred,
-        "gemini-3.6-flash",
+        preferred || "gemini-flash-lite-latest",
         "gemini-flash-lite-latest",
+        "gemini-3.6-flash",
         "gemini-1.5-flash",
         "gemini-2.0-flash",
         "gemini-2.0-flash-lite",
