@@ -21,6 +21,7 @@ import {
   buildExampleTranslationPrompt,
   buildExamplesPrompt,
   buildMeaningPrompt,
+  buildLearnerLocaleBatchPrompt,
   buildLearnerLocaleCollocationPrompt,
   buildLearnerLocaleExampleTranslationPrompt,
   buildLearnerLocaleMeaningPrompt,
@@ -29,6 +30,7 @@ import {
   buildSpanishMeaningPrompt,
   buildSimilarWordsPrompt,
   type CollocationTranslationInput,
+  type LearnerLocaleBatchItem,
 } from "@/lib/gemini-prompts";
 import { sanitizeVietnameseText } from "@/lib/sanitize-vi";
 import { getPresetRank } from "@/data/preset-word-details";
@@ -161,12 +163,15 @@ function translationModelCandidates(): string[] {
       ),
     ];
   }
+  // Cost/latency-optimized default: "-latest" flash-lite is cheap, fast, and
+  // has the most generous free-tier quota. Only try heavier gemini-3.6-flash
+  // as a fallback (it's slower and quota-restricted), never Pro/Preview tiers.
   return [
     ...new Set(
       [
-        preferred,
-        "gemini-3.6-flash",
+        preferred || "gemini-flash-lite-latest",
         "gemini-flash-lite-latest",
+        "gemini-3.6-flash",
         "gemini-1.5-flash",
         "gemini-2.0-flash",
         "gemini-2.0-flash-lite",
@@ -241,10 +246,19 @@ async function generateTranslationGeminiText(
   const MAX_GLOBAL_WAITS = 2;
   let globalWaitsUsed = 0;
 
+  // Unclassified ("other") errors — timeouts, transient network issues,
+  // malformed responses — are not fixed by rotating to another key, so cap
+  // how many times we retry those specifically per task instead of burning
+  // through every key on every model fallback for the same underlying
+  // problem.
+  const MAX_OTHER_ERROR_RETRIES = 2;
+  let otherErrorCount = 0;
+
   for (const modelName of candidates) {
     let keyAttempts = 0;
 
     while (keyAttempts < poolSize) {
+      if (otherErrorCount >= MAX_OTHER_ERROR_RETRIES) return null;
       const handle = pickNextGeminiKey();
 
       if (!handle) {
@@ -295,10 +309,12 @@ async function generateTranslationGeminiText(
           markGeminiKeyDead(handle.key, describeGeminiError(error));
           continue;
         }
+        otherErrorCount += 1;
         console.warn(
-          `[gemini] translation failed (${modelName}, ${handle.masked}):`,
+          `[gemini] translation failed (${modelName}, ${handle.masked}) [${otherErrorCount}/${MAX_OTHER_ERROR_RETRIES}]:`,
           error,
         );
+        if (otherErrorCount >= MAX_OTHER_ERROR_RETRIES) return null;
       }
     }
   }
@@ -377,6 +393,39 @@ export async function translateExampleToLearnerLocaleWithGemini(
     ?.trim()
     .replace(/^["']|["']$/g, "");
   return text || null;
+}
+
+/**
+ * One Gemini call for every missing meaning/example/collocation translation
+ * on a single word×locale task — see `buildLearnerLocaleBatchPrompt`. Returns
+ * `null` on any failure/mismatch so callers can fall back to the per-item
+ * translate*WithGemini calls above without losing correctness.
+ */
+export async function translateWordLocaleBatchWithGemini(
+  locale: LearnerLocale,
+  word: string,
+  items: LearnerLocaleBatchItem[],
+): Promise<Array<string | null> | null> {
+  if (!learnerLocaleNeedsHydration(locale) || items.length === 0) return null;
+  const text = await generateTranslationGeminiText(
+    buildLearnerLocaleBatchPrompt(locale, word, items),
+  );
+  if (!text) return null;
+  const jsonMatch = text.match(/\{[\s\S]*\}/);
+  if (!jsonMatch) return null;
+  try {
+    const parsed = JSON.parse(jsonMatch[0]) as { translations?: unknown };
+    if (!Array.isArray(parsed.translations)) return null;
+    if (parsed.translations.length !== items.length) return null;
+    return parsed.translations.map((value) => {
+      const s = String(value ?? "")
+        .trim()
+        .replace(/^["']|["']$/g, "");
+      return s || null;
+    });
+  } catch {
+    return null;
+  }
 }
 
 function parseExamples(

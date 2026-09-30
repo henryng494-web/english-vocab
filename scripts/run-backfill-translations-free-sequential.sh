@@ -3,7 +3,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-export GEMINI_TRANSLATION_MODEL="${GEMINI_TRANSLATION_MODEL:-gemini-3.6-flash}"
+export GEMINI_TRANSLATION_MODEL="${GEMINI_TRANSLATION_MODEL:-gemini-flash-lite-latest}"
 export GEMINI_MAX_RPM="${GEMINI_MAX_RPM:-5}"
 export GEMINI_TRANSLATION_TIMEOUT_MS="${GEMINI_TRANSLATION_TIMEOUT_MS:-20000}"
 export CONCURRENCY=1

@@ -5,7 +5,7 @@
  *
  * Env:
  *   NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, GEMINI_API_KEY (required)
- *   GEMINI_TRANSLATION_MODEL=gemini-3.6-flash  (default via run-backfill-translations.sh)
+ *   GEMINI_TRANSLATION_MODEL=gemini-flash-lite-latest  (default — cheapest/fastest flash-lite)
  *   LOCALES=es,pt,ja   — subset (default: all 12 below)
  *   WORD=apple         — single word only
  *   LIMIT=100 OFFSET=0 — paginate words (0 = all)
@@ -56,7 +56,10 @@ const freeTier =
   process.env.GEMINI_FREE_TIER === "true";
 
 if (!process.env.GEMINI_TRANSLATION_MODEL?.trim()) {
-  process.env.GEMINI_TRANSLATION_MODEL = "gemini-3.6-flash";
+  // Cost-optimized default — cheap, fast, generous free-tier quota. Avoid
+  // gemini-3.6-flash as the default (slower, ~20 req/day quota) and never
+  // default to Pro/Preview tiers.
+  process.env.GEMINI_TRANSLATION_MODEL = "gemini-flash-lite-latest";
 }
 
 if (!process.env.GEMINI_MAX_RPM?.trim()) {

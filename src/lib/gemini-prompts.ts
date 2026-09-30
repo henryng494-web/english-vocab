@@ -367,6 +367,76 @@ Rules:
 - Reply with ONLY the ${language} sentence. No quotes, no explanation.`;
 }
 
+export type LearnerLocaleBatchItem =
+  | {
+      kind: "meaning";
+      vietnameseMeaning: string;
+      englishDefinition?: string | null;
+    }
+  | {
+      kind: "example";
+      englishSentence: string;
+      pos?: string | null;
+      meaning?: string | null;
+    }
+  | {
+      kind: "collocation";
+      englishPhrase: string;
+      vietnameseGloss?: string | null;
+    };
+
+/**
+ * One Gemini call for every missing meaning/example/collocation translation
+ * on a single word×locale task instead of up to ~7 separate calls — cuts
+ * request count (and cost) for the translation backfill. Callers MUST fall
+ * back to the per-item prompts above if the JSON response is missing or the
+ * array length doesn't match `items.length`.
+ */
+export function buildLearnerLocaleBatchPrompt(
+  locale: LearnerLocale,
+  word: string,
+  items: LearnerLocaleBatchItem[],
+): string {
+  const language = targetLanguageName(locale);
+  const lines = items
+    .map((item, index) => {
+      const n = index + 1;
+      if (item.kind === "meaning") {
+        const def = item.englishDefinition?.trim()
+          ? ` English definition: "${item.englishDefinition.trim()}".`
+          : "";
+        return `${n}. [MEANING]${def} Vietnamese gloss(es) for "${word}": "${item.vietnameseMeaning.trim()}"`;
+      }
+      if (item.kind === "collocation") {
+        const hint = item.vietnameseGloss?.trim()
+          ? ` Vietnamese gloss hint: "${item.vietnameseGloss.trim()}".`
+          : "";
+        return `${n}. [PHRASE]${hint} Collocation of "${word}": "${item.englishPhrase.trim()}"`;
+      }
+      const posHint = item.pos?.trim() ? ` POS: ${item.pos.trim()}.` : "";
+      const meaningHint = item.meaning?.trim()
+        ? ` Meaning: ${item.meaning.trim()}.`
+        : "";
+      return `${n}. [SENTENCE]${posHint}${meaningHint} Example for "${word}": "${item.englishSentence.trim()}"`;
+    })
+    .join("\n");
+
+  return `Translate ${items.length} vocabulary-flashcard items into natural ${language} for a learner. Headword: "${word}".
+
+Item kinds:
+- [MEANING]: translate the Vietnamese gloss(es) into a short ${language} gloss. Never blank.
+- [PHRASE]: short 2-6 word collocation — a short natural ${language} phrase, NOT a full sentence.
+- [SENTENCE]: full example sentence — one natural ${language} sentence, same register, not word-by-word.
+
+Items:
+${lines}
+
+Reply with ONLY strict JSON (no markdown fences, no explanation):
+{"translations": ["<item 1 translation>", "<item 2 translation>", ...]}
+
+The "translations" array MUST have exactly ${items.length} elements, same order as the items above, and no element may be an empty string.`;
+}
+
 export function buildSpanishMeaningPrompt(
   word: string,
   vietnameseMeaning: string,
