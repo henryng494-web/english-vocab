@@ -6,7 +6,7 @@
  * Env:
  *   NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, GEMINI_API_KEY (required)
  *   GEMINI_TRANSLATION_MODEL=gemini-flash-lite-latest  (default — cheapest/fastest flash-lite)
- *   LOCALES=es,pt,ja   — subset (default: all 12 below)
+ *   LOCALES=es,pt,ja   — subset (default: vi + all 12 on-demand locales; vi = collocation/chunk glosses only)
  *   WORD=apple         — single word only
  *   LIMIT=100 OFFSET=0 — paginate words (0 = all)
  *   PAGE_SIZE=500      — Supabase fetch page size
@@ -23,7 +23,7 @@ import { resolve } from "node:path";
 import { createClient } from "@supabase/supabase-js";
 import {
   hydrateLearnerLocaleWordContent,
-  wordDetailNeedsLocaleHydration,
+  wordDetailNeedsBackfillForLocale,
 } from "@/lib/localize-word-content";
 import type { LearnerLocale } from "@/lib/learner-locale";
 import { ON_DEMAND_LEARNER_LOCALES } from "@/lib/learner-locale";
@@ -72,7 +72,8 @@ if (freeTier) {
   process.env.LOCALE_DELAY_MS = process.env.LOCALE_DELAY_MS?.trim() || "0";
 }
 
-const TARGET_LOCALES: readonly LearnerLocale[] = ON_DEMAND_LEARNER_LOCALES;
+// `vi` is included for collocation/chunk glosses only (meanings/examples are native).
+const TARGET_LOCALES: readonly LearnerLocale[] = ["vi", ...ON_DEMAND_LEARNER_LOCALES];
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
 const key = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
@@ -154,7 +155,7 @@ function localesNeeded(
   locales: LearnerLocale[],
 ): LearnerLocale[] {
   return locales.filter((locale) =>
-    wordDetailNeedsLocaleHydration(detail, locale),
+    wordDetailNeedsBackfillForLocale(detail, locale),
   );
 }
 
@@ -200,7 +201,7 @@ async function processOneWord(
     try {
       const patch = await hydrateLearnerLocaleWordContent(current, locale);
       const merged = mergeDetail(current, patch);
-      if (wordDetailNeedsLocaleHydration(merged, locale)) {
+      if (wordDetailNeedsBackfillForLocale(merged, locale)) {
         console.warn(
           `${label} incomplete '${word}' for '${locale}' (Gemini empty?)`,
         );

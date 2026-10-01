@@ -16,6 +16,7 @@ import {
   mergePhraseRowsFromEntry,
   parsePhraseTranslationsJson,
   phraseTranslationsNeedLocale,
+  phraseTranslationsNeedVi,
 } from "@/lib/multilang-record";
 import { fallbackLearnerMeaningGloss } from "@/lib/localized-gloss";
 import { parseExamples } from "@/lib/parse-examples";
@@ -58,6 +59,38 @@ export function wordDetailNeedsLocaleHydration(
     (chunkEntry != null &&
       phraseTranslationsNeedLocale(phrases, chunkEntry, locale))
   );
+}
+
+/**
+ * Vietnamese is the source gloss for meanings/examples, but generated
+ * collocations ("Hay dùng với") ship without a `vi` gloss until translated.
+ */
+export function wordDetailNeedsViPhraseHydration(
+  detail: Pick<
+    WordDetail,
+    "word" | "vietnamese_meaning" | "examples" | "phrase_translations" | "word_type"
+  >,
+): boolean {
+  const chunkEntry = resolveLearningChunks(detail.word, {
+    examples: detail.examples,
+    wordType: detail.word_type,
+    meaning: detail.vietnamese_meaning,
+  });
+  if (!chunkEntry) return false;
+  return phraseTranslationsNeedVi(
+    parsePhraseTranslationsJson(detail.phrase_translations),
+    chunkEntry,
+  );
+}
+
+/** Backfill predicate: phrase-only for `vi`, full check for other locales. */
+export function wordDetailNeedsBackfillForLocale(
+  detail: Parameters<typeof wordDetailNeedsLocaleHydration>[0],
+  locale: LearnerLocale,
+): boolean {
+  return locale === "vi"
+    ? wordDetailNeedsViPhraseHydration(detail)
+    : wordDetailNeedsLocaleHydration(detail, locale);
 }
 
 /** @deprecated Use `wordDetailNeedsLocaleHydration(detail, "es")`. */
@@ -108,7 +141,8 @@ export async function hydrateLearnerLocaleWordContent(
   const parsedAll = parseExamples(detail.examples);
   let phrase_translations = parsePhraseTranslationsJson(detail.phrase_translations);
 
-  const hydrateChunks = Boolean(chunkEntry) && needsLocale;
+  const hydrateChunks =
+    Boolean(chunkEntry) && (needsLocale || locale === "vi");
   const collocations = hydrateChunks
     ? mergePhraseRowsFromEntry(
         chunkEntry!.collocations,

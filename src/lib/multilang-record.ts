@@ -140,6 +140,28 @@ export function phraseListNeedsLocale(
   return false;
 }
 
+/** Vietnamese gloss missing for a collocation/chunk (no stored row.vi and no curated item.vi). */
+export function phraseListNeedsVi(
+  items: { en: string; vi?: string }[],
+  rows: PhraseTranslationRow[] | undefined,
+): boolean {
+  for (const item of items) {
+    const row = findPhraseRow(rows, item.en);
+    if (!row?.vi?.trim() && !item.vi?.trim()) return true;
+  }
+  return false;
+}
+
+export function phraseTranslationsNeedVi(
+  phrases: PhraseTranslationsJson,
+  entry: LearningChunkEntry,
+): boolean {
+  return (
+    phraseListNeedsVi(entry.collocations, phrases.collocations) ||
+    phraseListNeedsVi(entry.chunks, phrases.chunks)
+  );
+}
+
 export function phraseTranslationsNeedLocale(
   phrases: PhraseTranslationsJson,
   entry: LearningChunkEntry,
