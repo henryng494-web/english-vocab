@@ -1,72 +1,107 @@
 "use client";
 
+import {
+  APP_LOCALE_FLAGS,
+  LEARNER_LOCALE_FLAGS,
+  ONBOARDING_STEP1_TITLE,
+  ONBOARDING_STEP2_COPY,
+} from "@/components/onboarding/onboarding-copy";
 import { useAppSettings } from "@/context/AppSettingsContext";
-import { useI18n } from "@/hooks/use-i18n";
 import { displayFontClass } from "@/lib/fonts";
 import {
   LEARNER_LOCALE_LABELS,
   LEARNER_LOCALE_MENU_OPTIONS,
+  type LearnerLocale,
 } from "@/lib/app-settings";
-import { APP_LOCALES, APP_LOCALE_LABELS } from "@/lib/i18n/messages";
+import { APP_LOCALE_LABELS, type AppLocale } from "@/lib/i18n/messages";
+import { useState } from "react";
 
 export function OnboardingScreen() {
-  const {
-    appLanguage,
-    setAppLanguage,
-    learnerLocale,
-    setLearnerLocale,
-    completeOnboarding,
-  } = useAppSettings();
-  const { t } = useI18n();
+  const { setAppLanguage, setLearnerLocale, completeOnboarding } =
+    useAppSettings();
+  const [picked, setPicked] = useState<LearnerLocale | null>(null);
+  const [appChoice, setAppChoice] = useState<AppLocale>("en");
+
+  function chooseLearner(locale: LearnerLocale) {
+    setLearnerLocale(locale);
+    setAppLanguage("en");
+    setAppChoice("en");
+    setPicked(locale);
+  }
+
+  function chooseApp(locale: AppLocale) {
+    setAppChoice(locale);
+    setAppLanguage(locale);
+  }
+
+  if (!picked) {
+    return (
+      <main className="onboarding" aria-labelledby="onboarding-title">
+        <div className="onboarding__scroll">
+          <h1 id="onboarding-title" className={`onboarding__title ${displayFontClass}`}>
+            {ONBOARDING_STEP1_TITLE}
+          </h1>
+          <ul className="onboarding__list">
+            {LEARNER_LOCALE_MENU_OPTIONS.map((locale) => (
+              <li key={locale}>
+                <button
+                  type="button"
+                  className="onboarding__row"
+                  onClick={() => chooseLearner(locale)}
+                >
+                  <span className="onboarding__flag" aria-hidden>
+                    {LEARNER_LOCALE_FLAGS[locale]}
+                  </span>
+                  <span className="onboarding__label">
+                    {LEARNER_LOCALE_LABELS[locale]}
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </main>
+    );
+  }
+
+  const copy = ONBOARDING_STEP2_COPY[appChoice];
+  const titleCopy = ONBOARDING_STEP2_COPY[picked];
+  const options: AppLocale[] = ["en", picked];
 
   return (
     <main className="onboarding" aria-labelledby="onboarding-title">
       <div className="onboarding__scroll">
+        <button
+          type="button"
+          className="onboarding__back"
+          onClick={() => setPicked(null)}
+        >
+          ← {copy.back}
+        </button>
         <h1 id="onboarding-title" className={`onboarding__title ${displayFontClass}`}>
-          {t("onboarding.title")}
+          {titleCopy.title}
         </h1>
-        <p className="app-menu__hint">{t("onboarding.subtitle")}</p>
-
-        <section className="app-menu__section onboarding__section">
-          <h2 className="app-menu__section-title">{t("menu.language")}</h2>
-          <p className="app-menu__hint">{t("menu.languageHint")}</p>
-          <div className="app-menu__chips">
-            {APP_LOCALES.map((locale) => (
+        <ul className="onboarding__list">
+          {options.map((locale) => (
+            <li key={locale}>
               <button
-                key={locale}
                 type="button"
-                className={`app-menu__chip${appLanguage === locale ? " is-active" : ""}`}
-                aria-pressed={appLanguage === locale}
-                onClick={() => setAppLanguage(locale)}
+                className={`onboarding__row${appChoice === locale ? " is-active" : ""}`}
+                aria-pressed={appChoice === locale}
+                onClick={() => chooseApp(locale)}
               >
-                {APP_LOCALE_LABELS[locale]}
+                <span className="onboarding__flag" aria-hidden>
+                  {APP_LOCALE_FLAGS[locale]}
+                </span>
+                <span className="onboarding__label">{APP_LOCALE_LABELS[locale]}</span>
               </button>
-            ))}
-          </div>
-        </section>
-
-        <section className="app-menu__section onboarding__section">
-          <h2 className="app-menu__section-title">{t("menu.learnerLocale")}</h2>
-          <p className="app-menu__hint">{t("menu.learnerLocaleHint")}</p>
-          <div className="app-menu__chips">
-            {LEARNER_LOCALE_MENU_OPTIONS.map((locale) => (
-              <button
-                key={locale}
-                type="button"
-                className={`app-menu__chip${learnerLocale === locale ? " is-active" : ""}`}
-                aria-pressed={learnerLocale === locale}
-                onClick={() => setLearnerLocale(locale)}
-              >
-                {LEARNER_LOCALE_LABELS[locale]}
-              </button>
-            ))}
-          </div>
-        </section>
+            </li>
+          ))}
+        </ul>
       </div>
-
       <div className="onboarding__footer">
         <button type="button" className="onboarding__cta" onClick={completeOnboarding}>
-          {t("onboarding.continue")}
+          {copy.continue}
         </button>
       </div>
     </main>
