@@ -16,6 +16,9 @@ import { resolve } from "node:path";
 import { createClient } from "@supabase/supabase-js";
 import { PRESET_RANK_BY_WORD } from "@/data/preset-vocabulary";
 import { enrichWord } from "@/lib/enrich-word";
+import { GoogleGenerativeAI } from "@google/generative-ai";
+import { keepNaturalExamples } from "@/lib/example-quality";
+import { buildExamplesPrompt } from "@/lib/gemini-prompts";
 import { parseExamples, serializeExamples } from "@/lib/parse-examples";
 
 function loadEnv(): void {
@@ -88,6 +91,34 @@ async function fetchRows(): Promise<Row[]> {
   return rows;
 }
 
+async function generateExamplesFor(word: string, pos: string, meaning: string | null) {
+  const key = (process.env.GEMINI_API_KEYS?.split(",")[0] || process.env.GEMINI_API_KEY)!.trim();
+  const model = new GoogleGenerativeAI(key).getGenerativeModel({
+    model: process.env.GEMINI_TRANSLATION_MODEL?.trim() || "gemini-flash-lite-latest",
+  });
+  const lines = (meaning ?? "").split("\n").map((l) => l.trim()).filter(Boolean);
+  const text = (
+    await model.generateContent(buildExamplesPrompt(word, pos, meaning, lines))
+  ).response.text();
+  const match = text.match(/\{[\s\S]*\}/);
+  if (!match) return [];
+  const parsed = JSON.parse(match[0]) as { examples?: unknown };
+  return parseExamples(parsed.examples as never);
+}
+
+/** Aligned to the stored meaning first, then to the primary gloss only. */
+async function repairExamples(word: string, pos: string, meaning: string | null) {
+  const primary = (meaning ?? "").split("\n")[0]?.trim() || null;
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    const raw = await generateExamplesFor(word, pos, meaning);
+    for (const gloss of [meaning, primary, null]) {
+      const kept = keepNaturalExamples(word, raw, pos, gloss).filter((x) => x.vi?.trim());
+      if (kept.length) return kept.slice(0, 2);
+    }
+  }
+  return [];
+}
+
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 const isBilling = (e: unknown) =>
   /402|401|payment required|credits are depleted|API key not valid/i.test(
@@ -122,11 +153,17 @@ async function main(): Promise<void> {
         if (missing.includes("vietnamese_meaning")) patch.vietnamese_meaning = e.vietnameseMeaning;
         if (missing.includes("collocations")) patch.collocations = e.collocations;
         if (missing.includes("examples")) {
-          const ser = serializeExamples(e.examples);
+          let examples = e.examples;
+          if (!examples?.length) {
+            // Multi-gloss meanings can make strict sense-alignment reject every
+            // generated pair; retry without gloss alignment so the card is not empty.
+            examples = await repairExamples(r.word, r.word_type?.trim() || e.wordType, r.vietnamese_meaning);
+          }
+          const ser = serializeExamples(examples);
           if (!parseExamples(ser).length) throw new Error("enrichment returned no examples");
           patch.examples = ser;
-          patch.example_translations = null;
-          patch.phrase_translations = null;
+          patch.example_translations = [];
+          patch.phrase_translations = {};
         }
         const { error } = await supabase.from("word_details").update(patch).eq("word", r.word);
         if (error) throw error;
