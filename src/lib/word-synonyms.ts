@@ -66,6 +66,10 @@ export async function resolveSimilarWords(
   );
   const resolved = normalizeSimilarWords(fromGemini, headword, familyWords);
 
+  // Never cache an empty result: a transient Gemini failure (402/429/timeout)
+  // would otherwise hide the Family button until the server restarts.
+  if (!resolved.length) return resolved;
+
   if (SIMILAR_WORDS_CACHE.size >= SIMILAR_WORDS_CACHE_MAX) {
     const first = SIMILAR_WORDS_CACHE.keys().next().value;
     if (first) SIMILAR_WORDS_CACHE.delete(first);

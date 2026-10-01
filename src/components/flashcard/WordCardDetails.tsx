@@ -5,7 +5,6 @@ import { VocabExampleList } from "@/components/flashcard/VocabExampleList";
 import { WordLearningChunks } from "@/components/flashcard/WordLearningChunks";
 import { useI18n } from "@/hooks/use-i18n";
 import { useCardSimilarWords } from "@/hooks/use-card-similar-words";
-import { keepNaturalExamples } from "@/lib/example-quality";
 import { capitalizeFirst } from "@/lib/format-text";
 import { resolveLearningChunks } from "@/lib/learning-chunks";
 import { parseExamples, type VocabExample } from "@/lib/parse-examples";
@@ -119,8 +118,6 @@ export function WordCardDetails({
   const parsed = loading
     ? []
     : displayExamples ?? parseExamples(examples);
-  const hasBody =
-    chunksOnly || keepNaturalExamples(word, parsed, wordType, meaning).length > 0;
   const rows = (family ?? []).filter((item) => item.word.trim());
   const similar = useCardSimilarWords({
     word,
@@ -241,21 +238,6 @@ export function WordCardDetails({
                   localeLoadingGloss={localeLoadingExamples}
                   compact
                 />
-              ) : null}
-              {!hasBody ? (
-                localeLoadingExamples ? (
-                  <div className="space-y-2 pt-1" aria-hidden>
-                    <div className="h-4 w-4/5 animate-pulse rounded bg-primary-50" />
-                    <div className="h-4 w-3/5 animate-pulse rounded bg-primary-50" />
-                  </div>
-                ) : (
-                  <p
-                    className="vocab-examples__vi px-1 pt-1 text-sm italic"
-                    role="status"
-                  >
-                    {t("card.examplesEmpty")}
-                  </p>
-                )
               ) : null}
             </div>
           </div>

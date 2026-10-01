@@ -84,11 +84,11 @@ export function prefetchCardSimilarWords(
         headword,
         getFamilyDisplayWords(headword),
       );
-      clientSimilarCache.set(key, resolved);
+      if (resolved.length) clientSimilarCache.set(key, resolved);
       return resolved;
     })
     .catch(() => {
-      clientSimilarCache.set(key, []);
+      /* transient failure — do not cache, retry on next open */
       return [] as string[];
     })
     .finally(() => {

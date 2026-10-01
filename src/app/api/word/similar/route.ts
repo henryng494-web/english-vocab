@@ -21,7 +21,9 @@ export async function GET(request: NextRequest) {
     { similar_words },
     {
       headers: {
-        "Cache-Control": "public, max-age=86400, stale-while-revalidate=3600",
+        "Cache-Control": similar_words.length
+          ? "public, max-age=86400, stale-while-revalidate=3600"
+          : "no-store",
       },
     },
   );
