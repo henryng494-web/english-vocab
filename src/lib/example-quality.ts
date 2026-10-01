@@ -242,9 +242,13 @@ export function isLikelyVietnameseGloss(text: string | null | undefined): boolea
 export function isQualityExampleTranslation(
   example: VocabExample,
   word: string,
+  meaning?: string | null,
 ): boolean {
   const vi = example.vi?.trim() ?? "";
   if (!vi) return false;
+  // Loanwords (karaoke, pizza, spa…) stay in English inside Vietnamese; the
+  // curated gloss itself contains the headword, so do not reject them.
+  if (meaning && containsUntranslatedHeadword(meaning, word)) return true;
   return !containsUntranslatedHeadword(vi, word);
 }
 
@@ -267,6 +271,7 @@ export function isNaturalExample(
   example: VocabExample,
   word: string,
   pos?: string | null,
+  meaning?: string | null,
 ): boolean {
   const en = example.en?.trim() ?? "";
   if (!en || isGenericExample(en)) return false;
@@ -288,7 +293,7 @@ export function isNaturalExample(
   ) {
     return false;
   }
-  if (!isQualityExampleTranslation(example, word)) return false;
+  if (!isQualityExampleTranslation(example, word, meaning)) return false;
   return true;
 }
 
@@ -299,7 +304,7 @@ export function keepNaturalExamples(
   meaning?: string | null,
 ): VocabExample[] {
   const natural = (examples ?? []).filter((item) =>
-    isNaturalExample(item, word, pos),
+    isNaturalExample(item, word, pos, meaning),
   );
   const displayed = alignmentMeaningLines(meaning);
   if (!displayed.length) return natural.slice(0, TARGET_COUNT);

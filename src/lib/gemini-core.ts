@@ -351,7 +351,7 @@ export async function translateCollocationToLearnerLocaleWithGemini(
   word: string,
   vietnameseGloss?: string | null,
 ): Promise<string | null> {
-  if (!learnerLocaleNeedsHydration(locale)) return null;
+
   const en = englishPhrase.trim();
   if (!en) return null;
   const text = (
@@ -376,7 +376,7 @@ export async function translateExampleToLearnerLocaleWithGemini(
   pos?: string | null,
   meaning?: string | null,
 ): Promise<string | null> {
-  if (!learnerLocaleNeedsHydration(locale)) return null;
+
   const en = englishSentence.trim();
   if (!en) return null;
   const text = (
@@ -406,7 +406,7 @@ export async function translateWordLocaleBatchWithGemini(
   word: string,
   items: LearnerLocaleBatchItem[],
 ): Promise<Array<string | null> | null> {
-  if (!learnerLocaleNeedsHydration(locale) || items.length === 0) return null;
+  if (items.length === 0) return null;
   const text = await generateTranslationGeminiText(
     buildLearnerLocaleBatchPrompt(locale, word, items),
   );
