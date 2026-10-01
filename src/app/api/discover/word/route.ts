@@ -1,4 +1,13 @@
-import { geminiRealtimeKey, isRealtimeGeminiDisabled } from "@/lib/gemini-realtime";
+import {
+  allowOnDemandGeminiForThisRequest,
+  geminiRealtimeKey,
+  isRealtimeGeminiDisabled,
+} from "@/lib/gemini-realtime";
+import {
+  clientKeyFromRequest,
+  isPlausibleOnDemandWord,
+  takeOnDemandSlot,
+} from "@/lib/on-demand-rate-limit";
 import { hasQualityStandardVocab, getStandardSearchKeyword } from "@/data/standard-vocab";
 import { getPresetRank } from "@/data/preset-word-details";
 import { createClient } from "@/lib/supabase/server";
@@ -6,7 +15,7 @@ import { getSupabaseWriteClient } from "@/lib/supabase/db-write";
 import { enrichmentToDiscoverWord } from "@/lib/enrichment-helpers";
 import { enrichWord } from "@/lib/enrich-word";
 import { isPersistedWordDetailComplete } from "@/lib/persisted-word-detail";
-import { generatePhoneticWithGemini } from "@/lib/gemini-core";
+import { generatePhoneticWithGemini, verifyEnglishWordWithGemini } from "@/lib/gemini-core";
 import { isPlaceholderPhonetic, formatIpa } from "@/lib/phonetic";
 import {
   examplesNeedRegeneration,
@@ -31,6 +40,7 @@ import { getFamilyHeadword } from "@/lib/word-family";
 import {
   hydrateLearnerLocaleWordContent,
   wordDetailNeedsLocaleHydration,
+  wordDetailNeedsViPhraseHydration,
 } from "@/lib/localize-word-content";
 import { persistMultilangPatch } from "@/lib/persist-multilang-patch";
 import {
@@ -191,6 +201,28 @@ async function maybeHydrateLearnerLocaleAndPersist(
   }
 }
 
+async function hydrateViPhrasesAndPersist(
+  word: string,
+  detail: WordDetail,
+): Promise<WordDetail> {
+  try {
+    const patch = await hydrateLearnerLocaleWordContent(detail, "vi");
+    const persist = await persistMultilangPatch(word, patch);
+    if (!persist.ok) {
+      console.warn(`vi phrase persist skipped for "${word}":`, persist.error);
+    }
+    return {
+      ...detail,
+      meanings: patch.meanings,
+      example_translations: patch.example_translations,
+      phrase_translations: patch.phrase_translations,
+    };
+  } catch (error) {
+    console.error(`vi phrase hydrate failed for "${word}":`, error);
+    return detail;
+  }
+}
+
 /** Self-heal: persist a freshly regenerated image URL so it's fixed for good. */
 function parseOptionalRank(rankParam: string | null): number | undefined {
   if (!rankParam) return undefined;
@@ -342,7 +374,9 @@ async function persistEnrichedWordDetail(
  * Lazy word detail — Gemini / curated standard vocab only.
  * Free Dictionary is no longer used (it returned slang/secondary senses).
  */
-export async function GET(request: Request) {
+const REJECTED_ON_DEMAND_WORDS = new Set<string>();
+
+async function handleGet(request: Request): Promise<Response> {
   try {
     const { searchParams } = new URL(request.url);
     const word = normalizeVocabInput(searchParams.get("word") ?? "");
@@ -375,6 +409,52 @@ export async function GET(request: Request) {
       .select("*")
       .eq("word", word)
       .maybeSingle();
+
+    const isNewWord = !dbDetail;
+    if (isNewWord) {
+      if (!isPlausibleOnDemandWord(word)) {
+        return NextResponse.json(
+          { error: "Word not available in this app" },
+          { status: 404 },
+        );
+      }
+      const retryAfter = takeOnDemandSlot(clientKeyFromRequest(request));
+      if (retryAfter > 0) {
+        return NextResponse.json(
+          { error: "Too many new-word lookups, try again shortly" },
+          {
+            status: 429,
+            headers: {
+              "Retry-After": String(retryAfter),
+              "Cache-Control": "no-store",
+            },
+          },
+        );
+      }
+      if (!allowOnDemandGeminiForThisRequest()) {
+        return NextResponse.json(
+          { error: "Word not available in this app" },
+          { status: 404 },
+        );
+      }
+      if (REJECTED_ON_DEMAND_WORDS.has(word)) {
+        return NextResponse.json(
+          { error: "Word not available in this app" },
+          { status: 404 },
+        );
+      }
+      const isRealWord = await verifyEnglishWordWithGemini(word);
+      if (isRealWord !== true) {
+        if (isRealWord === false) {
+          if (REJECTED_ON_DEMAND_WORDS.size > 2000) REJECTED_ON_DEMAND_WORDS.clear();
+          REJECTED_ON_DEMAND_WORDS.add(word);
+        }
+        return NextResponse.json(
+          { error: "Word not available in this app" },
+          { status: isRealWord === false ? 404 : 503, headers: { "Cache-Control": "no-store" } },
+        );
+      }
+    }
 
     const frequencyRank = rank ?? getPresetRank(word) ?? 5000;
 
@@ -574,7 +654,17 @@ export async function GET(request: Request) {
         responseWord.english_definition,
       )
     ) {
-      void persistEnrichedWordDetail(word, persistPayload);
+      if (isNewWord) {
+        if (enrichment.source === "basic" || enrichment.fromFallback) {
+          console.warn(
+            `[discover/word] on-demand "${word}" fell back to basic content — not persisting`,
+          );
+        } else {
+          await persistEnrichedWordDetail(word, persistPayload);
+        }
+      } else {
+        void persistEnrichedWordDetail(word, persistPayload);
+      }
     } else {
       console.warn(
         `[discover/word] Gemini content still misaligned for "${word}" — not persisting bad rows`,
@@ -607,11 +697,14 @@ export async function GET(request: Request) {
         dbDetail?.phrase_translations,
       ),
     };
-    const localizedDetail = await maybeHydrateLearnerLocaleAndPersist(
+    let localizedDetail = await maybeHydrateLearnerLocaleAndPersist(
       word,
       enrichedDetail,
       learnerLocale,
     );
+    if (isNewWord && wordDetailNeedsViPhraseHydration(localizedDetail)) {
+      localizedDetail = await hydrateViPhrasesAndPersist(word, localizedDetail);
+    }
     const searchKeywordEnriched =
       responseWord.search_keyword ??
       imageSearchKeyword(
@@ -640,5 +733,28 @@ export async function GET(request: Request) {
       },
       { status: 500 },
     );
+  }
+}
+
+export const maxDuration = 30;
+
+const REQUEST_BUDGET_MS = 25_000;
+
+export async function GET(request: Request): Promise<Response> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<Response>((resolve) => {
+    timer = setTimeout(() => {
+      resolve(
+        NextResponse.json(
+          { error: "Word is still being prepared, please retry" },
+          { status: 503, headers: { "Retry-After": "5", "Cache-Control": "no-store" } },
+        ),
+      );
+    }, REQUEST_BUDGET_MS);
+  });
+  try {
+    return await Promise.race([handleGet(request), timeout]);
+  } finally {
+    if (timer) clearTimeout(timer);
   }
 }

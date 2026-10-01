@@ -535,6 +535,23 @@ async function enrichWithModel(
   return parseGeminiResponse(result.response.text().trim(), word);
 }
 
+/**
+ * Cheap yes/no gate before generating a card for a word that is not in the
+ * database. Returns null when Gemini is unavailable (callers must not generate).
+ */
+export async function verifyEnglishWordWithGemini(
+  word: string,
+): Promise<boolean | null> {
+  const text = await generateTranslationGeminiText(
+    `Is "${word}" a real, correctly spelled English dictionary word (not a name, brand, slang typo, or random letters)? Reply with exactly one word: YES or NO.`,
+  );
+  if (!text) return null;
+  const answer = text.trim().toUpperCase();
+  if (answer.startsWith("YES")) return true;
+  if (answer.startsWith("NO")) return false;
+  return null;
+}
+
 /** Lightweight Gemini call — Vietnamese meanings only (saves quota vs full enrich). */
 export async function translateVietnameseWithGemini(
   word: string,

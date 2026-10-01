@@ -63,10 +63,8 @@ let cursor = 0;
 
 function getPool(): KeyEntry[] {
   if (pool) return pool;
-  if (isRealtimeGeminiDisabled()) {
-    pool = [];
-    return pool;
-  }
+  // Not cached: the on-demand request scope can enable Gemini later in the same process.
+  if (isRealtimeGeminiDisabled()) return [];
   const keys = parseApiKeys();
   pool = keys.map((key) => ({
     key,

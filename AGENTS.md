@@ -35,7 +35,7 @@ Configure these in **Cursor Dashboard → Cloud Agents → Secrets** (never comm
 | `PEXELS_API_KEY` | No | Primary stock-photo search (curated keywords + alt-text scoring) |
 | `UNSPLASH_ACCESS_KEY` | No | Secondary stock search fallback when Pexels has no match |
 | `GEMINI_MODEL` | No | Defaults to `gemini-3.6-flash` |
-| `DISABLE_REALTIME_GEMINI` | No | Realtime Gemini (discover hydrate, `forceRepair`, `/api/word/similar`, `/api/gemini/enrich`, `/api/learning-chunks/*`) is **off by default inside the Next server** (dev + Production); cards read static Supabase data. Set `0` to re-enable locally. Offline scripts (`backfill:*`, `enrich:*`) are unaffected. Flag lives in `src/lib/gemini-realtime.ts`. |
+| `DISABLE_REALTIME_GEMINI` | No | Realtime Gemini (discover hydrate, `forceRepair`, `/api/word/similar`, `/api/gemini/enrich`, `/api/learning-chunks/*`) is **off by default inside the Next server** (dev + Production); cards read static Supabase data. Set `0` to re-enable locally. **Exception:** `/api/discover/word` may call Gemini on-demand only for words missing from `word_details` (plausibility check + Gemini YES/NO word verify + per-IP rate limit `ON_DEMAND_WORDS_PER_MINUTE`=6 + 25s budget); the new word is saved to Supabase immediately. Set `DISABLE_ON_DEMAND_NEW_WORD=1` to close it. Offline scripts (`backfill:*`, `enrich:*`) are unaffected. Flag lives in `src/lib/gemini-realtime.ts`. |
 
 After adding or changing secrets in **Cursor Dashboard → Cloud Agents → Secrets**, **Rebuild environment** and start a **new** Cloud Agent task — existing sessions do not pick up new values.
 
