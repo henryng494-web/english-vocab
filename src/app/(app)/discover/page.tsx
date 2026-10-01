@@ -31,7 +31,9 @@ import { sanitizeUserFacingError } from "@/lib/user-facing-error";
 import {
   isCacheEntryValid,
   isCardContentReady,
+  evictDiscoverWordCacheEntry,
   getDiscoverWordCacheMemory,
+  isCardDataBroken,
   persistWordCache,
   preloadImageUrl,
   stubFromListItem,
@@ -305,6 +307,9 @@ export default function DiscoverPage() {
   const ensureWordFetched = useCallback(
     async (item: DiscoverListItem): Promise<DiscoverWordData> => {
       const learnerLocale = readAppSettings().learnerLocale;
+      if (isCardDataBroken(wordCache.current.get(item.word))) {
+        evictDiscoverWordCacheEntry(item.word);
+      }
       const cached = wordCache.current.get(item.word);
       if (
         cached &&
@@ -411,6 +416,9 @@ export default function DiscoverPage() {
       warmWordPronunciation(item.word);
 
       const cleanStub = listItemToDiscoverData(item);
+      if (isCardDataBroken(wordCache.current.get(item.word))) {
+        evictDiscoverWordCacheEntry(item.word);
+      }
       const cached = wordCache.current.get(item.word);
       if (
         cached &&

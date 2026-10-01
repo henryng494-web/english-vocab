@@ -14,7 +14,7 @@ import {
 } from "@/lib/word-meanings";
 
 /** Bump when Gemini/Unsplash pipeline or image quality rules change. */
-export const DISCOVER_WORD_CACHE_VERSION = 102;
+export const DISCOVER_WORD_CACHE_VERSION = 103;
 
 const STORAGE_KEY = `discover-word-cache-v${DISCOVER_WORD_CACHE_VERSION}`;
 
@@ -94,6 +94,7 @@ const LEGACY_STORAGE_KEYS = [
   "discover-word-cache-v93",
   "discover-word-cache-v94",
   "discover-word-cache-v95",
+  "discover-word-cache-v102",
 ];
 
 const MAX_ENTRIES = 250;
@@ -208,6 +209,26 @@ export function isCacheEntryValid(
   if (!data) return false;
   if (data.word.toLowerCase() !== expectedWord.toLowerCase()) return false;
   return isWordDetailComplete(data, expectedWord);
+}
+
+/**
+ * Card shell that cannot render a usable body (no examples, or missing
+ * IPA / part of speech). Such entries are evicted so reopening the card
+ * re-reads Supabase instead of replaying a stale or partial local copy.
+ */
+export function isCardDataBroken(data: DiscoverWordData | undefined): boolean {
+  if (!data?.vietnamese_meaning?.trim()) return false;
+  if (!data.phonetic?.trim() || !data.word_type?.trim()) return true;
+  return parseExamples(data.examples).length === 0;
+}
+
+export function evictDiscoverWordCacheEntry(word: string): void {
+  const key = word.trim().toLowerCase();
+  if (!key) return;
+  const map = getDiscoverWordCacheMemory();
+  map.delete(key);
+  map.delete(word);
+  persistWordCache(map);
 }
 
 /** Drop legacy sessionStorage keys so stale template examples cannot persist. */

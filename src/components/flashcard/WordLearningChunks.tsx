@@ -121,6 +121,13 @@ function PhraseList({
                   </span>
                 </>
               ) : null}
+              <SpeakButton
+                text={item.en}
+                variant="light"
+                iconOnly
+                ariaLabel={speakAriaLabel}
+                className="word-learning-chunks__speak !ml-1 !inline-flex !h-7 !w-7 align-middle"
+              />
             </p>
           ) : speakAtEnd ? (
             <>
@@ -264,6 +271,7 @@ export function WordLearningChunks({
           <PhraseList
             items={collocationItems}
             inline
+            speakAriaLabel={t("speak.aria")}
             localeLoadingGloss={localeLoadingGloss}
             learnerLocale={learnerLocale}
             allowViFallback={allowViFallback}
