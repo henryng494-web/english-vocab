@@ -67,12 +67,6 @@ function guessPos(
   }
   if (word.endsWith("ly") && word.length > headword.length) return "adverb";
   if (
-    (headPos === "noun" || headPos === "verb") &&
-    (word === `${headword}s` || word === `${headword}es` || word === `${headword.slice(0, -1)}ies`)
-  ) {
-    return headPos;
-  }
-  if (
     (word.endsWith("er") || word.endsWith("est")) &&
     (headPos === "adjective" || headPos === "adverb") &&
     word.length > headword.length
@@ -144,28 +138,6 @@ function derivationalFamilyCandidates(headword: string): string[] {
   return [...new Set(out.filter((item) => item && item !== key && isKnownVocabWord(item)))];
 }
 
-/** Regular inflections, generated offline so cards never depend on a corpus hit. */
-function regularInflections(word: string, pos: string | null): string[] {
-  const w = word.trim().toLowerCase();
-  if (!/^[a-z]{3,}$/.test(w)) return [];
-  if (/s$/.test(w) && !/(?:ss|us)$/.test(w)) return [];
-  const plural = /(?:s|x|z|ch|sh)$/.test(w)
-    ? `${w}es`
-    : /[^aeiou]y$/.test(w)
-      ? `${w.slice(0, -1)}ies`
-      : `${w}s`;
-  if (pos === "noun") return [plural];
-  if (pos === "verb") {
-    const e = w.endsWith("e");
-    const stem =
-      /[^aeiou][aeiou][^aeiouwxy]$/.test(w) && w.length <= 5 ? `${w}${w.slice(-1)}` : w;
-    const ing = e ? `${w.slice(0, -1)}ing` : `${stem}ing`;
-    const ed = e ? `${w}d` : /[^aeiou]y$/.test(w) ? `${w.slice(0, -1)}ied` : `${stem}ed`;
-    return [plural, ed, ing];
-  }
-  return [];
-}
-
 /** Derivational relatives (expose ↔ exposure) accepted only when they are real vocabulary. */
 function sharedPrefix(a: string, b: string): number {
   let i = 0;
@@ -223,17 +195,9 @@ export function buildWordFamilyEntries(
       : derivational.length
         ? [key, ...derivational]
         : display;
-  const headNorm = normalizeWordType(headPos, key);
-  const extra = [
-    ...derivedRelatives(key),
-    ...(base.length > 1
-      ? []
-      : regularInflections(
-          key,
-          headNorm === "noun" || headNorm === "verb" ? headNorm : null,
-        )),
-  ];
-  const members = [...new Set([...(base.length ? base : [key]), ...extra])].slice(0, 6);
+  const members = [
+    ...new Set([...(base.length ? base : [key]), ...derivedRelatives(base[0] ?? key)]),
+  ].slice(0, 6);
 
   if (members.length <= 1) return [];
   const head = members[0] ?? word.trim().toLowerCase();

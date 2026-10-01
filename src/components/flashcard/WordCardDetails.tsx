@@ -126,7 +126,7 @@ export function WordCardDetails({
     meaning,
     englishDefinition,
   }).filter((item) => item.trim());
-  const canFlip = rows.length > 1 || similar.length > 0;
+  const canFlip = rows.length > 1;
   const [showFamily, setShowFamily] = useState(false);
   const [hintReady, setHintReady] = useState(hintGraceMs <= 0);
   const examplesScrollingRef = useRef(false);
