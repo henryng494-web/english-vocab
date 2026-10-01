@@ -67,6 +67,13 @@ function guessPos(
   }
   if (word.endsWith("ly") && word.length > headword.length) return "adverb";
   if (
+    (word.endsWith("er") || word.endsWith("est")) &&
+    (headPos === "adjective" || headPos === "adverb") &&
+    word.length > headword.length
+  ) {
+    return headPos;
+  }
+  if (
     /(?:tion|sion|ness|ment|ity|ance|ence|hood|ship|ism|age)$/.test(word) &&
     word !== headword
   ) {

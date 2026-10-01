@@ -270,7 +270,7 @@ export function WordLearningChunks({
           <h3 className="word-learning-chunks__label">{t("chunks.collocations")}</h3>
           <PhraseList
             items={collocationItems}
-            inline
+            speakAtEnd
             speakAriaLabel={t("speak.aria")}
             localeLoadingGloss={localeLoadingGloss}
             learnerLocale={learnerLocale}
