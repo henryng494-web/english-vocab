@@ -52,6 +52,8 @@ export type AppSettings = {
   pronounceSpeed: PronounceSpeed;
   /** US / UK / AU neural + dictionary accent from menu. */
   pronounceAccent: PronounceAccent;
+  /** False until the first-launch language screen is completed. */
+  hasOnboarded: boolean;
 };
 
 export const DAILY_GOAL_OPTIONS: readonly DailyGoalMinutes[] = [
@@ -90,6 +92,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   learnerLocale: DEFAULT_LEARNER_LOCALE,
   pronounceSpeed: DEFAULT_PRONOUNCE_SPEED,
   pronounceAccent: DEFAULT_PRONOUNCE_ACCENT,
+  hasOnboarded: false,
 };
 
 function isDailyGoalMinutes(value: number): value is DailyGoalMinutes {
@@ -143,6 +146,9 @@ function normalizeAppSettings(parsed: Partial<AppSettings>): AppSettings {
     pronounceAccent: isPronounceAccent(parsed.pronounceAccent)
       ? parsed.pronounceAccent
       : DEFAULT_SETTINGS.pronounceAccent,
+    // Settings saved before onboarding existed belong to returning users.
+    hasOnboarded:
+      typeof parsed.hasOnboarded === "boolean" ? parsed.hasOnboarded : true,
   };
 }
 

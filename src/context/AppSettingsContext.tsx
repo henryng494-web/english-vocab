@@ -34,6 +34,9 @@ type AppSettingsContextValue = AppSettings & {
   setLearnerLocale: (locale: LearnerLocale) => void;
   setPronounceSpeed: (speed: PronounceSpeed) => void;
   setPronounceAccent: (accent: PronounceAccent) => void;
+  completeOnboarding: () => void;
+  /** False until localStorage settings have been read on the client. */
+  settingsReady: boolean;
   refresh: () => void;
 };
 
@@ -42,8 +45,11 @@ const AppSettingsContext = createContext<AppSettingsContextValue | null>(null);
 export function AppSettingsProvider({ children }: { children: React.ReactNode }) {
   const [settings, setSettings] = useState<AppSettings>(getDefaultAppSettings);
 
+  const [settingsReady, setSettingsReady] = useState(false);
+
   const refresh = useCallback(() => {
     setSettings(readAppSettings());
+    setSettingsReady(true);
   }, []);
 
   useEffect(() => {
@@ -81,9 +87,12 @@ export function AppSettingsProvider({ children }: { children: React.ReactNode })
         setSettings(patchAppSettings({ pronounceSpeed: speed })),
       setPronounceAccent: (accent) =>
         setSettings(patchAppSettings({ pronounceAccent: accent })),
+      completeOnboarding: () =>
+        setSettings(patchAppSettings({ hasOnboarded: true })),
+      settingsReady,
       refresh,
     }),
-    [settings, refresh],
+    [settings, settingsReady, refresh],
   );
 
   return (

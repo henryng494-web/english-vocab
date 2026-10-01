@@ -5,9 +5,10 @@ import { BottomTabBar } from "@/components/layout/BottomTabBar";
 import { StudyReminderScheduler } from "@/components/layout/StudyReminderScheduler";
 import { StudyTimeTracker } from "@/components/layout/StudyTimeTracker";
 import { ViewportHeightSync } from "@/components/layout/ViewportHeightSync";
+import { OnboardingScreen } from "@/components/onboarding/OnboardingScreen";
 import { WelcomeSplash } from "@/components/welcome/WelcomeSplash";
 import { AppMenuProvider } from "@/context/AppMenuContext";
-import { AppSettingsProvider } from "@/context/AppSettingsContext";
+import { AppSettingsProvider, useAppSettings } from "@/context/AppSettingsContext";
 import {
   AppBootstrapProvider,
   useAppBootstrap,
@@ -15,6 +16,21 @@ import {
 
 function MobileShellInner({ children }: { children: React.ReactNode }) {
   const { ready, progress } = useAppBootstrap();
+  const { settingsReady, hasOnboarded } = useAppSettings();
+
+  if (!settingsReady) {
+    return <div className="app-page" aria-busy="true" />;
+  }
+
+  if (!hasOnboarded) {
+    return (
+      <div className="app-page">
+        <div className="app-shell mx-auto w-full max-w-lg bg-background">
+          <OnboardingScreen />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>

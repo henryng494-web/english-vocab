@@ -29,6 +29,10 @@ const viMessages = {
     "tab.library": "Thư viện",
     "tab.dueAria": "{count} từ cần ôn hôm nay",
 
+    "onboarding.title": "Chào mừng bạn!",
+    "onboarding.subtitle": "Chọn ngôn ngữ để bắt đầu. Bạn có thể đổi lại trong Menu bất cứ lúc nào.",
+    "onboarding.continue": "Bắt đầu học",
+
     "menu.title": "Menu",
     "menu.close": "Đóng",
     "menu.language": "Ngôn ngữ app",
@@ -323,6 +327,10 @@ export const enFallbackMessages = {
     "tab.review": "Review",
     "tab.library": "Library",
     "tab.dueAria": "{count} words due today",
+
+    "onboarding.title": "Welcome!",
+    "onboarding.subtitle": "Pick your languages to get started. You can change them later in the Menu.",
+    "onboarding.continue": "Continue",
 
     "menu.title": "Menu",
     "menu.close": "Close",

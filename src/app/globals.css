@@ -5388,3 +5388,44 @@ body {
   object-fit: contain;
   background: var(--secondary-50);
 }
+
+.onboarding {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 100dvh;
+  background: var(--background);
+}
+
+.onboarding__scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 2rem 1.25rem 1rem;
+}
+
+.onboarding__title {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--foreground);
+}
+
+.onboarding__section {
+  margin-top: 1.5rem;
+}
+
+.onboarding__footer {
+  padding: 0.75rem 1.25rem calc(1rem + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--secondary-100);
+  background: var(--background);
+}
+
+.onboarding__cta {
+  width: 100%;
+  border: 0;
+  border-radius: 9999px;
+  background: var(--primary);
+  padding: 0.85rem 1rem;
+  font-size: 1rem;
+  font-weight: 800;
+  color: #fff;
+}
