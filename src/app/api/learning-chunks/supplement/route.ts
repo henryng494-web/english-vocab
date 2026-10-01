@@ -1,3 +1,4 @@
+import { isRealtimeGeminiDisabled } from "@/lib/gemini-realtime";
 import { supplementCollocationsWithGemini } from "@/lib/gemini-core";
 import { MAX_LEARNING_COLLOCATIONS } from "@/data/demo-learning-chunks";
 import { NextResponse } from "next/server";
@@ -12,6 +13,12 @@ function errorMessage(error: unknown): string {
 
 export async function POST(request: Request) {
   try {
+    if (isRealtimeGeminiDisabled()) {
+      return NextResponse.json(
+        { error: "Realtime Gemini is disabled" },
+        { status: 403, headers: { "Cache-Control": "no-store" } },
+      );
+    }
     const body = (await request.json()) as {
       word?: string;
       wordType?: string | null;

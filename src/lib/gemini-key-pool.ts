@@ -1,4 +1,5 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { isRealtimeGeminiDisabled } from "@/lib/gemini-realtime";
 
 /**
  * Multi-key rotation pool for the learner-locale translation pipeline
@@ -62,6 +63,10 @@ let cursor = 0;
 
 function getPool(): KeyEntry[] {
   if (pool) return pool;
+  if (isRealtimeGeminiDisabled()) {
+    pool = [];
+    return pool;
+  }
   const keys = parseApiKeys();
   pool = keys.map((key) => ({
     key,

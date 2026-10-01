@@ -1,3 +1,4 @@
+import { isRealtimeGeminiDisabled } from "@/lib/gemini-realtime";
 import { enrichWord } from "@/lib/enrich-word";
 import { isExcludedVocabWord } from "@/lib/proper-noun";
 import { getFamilyHeadword } from "@/lib/word-family";
@@ -14,6 +15,12 @@ function errorMessage(error: unknown): string {
 
 export async function POST(request: Request) {
   try {
+    if (isRealtimeGeminiDisabled()) {
+      return NextResponse.json(
+        { error: "Realtime Gemini is disabled" },
+        { status: 403, headers: { "Cache-Control": "no-store" } },
+      );
+    }
     const { word } = (await request.json()) as { word?: string };
 
     const normalized = normalizeVocabInput(word ?? "");

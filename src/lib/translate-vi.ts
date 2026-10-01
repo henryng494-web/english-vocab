@@ -1,3 +1,4 @@
+import { geminiRealtimeKey } from "@/lib/gemini-realtime";
 import { capitalizeFirst } from "@/lib/format-text";
 import { sanitizeVietnameseText } from "@/lib/sanitize-vi";
 import { getStaticVietnamese } from "@/lib/static-vietnamese";
@@ -134,7 +135,7 @@ export async function resolveVietnameseDefinition(
   if (trimmed && !isMissingDefinition(trimmed)) {
     if (!looksLikeEnglish(trimmed)) {
       result = capitalizeFirst(trimmed);
-    } else if (options?.allowGemini && process.env.GEMINI_API_KEY?.trim()) {
+    } else if (options?.allowGemini && geminiRealtimeKey()) {
       try {
         const geminiDef = await translateDefinitionWithGemini(word, trimmed);
         if (geminiDef?.trim()) result = capitalizeFirst(geminiDef.trim());
@@ -159,7 +160,7 @@ export async function resolveVietnameseDefinition(
     if (built) return built;
   }
 
-  if (isMissingDefinition(result) && options?.allowGemini && process.env.GEMINI_API_KEY?.trim()) {
+  if (isMissingDefinition(result) && options?.allowGemini && geminiRealtimeKey()) {
     try {
       const geminiDef = await translateDefinitionWithGemini(word);
       if (geminiDef?.trim()) return capitalizeFirst(geminiDef.trim());
@@ -181,7 +182,7 @@ export async function resolveVietnameseMeaning(
   const staticVi = getStaticVietnamese(word);
   if (staticVi) return sanitizeVietnameseText(staticVi) || staticVi;
 
-  if (options?.allowGemini && process.env.GEMINI_API_KEY?.trim()) {
+  if (options?.allowGemini && geminiRealtimeKey()) {
     try {
       const geminiVi = await translateVietnameseWithGemini(word);
       if (geminiVi?.trim()) return geminiVi.trim();

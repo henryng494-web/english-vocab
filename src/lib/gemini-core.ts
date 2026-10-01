@@ -1,3 +1,4 @@
+import { geminiRealtimeKey } from "@/lib/gemini-realtime";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import {
   awaitGeminiKeyRateLimit,
@@ -117,8 +118,8 @@ function parseMeanings(parsed: GeminiJsonShape, fallbackWord: string): string[] 
 }
 
 function getGeminiClient() {
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) throw new Error("GEMINI_API_KEY is not set");
+  const apiKey = geminiRealtimeKey();
+  if (!apiKey) throw new Error("Realtime Gemini is disabled or GEMINI_API_KEY is not set");
   return new GoogleGenerativeAI(apiKey);
 }
 
@@ -538,7 +539,7 @@ async function enrichWithModel(
 export async function translateVietnameseWithGemini(
   word: string,
 ): Promise<string | null> {
-  if (!process.env.GEMINI_API_KEY?.trim()) return null;
+  if (!geminiRealtimeKey()) return null;
 
   try {
     const text = sanitizeVietnameseText(
@@ -559,7 +560,7 @@ export async function translateDefinitionWithGemini(
   word: string,
   englishDefinition?: string,
 ): Promise<string | null> {
-  if (!process.env.GEMINI_API_KEY?.trim()) return null;
+  if (!geminiRealtimeKey()) return null;
 
   try {
     const text = sanitizeVietnameseText(
@@ -590,7 +591,7 @@ export async function translateCollocationsWithGemini(
     englishDefinition?: string | null;
   },
 ): Promise<string[] | null> {
-  if (!process.env.GEMINI_API_KEY?.trim()) return null;
+  if (!geminiRealtimeKey()) return null;
   const items = phrases
     .map((item) => ({
       en: item.en?.trim() ?? "",
@@ -637,7 +638,7 @@ export async function supplementCollocationsWithGemini(
     englishDefinition?: string | null;
   },
 ): Promise<Array<{ en: string; vi: string }> | null> {
-  if (!process.env.GEMINI_API_KEY?.trim() || count < 1) return null;
+  if (!geminiRealtimeKey() || count < 1) return null;
 
   try {
     const text = await generateGeminiText(
@@ -724,7 +725,7 @@ export async function translateExampleWithGemini(
   pos?: string | null,
   meaning?: string | null,
 ): Promise<string | null> {
-  if (!process.env.GEMINI_API_KEY?.trim()) return null;
+  if (!geminiRealtimeKey()) return null;
   const en = englishSentence.trim();
   if (!en) return null;
 
@@ -750,7 +751,7 @@ export async function generateExamplesWithGemini(
   meaning?: string | null,
   meanings?: string[] | null,
 ): Promise<VocabExample[] | null> {
-  if (!process.env.GEMINI_API_KEY?.trim()) return null;
+  if (!geminiRealtimeKey()) return null;
 
   const meaningLines =
     meanings?.filter(Boolean) ?? alignmentMeaningLines(meaning);
@@ -782,7 +783,7 @@ export async function generateExamplesWithGemini(
 export async function generatePhoneticWithGemini(
   word: string,
 ): Promise<string | null> {
-  if (!process.env.GEMINI_API_KEY?.trim()) return null;
+  if (!geminiRealtimeKey()) return null;
 
   const prompt = `English word: "${word}".
 
@@ -807,7 +808,7 @@ export async function generateSimilarWordsWithGemini(
   englishDefinition?: string | null,
   familyWords: string[] = [],
 ): Promise<string[] | null> {
-  if (!process.env.GEMINI_API_KEY?.trim()) return null;
+  if (!geminiRealtimeKey()) return null;
 
   try {
     const text = await generateGeminiText(

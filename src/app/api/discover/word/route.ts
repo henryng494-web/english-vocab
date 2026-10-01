@@ -1,3 +1,4 @@
+import { geminiRealtimeKey, isRealtimeGeminiDisabled } from "@/lib/gemini-realtime";
 import { hasQualityStandardVocab, getStandardSearchKeyword } from "@/data/standard-vocab";
 import { getPresetRank } from "@/data/preset-word-details";
 import { createClient } from "@/lib/supabase/server";
@@ -139,7 +140,7 @@ async function maybeHydrateLearnerLocaleAndPersist(
   learnerLocale: LearnerLocale,
 ): Promise<WordDetail> {
   if (!wordDetailNeedsLocaleHydration(detail, learnerLocale)) return detail;
-  if (!process.env.GEMINI_API_KEY?.trim()) {
+  if (!geminiRealtimeKey()) {
     console.warn(
       `Locale hydrate skipped for "${word}" (${learnerLocale}): GEMINI_API_KEY is not set on server`,
     );
@@ -350,7 +351,8 @@ export async function GET(request: Request) {
     const skipGemini =
       searchParams.get("skipGemini") === "true" &&
       hasQualityStandardVocab(word ?? "");
-    const forceRepair = searchParams.get("forceRepair") === "true";
+    const forceRepair =
+      !isRealtimeGeminiDisabled() && searchParams.get("forceRepair") === "true";
     const learnerLocale = parseLearnerLocale(searchParams.get("locale"));
 
     if (!word) {

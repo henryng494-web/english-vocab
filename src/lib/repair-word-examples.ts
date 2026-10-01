@@ -1,3 +1,4 @@
+import { geminiRealtimeKey } from "@/lib/gemini-realtime";
 import {
   alignExampleTranslations,
   ensureExamples,
@@ -43,7 +44,7 @@ export async function repairWordExamples(
     meaning,
   );
 
-  if (process.env.GEMINI_API_KEY?.trim()) {
+  if (geminiRealtimeKey()) {
     for (let attempt = 0; attempt < (needsRegeneration ? 2 : 1); attempt += 1) {
       const generated = await generateExamplesWithGemini(
         word,

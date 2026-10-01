@@ -1,3 +1,4 @@
+import { geminiRealtimeKey } from "@/lib/gemini-realtime";
 import { getPresetRank } from "@/data/preset-word-details";
 import {
   getStandardVocab,
@@ -283,7 +284,7 @@ export async function enrichWord(
     if (fromStandard) return fromStandard;
   }
 
-  if (process.env.GEMINI_API_KEY?.trim()) {
+  if (geminiRealtimeKey()) {
     try {
       const geminiResult = await enrichWithGemini(normalized, presetRank);
       if (isMissingDefinition(geminiResult.englishDefinition)) {

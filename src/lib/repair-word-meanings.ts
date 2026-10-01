@@ -1,3 +1,4 @@
+import { geminiRealtimeKey } from "@/lib/gemini-realtime";
 import {
   translateVietnameseWithGemini,
   enrichWithGemini,
@@ -45,7 +46,7 @@ export async function repairWordMeanings(
       : "";
   }
 
-  if (!process.env.GEMINI_API_KEY?.trim()) {
+  if (!geminiRealtimeKey()) {
     return vietnameseMeaning?.trim() ? normalizeMeaningText(vietnameseMeaning) : "";
   }
 

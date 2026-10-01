@@ -1,3 +1,4 @@
+import { isRealtimeGeminiDisabled } from "@/lib/gemini-realtime";
 import { resolveSimilarWords } from "@/lib/word-synonyms";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -8,6 +9,13 @@ export async function GET(request: NextRequest) {
   const word = request.nextUrl.searchParams.get("word")?.trim().toLowerCase();
   if (!word || !/^[a-z][a-z'-]*$/i.test(word)) {
     return NextResponse.json({ error: "Invalid word" }, { status: 400 });
+  }
+
+  if (isRealtimeGeminiDisabled()) {
+    return NextResponse.json(
+      { similar_words: [] },
+      { headers: { "Cache-Control": "no-store" } },
+    );
   }
 
   const similar_words = await resolveSimilarWords({

@@ -6,6 +6,7 @@
  * On Gemini quota errors, falls back to the English headword as the stock query.
  */
 
+import { geminiRealtimeKey } from "@/lib/gemini-realtime";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { buildImageSearchQueries } from "@/lib/image-keyword";
 import {
@@ -143,7 +144,7 @@ async function fetchStockForQueries(
 export async function generateStockSearchPhraseWithGemini(
   input: VocabIllustrationInput,
 ): Promise<string | null> {
-  const apiKey = process.env.GEMINI_API_KEY?.trim();
+  const apiKey = geminiRealtimeKey();
   if (!apiKey) return null;
 
   const word = input.word.trim().toLowerCase();
