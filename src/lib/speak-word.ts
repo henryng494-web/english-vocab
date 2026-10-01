@@ -83,7 +83,11 @@ export function unlockSpeechFromUserGesture(): void {
   if (pending) {
     pendingAutoSpeak = null;
     if (!wasRecentlySpokenInGesture(pending)) {
-      tryAutoSpeakWord(pending);
+      if (hasTransientUserActivation()) {
+        speakWordInUserGesture(pending);
+      } else {
+        tryAutoSpeakWord(pending);
+      }
     }
   }
 }
@@ -181,7 +185,15 @@ async function speakMp3Auto(
   await warmWordAudioBytes(text, { bustCache: true });
   if (!stillCurrentRequest(requestId, key)) return;
   preloadWordAudioElement(text, { force: true });
-  await playWordAudioWhenReady(text, AUTO_MP3_RETRY_MS);
+  const played = await playWordAudioWhenReady(text, AUTO_MP3_RETRY_MS);
+  if (!played && stillCurrentRequest(requestId, key) && !isWordAudioPlaying(text)) {
+    // Autoplay blocked: replay on the user's next tap.
+    pendingAutoSpeak = text;
+  }
+}
+
+export function hasPendingAutoSpeak(): boolean {
+  return pendingAutoSpeak !== null;
 }
 
 /** Auto-pronounce: sync gesture path on iOS; async MP3 elsewhere. */
@@ -260,4 +272,16 @@ export function speakEnglishTextSync(text: string): void {
 }
 
 /** @deprecated MP3-only app — no browser voices to preload. */
-export function preloadSpeechVoices(): void {}
+export function preloadSpeechVoices(): void {
+  if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+  try {
+    const synth = window.speechSynthesis;
+    if (synth.getVoices().length === 0) {
+      synth.addEventListener("voiceschanged", () => synth.getVoices(), {
+        once: true,
+      });
+    }
+  } catch {
+    /* ignore */
+  }
+}

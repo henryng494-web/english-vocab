@@ -1,6 +1,10 @@
 "use client";
 
-import { unlockSpeechFromUserGesture } from "@/lib/speak-word";
+import {
+  hasPendingAutoSpeak,
+  preloadSpeechVoices,
+  unlockSpeechFromUserGesture,
+} from "@/lib/speak-word";
 import { primeAudioPipelineInUserGesture } from "@/lib/word-pronunciation-audio";
 import { useEffect } from "react";
 
@@ -12,7 +16,11 @@ function isSpeakButtonTarget(target: EventTarget | null): boolean {
 /** Unlock MP3 playback on first user touch (iOS Safari/PWA). */
 export function SpeechVoiceWarmup() {
   useEffect(() => {
+    preloadSpeechVoices();
+    let primed = false;
     const onFirstTouch = (event: Event) => {
+      if (primed && !hasPendingAutoSpeak()) return;
+      primed = true;
       unlockSpeechFromUserGesture();
       // Skip silent priming when the first tap is the speak button — it plays MP3
       // in the same gesture and silent priming would race and cancel playback.
@@ -24,11 +32,9 @@ export function SpeechVoiceWarmup() {
     document.addEventListener("pointerdown", onFirstTouch, {
       capture: true,
       passive: true,
-      once: true,
     });
     document.addEventListener("click", onFirstTouch, {
       capture: true,
-      once: true,
     });
 
     return () => {
