@@ -4,15 +4,13 @@ import {
   DAILY_GOAL_OPTIONS,
   PRONOUNCE_ACCENT_OPTIONS,
   PRONOUNCE_SPEED_OPTIONS,
-  LEARNER_LOCALE_LABELS,
-  LEARNER_LOCALE_MENU_OPTIONS,
   type DailyGoalMinutes,
 } from "@/lib/app-settings";
 import {
   recommendedNewWordsForMinutes,
   recommendedReviewsForMinutes,
 } from "@/lib/daily-goal";
-import { APP_LOCALES, APP_LOCALE_LABELS } from "@/lib/i18n/messages";
+import { APP_LOCALE_LABELS, type AppLocale } from "@/lib/i18n/messages";
 import { useAppSettings } from "@/context/AppSettingsContext";
 import { useI18n } from "@/hooks/use-i18n";
 import { displayFontClass } from "@/lib/fonts";
@@ -73,8 +71,11 @@ export function AppMenuDrawer({ open, onClose }: AppMenuDrawerProps) {
     appLanguage,
     setAppLanguage,
     learnerLocale,
-    setLearnerLocale,
   } = useAppSettings();
+  const appLocaleOptions = useMemo<AppLocale[]>(
+    () => ["en", learnerLocale],
+    [learnerLocale],
+  );
   const { t, dailyGoalLabel, pronounceSpeedLabel, pronounceAccentLabel } = useI18n();
 
   const recommendedWords = useMemo(
@@ -125,7 +126,7 @@ export function AppMenuDrawer({ open, onClose }: AppMenuDrawerProps) {
             <h3 className="app-menu__section-title">{t("menu.language")}</h3>
             <p className="app-menu__hint">{t("menu.languageHint")}</p>
             <div className="app-menu__chips">
-              {APP_LOCALES.map((locale) => (
+              {appLocaleOptions.map((locale) => (
                 <button
                   key={locale}
                   type="button"
@@ -140,24 +141,6 @@ export function AppMenuDrawer({ open, onClose }: AppMenuDrawerProps) {
 
           <section className="app-menu__section">
             <h3 className="app-menu__section-title">{t("menu.learning")}</h3>
-            <div className="app-menu__subblock">
-              <p className="app-menu__subblock-title">{t("menu.learnerLocale")}</p>
-              <p className="app-menu__hint">{t("menu.learnerLocaleHint")}</p>
-              <div className="app-menu__chips">
-                {LEARNER_LOCALE_MENU_OPTIONS.map((locale) => (
-                  <button
-                    key={locale}
-                    type="button"
-                    className={`app-menu__chip${
-                      learnerLocale === locale ? " is-active" : ""
-                    }`}
-                    onClick={() => setLearnerLocale(locale)}
-                  >
-                    {LEARNER_LOCALE_LABELS[locale]}
-                  </button>
-                ))}
-              </div>
-            </div>
             <ToggleRow
               label={t("menu.autoSpeak")}
               description={t("menu.autoSpeakDesc")}

@@ -33,7 +33,7 @@ const viMessages = {
     "menu.close": "Đóng",
     "menu.language": "Ngôn ngữ app",
     "menu.languageHint":
-      "Ngôn ngữ menu và nút bấm. Tự khớp khi bạn đổi ngôn ngữ đang học.",
+      "Ngôn ngữ menu và nút bấm.",
     "menu.langVi": "Tiếng Việt",
     "menu.langEn": "English",
     "menu.learning": "Học tập",
@@ -328,7 +328,7 @@ export const enFallbackMessages = {
     "menu.close": "Close",
     "menu.language": "App language",
     "menu.languageHint":
-      "Menus and buttons. Auto-syncs when you change learning language.",
+      "Menus and buttons.",
     "menu.langVi": "Tiếng Việt",
     "menu.langEn": "English",
     "menu.learning": "Learning",
