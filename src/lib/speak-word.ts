@@ -1,4 +1,9 @@
-import { isAppleWebKit } from "@/lib/speech-voice";
+import {
+  applyNaturalSpeechSettings,
+  getSpeechVoiceSync,
+  isAppleWebKit,
+  speakUtteranceInGesture,
+} from "@/lib/speech-voice";
 import {
   hasWordAudioBlob,
   isWordAudioElementReady,
@@ -19,6 +24,23 @@ const SPEECH_UNLOCK_KEY = "ev-speech-unlocked";
 const AUTO_MP3_WAIT_MS = 1600;
 const AUTO_MP3_WAIT_BLOB_MS = 120;
 const AUTO_MP3_RETRY_MS = 2400;
+const FIRST_CARD_MP3_WAIT_MS = 450;
+
+let firstCardAutoSpoken = false;
+
+function speakWithSynthesisFallback(text: string): boolean {
+  if (typeof window === "undefined" || !window.speechSynthesis) return false;
+  try {
+    const synth = window.speechSynthesis;
+    synth.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    applyNaturalSpeechSettings(utterance, getSpeechVoiceSync());
+    speakUtteranceInGesture(utterance);
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 let speechUnlocked = false;
 let pendingAutoSpeak: string | null = null;
@@ -172,8 +194,14 @@ async function speakMp3Auto(
   if (!stillCurrentRequest(requestId, key)) return;
   if (isWordAudioPlaying(text)) return;
 
+  const isFirstCard = !firstCardAutoSpoken;
+  firstCardAutoSpoken = true;
+  const waitMs = isFirstCard
+    ? Math.min(autoSpeakWaitMs(text), FIRST_CARD_MP3_WAIT_MS)
+    : autoSpeakWaitMs(text);
+
   if (
-    await playWordAudioWhenReady(text, autoSpeakWaitMs(text), {
+    await playWordAudioWhenReady(text, waitMs, {
       preserveBuffer: buffered,
     })
   ) {
@@ -181,6 +209,8 @@ async function speakMp3Auto(
   }
   if (!stillCurrentRequest(requestId, key)) return;
   if (isWordAudioPlaying(text)) return;
+
+  if (isFirstCard && speakWithSynthesisFallback(text)) return;
 
   await warmWordAudioBytes(text, { bustCache: true });
   if (!stillCurrentRequest(requestId, key)) return;

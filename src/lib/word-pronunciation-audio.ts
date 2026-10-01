@@ -385,6 +385,13 @@ const SILENT_WAV_DATA_URI =
  */
 export function primeAudioPipelineInUserGesture(): void {
   if (typeof window === "undefined") return;
+  try {
+    const silent = new Audio(SILENT_WAV_DATA_URI);
+    silent.volume = 0;
+    void silent.play().catch(() => {});
+  } catch {
+    /* ignore */
+  }
   const audio = getAudioElement();
   if (!audio) return;
 
