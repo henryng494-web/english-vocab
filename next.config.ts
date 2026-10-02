@@ -1,8 +1,14 @@
+import { readFileSync } from "fs";
 import type { NextConfig } from "next";
 
 const isMobileBuild = process.env.MOBILE_BUILD === "1";
 
+const appVersion = (
+  JSON.parse(readFileSync("./package.json", "utf8")) as { version?: string }
+).version;
+
 const nextConfig: NextConfig = {
+  env: { NEXT_PUBLIC_APP_VERSION: appVersion ?? "" },
   ...(isMobileBuild ? { output: "export" as const, trailingSlash: true } : {}),
   // Lets `npm run build:check` build into a separate dir while `npm run dev` is running.
   distDir: process.env.NEXT_DIST_DIR || ".next",
