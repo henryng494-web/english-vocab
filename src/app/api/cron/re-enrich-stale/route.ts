@@ -1,3 +1,4 @@
+import { isRealtimeGeminiDisabled } from "@/lib/gemini-realtime";
 import { runStaleReEnrichBatch } from "@/lib/re-enrich-stale-batch";
 import { createServiceSupabase } from "@/lib/supabase/admin";
 import { NextResponse } from "next/server";
@@ -19,6 +20,13 @@ function isAuthorized(request: Request): boolean {
 async function handle(request: Request) {
   if (!isAuthorized(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  if (isRealtimeGeminiDisabled()) {
+    return NextResponse.json(
+      { error: "Realtime Gemini is disabled" },
+      { status: 403 },
+    );
   }
 
   try {
