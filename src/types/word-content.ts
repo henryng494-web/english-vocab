@@ -21,4 +21,6 @@ export type PhraseTranslationRow = Partial<Record<GlossLanguage, string>> & {
 export type PhraseTranslationsJson = {
   collocations?: PhraseTranslationRow[];
   chunks?: PhraseTranslationRow[];
+  /** Offline-generated similar English words (`npm run enrich:similar-words`). */
+  similar?: string[];
 };

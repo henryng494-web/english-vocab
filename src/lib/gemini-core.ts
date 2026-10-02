@@ -851,6 +851,41 @@ export async function generateSimilarWordsWithGemini(
   }
 }
 
+export async function generateSimilarWordsBatchWithGemini(
+  items: { word: string; pos?: string | null; meaning?: string | null }[],
+): Promise<Record<string, string[]> | null> {
+  const list = items
+    .map(
+      (item) =>
+        `- ${item.word} (${item.pos?.trim() || "?"}; ${item.meaning?.trim() || ""})`,
+    )
+    .join("\n");
+  const prompt = `English learner flashcards. For EACH headword give 1-3 similar English words (near-synonyms or closely related, same part of speech, common everyday vocabulary, a single word each, lowercase, never the headword or its inflections/derivations).
+
+Headwords:
+${list}
+
+Return ONLY JSON: {"results":{"<headword>":["w1","w2","w3"], ...}}`;
+  const text = await generateTranslationGeminiText(prompt);
+  if (!text) return null;
+  const match = text.match(/\{[\s\S]*\}/);
+  if (!match) return null;
+  try {
+    const parsed = JSON.parse(match[0]) as {
+      results?: Record<string, unknown>;
+    };
+    const out: Record<string, string[]> = {};
+    for (const [key, value] of Object.entries(parsed.results ?? {})) {
+      if (Array.isArray(value)) {
+        out[key.trim().toLowerCase()] = value.map((v) => String(v ?? ""));
+      }
+    }
+    return out;
+  } catch {
+    return null;
+  }
+}
+
 export async function enrichWithGemini(
   word: string,
   presetRank?: number,

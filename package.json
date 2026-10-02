@@ -52,6 +52,7 @@
     "backfill:translations:free": "GEMINI_FREE_TIER=1 GEMINI_MAX_RPM=15 CONCURRENCY=1 BATCH_DELAY_MS=0 LOCALE_DELAY_MS=0 npx tsx scripts/backfill-translations.ts",
     "backfill:translations:free:sequential": "bash scripts/run-backfill-translations-free-sequential.sh",
     "enrich:new-words": "npx tsx scripts/enrich-new-words.ts",
+    "enrich:similar-words": "GEMINI_TRANSLATION_MODEL=${GEMINI_TRANSLATION_MODEL:-gemini-flash-lite-latest} npx tsx scripts/enrich-similar-words.ts",
     "enrich:repair": "npx tsx scripts/enrich-repair.ts",
     "re-enrich:stale": "npx tsx scripts/re-enrich-stale-words.ts",
     "re-enrich:all": "npx tsx scripts/re-enrich-stale-all.ts",

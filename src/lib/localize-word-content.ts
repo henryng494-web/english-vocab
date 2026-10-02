@@ -327,7 +327,13 @@ export async function hydrateLearnerLocaleWordContent(
   }
 
   if (hydrateChunks) {
-    phrase_translations = { collocations, chunks };
+    phrase_translations = {
+      collocations,
+      chunks,
+      ...(phrase_translations.similar?.length
+        ? { similar: phrase_translations.similar }
+        : {}),
+    };
   }
 
   return { meanings, example_translations, phrase_translations };

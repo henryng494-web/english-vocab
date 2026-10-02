@@ -112,9 +112,13 @@ export function parsePhraseTranslationsJson(
       return out;
     });
   };
+  const similar = Array.isArray(source.similar)
+    ? source.similar.filter((item): item is string => typeof item === "string")
+    : [];
   return {
     collocations: parseRows(source.collocations),
     chunks: parseRows(source.chunks),
+    ...(similar.length ? { similar } : {}),
   };
 }
 
