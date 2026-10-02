@@ -228,7 +228,31 @@ export function WordLearningChunks({
         allowViFallback,
       );
     }
-    return viEntry;
+    const localized = localizedLearningChunkEntry(
+      {
+        word,
+        examples,
+        word_type: wordType,
+        vietnamese_meaning: meaning,
+        phrase_translations: phraseTranslations,
+        example_translations: exampleTranslations,
+      },
+      learnerLocale,
+    );
+    if (!localized) return viEntry;
+    const fill = (stored: LearningChunkPhrase[], fallback?: LearningChunkPhrase[]) =>
+      stored.map((item, index) => ({
+        ...item,
+        vi:
+          item.vi ||
+          fallback?.find((f) => f.en.toLowerCase() === item.en.toLowerCase())?.vi ||
+          fallback?.[index]?.vi ||
+          "",
+      }));
+    return {
+      collocations: fill(localized.collocations, viEntry?.collocations),
+      chunks: fill(localized.chunks, viEntry?.chunks),
+    };
   }, [
     learnerLocale,
     word,
