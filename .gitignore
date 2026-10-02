@@ -38,3 +38,11 @@ next-env.d.ts
 .vercel
 .env*
 !.env.example
+
+# capacitor / mobile build
+/out
+.mobile-build-stash
+.next-mobile
+/android/app/build
+/ios/App/Pods
+/ios/App/build

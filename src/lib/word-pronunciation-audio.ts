@@ -1,3 +1,4 @@
+import { apiUrl } from "@/lib/api-base";
 import { proxyPronounceAudioPath } from "@/lib/dictionary-pronunciation";
 import {
   getPronounceAccent,
@@ -57,7 +58,7 @@ function resolvePlayableSrc(word: string): string {
 
 function absoluteAudioUrl(relativePath: string): string {
   if (typeof window === "undefined") return relativePath;
-  return new URL(relativePath, window.location.origin).href;
+  return new URL(apiUrl(relativePath), window.location.origin).href;
 }
 
 /** Compare resolved audio.src with an expected absolute URL. */

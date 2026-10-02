@@ -1,3 +1,4 @@
+import { apiUrl } from "@/lib/api-base";
 import {
   DEFAULT_PRONOUNCE_ACCENT,
   isPronounceAccent,
@@ -132,7 +133,7 @@ export function proxyPronounceAudioPath(
     v: voiceVersionForAccent(accent),
     accent,
   });
-  return `/api/pronounce/audio?${params}`;
+  return apiUrl(`/api/pronounce/audio?${params}`);
 }
 
 export function parsePronounceAccentParam(value: string | null): PronounceAccent {

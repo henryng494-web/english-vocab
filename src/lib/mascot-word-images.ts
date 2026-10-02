@@ -1,3 +1,4 @@
+import { apiUrl } from "@/lib/api-base";
 import { MASCOT_CAST_VERSION } from "@/lib/mascot-cast";
 import {
   isTopRankMascotWord,
@@ -33,7 +34,7 @@ export function buildMascotImageApiUrl(
     v: MASCOT_CAST_VERSION,
   });
   if (pos?.trim()) params.set("pos", pos.trim());
-  return `/api/mascot-image?${params.toString()}`;
+  return apiUrl(`/api/mascot-image?${params.toString()}`);
 }
 
 export function resolveMascotWordImageUrl(

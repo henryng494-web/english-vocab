@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { ApiBaseInstaller } from "@/components/layout/ApiBaseInstaller";
 import { ThemeRoot } from "@/components/theme/ThemeRoot";
 import { viewportBootstrapScript } from "@/lib/viewport-bootstrap-script";
 import "./globals.css";
@@ -50,6 +51,7 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: viewportBootstrapScript }} />
       </head>
       <body className="antialiased">
+        <ApiBaseInstaller />
         <ThemeRoot>{children}</ThemeRoot>
       </body>
     </html>

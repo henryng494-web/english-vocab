@@ -1,10 +1,14 @@
 import type { NextConfig } from "next";
 
+const isMobileBuild = process.env.MOBILE_BUILD === "1";
+
 const nextConfig: NextConfig = {
+  ...(isMobileBuild ? { output: "export" as const, trailingSlash: true } : {}),
   // Lets `npm run build:check` build into a separate dir while `npm run dev` is running.
   distDir: process.env.NEXT_DIST_DIR || ".next",
   serverExternalPackages: ["edge-tts-universal"],
   async headers() {
+    if (isMobileBuild) return [];
     return [
       {
         source: "/((?!_next/static|_next/image|icon.svg|manifest.webmanifest).*)",
@@ -36,6 +40,7 @@ const nextConfig: NextConfig = {
     return config;
   },
   images: {
+    unoptimized: isMobileBuild,
     remotePatterns: [
       {
         protocol: "https",
