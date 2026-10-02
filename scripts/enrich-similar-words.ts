@@ -4,6 +4,7 @@
  *
  *   DRY_RUN=1 npm run enrich:similar-words
  *   npm run enrich:similar-words
+ *   npm run enrich:similar-words -- --force-overwrite   # regenerate all (prompt v2)
  *
  * Env: BATCH_SIZE=25  CONCURRENCY=4  LIMIT=0  WORD=loud  DRY_RUN=1
  */
@@ -39,6 +40,9 @@ const batchSize = Math.max(1, Number(process.env.BATCH_SIZE ?? "25"));
 const concurrency = Math.max(1, Number(process.env.CONCURRENCY ?? "4"));
 const limit = Number(process.env.LIMIT ?? "0");
 const onlyWord = process.env.WORD?.trim().toLowerCase();
+const force =
+  process.argv.includes("--force-overwrite") || process.env.FORCE_OVERWRITE === "1";
+const PROMPT_VERSION = 2;
 const dryRun = process.env.DRY_RUN === "1" || process.env.DRY_RUN === "true";
 
 type Row = {
@@ -71,7 +75,10 @@ async function main() {
   const hasSimilar = (r: Row) =>
     Array.isArray(r.phrase_translations?.similar) &&
     (r.phrase_translations.similar as unknown[]).length > 0;
-  let todo = rows.filter((r) => !hasSimilar(r));
+  const isCurrent = (r: Row) => r.phrase_translations?.similar_v === PROMPT_VERSION;
+  let todo = rows.filter((r) =>
+    force ? !isCurrent(r) : !hasSimilar(r) && !isCurrent(r),
+  );
   if (limit > 0) todo = todo.slice(0, limit);
   console.log(`rows=${rows.length} todo=${todo.length} dryRun=${dryRun}`);
   if (dryRun) return;
@@ -82,6 +89,7 @@ async function main() {
   let done = 0;
   let saved = 0;
   let failed = 0;
+  let empty = 0;
   let next = 0;
   let consecutiveFail = 0;
 
@@ -111,27 +119,26 @@ async function main() {
           4,
         );
         done++;
-        if (!similar.length) {
-          failed++;
-          continue;
-        }
+        const next = { ...(row.phrase_translations ?? {}) } as Record<string, unknown>;
+        delete next.similar;
+        if (similar.length) next.similar = similar;
+        next.similar_v = PROMPT_VERSION;
         const { error } = await supabase
           .from("word_details")
-          .update({
-            phrase_translations: { ...(row.phrase_translations ?? {}), similar },
-          })
+          .update({ phrase_translations: next })
           .eq("word", row.word);
         if (error) {
           failed++;
           console.warn(`update failed ${row.word}: ${error.message}`);
-        } else saved++;
+        } else if (similar.length) saved++;
+        else empty++;
       }
-      console.log(`progress ${done}/${todo.length} saved=${saved} failed=${failed}`);
+      console.log(`progress ${done}/${todo.length} saved=${saved} empty=${empty} failed=${failed}`);
     }
   }
 
   await Promise.all(Array.from({ length: concurrency }, worker));
-  console.log(`finished saved=${saved} failed=${failed}`);
+  console.log(`finished saved=${saved} empty=${empty} failed=${failed}`);
   if (consecutiveFail >= 6) console.error("stopped: too many consecutive failures");
 }
 
