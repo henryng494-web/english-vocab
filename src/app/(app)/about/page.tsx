@@ -7,13 +7,11 @@ import { useI18n } from "@/hooks/use-i18n";
 import { API_BASE_URL } from "@/lib/api-base";
 import { displayFontClass } from "@/lib/fonts";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 const APP_VERSION = process.env.NEXT_PUBLIC_APP_VERSION || "1.0.0";
 
 export default function AboutPage() {
-  const router = useRouter();
   const { t } = useI18n();
   const [website, setWebsite] = useState(API_BASE_URL);
 
@@ -21,26 +19,11 @@ export default function AboutPage() {
     if (!API_BASE_URL) setWebsite(window.location.origin);
   }, []);
 
-  function goBack() {
-    if (window.history.length > 1) router.back();
-    else router.push("/discover");
-  }
-
   return (
     <div className="app-screen app-screen--home">
       <AppHeader
         title={t("about.title")}
-        leading={
-          <button
-            type="button"
-            className="app-header__icon-btn"
-            aria-label={t("support.back")}
-            onClick={goBack}
-          >
-            ←
-          </button>
-        }
-        trailing={<AppMenuButton />}
+        leading={<AppMenuButton />}
       />
 
       <div className="page-scroll">
@@ -84,12 +67,6 @@ export default function AboutPage() {
               </p>
             ) : null}
           </section>
-
-          <p className="settings-page__foot">
-            <Link href="/discover" className="home-link-text">
-              {t("reportBug.backToHome")}
-            </Link>
-          </p>
         </article>
       </div>
     </div>
