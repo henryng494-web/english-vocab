@@ -2,13 +2,15 @@
 
 import { AppHeader } from "@/components/layout/AppHeader";
 import { AppMenuButton } from "@/components/layout/AppMenuButton";
-import { displayFontClass } from "@/lib/fonts";
+import { useI18n } from "@/hooks/use-i18n";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 export default function BugReportPage() {
   const router = useRouter();
+  const { t } = useI18n();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [message, setMessage] = useState("");
   const [image, setImage] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
@@ -36,15 +38,16 @@ export default function BugReportPage() {
         method: "POST",
         body: form,
       });
-      const data = (await response.json()) as { ok?: boolean; id?: string; error?: string };
+      const data = (await response.json()) as { ok?: boolean; id?: string };
       if (!response.ok || !data.ok) {
-        throw new Error(data.error ?? "Submit failed");
+        throw new Error("submit_failed");
       }
       setSuccessId(data.id ?? "sent");
       setMessage("");
       onPickImage(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Submit failed");
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    } catch {
+      setError(t("reportBug.submitFailed"));
     } finally {
       setSubmitting(false);
     }
@@ -53,12 +56,12 @@ export default function BugReportPage() {
   return (
     <div className="app-screen app-screen--home">
       <AppHeader
-        title="Report a bug"
+        title={t("reportBug.title")}
         leading={
           <button
             type="button"
             className="app-header__icon-btn"
-            aria-label="Back"
+            aria-label={t("reportBug.back")}
             onClick={() => router.back()}
           >
             ←
@@ -70,11 +73,11 @@ export default function BugReportPage() {
       <div className="page-scroll">
         <form className="settings-page px-4 pb-8" onSubmit={onSubmit}>
           <p className="settings-page__lead">
-            Tell us what went wrong. You can attach a screenshot to help us fix it faster.
+            {t("reportBug.description")}
           </p>
 
           <label className="settings-field">
-            <span className="settings-field__label">What happened?</span>
+            <span className="settings-field__label">{t("reportBug.whatHappened")}</span>
             <textarea
               className="settings-field__textarea"
               rows={6}
@@ -83,37 +86,52 @@ export default function BugReportPage() {
               maxLength={4000}
               value={message}
               onChange={(event) => setMessage(event.target.value)}
-              placeholder="Steps to reproduce, what you expected, and what you saw instead…"
+              placeholder={t("reportBug.placeholder")}
             />
           </label>
 
           <div className="settings-field">
-            <span className="settings-field__label">Screenshot (optional)</span>
+            <span className="settings-field__label">{t("reportBug.screenshot")}</span>
             <input
+              ref={fileInputRef}
               type="file"
               accept="image/*"
-              className="settings-field__file"
+              className="sr-only"
+              tabIndex={-1}
+              aria-label={t("reportBug.screenshot")}
               onChange={(event) => onPickImage(event.target.files?.[0] ?? null)}
             />
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                className="rounded-xl border border-primary-200 bg-surface px-4 py-2 text-sm font-semibold text-foreground hover:bg-primary-50"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                {t("reportBug.chooseFile")}
+              </button>
+              <span className="min-w-0 flex-1 truncate text-sm text-foreground/60">
+                {image ? image.name : t("reportBug.noFile")}
+              </span>
+            </div>
             {preview ? (
-              <img src={preview} alt="Screenshot preview" className="settings-field__preview" />
+              <img src={preview} alt={t("reportBug.previewAlt")} className="settings-field__preview" />
             ) : null}
           </div>
 
           {error ? <p className="settings-page__error">{error}</p> : null}
           {successId ? (
             <p className="settings-page__success">
-              Thank you! Your report was sent (ref {successId}).
+              {t("reportBug.success", { id: successId })}
             </p>
           ) : null}
 
           <button type="submit" className="btn-pill-primary w-full" disabled={submitting}>
-            {submitting ? "Sending…" : "Submit report"}
+            {submitting ? t("reportBug.sending") : t("reportBug.submit")}
           </button>
 
           <p className="settings-page__foot">
             <Link href="/discover" className="home-link-text">
-              Back to Home
+              {t("reportBug.backToHome")}
             </Link>
           </p>
         </form>
