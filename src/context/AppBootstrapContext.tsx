@@ -49,13 +49,23 @@ const INITIAL_PROGRESS: BootstrapProgress = {
   message: "Welcome!",
 };
 
+/** Survives provider remounts (e.g. visiting /auth/login outside the app shell and coming back). */
+let completedSnapshot: AppBootstrapSnapshot | null = null;
+
 export function AppBootstrapProvider({ children }: { children: ReactNode }) {
-  const [ready, setReady] = useState(false);
+  const [ready, setReady] = useState(() => completedSnapshot !== null);
   const [progress, setProgress] = useState<BootstrapProgress>(INITIAL_PROGRESS);
-  const [snapshot, setSnapshot] = useState<AppBootstrapSnapshot | null>(null);
+  const [snapshot, setSnapshot] = useState<AppBootstrapSnapshot | null>(
+    () => completedSnapshot,
+  );
   const [reviewOverride, setReviewOverride] = useState<ReviewSession | null>(null);
 
   useEffect(() => {
+    if (snapshot) completedSnapshot = snapshot;
+  }, [snapshot]);
+
+  useEffect(() => {
+    if (completedSnapshot) return;
     let cancelled = false;
     const startedAt = Date.now();
 

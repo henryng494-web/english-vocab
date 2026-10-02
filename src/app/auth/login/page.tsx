@@ -6,7 +6,6 @@ import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { AppSettingsProvider } from "@/context/AppSettingsContext";
 import { useI18n } from "@/hooks/use-i18n";
 import { displayFontClass } from "@/lib/fonts";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
@@ -190,6 +189,14 @@ function LoginForm() {
       }
     }
     if (mountedRef.current) setLoading(false);
+  }
+
+  function handleBackToApp() {
+    if (typeof window !== "undefined" && window.history.length > 1) {
+      router.back();
+      return;
+    }
+    router.push("/discover");
   }
 
   const isSignIn = mode === "signin";
@@ -401,12 +408,13 @@ function LoginForm() {
           </button>
         </p>
 
-        <Link
-          href="/account"
-          className="mt-4 block text-center text-sm text-foreground/60 hover:text-primary-700"
+        <button
+          type="button"
+          onClick={handleBackToApp}
+          className="mt-4 block w-full text-center text-sm text-foreground/60 hover:text-primary-700"
         >
           {t("auth.backToApp")}
-        </Link>
+        </button>
       </div>
     </main>
   );
