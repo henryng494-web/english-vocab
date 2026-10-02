@@ -2,7 +2,10 @@
 
 import { useEffect, useState } from "react";
 
+import { IS_MOBILE_BUILD } from "@/lib/api-base";
+
 type NavigatorStandalone = Navigator & { standalone?: boolean };
+type CapacitorWindow = Window & { Capacitor?: { isNativePlatform?: () => boolean } };
 
 export function InstallAppHint() {
   const [mode, setMode] = useState<"checking" | "browser" | "installed">(
@@ -11,6 +14,14 @@ export function InstallAppHint() {
   const [isIos, setIsIos] = useState(false);
 
   useEffect(() => {
+    const native =
+      IS_MOBILE_BUILD ||
+      (window as CapacitorWindow).Capacitor?.isNativePlatform?.() === true;
+    if (native) {
+      setMode("installed");
+      return;
+    }
+
     const standalone =
       window.matchMedia("(display-mode: standalone)").matches ||
       (window.navigator as NavigatorStandalone).standalone === true;

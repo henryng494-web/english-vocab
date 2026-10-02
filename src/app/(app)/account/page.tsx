@@ -44,15 +44,17 @@ export default function AccountPage() {
             <p className="home-body-text mt-1">{t("account.signInDesc")}</p>
             <Link
               href="/auth/login"
-              className="btn-pill-primary mt-3 inline-flex px-5 py-3"
+              className="btn-pill-primary mt-4 flex w-full justify-center px-5 py-3.5"
             >
               {t("account.signInBtn")}
             </Link>
           </section>
 
-          <p className="text-center text-xs text-foreground/45">
-            Layout {LAYOUT_VERSION}
-          </p>
+          {process.env.NODE_ENV !== "production" && (
+            <p className="pt-4 text-center text-[10px] text-foreground/30">
+              Layout {LAYOUT_VERSION}
+            </p>
+          )}
         </div>
       </div>
     </div>

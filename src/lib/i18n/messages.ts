@@ -282,7 +282,7 @@ const viMessages = {
     "account.title": "Tài khoản",
     "account.backHome": "Về trang chủ",
     "account.signIn": "Đăng nhập",
-    "account.signInDesc": "Lưu tiến độ học lên Supabase khi bạn đã đăng nhập.",
+    "account.signInDesc": "Đăng nhập để đồng bộ tiến trình học trên mọi thiết bị.",
     "account.signInBtn": "Đến trang đăng nhập",
 
     "onboarding.aria": "Giới thiệu app",
@@ -577,7 +577,7 @@ export const enFallbackMessages = {
     "account.title": "Account",
     "account.backHome": "Back to home",
     "account.signIn": "Sign in",
-    "account.signInDesc": "Save learning progress to Supabase when you are signed in.",
+    "account.signInDesc": "Sign in to sync your learning progress across all your devices.",
     "account.signInBtn": "Go to sign in",
 
     "onboarding.aria": "App introduction",
