@@ -16,7 +16,6 @@ import { refreshSingleWordImage } from "@/lib/refresh-stale-word-images";
 import { shouldRefreshImageUrl } from "@/lib/unsplash";
 import { capitalizeFirst } from "@/lib/format-text";
 import { getLocalWordStatus } from "@/lib/learning-storage";
-import { getPresetRank } from "@/data/preset-vocabulary";
 import { getImportanceTier } from "@/lib/word-rank";
 import { WordLibraryPager } from "@/components/words/WordLibraryPager";
 import {
@@ -27,6 +26,8 @@ import {
 import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useState } from "react";
+
+const PLACEHOLDER_RANK = 10000;
 
 function statusLabel(status: ReturnType<typeof getLocalWordStatus>): string | null {
   if (!status) return null;
@@ -97,12 +98,9 @@ function WordDetailPageContent() {
     let cancelled = false;
     setError(null);
 
-    const rank = getPresetRank(word) ?? 10000;
-
     const fetchWord = (forceRepair: boolean): Promise<void> => {
       const params = new URLSearchParams({
         word,
-        rank: String(rank),
         skipGemini: "false",
         cacheVersion: String(DISCOVER_WORD_CACHE_VERSION),
       });
@@ -117,6 +115,8 @@ function WordDetailPageContent() {
             throw new Error(payload.details ?? payload.error ?? "Failed to load word");
           }
           const apiWord = payload.word as Record<string, unknown>;
+          const rank =
+            typeof apiWord.rank === "number" ? apiWord.rank : PLACEHOLDER_RANK;
           const loaded = mapApiWordToDiscoverData(
             {
               word,
@@ -234,8 +234,8 @@ function WordDetailPageContent() {
               data={
                 data ?? {
                   word,
-                  rank: getPresetRank(word) ?? 10000,
-                  importance_tier: getImportanceTier(getPresetRank(word) ?? 10000),
+                  rank: PLACEHOLDER_RANK,
+                  importance_tier: getImportanceTier(PLACEHOLDER_RANK),
                 }
               }
               loading={loading}

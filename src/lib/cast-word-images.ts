@@ -8,15 +8,8 @@ import {
   CAST_WORD_IMAGE_BUNDLE,
   CAST_WORD_IMAGE_TOP_RANK,
 } from "@/data/jungle-cast-image-framework";
-import { JUNGLE_WORD_IMAGE_ENTRIES } from "@/data/jungle-cast-word-image-prompts";
-import { getFamilyHeadword } from "@/lib/word-family";
+import { CAST_WORD_KEYS } from "@/data/cast-word-keys";
 
-export {
-  buildJungleCastWordImagePrompt as buildCastWordImagePrompt,
-  getJungleCastWordReferences,
-  JUNGLE_WORD_IMAGE_ENTRIES as CAST_WORD_IMAGE_ENTRIES,
-  JUNGLE_WORD_IMAGE_SCENES as CAST_WORD_IMAGE_SCENES,
-} from "@/data/jungle-cast-word-image-prompts";
 export {
   CAST_WORD_IMAGE_BUNDLE,
   CAST_WORD_IMAGE_TOP_RANK,
@@ -36,7 +29,7 @@ export {
   getWelcomeHeroPath,
 } from "@/data/jungle-cast-brand";
 
-const CAST_WORDS = new Set(Object.keys(JUNGLE_WORD_IMAGE_ENTRIES));
+const CAST_WORDS = new Set(CAST_WORD_KEYS);
 
 /** British / variant spellings → bundled preset headword with a cast JPEG. */
 const CAST_SPELLING_ALIASES: Readonly<Record<string, string>> = {
@@ -66,6 +59,34 @@ function normalize(word: string): string {
   return word.trim().toLowerCase();
 }
 
+/** Client-safe headword guesses (no frequency tables): strip common inflection/derivation suffixes. */
+function inflectionStems(key: string): string[] {
+  const out = new Set<string>();
+  const add = (stem: string) => {
+    if (stem.length >= 3 && stem !== key) out.add(stem);
+  };
+  const rules: [RegExp, string[]][] = [
+    [/ies$/, ["y"]],
+    [/ied$/, ["y"]],
+    [/ier$/, ["y"]],
+    [/iest$/, ["y"]],
+    [/ily$/, ["y"]],
+    [/(s|x|z|ch|sh)es$/, ["$1"]],
+    [/s$/, [""]],
+    [/ed$/, ["", "e"]],
+    [/ing$/, ["", "e"]],
+    [/er$/, ["", "e"]],
+    [/est$/, ["", "e"]],
+    [/ly$/, [""]],
+    [/(.)\1(ed|ing|er|est)$/, ["$1"]],
+  ];
+  for (const [pattern, replacements] of rules) {
+    if (!pattern.test(key)) continue;
+    for (const rep of replacements) add(key.replace(pattern, rep));
+  }
+  return [...out];
+}
+
 /** Resolve the on-disk cast JPEG key for any surface form (inflection, alias). */
 export function resolveCastWordImageKey(word: string): string | null {
   const key = normalize(word);
@@ -75,8 +96,7 @@ export function resolveCastWordImageKey(word: string): string | null {
   candidates.add(key);
   const alias = CAST_SPELLING_ALIASES[key];
   if (alias) candidates.add(alias);
-  const head = getFamilyHeadword(key);
-  if (head) {
+  for (const head of inflectionStems(key)) {
     candidates.add(head);
     const headAlias = CAST_SPELLING_ALIASES[head];
     if (headAlias) candidates.add(headAlias);

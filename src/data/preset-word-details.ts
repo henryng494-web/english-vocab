@@ -1,24 +1,13 @@
 import { getPresetRank as getInventoryRank } from "@/data/preset-vocabulary";
-import PRESET_DETAILS_JSON from "@/data/preset-word-details.json";
+import { PRESET_WORD_DETAILS } from "@/data/preset-word-details-static";
 import { getFullCorpusFrequencyRank } from "@/lib/full-word-frequency";
 
-export type StaticWordDetail = {
-  pos: string;
-  ipa: string;
-  vietnamese: string;
-  definition: string;
-  examples: string[];
-  rank?: number;
-};
-
-export const PRESET_WORD_DETAILS: Record<string, StaticWordDetail> =
-  PRESET_DETAILS_JSON as Record<string, StaticWordDetail>;
-
-export function getStaticWordDetail(word: string): StaticWordDetail | undefined {
-  const key = word.toLowerCase();
-  if (!Object.hasOwn(PRESET_WORD_DETAILS, key)) return undefined;
-  return PRESET_WORD_DETAILS[key];
-}
+export {
+  getStaticWordDetail,
+  hasStaticWordDetail,
+  PRESET_WORD_DETAILS,
+  type StaticWordDetail,
+} from "@/data/preset-word-details-static";
 
 /**
  * Real, corpus-derived frequency rank for any word — the app's curated
@@ -38,6 +27,3 @@ export function getPresetRank(word: string): number | undefined {
   return getFullCorpusFrequencyRank(normalized);
 }
 
-export function hasStaticWordDetail(word: string): boolean {
-  return Object.hasOwn(PRESET_WORD_DETAILS, word.toLowerCase());
-}

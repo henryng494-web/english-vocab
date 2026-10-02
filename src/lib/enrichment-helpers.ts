@@ -1,10 +1,9 @@
+import { standardToDiscoverFieldsWithRank } from "@/lib/standard-discover-fields";
 import { getPresetRank } from "@/data/preset-word-details";
-import { getStandardVocab } from "@/data/standard-vocab";
 import type { WordEnrichment } from "@/lib/gemini";
 import { serializeExamples } from "@/lib/parse-examples";
 import { resolveImageSearchKeyword } from "@/lib/image-keyword";
 import { resolveWordImageUrl } from "@/lib/unsplash";
-import { getImportanceTier } from "@/lib/word-rank";
 import { normalizeWordType } from "@/lib/word-type";
 import { sanitizeVietnameseText } from "@/lib/sanitize-vi";
 import {
@@ -60,22 +59,5 @@ export function enrichmentToDiscoverWord(
 }
 
 export function standardToDiscoverFields(word: string) {
-  const entry = getStandardVocab(word);
-  if (!entry) return null;
-  const rank = getPresetRank(word) ?? 5000;
-  return {
-    word,
-    rank,
-    importance_tier: getImportanceTier(rank),
-    has_details: true,
-    phonetic: entry.phonetic,
-    word_type: entry.pos,
-    vietnamese_meaning: entry.meaning,
-    english_definition: entry.definition,
-    examples: serializeExamples(entry.examples),
-    image_url: null as string | null,
-    collocations: null as string | null,
-    from_static: true,
-    search_keyword: entry.searchKeyword,
-  };
+  return standardToDiscoverFieldsWithRank(word, getPresetRank(word));
 }

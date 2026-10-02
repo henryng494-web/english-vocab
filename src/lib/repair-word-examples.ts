@@ -4,10 +4,7 @@ import {
   ensureExamples,
   fillExampleTranslations,
 } from "@/lib/example-fallback";
-import {
-  generateExamplesWithGemini,
-  type WordEnrichment,
-} from "@/lib/gemini-core";
+import type { WordEnrichment } from "@/lib/gemini-core";
 import {
   hasQualityExamples,
 } from "@/lib/example-quality";
@@ -46,7 +43,7 @@ export async function repairWordExamples(
 
   if (geminiRealtimeKey()) {
     for (let attempt = 0; attempt < (needsRegeneration ? 2 : 1); attempt += 1) {
-      const generated = await generateExamplesWithGemini(
+      const generated = await (await import("@/lib/gemini-core")).generateExamplesWithGemini(
         word,
         wordType,
         meaning,

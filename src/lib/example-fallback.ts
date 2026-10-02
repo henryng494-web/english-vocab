@@ -6,7 +6,6 @@ import {
   viTranslationMatchesGloss,
 } from "@/lib/example-quality";
 import type { VocabExample } from "@/lib/parse-examples";
-import { translateExampleWithGemini } from "@/lib/gemini-core";
 import { fetchMyMemoryTranslation } from "@/lib/translate-vi";
 import { normalizeWordType } from "@/lib/word-type";
 import {
@@ -233,7 +232,7 @@ export async function fillExampleTranslations(
       (senseMeaning && !viTranslationMatchesGloss(vi, senseMeaning));
     if (needsTranslation) {
       vi =
-        (await translateExampleWithGemini(
+        (await (await import("@/lib/gemini-core")).translateExampleWithGemini(
           en,
           head || en,
           pos,
@@ -274,7 +273,7 @@ export async function alignExampleTranslations(
       (senseMeaning && !viTranslationMatchesGloss(vi, senseMeaning))
     ) {
       vi =
-        (await translateExampleWithGemini(en, word, pos, senseMeaning ?? meaning)) ||
+        (await (await import("@/lib/gemini-core")).translateExampleWithGemini(en, word, pos, senseMeaning ?? meaning)) ||
         vi;
     }
     if (!vi) continue;

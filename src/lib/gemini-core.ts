@@ -34,7 +34,6 @@ import {
   type LearnerLocaleBatchItem,
 } from "@/lib/gemini-prompts";
 import { sanitizeVietnameseText } from "@/lib/sanitize-vi";
-import { getPresetRank } from "@/data/preset-word-details";
 import { buildDefinitionFromVietnameseMeaning } from "@/lib/translate-vi";
 import { normalizeWordType } from "@/lib/word-type";
 import { getImportanceTier } from "@/lib/word-rank";
@@ -462,7 +461,11 @@ function parseExamples(
     .slice(0, 2);
 }
 
-function parseGeminiResponse(text: string, word: string): WordEnrichment {
+function parseGeminiResponse(
+  text: string,
+  word: string,
+  presetRank?: number,
+): WordEnrichment {
   const jsonMatch = text.match(/\{[\s\S]*\}/);
   if (!jsonMatch) {
     throw new Error(`Failed to parse Gemini response for "${word}"`);
@@ -490,7 +493,7 @@ function parseGeminiResponse(text: string, word: string): WordEnrichment {
     serializeVietnameseMeanings(normalizedMeanings),
   );
   const frequencyRank = clampFrequencyRank(
-    getPresetRank(word) || Number(parsed.rank) || 5000,
+    presetRank || Number(parsed.rank) || 5000,
   );
   const phoneticRaw =
     parsed.phonetic?.trim() || parsed.ipa?.trim() || `/${word}/`;
@@ -532,7 +535,12 @@ async function enrichWithModel(
   const genAI = getGeminiClient();
   const model = genAI.getGenerativeModel({ model: modelName });
   const result = await model.generateContent(buildEnrichPrompt(word));
-  return parseGeminiResponse(result.response.text().trim(), word);
+  const { getPresetRank } = await import("@/data/preset-word-details");
+  return parseGeminiResponse(
+    result.response.text().trim(),
+    word,
+    getPresetRank(word),
+  );
 }
 
 /**

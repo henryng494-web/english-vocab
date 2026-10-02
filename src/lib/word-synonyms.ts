@@ -1,5 +1,8 @@
 import { generateSimilarWordsWithGemini } from "@/lib/gemini-core";
+import { normalizeSimilarWords } from "@/lib/similar-words-normalize";
 import { getFamilyDisplayWords } from "@/lib/word-family";
+
+export { normalizeSimilarWords };
 
 const SIMILAR_WORDS_CACHE = new Map<string, string[]>();
 const SIMILAR_WORDS_CACHE_MAX = 6000;
@@ -15,33 +18,6 @@ export type SimilarWordsContext = {
 
 function cacheKey(ctx: SimilarWordsContext): string {
   return `${ctx.word.trim().toLowerCase()}:${ctx.pos?.trim().toLowerCase() ?? ""}`;
-}
-
-/** Normalize learner-facing similar words (1–3 English tokens). */
-export function normalizeSimilarWords(
-  raw: unknown,
-  headword: string,
-  familyWords: string[] = [],
-  max = 3,
-): string[] {
-  const blocked = new Set(
-    [headword, ...familyWords].map((item) => item.trim().toLowerCase()),
-  );
-  const items = Array.isArray(raw) ? raw : [];
-  const out: string[] = [];
-
-  for (const item of items) {
-    const word = String(item ?? "")
-      .trim()
-      .toLowerCase();
-    if (!/^[a-z][a-z'-]{0,24}$/.test(word)) continue;
-    if (blocked.has(word)) continue;
-    if (out.includes(word)) continue;
-    out.push(word);
-    if (out.length >= max) break;
-  }
-
-  return out;
 }
 
 export async function resolveSimilarWords(

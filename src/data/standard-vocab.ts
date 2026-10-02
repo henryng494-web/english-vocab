@@ -1,9 +1,9 @@
 import { PRIMARY_SENSES } from "@/data/primary-senses";
 import {
-  getPresetRank,
   getStaticWordDetail,
   type StaticWordDetail,
-} from "@/data/preset-word-details";
+} from "@/data/preset-word-details-static";
+import { getPresetRankLite as getPresetRank } from "@/data/preset-rank-map";
 import { hasQualityExamples } from "@/lib/example-fallback";
 import { capitalizeFirst } from "@/lib/format-text";
 import type { WordRegister } from "@/lib/word-meanings";

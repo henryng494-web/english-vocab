@@ -20,7 +20,6 @@ import { learnerLocaleNeedsHydration } from "@/lib/learner-locale";
 import type { WordFamilyMember } from "@/types/database";
 import type { WordRegister } from "@/lib/word-meanings";
 import { resolveWordRegister } from "@/lib/word-meanings";
-import { buildWordFamilyEntries } from "@/lib/word-family-display";
 import type {
   ExampleTranslationsJson,
   LocalizedMeaningsJson,
@@ -162,14 +161,7 @@ export function DiscoverCard({
     loading && !isCardContentReady(cardData, cardData.word);
   const phonetic = displayPhonetic(cardData.word, cardData.phonetic);
   const register = resolveWordRegister(cardData);
-  const wordFamily =
-    cardData.word_family && cardData.word_family.length > 0
-      ? cardData.word_family
-      : buildWordFamilyEntries(
-          cardData.word,
-          cardData.vietnamese_meaning,
-          cardData.word_type,
-        );
+  const wordFamily = cardData.word_family ?? [];
 
   /** Skeleton only while the on-demand fetch is in flight — never hang after failure. */
   const strictLearnerLocale =

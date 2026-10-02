@@ -1,5 +1,4 @@
-import { getFamilyDisplayWords } from "@/lib/word-family";
-import { normalizeSimilarWords } from "@/lib/word-synonyms";
+import { normalizeSimilarWords } from "@/lib/similar-words-normalize";
 
 export type CardSimilarPrefetchInput = {
   word: string;
@@ -26,11 +25,7 @@ export function getCachedCardSimilarWords(
   const headword = input.word.trim().toLowerCase();
   if (!headword) return null;
 
-  const preset = normalizeSimilarWords(
-    input.preset,
-    headword,
-    getFamilyDisplayWords(headword),
-  );
+  const preset = normalizeSimilarWords(input.preset, headword);
   if (preset.length) return preset;
 
   const cached = clientSimilarCache.get(
@@ -46,11 +41,7 @@ export function prefetchCardSimilarWords(
   if (!input?.word?.trim()) return Promise.resolve([]);
 
   const headword = input.word.trim().toLowerCase();
-  const preset = normalizeSimilarWords(
-    input.preset,
-    headword,
-    getFamilyDisplayWords(headword),
-  );
+  const preset = normalizeSimilarWords(input.preset, headword);
   if (preset.length) {
     const key = cacheKey(headword, input.wordType, input.meaning);
     clientSimilarCache.set(key, preset);
@@ -79,11 +70,7 @@ export function prefetchCardSimilarWords(
       return (await response.json()) as { similar_words?: string[] };
     })
     .then((payload) => {
-      const resolved = normalizeSimilarWords(
-        payload.similar_words,
-        headword,
-        getFamilyDisplayWords(headword),
-      );
+      const resolved = normalizeSimilarWords(payload.similar_words, headword);
       if (resolved.length) clientSimilarCache.set(key, resolved);
       return resolved;
     })

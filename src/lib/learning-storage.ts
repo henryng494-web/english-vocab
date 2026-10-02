@@ -1,4 +1,4 @@
-import { getPresetRank } from "@/data/preset-vocabulary";
+import { getPresetRankLite as getPresetRank } from "@/data/preset-rank-map";
 import type { LearningStatus } from "@/types/database";
 import { isExcludedVocabWord } from "@/lib/proper-noun";
 import { resolveLearnableWordKey } from "@/data/vocab-abbreviations";

@@ -3,7 +3,7 @@ import {
   discoverDataNeedsLocaleHydration,
   hasCompleteLocaleCardContent,
 } from "@/lib/card-localized-display";
-import { getPresetRank } from "@/data/preset-word-details";
+import { getPresetRankLite as getPresetRank } from "@/data/preset-rank-map";
 import type { LearnerLocale } from "@/lib/learner-locale";
 import {
   DEFAULT_LEARNER_LOCALE,

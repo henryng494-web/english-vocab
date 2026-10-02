@@ -1,11 +1,10 @@
 "use client";
 
-import { getFamilyDisplayWords } from "@/lib/word-family";
 import {
   getCachedCardSimilarWords,
   prefetchCardSimilarWords,
 } from "@/lib/card-similar-prefetch";
-import { normalizeSimilarWords } from "@/lib/word-synonyms";
+import { normalizeSimilarWords } from "@/lib/similar-words-normalize";
 import { useEffect, useMemo, useState } from "react";
 
 type UseCardSimilarWordsOptions = {
@@ -39,11 +38,7 @@ export function useCardSimilarWords({
   const presetNormalized = useMemo(
     () =>
       headword
-        ? normalizeSimilarWords(
-            preset,
-            headword,
-            getFamilyDisplayWords(headword),
-          )
+        ? normalizeSimilarWords(preset, headword)
         : [],
     [headword, preset],
   );

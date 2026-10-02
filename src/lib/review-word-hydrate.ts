@@ -1,4 +1,5 @@
-import { getStaticWordDetail, getPresetRank } from "@/data/preset-word-details";
+import { getStaticWordDetail } from "@/data/preset-word-details-static";
+import { getPresetRankLite as getPresetRank } from "@/data/preset-rank-map";
 import { hasQualityStandardVocab } from "@/data/standard-vocab";
 import { readAppSettings } from "@/lib/app-settings";
 import { getDiscoverWordCacheMemory } from "@/lib/discover-word-cache";
@@ -6,7 +7,7 @@ import {
   hasStoredLocaleMeaning,
   mergeLegacyViIntoMeanings,
 } from "@/lib/multilang-record";
-import { standardToDiscoverFields } from "@/lib/enrichment-helpers";
+import { standardToDiscoverFieldsWithRank } from "@/lib/standard-discover-fields";
 import { resolveImageSearchKeyword } from "@/lib/image-keyword";
 import { prefetchCardContent } from "@/lib/card-content-prefetch";
 import { serializeExamples } from "@/lib/parse-examples";
@@ -101,7 +102,7 @@ function applyCuratedReviewFields(word: VocabWord): VocabWord | null {
     }
   }
 
-  const standard = standardToDiscoverFields(key);
+  const standard = standardToDiscoverFieldsWithRank(key, getPresetRank(key));
   if (!standard || !hasReviewClueFields(standard)) return null;
 
   const next: VocabWord = {
@@ -148,7 +149,7 @@ export function hydrateReviewWordLocal(word: VocabWord): VocabWord {
     });
   }
 
-  const standard = standardToDiscoverFields(key);
+  const standard = standardToDiscoverFieldsWithRank(key, getPresetRank(key));
   if (standard && hasReviewClueFields(standard)) {
     return mergeHydratedFields(word, {
       phonetic: standard.phonetic,

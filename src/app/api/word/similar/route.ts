@@ -1,4 +1,5 @@
 import { createClientIfConfigured } from "@/lib/supabase/client";
+import { getFamilyDisplayWords } from "@/lib/word-family";
 import { normalizeSimilarWords } from "@/lib/word-synonyms";
 import { isRealtimeGeminiDisabled } from "@/lib/gemini-realtime";
 import { resolveSimilarWords } from "@/lib/word-synonyms";
@@ -17,7 +18,7 @@ async function storedSimilarWords(word: string): Promise<string[]> {
     .maybeSingle();
   const raw = (data?.phrase_translations as { similar?: unknown } | null)
     ?.similar;
-  return normalizeSimilarWords(raw, word);
+  return normalizeSimilarWords(raw, word, getFamilyDisplayWords(word));
 }
 
 export async function GET(request: NextRequest) {

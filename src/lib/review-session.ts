@@ -1,4 +1,4 @@
-import { getPresetRank } from "@/data/preset-word-details";
+import { getPresetRankLite as getPresetRank } from "@/data/preset-rank-map";
 import { resolveLearnableWordKey } from "@/data/vocab-abbreviations";
 import { enrichReviewQueueClues } from "@/lib/review-word-hydrate";
 import {
