@@ -1066,6 +1066,8 @@ export function ReviewScreen() {
                 phonetic: data.word.phonetic ?? item.phonetic,
                 word_type: data.word.word_type ?? item.word_type,
                 examples: data.word.examples ?? item.examples,
+                word_family: data.word.word_family ?? item.word_family,
+                similar_words: data.word.similar_words ?? item.similar_words,
               }
             : item,
         );

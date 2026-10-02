@@ -65,6 +65,12 @@ function mergeHydratedFields(
   if (!next.search_keyword?.trim() && patch.search_keyword?.trim()) {
     next.search_keyword = patch.search_keyword;
   }
+  if (patch.word_family?.length) {
+    next.word_family = patch.word_family;
+  }
+  if (patch.similar_words?.length) {
+    next.similar_words = patch.similar_words;
+  }
   if (patch.meanings && typeof patch.meanings === "object") {
     next.meanings = { ...(next.meanings ?? {}), ...patch.meanings };
   }
@@ -213,6 +219,8 @@ export async function fetchDiscoverWordEnrichment(
       meanings: enriched.meanings,
       example_translations: enriched.example_translations,
       phrase_translations: enriched.phrase_translations,
+      word_family: enriched.word_family,
+      similar_words: enriched.similar_words,
     };
   } catch {
     return null;

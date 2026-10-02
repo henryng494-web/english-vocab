@@ -17,6 +17,24 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  webpack(config, { isServer, webpack }) {
+    if (!isServer) {
+      config.plugins.push(
+        new webpack.NormalModuleReplacementPlugin(
+          /curated-image-keywords-loader(\.ts)?$/,
+          (resource: { request: string }) => {
+            if (!resource.request.endsWith(".client")) {
+              resource.request = resource.request.replace(
+                /curated-image-keywords-loader(\.ts)?$/,
+                "curated-image-keywords-loader.client",
+              );
+            }
+          },
+        ),
+      );
+    }
+    return config;
+  },
   images: {
     remotePatterns: [
       {
