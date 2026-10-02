@@ -1,12 +1,13 @@
 "use client";
 
-import { useAppSettings } from "@/context/AppSettingsContext";
+import { useAppSettings, useOptionalAppSettings } from "@/context/AppSettingsContext";
 import { capitalizeFirst } from "@/lib/format-text";
 import {
   countGoalMessageKey,
   dailyGoalMessageKey,
   pronounceAccentMessageKey,
   pronounceSpeedMessageKey,
+  DEFAULT_APP_LOCALE,
   translate,
   type AppLocale,
   type MessageKey,
@@ -27,8 +28,7 @@ import type {
 import type { ReviewIntervalDays } from "@/lib/review-schedule";
 
 export function useI18n() {
-  const { appLanguage } = useAppSettings();
-  const locale = appLanguage;
+  const locale: AppLocale = useOptionalAppSettings()?.appLanguage ?? DEFAULT_APP_LOCALE;
 
   const t = useCallback(
     (key: MessageKey, params?: Record<string, string | number>) =>

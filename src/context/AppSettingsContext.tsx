@@ -110,6 +110,10 @@ export function useAppSettings(): AppSettingsContextValue {
   return ctx;
 }
 
+export function useOptionalAppSettings(): AppSettingsContextValue | null {
+  return useContext(AppSettingsContext);
+}
+
 export function useAutoSpeakSetting(): boolean {
   return useAppSettings().autoSpeakEnabled;
 }
