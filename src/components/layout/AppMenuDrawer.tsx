@@ -246,15 +246,6 @@ export function AppMenuDrawer({ open, onClose }: AppMenuDrawerProps) {
           </section>
 
           <section className="app-menu__section">
-            <h3 className="app-menu__section-title">{t("menu.account")}</h3>
-            <nav className="app-menu__links">
-              <Link href="/account" className="app-menu__link" onClick={onClose}>
-                {t("menu.accountLink")}
-              </Link>
-            </nav>
-          </section>
-
-          <section className="app-menu__section">
             <h3 className="app-menu__section-title">{t("menu.support")}</h3>
             <nav className="app-menu__links">
               <Link href="/settings/bug-report" className="app-menu__link" onClick={onClose}>
