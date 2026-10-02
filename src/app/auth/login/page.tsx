@@ -3,6 +3,7 @@
 import { API_BASE_URL } from "@/lib/api-base";
 import { createClientIfConfigured } from "@/lib/supabase/client";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
+import { useI18n } from "@/hooks/use-i18n";
 import { displayFontClass } from "@/lib/fonts";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -11,35 +12,22 @@ import { useEffect, useRef, useState } from "react";
 type Mode = "signin" | "signup";
 type Feedback = { kind: "error" | "success"; text: string } | null;
 
-const SUPABASE_UNAVAILABLE =
-  "Không thể đăng nhập: ứng dụng chưa được cấu hình Supabase.";
+type Translate = ReturnType<typeof useI18n>["t"];
 
-function describeAuthError(message: string | undefined, mode: Mode): string {
+function describeAuthError(t: Translate, message: string | undefined, mode: Mode): string {
   const text = (message ?? "").toLowerCase();
-  if (text.includes("invalid login credentials")) {
-    return "Email hoặc mật khẩu không đúng. Vui lòng kiểm tra lại.";
-  }
-  if (text.includes("email not confirmed")) {
-    return "Email chưa được xác nhận. Hãy kiểm tra hộp thư và bấm vào liên kết xác nhận.";
-  }
+  if (text.includes("invalid login credentials")) return t("auth.err.invalidCredentials");
+  if (text.includes("email not confirmed")) return t("auth.err.emailNotConfirmed");
   if (text.includes("already registered") || text.includes("already been registered")) {
-    return "Email này đã được đăng ký. Hãy đăng nhập hoặc dùng \"Quên mật khẩu?\".";
+    return t("auth.err.alreadyRegistered");
   }
-  if (text.includes("password") && text.includes("least")) {
-    return "Mật khẩu cần có ít nhất 6 ký tự.";
-  }
-  if (text.includes("rate limit") || text.includes("too many")) {
-    return "Bạn thao tác quá nhanh. Vui lòng thử lại sau ít phút.";
-  }
-  if (text.includes("fetch") || text.includes("network")) {
-    return "Không có kết nối mạng. Vui lòng kiểm tra internet và thử lại.";
-  }
+  if (text.includes("password") && text.includes("least")) return t("auth.err.passwordShort");
+  if (text.includes("rate limit") || text.includes("too many")) return t("auth.err.rateLimit");
+  if (text.includes("fetch") || text.includes("network")) return t("auth.err.network");
   if (text.includes("valid email") || text.includes("invalid email")) {
-    return "Email không hợp lệ.";
+    return t("auth.err.invalidEmail");
   }
-  return mode === "signin"
-    ? "Đăng nhập không thành công. Vui lòng thử lại."
-    : "Đăng ký không thành công. Vui lòng thử lại.";
+  return mode === "signin" ? t("auth.err.signInFailed") : t("auth.err.signUpFailed");
 }
 
 function EyeIcon({ off }: { off: boolean }) {
@@ -76,6 +64,7 @@ const inputClass =
 
 export default function LoginPage() {
   const router = useRouter();
+  const { t } = useI18n();
   const [mode, setMode] = useState<Mode>("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -101,7 +90,7 @@ export default function LoginPage() {
     setFeedback(null);
 
     if (mode === "signup" && password !== confirmPassword) {
-      setFeedback({ kind: "error", text: "Mật khẩu xác nhận không khớp. Vui lòng nhập lại." });
+      setFeedback({ kind: "error", text: t("auth.err.mismatch") });
       return;
     }
 
@@ -109,7 +98,7 @@ export default function LoginPage() {
 
     const supabase = createClientIfConfigured();
     if (!supabase) {
-      setFeedback({ kind: "error", text: SUPABASE_UNAVAILABLE });
+      setFeedback({ kind: "error", text: t("auth.err.supabase") });
       setLoading(false);
       return;
     }
@@ -122,7 +111,7 @@ export default function LoginPage() {
         });
         if (!mountedRef.current) return;
         if (error) {
-          setFeedback({ kind: "error", text: describeAuthError(error.message, mode) });
+          setFeedback({ kind: "error", text: describeAuthError(t, error.message, mode) });
           setLoading(false);
           return;
         }
@@ -138,7 +127,7 @@ export default function LoginPage() {
       });
       if (!mountedRef.current) return;
       if (error) {
-        setFeedback({ kind: "error", text: describeAuthError(error.message, mode) });
+        setFeedback({ kind: "error", text: describeAuthError(t, error.message, mode) });
       } else if (data.session) {
         router.replace("/discover");
         router.refresh();
@@ -146,7 +135,7 @@ export default function LoginPage() {
       } else {
         setFeedback({
           kind: "success",
-          text: "Đăng ký thành công! Vui lòng kiểm tra email để xác nhận tài khoản.",
+          text: t("auth.signUpSuccess"),
         });
         setPassword("");
         setConfirmPassword("");
@@ -155,7 +144,7 @@ export default function LoginPage() {
       if (mountedRef.current) {
         setFeedback({
           kind: "error",
-          text: describeAuthError(error instanceof Error ? error.message : "network", mode),
+          text: describeAuthError(t, error instanceof Error ? error.message : "network", mode),
         });
       }
     }
@@ -168,13 +157,13 @@ export default function LoginPage() {
     if (!email.trim()) {
       setFeedback({
         kind: "error",
-        text: "Hãy nhập email của bạn ở trên, rồi bấm \"Quên mật khẩu?\" lần nữa.",
+        text: t("auth.err.enterEmailFirst"),
       });
       return;
     }
     const supabase = createClientIfConfigured();
     if (!supabase) {
-      setFeedback({ kind: "error", text: SUPABASE_UNAVAILABLE });
+      setFeedback({ kind: "error", text: t("auth.err.supabase") });
       return;
     }
     setLoading(true);
@@ -185,17 +174,17 @@ export default function LoginPage() {
       if (!mountedRef.current) return;
       setFeedback(
         error
-          ? { kind: "error", text: describeAuthError(error.message, "signin") }
+          ? { kind: "error", text: describeAuthError(t, error.message, "signin") }
           : {
               kind: "success",
-              text: "Chúng tôi đã gửi liên kết đặt lại mật khẩu tới email của bạn.",
+              text: t("auth.resetSent"),
             },
       );
     } catch (error) {
       if (mountedRef.current) {
         setFeedback({
           kind: "error",
-          text: describeAuthError(error instanceof Error ? error.message : "network", "signin"),
+          text: describeAuthError(t, error instanceof Error ? error.message : "network", "signin"),
         });
       }
     }
@@ -230,18 +219,16 @@ export default function LoginPage() {
             className="h-[72px] w-[72px] rounded-2xl shadow-sm"
           />
           <h1 className={`${displayFontClass} mt-4 text-3xl font-bold text-foreground`}>
-            {isSignIn ? "Đăng nhập" : "Tạo tài khoản"}
+            {isSignIn ? t("auth.title.signIn") : t("auth.title.signUp")}
           </h1>
           <p className="mt-2 text-sm text-foreground/60">
-            {isSignIn
-              ? "Đăng nhập để lưu tiến trình học từ vựng của bạn"
-              : "Đăng ký để lưu và đồng bộ tiến trình học trên mọi thiết bị"}
+            {isSignIn ? t("auth.subtitle.signIn") : t("auth.subtitle.signUp")}
           </p>
         </div>
 
         <div
           role="tablist"
-          aria-label="Chế độ xác thực"
+          aria-label={t("auth.tabsAria")}
           className="mt-6 grid grid-cols-2 gap-1 rounded-xl bg-primary-50 p-1"
         >
           {(["signin", "signup"] as const).map((tab) => {
@@ -260,7 +247,7 @@ export default function LoginPage() {
                     : "text-foreground/60 hover:text-foreground"
                 }`}
               >
-                {tab === "signin" ? "Đăng nhập" : "Đăng ký"}
+                {tab === "signin" ? t("auth.tabSignIn") : t("auth.tabSignUp")}
               </button>
             );
           })}
@@ -271,14 +258,14 @@ export default function LoginPage() {
             role="alert"
             className="mt-4 rounded-lg bg-primary-50 px-3 py-2 text-sm text-primary-800"
           >
-            {SUPABASE_UNAVAILABLE}
+            {t("auth.err.supabase")}
           </p>
         ) : null}
 
         <form className="mt-5 space-y-4" onSubmit={handleSubmit} noValidate={false}>
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-foreground/80">
-              Email
+              {t("auth.email")}
             </label>
             <input
               id="email"
@@ -290,7 +277,7 @@ export default function LoginPage() {
               spellCheck={false}
               autoComplete="email"
               enterKeyHint="next"
-              placeholder="ban@example.com"
+              placeholder={t("auth.emailPlaceholder")}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -300,7 +287,7 @@ export default function LoginPage() {
 
           <div>
             <label htmlFor="password" className="block text-sm font-medium text-foreground/80">
-              Mật khẩu
+              {t("auth.password")}
             </label>
             <div className="relative mt-1">
               <input
@@ -320,7 +307,7 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={() => setShowPassword((value) => !value)}
-                aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+                aria-label={showPassword ? t("auth.hidePassword") : t("auth.showPassword")}
                 aria-pressed={showPassword}
                 className="absolute inset-y-0 right-0 flex w-12 items-center justify-center text-foreground/50 hover:text-foreground"
               >
@@ -335,7 +322,7 @@ export default function LoginPage() {
                   disabled={loading || !supabaseReady}
                   className="text-sm font-medium text-primary-700 hover:underline disabled:opacity-50"
                 >
-                  Quên mật khẩu?
+                  {t("auth.forgotPassword")}
                 </button>
               </div>
             ) : null}
@@ -347,7 +334,7 @@ export default function LoginPage() {
                 htmlFor="confirm-password"
                 className="block text-sm font-medium text-foreground/80"
               >
-                Xác nhận mật khẩu
+                {t("auth.confirmPassword")}
               </label>
               <input
                 id="confirm-password"
@@ -365,7 +352,7 @@ export default function LoginPage() {
                 className={`mt-1 ${inputClass}`}
               />
               {confirmPassword.length > 0 && confirmPassword !== password ? (
-                <p className="mt-1 text-xs text-red-700">Mật khẩu xác nhận không khớp.</p>
+                <p className="mt-1 text-xs text-red-700">{t("auth.err.mismatchInline")}</p>
               ) : null}
             </div>
           ) : null}
@@ -393,23 +380,23 @@ export default function LoginPage() {
             {loading ? <Spinner /> : null}
             <span>
               {loading
-                ? "Đang xử lý..."
+                ? t("auth.loading")
                 : isSignIn
-                  ? "Đăng nhập"
-                  : "Đăng ký"}
+                  ? t("auth.submitSignIn")
+                  : t("auth.submitSignUp")}
             </span>
           </button>
         </form>
 
         <p className="mt-5 text-center text-sm text-foreground/70">
-          {isSignIn ? "Chưa có tài khoản? " : "Đã có tài khoản? "}
+          {isSignIn ? t("auth.noAccount") : t("auth.haveAccount")}{" "}
           <button
             type="button"
             onClick={() => switchMode(isSignIn ? "signup" : "signin")}
             disabled={loading}
             className="font-semibold text-primary-700 hover:underline disabled:opacity-50"
           >
-            {isSignIn ? "Đăng ký ngay" : "Đăng nhập"}
+            {isSignIn ? t("auth.signUpNow") : t("auth.tabSignIn")}
           </button>
         </p>
 
@@ -417,7 +404,7 @@ export default function LoginPage() {
           href="/account"
           className="mt-4 block text-center text-sm text-foreground/60 hover:text-primary-700"
         >
-          ← Quay lại ứng dụng
+          {t("auth.backToApp")}
         </Link>
       </div>
     </main>
