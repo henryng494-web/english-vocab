@@ -3,6 +3,7 @@
 import { API_BASE_URL } from "@/lib/api-base";
 import { createClientIfConfigured } from "@/lib/supabase/client";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
+import { AppSettingsProvider } from "@/context/AppSettingsContext";
 import { useI18n } from "@/hooks/use-i18n";
 import { displayFontClass } from "@/lib/fonts";
 import Link from "next/link";
@@ -62,7 +63,7 @@ function Spinner() {
 const inputClass =
   "w-full rounded-xl border border-primary-200 bg-background px-3 py-3 text-base text-foreground placeholder:text-foreground/40 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40";
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
   const { t } = useI18n();
   const [mode, setMode] = useState<Mode>("signin");
@@ -408,5 +409,13 @@ export default function LoginPage() {
         </Link>
       </div>
     </main>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <AppSettingsProvider>
+      <LoginForm />
+    </AppSettingsProvider>
   );
 }
