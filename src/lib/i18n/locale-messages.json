@@ -300,7 +300,17 @@
     "auth.signUpSuccess": "¡Registro completado! Revisa tu correo para confirmar tu cuenta.",
     "auth.resetSent": "Hemos enviado un enlace para restablecer tu contraseña a tu correo.",
     "tab.account": "Cuenta",
-    "tab.accountAria": "Abrir cuenta"
+    "tab.accountAria": "Abrir cuenta",
+    "account.tagline": "Tus compañeros diarios para aprender vocabulario",
+    "install.title": "Instala Jungle Jokers",
+    "install.desc": "Añade la app a tu pantalla de inicio para verla a pantalla completa sin que la barra del navegador tape el menú inferior.",
+    "install.ios1": "Abre esta página en Safari",
+    "install.ios2": "Toca el botón Compartir (cuadrado con flecha)",
+    "install.ios3": "Elige Añadir a pantalla de inicio",
+    "install.ios4": "Abre Jungle Jokers desde tu pantalla de inicio",
+    "install.android1": "Abre el menú del navegador (⋮)",
+    "install.android2": "Toca Instalar app o Añadir a pantalla de inicio",
+    "install.android3": "Ábrela desde tu pantalla de inicio para ver el mejor diseño"
   },
   "pt": {
     "tab.home": "Início",
@@ -603,7 +613,17 @@
     "auth.signUpSuccess": "Cadastro concluído! Verifique seu e-mail para confirmar a conta.",
     "auth.resetSent": "Enviamos um link de redefinição de senha para seu e-mail.",
     "tab.account": "Conta",
-    "tab.accountAria": "Abrir conta"
+    "tab.accountAria": "Abrir conta",
+    "account.tagline": "Seus companheiros diários para aprender vocabulário",
+    "install.title": "Instale o Jungle Jokers",
+    "install.desc": "Adicione o app à tela inicial para usar em tela cheia, sem a barra do navegador cobrindo o menu inferior.",
+    "install.ios1": "Abra esta página no Safari",
+    "install.ios2": "Toque no botão Compartilhar (quadrado com seta)",
+    "install.ios3": "Escolha Adicionar à Tela de Início",
+    "install.ios4": "Abra o Jungle Jokers pela tela inicial",
+    "install.android1": "Abra o menu do navegador (⋮)",
+    "install.android2": "Toque em Instalar app ou Adicionar à tela inicial",
+    "install.android3": "Abra pela tela inicial para a melhor exibição"
   },
   "ja": {
     "tab.home": "ホーム",
@@ -906,7 +926,17 @@
     "auth.signUpSuccess": "登録が完了しました！メールを確認してアカウントを認証してください。",
     "auth.resetSent": "パスワード再設定用のリンクをメールで送信しました。",
     "tab.account": "アカウント",
-    "tab.accountAria": "アカウントを開く"
+    "tab.accountAria": "アカウントを開く",
+    "account.tagline": "毎日の語彙学習を支える4人の仲間",
+    "install.title": "Jungle Jokersをインストール",
+    "install.desc": "ホーム画面に追加すると、ブラウザのバーに下部メニューが隠れず全画面で使えます。",
+    "install.ios1": "このページをSafariで開く",
+    "install.ios2": "共有ボタン（矢印付きの四角）をタップ",
+    "install.ios3": "「ホーム画面に追加」を選択",
+    "install.ios4": "ホーム画面からJungle Jokersを開く",
+    "install.android1": "ブラウザのメニュー（⋮）を開く",
+    "install.android2": "「アプリをインストール」または「ホーム画面に追加」をタップ",
+    "install.android3": "ホーム画面から起動すると最適な表示になります"
   },
   "ko": {
     "tab.home": "홈",
@@ -1209,7 +1239,17 @@
     "auth.signUpSuccess": "가입 완료! 이메일을 확인하여 계정을 인증해 주세요.",
     "auth.resetSent": "비밀번호 재설정 링크를 이메일로 보냈습니다.",
     "tab.account": "계정",
-    "tab.accountAria": "계정 열기"
+    "tab.accountAria": "계정 열기",
+    "account.tagline": "매일 어휘 공부를 함께하는 친구들",
+    "install.title": "Jungle Jokers 설치",
+    "install.desc": "홈 화면에 추가하면 브라우저 바가 하단 메뉴를 가리지 않고 전체 화면으로 사용할 수 있어요.",
+    "install.ios1": "이 페이지를 Safari에서 열기",
+    "install.ios2": "공유 버튼(화살표가 있는 사각형)을 누르기",
+    "install.ios3": "'홈 화면에 추가' 선택",
+    "install.ios4": "홈 화면에서 Jungle Jokers 열기",
+    "install.android1": "브라우저 메뉴(⋮) 열기",
+    "install.android2": "'앱 설치' 또는 '홈 화면에 추가' 누르기",
+    "install.android3": "홈 화면에서 실행하면 가장 보기 좋아요"
   },
   "zh": {
     "tab.home": "首页",
@@ -1512,7 +1552,17 @@
     "auth.signUpSuccess": "注册成功！请查收邮件以确认账户。",
     "auth.resetSent": "我们已将重置密码链接发送到你的邮箱。",
     "tab.account": "账户",
-    "tab.accountAria": "打开账户"
+    "tab.accountAria": "打开账户",
+    "account.tagline": "陪你每天学词汇的伙伴",
+    "install.title": "安装 Jungle Jokers",
+    "install.desc": "添加到主屏幕后可全屏使用，浏览器栏不会遮挡底部菜单。",
+    "install.ios1": "在 Safari 中打开此页面",
+    "install.ios2": "点击“分享”按钮（带箭头的方框）",
+    "install.ios3": "选择“添加到主屏幕”",
+    "install.ios4": "从主屏幕打开 Jungle Jokers",
+    "install.android1": "打开浏览器菜单（⋮）",
+    "install.android2": "点击“安装应用”或“添加到主屏幕”",
+    "install.android3": "从主屏幕启动可获得最佳显示效果"
   },
   "th": {
     "tab.home": "หน้าแรก",
@@ -1815,7 +1865,17 @@
     "auth.signUpSuccess": "สมัครสมาชิกสำเร็จ! โปรดตรวจสอบอีเมลเพื่อยืนยันบัญชี",
     "auth.resetSent": "เราได้ส่งลิงก์รีเซ็ตรหัสผ่านไปยังอีเมลของคุณแล้ว",
     "tab.account": "บัญชี",
-    "tab.accountAria": "เปิดบัญชี"
+    "tab.accountAria": "เปิดบัญชี",
+    "account.tagline": "เพื่อนคู่ใจฝึกคำศัพท์ทุกวัน",
+    "install.title": "ติดตั้ง Jungle Jokers",
+    "install.desc": "เพิ่มแอปลงในหน้าจอหลักเพื่อใช้แบบเต็มจอ โดยไม่มีแถบเบราว์เซอร์บังเมนูด้านล่าง",
+    "install.ios1": "เปิดหน้านี้ด้วย Safari",
+    "install.ios2": "แตะปุ่มแชร์ (สี่เหลี่ยมมีลูกศร)",
+    "install.ios3": "เลือก เพิ่มไปยังหน้าจอโฮม",
+    "install.ios4": "เปิด Jungle Jokers จากหน้าจอหลัก",
+    "install.android1": "เปิดเมนูเบราว์เซอร์ (⋮)",
+    "install.android2": "แตะ ติดตั้งแอป หรือ เพิ่มลงในหน้าจอหลัก",
+    "install.android3": "เปิดจากหน้าจอหลักเพื่อการแสดงผลที่ดีที่สุด"
   },
   "id": {
     "tab.home": "Beranda",
@@ -2118,7 +2178,17 @@
     "auth.signUpSuccess": "Pendaftaran berhasil! Periksa email Anda untuk mengonfirmasi akun.",
     "auth.resetSent": "Kami telah mengirim tautan atur ulang kata sandi ke email Anda.",
     "tab.account": "Akun",
-    "tab.accountAria": "Buka akun"
+    "tab.accountAria": "Buka akun",
+    "account.tagline": "Teman belajar kosakata harianmu",
+    "install.title": "Pasang Jungle Jokers",
+    "install.desc": "Tambahkan aplikasi ke layar utama agar tampil layar penuh tanpa bilah browser menutupi menu bawah.",
+    "install.ios1": "Buka halaman ini di Safari",
+    "install.ios2": "Ketuk tombol Bagikan (kotak dengan panah)",
+    "install.ios3": "Pilih Tambah ke Layar Utama",
+    "install.ios4": "Buka Jungle Jokers dari layar utama",
+    "install.android1": "Buka menu browser (⋮)",
+    "install.android2": "Ketuk Instal aplikasi atau Tambahkan ke layar utama",
+    "install.android3": "Buka dari layar utama untuk tampilan terbaik"
   },
   "fr": {
     "tab.home": "Accueil",
@@ -2421,7 +2491,17 @@
     "auth.signUpSuccess": "Inscription réussie ! Consultez votre e-mail pour confirmer votre compte.",
     "auth.resetSent": "Nous avons envoyé un lien de réinitialisation à votre e-mail.",
     "tab.account": "Compte",
-    "tab.accountAria": "Ouvrir le compte"
+    "tab.accountAria": "Ouvrir le compte",
+    "account.tagline": "Vos compagnons de vocabulaire au quotidien",
+    "install.title": "Installer Jungle Jokers",
+    "install.desc": "Ajoutez l'app à l'écran d'accueil pour un affichage plein écran, sans barre de navigateur masquant le menu du bas.",
+    "install.ios1": "Ouvrez cette page dans Safari",
+    "install.ios2": "Appuyez sur le bouton Partager (carré avec flèche)",
+    "install.ios3": "Choisissez Sur l'écran d'accueil",
+    "install.ios4": "Ouvrez Jungle Jokers depuis l'écran d'accueil",
+    "install.android1": "Ouvrez le menu du navigateur (⋮)",
+    "install.android2": "Appuyez sur Installer l'application ou Ajouter à l'écran d'accueil",
+    "install.android3": "Lancez depuis l'écran d'accueil pour un affichage optimal"
   },
   "de": {
     "tab.home": "Startseite",
@@ -2724,7 +2804,17 @@
     "auth.signUpSuccess": "Registrierung erfolgreich! Bitte prüfe deine E-Mail, um dein Konto zu bestätigen.",
     "auth.resetSent": "Wir haben dir einen Link zum Zurücksetzen des Passworts per E-Mail gesendet.",
     "tab.account": "Konto",
-    "tab.accountAria": "Konto öffnen"
+    "tab.accountAria": "Konto öffnen",
+    "account.tagline": "Deine täglichen Vokabel-Begleiter",
+    "install.title": "Jungle Jokers installieren",
+    "install.desc": "Füge die App zum Home-Bildschirm hinzu, damit sie im Vollbild läuft und die Browserleiste das untere Menü nicht verdeckt.",
+    "install.ios1": "Öffne diese Seite in Safari",
+    "install.ios2": "Tippe auf die Teilen-Taste (Quadrat mit Pfeil)",
+    "install.ios3": "Wähle Zum Home-Bildschirm",
+    "install.ios4": "Öffne Jungle Jokers vom Home-Bildschirm",
+    "install.android1": "Öffne das Browsermenü (⋮)",
+    "install.android2": "Tippe auf App installieren oder Zum Startbildschirm hinzufügen",
+    "install.android3": "Starte von Home-Bildschirm für das beste Layout"
   },
   "it": {
     "tab.home": "Home",
@@ -3027,7 +3117,17 @@
     "auth.signUpSuccess": "Registrazione completata! Controlla la tua email per confermare l'account.",
     "auth.resetSent": "Abbiamo inviato un link per reimpostare la password alla tua email.",
     "tab.account": "Account",
-    "tab.accountAria": "Apri account"
+    "tab.accountAria": "Apri account",
+    "account.tagline": "I tuoi compagni quotidiani per il vocabolario",
+    "install.title": "Installa Jungle Jokers",
+    "install.desc": "Aggiungi l'app alla schermata Home per usarla a schermo intero, senza la barra del browser sopra il menu inferiore.",
+    "install.ios1": "Apri questa pagina in Safari",
+    "install.ios2": "Tocca il pulsante Condividi (quadrato con freccia)",
+    "install.ios3": "Scegli Aggiungi a Home",
+    "install.ios4": "Apri Jungle Jokers dalla schermata Home",
+    "install.android1": "Apri il menu del browser (⋮)",
+    "install.android2": "Tocca Installa app o Aggiungi a schermata Home",
+    "install.android3": "Avvia dalla schermata Home per il layout migliore"
   },
   "tr": {
     "tab.home": "Ana Sayfa",
@@ -3330,7 +3430,17 @@
     "auth.signUpSuccess": "Kayıt başarılı! Hesabınızı onaylamak için e-postanızı kontrol edin.",
     "auth.resetSent": "Şifre sıfırlama bağlantısını e-postanıza gönderdik.",
     "tab.account": "Hesap",
-    "tab.accountAria": "Hesabı aç"
+    "tab.accountAria": "Hesabı aç",
+    "account.tagline": "Günlük kelime öğrenme arkadaşların",
+    "install.title": "Jungle Jokers'ı yükle",
+    "install.desc": "Tarayıcı çubuğu alt menüyü kapatmadan tam ekran kullanmak için uygulamayı ana ekrana ekleyin.",
+    "install.ios1": "Bu sayfayı Safari'de açın",
+    "install.ios2": "Paylaş düğmesine dokunun (oklu kare)",
+    "install.ios3": "Ana Ekrana Ekle'yi seçin",
+    "install.ios4": "Jungle Jokers'ı ana ekrandan açın",
+    "install.android1": "Tarayıcı menüsünü açın (⋮)",
+    "install.android2": "Uygulamayı yükle veya Ana ekrana ekle'ye dokunun",
+    "install.android3": "En iyi görünüm için ana ekrandan başlatın"
   },
   "ar": {
     "tab.home": "الرئيسية",
@@ -3633,6 +3743,16 @@
     "auth.signUpSuccess": "تم التسجيل بنجاح! يرجى التحقق من بريدك الإلكتروني لتأكيد حسابك.",
     "auth.resetSent": "أرسلنا رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني.",
     "tab.account": "الحساب",
-    "tab.accountAria": "فتح الحساب"
+    "tab.accountAria": "فتح الحساب",
+    "account.tagline": "رفاقك اليوميون لتعلّم المفردات",
+    "install.title": "ثبّت Jungle Jokers",
+    "install.desc": "أضف التطبيق إلى الشاشة الرئيسية لاستخدامه بملء الشاشة دون أن يغطي شريط المتصفح القائمة السفلية.",
+    "install.ios1": "افتح هذه الصفحة في Safari",
+    "install.ios2": "اضغط زر المشاركة (مربع بسهم)",
+    "install.ios3": "اختر إضافة إلى الشاشة الرئيسية",
+    "install.ios4": "افتح Jungle Jokers من الشاشة الرئيسية",
+    "install.android1": "افتح قائمة المتصفح (⋮)",
+    "install.android2": "اضغط تثبيت التطبيق أو إضافة إلى الشاشة الرئيسية",
+    "install.android3": "شغّله من الشاشة الرئيسية لأفضل عرض"
   }
 }

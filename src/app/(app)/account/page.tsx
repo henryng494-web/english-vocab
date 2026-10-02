@@ -30,7 +30,7 @@ export default function AccountPage() {
               <div className="flex items-center gap-2">
                 <h2 className={`home-section-title ${displayFontClass}`}>Jungle Jokers</h2>
               </div>
-              <p className="home-body-text text-pink-700">Bộ tứ đồng hành học từ vựng mỗi ngày</p>
+              <p className="home-body-text text-pink-700">{t("account.tagline")}</p>
               <div className="mt-2">
                 <JungleCastPill size={24} />
               </div>

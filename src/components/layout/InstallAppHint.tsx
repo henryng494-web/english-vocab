@@ -2,12 +2,14 @@
 
 import { useEffect, useState } from "react";
 
+import { useI18n } from "@/hooks/use-i18n";
 import { IS_MOBILE_BUILD } from "@/lib/api-base";
 
 type NavigatorStandalone = Navigator & { standalone?: boolean };
 type CapacitorWindow = Window & { Capacitor?: { isNativePlatform?: () => boolean } };
 
 export function InstallAppHint() {
+  const { t } = useI18n();
   const [mode, setMode] = useState<"checking" | "browser" | "installed">(
     "checking",
   );
@@ -35,26 +37,17 @@ export function InstallAppHint() {
 
   return (
     <section className="rounded-2xl border border-primary-200 bg-surface p-4 shadow-sm">
-      <h2 className="text-base font-bold text-foreground">Install Jungle Jokers</h2>
-      <p className="mt-1 text-sm text-foreground/70">
-        Add this app to your home screen for full-screen layout without the browser
-        bar covering the bottom menu — the best experience on iPhone and iPad.
-      </p>
+      <h2 className="text-base font-bold text-foreground">{t("install.title")}</h2>
+      <p className="mt-1 text-sm text-foreground/70">{t("install.desc")}</p>
 
-      {isIos ? (
-        <ol className="mt-3 list-decimal space-y-1.5 pl-5 text-sm text-foreground/80">
-          <li>Open this page in <strong>Safari</strong></li>
-          <li>Tap the <strong>Share</strong> button (square with arrow)</li>
-          <li>Choose <strong>Add to Home Screen</strong></li>
-          <li>Open <strong>Jungle Jokers</strong> from your home screen</li>
-        </ol>
-      ) : (
-        <ol className="mt-3 list-decimal space-y-1.5 pl-5 text-sm text-foreground/80">
-          <li>Open the browser menu (⋮)</li>
-          <li>Tap <strong>Install app</strong> or <strong>Add to Home screen</strong></li>
-          <li>Launch from your home screen for the best layout</li>
-        </ol>
-      )}
+      <ol className="mt-3 list-decimal space-y-1.5 pl-5 text-sm text-foreground/80">
+        {(isIos
+          ? (["install.ios1", "install.ios2", "install.ios3", "install.ios4"] as const)
+          : (["install.android1", "install.android2", "install.android3"] as const)
+        ).map((key) => (
+          <li key={key}>{t(key)}</li>
+        ))}
+      </ol>
     </section>
   );
 }
