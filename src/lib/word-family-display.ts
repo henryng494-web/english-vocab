@@ -55,12 +55,42 @@ function isVerbStemOfNoun(stem: string, noun: string): boolean {
   );
 }
 
+const FUNCTION_WORD_POS: Readonly<Record<string, string>> = {
+  my: "determiner",
+  your: "determiner",
+  his: "determiner",
+  her: "determiner",
+  its: "determiner",
+  our: "determiner",
+  their: "determiner",
+  mine: "pronoun",
+  yours: "pronoun",
+  hers: "pronoun",
+  ours: "pronoun",
+  theirs: "pronoun",
+  me: "pronoun",
+  you: "pronoun",
+  him: "pronoun",
+  us: "pronoun",
+  them: "pronoun",
+  myself: "pronoun",
+  yourself: "pronoun",
+  himself: "pronoun",
+  herself: "pronoun",
+  itself: "pronoun",
+  ourselves: "pronoun",
+  yourselves: "pronoun",
+  themselves: "pronoun",
+};
+
 function guessPos(
   word: string,
   headword: string,
   index: number,
   headPos?: string | null,
 ): string {
+  const functionPos = FUNCTION_WORD_POS[word];
+  if (functionPos) return functionPos;
   const known = normalizeWordType(null, word);
   if (word === headword) {
     return normalizeWordType(headPos, word) ?? known ?? "noun";
