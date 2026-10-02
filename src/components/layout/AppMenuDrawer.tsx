@@ -92,10 +92,13 @@ export function AppMenuDrawer({ open, onClose }: AppMenuDrawerProps) {
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") onClose();
     };
-    document.body.style.overflow = "hidden";
+    const { body, documentElement: root } = document;
+    body.classList.add("app-menu-open");
+    root.classList.add("app-menu-open");
     document.addEventListener("keydown", onKey);
     return () => {
-      document.body.style.overflow = "";
+      body.classList.remove("app-menu-open");
+      root.classList.remove("app-menu-open");
       document.removeEventListener("keydown", onKey);
     };
   }, [open, onClose]);

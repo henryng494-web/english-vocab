@@ -5093,10 +5093,18 @@ body {
 }
 
 /* App menu drawer */
+html.app-menu-open,
+body.app-menu-open {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
 .app-menu {
   position: fixed;
   inset: 0;
   z-index: 1000;
+  overflow: hidden;
+  overscroll-behavior: contain;
 }
 
 .app-menu__backdrop {
@@ -5104,6 +5112,7 @@ body {
   inset: 0;
   border: none;
   background: rgb(15 23 42 / 0.45);
+  touch-action: none;
 }
 
 .app-menu__panel {
@@ -5111,9 +5120,13 @@ body {
   top: 0;
   left: 0;
   bottom: 0;
-  width: min(88vw, 20rem);
+  width: min(85vw, 20rem);
+  max-width: min(85vw, 20rem);
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
   background: var(--card);
   box-shadow: 0 12px 40px rgb(15 23 42 / 0.18);
 }
@@ -5154,9 +5167,20 @@ body {
 
 .app-menu__body {
   min-height: 0;
+  min-width: 0;
   flex: 1;
-  overflow: auto;
+  width: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
   padding: 0.75rem 1rem calc(env(safe-area-inset-bottom, 0px) + 1rem);
+}
+
+.app-menu__section {
+  min-width: 0;
+  max-width: 100%;
 }
 
 .app-menu__section + .app-menu__section {
@@ -5176,9 +5200,11 @@ body {
 
 .app-menu__hint {
   margin-top: 0.35rem;
+  max-width: 100%;
   font-size: 0.8125rem;
   color: var(--foreground);
   opacity: 0.65;
+  overflow-wrap: anywhere;
 }
 
 .app-menu__toggle-row {
@@ -5192,6 +5218,8 @@ body {
 
 .app-menu__toggle-copy {
   display: flex;
+  min-width: 0;
+  flex: 1;
   flex-direction: column;
   gap: 0.15rem;
 }
@@ -5228,6 +5256,9 @@ body {
 
 .app-menu__chips {
   display: grid;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.5rem;
   margin-top: 0.65rem;
@@ -5238,14 +5269,20 @@ body {
 }
 
 .app-menu__chip {
+  min-width: 0;
+  max-width: 100%;
   border: 1px solid var(--secondary-200);
   border-radius: 9999px;
   background: var(--background);
-  padding: 0.45rem 0.5rem;
-  font-size: 0.8125rem;
+  padding: 0.45rem 0.35rem;
+  font-size: 0.75rem;
   font-weight: 700;
+  line-height: 1.2;
   color: var(--foreground);
   text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .app-menu__chip.is-active {
