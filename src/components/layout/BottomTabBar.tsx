@@ -65,7 +65,7 @@ function LearnIcon({ active }: { active: boolean }) {
   );
 }
 
-function LibraryIcon({ active }: { active: boolean }) {
+function AccountIcon({ active }: { active: boolean }) {
   return (
     <svg
       aria-hidden
@@ -75,8 +75,8 @@ function LibraryIcon({ active }: { active: boolean }) {
       stroke="currentColor"
       strokeWidth="1.8"
     >
-      <path d="M5 4h5v16H6a1 1 0 01-1-1V4zM14 4h5v16h-4a1 1 0 01-1-1V4z" strokeLinejoin="round" />
-      <path d="M5 4h14" strokeLinecap="round" />
+      <circle cx="12" cy="8" r="4" />
+      <path d="M4 20c0-3.5 3.6-6 8-6s8 2.5 8 6" strokeLinecap="round" />
     </svg>
   );
 }
@@ -109,10 +109,10 @@ export function BottomTabBar() {
       icon: (active) => <LearnIcon active={active} />,
     },
     {
-      href: "/words",
-      label: t("tab.library"),
-      match: (path) => path.startsWith("/words"),
-      icon: (active) => <LibraryIcon active={active} />,
+      href: "/account",
+      label: t("tab.account"),
+      match: (path) => path.startsWith("/account"),
+      icon: (active) => <AccountIcon active={active} />,
     },
   ];
 
@@ -132,7 +132,7 @@ export function BottomTabBar() {
               ? "text-accent-700"
               : tab.href.startsWith("/learn")
                 ? "text-secondary"
-                : tab.href.startsWith("/words")
+                : tab.href.startsWith("/account")
                   ? "text-pink"
                   : "text-primary";
           const activeBgClass =
@@ -140,7 +140,7 @@ export function BottomTabBar() {
               ? "bg-accent-50"
               : tab.href.startsWith("/learn")
                 ? "bg-secondary-50"
-                : tab.href.startsWith("/words")
+                : tab.href.startsWith("/account")
                   ? "bg-pink-50"
                   : "bg-primary-50";
 
@@ -149,7 +149,7 @@ export function BottomTabBar() {
               ? "journey"
               : tab.href.startsWith("/learn")
                 ? "review"
-                : tab.href.startsWith("/words")
+                : tab.href.startsWith("/account")
                   ? "library"
                   : "home";
 

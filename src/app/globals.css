@@ -2358,6 +2358,7 @@ body {
 }
 
 .home-galaxy__avatar {
+  text-decoration: none;
   display: flex;
   align-items: center;
   justify-content: center;

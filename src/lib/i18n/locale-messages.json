@@ -300,7 +300,9 @@
     "auth.err.mismatchInline": "Las contraseñas no coinciden.",
     "auth.err.enterEmailFirst": "Introduce tu correo arriba y vuelve a pulsar «¿Olvidaste tu contraseña?».",
     "auth.signUpSuccess": "¡Registro completado! Revisa tu correo para confirmar tu cuenta.",
-    "auth.resetSent": "Hemos enviado un enlace para restablecer tu contraseña a tu correo."
+    "auth.resetSent": "Hemos enviado un enlace para restablecer tu contraseña a tu correo.",
+    "tab.account": "Cuenta",
+    "tab.accountAria": "Abrir cuenta"
   },
   "pt": {
     "tab.home": "Início",
@@ -603,7 +605,9 @@
     "auth.err.mismatchInline": "As senhas não coincidem.",
     "auth.err.enterEmailFirst": "Digite seu e-mail acima e toque em \"Esqueceu a senha?\" novamente.",
     "auth.signUpSuccess": "Cadastro concluído! Verifique seu e-mail para confirmar a conta.",
-    "auth.resetSent": "Enviamos um link de redefinição de senha para seu e-mail."
+    "auth.resetSent": "Enviamos um link de redefinição de senha para seu e-mail.",
+    "tab.account": "Conta",
+    "tab.accountAria": "Abrir conta"
   },
   "ja": {
     "tab.home": "ホーム",
@@ -906,7 +910,9 @@
     "auth.err.mismatchInline": "パスワードが一致しません。",
     "auth.err.enterEmailFirst": "上にメールアドレスを入力してから、もう一度「パスワードをお忘れですか？」を押してください。",
     "auth.signUpSuccess": "登録が完了しました！メールを確認してアカウントを認証してください。",
-    "auth.resetSent": "パスワード再設定用のリンクをメールで送信しました。"
+    "auth.resetSent": "パスワード再設定用のリンクをメールで送信しました。",
+    "tab.account": "アカウント",
+    "tab.accountAria": "アカウントを開く"
   },
   "ko": {
     "tab.home": "홈",
@@ -1209,7 +1215,9 @@
     "auth.err.mismatchInline": "비밀번호가 일치하지 않습니다.",
     "auth.err.enterEmailFirst": "위에 이메일을 입력한 뒤 '비밀번호를 잊으셨나요?'를 다시 눌러 주세요.",
     "auth.signUpSuccess": "가입 완료! 이메일을 확인하여 계정을 인증해 주세요.",
-    "auth.resetSent": "비밀번호 재설정 링크를 이메일로 보냈습니다."
+    "auth.resetSent": "비밀번호 재설정 링크를 이메일로 보냈습니다.",
+    "tab.account": "계정",
+    "tab.accountAria": "계정 열기"
   },
   "zh": {
     "tab.home": "首页",
@@ -1512,7 +1520,9 @@
     "auth.err.mismatchInline": "两次密码不一致。",
     "auth.err.enterEmailFirst": "请先在上方输入邮箱，再次点击“忘记密码？”。",
     "auth.signUpSuccess": "注册成功！请查收邮件以确认账户。",
-    "auth.resetSent": "我们已将重置密码链接发送到你的邮箱。"
+    "auth.resetSent": "我们已将重置密码链接发送到你的邮箱。",
+    "tab.account": "账户",
+    "tab.accountAria": "打开账户"
   },
   "th": {
     "tab.home": "หน้าแรก",
@@ -1815,7 +1825,9 @@
     "auth.err.mismatchInline": "รหัสผ่านไม่ตรงกัน",
     "auth.err.enterEmailFirst": "กรอกอีเมลด้านบน แล้วกด \"ลืมรหัสผ่าน?\" อีกครั้ง",
     "auth.signUpSuccess": "สมัครสมาชิกสำเร็จ! โปรดตรวจสอบอีเมลเพื่อยืนยันบัญชี",
-    "auth.resetSent": "เราได้ส่งลิงก์รีเซ็ตรหัสผ่านไปยังอีเมลของคุณแล้ว"
+    "auth.resetSent": "เราได้ส่งลิงก์รีเซ็ตรหัสผ่านไปยังอีเมลของคุณแล้ว",
+    "tab.account": "บัญชี",
+    "tab.accountAria": "เปิดบัญชี"
   },
   "id": {
     "tab.home": "Beranda",
@@ -2118,7 +2130,9 @@
     "auth.err.mismatchInline": "Kata sandi tidak cocok.",
     "auth.err.enterEmailFirst": "Masukkan email Anda di atas, lalu ketuk \"Lupa kata sandi?\" lagi.",
     "auth.signUpSuccess": "Pendaftaran berhasil! Periksa email Anda untuk mengonfirmasi akun.",
-    "auth.resetSent": "Kami telah mengirim tautan atur ulang kata sandi ke email Anda."
+    "auth.resetSent": "Kami telah mengirim tautan atur ulang kata sandi ke email Anda.",
+    "tab.account": "Akun",
+    "tab.accountAria": "Buka akun"
   },
   "fr": {
     "tab.home": "Accueil",
@@ -2421,7 +2435,9 @@
     "auth.err.mismatchInline": "Les mots de passe ne correspondent pas.",
     "auth.err.enterEmailFirst": "Saisissez votre e-mail ci-dessus, puis appuyez de nouveau sur « Mot de passe oublié ? ».",
     "auth.signUpSuccess": "Inscription réussie ! Consultez votre e-mail pour confirmer votre compte.",
-    "auth.resetSent": "Nous avons envoyé un lien de réinitialisation à votre e-mail."
+    "auth.resetSent": "Nous avons envoyé un lien de réinitialisation à votre e-mail.",
+    "tab.account": "Compte",
+    "tab.accountAria": "Ouvrir le compte"
   },
   "de": {
     "tab.home": "Startseite",
@@ -2724,7 +2740,9 @@
     "auth.err.mismatchInline": "Die Passwörter stimmen nicht überein.",
     "auth.err.enterEmailFirst": "Gib oben deine E-Mail ein und tippe erneut auf \"Passwort vergessen?\".",
     "auth.signUpSuccess": "Registrierung erfolgreich! Bitte prüfe deine E-Mail, um dein Konto zu bestätigen.",
-    "auth.resetSent": "Wir haben dir einen Link zum Zurücksetzen des Passworts per E-Mail gesendet."
+    "auth.resetSent": "Wir haben dir einen Link zum Zurücksetzen des Passworts per E-Mail gesendet.",
+    "tab.account": "Konto",
+    "tab.accountAria": "Konto öffnen"
   },
   "it": {
     "tab.home": "Home",
@@ -3027,7 +3045,9 @@
     "auth.err.mismatchInline": "Le password non coincidono.",
     "auth.err.enterEmailFirst": "Inserisci la tua email qui sopra, poi tocca di nuovo \"Password dimenticata?\".",
     "auth.signUpSuccess": "Registrazione completata! Controlla la tua email per confermare l'account.",
-    "auth.resetSent": "Abbiamo inviato un link per reimpostare la password alla tua email."
+    "auth.resetSent": "Abbiamo inviato un link per reimpostare la password alla tua email.",
+    "tab.account": "Account",
+    "tab.accountAria": "Apri account"
   },
   "tr": {
     "tab.home": "Ana Sayfa",
@@ -3330,7 +3350,9 @@
     "auth.err.mismatchInline": "Şifreler eşleşmiyor.",
     "auth.err.enterEmailFirst": "Yukarıya e-postanızı yazın, ardından \"Şifrenizi mi unuttunuz?\" seçeneğine tekrar dokunun.",
     "auth.signUpSuccess": "Kayıt başarılı! Hesabınızı onaylamak için e-postanızı kontrol edin.",
-    "auth.resetSent": "Şifre sıfırlama bağlantısını e-postanıza gönderdik."
+    "auth.resetSent": "Şifre sıfırlama bağlantısını e-postanıza gönderdik.",
+    "tab.account": "Hesap",
+    "tab.accountAria": "Hesabı aç"
   },
   "ar": {
     "tab.home": "الرئيسية",
@@ -3633,6 +3655,8 @@
     "auth.err.mismatchInline": "كلمتا المرور غير متطابقتين.",
     "auth.err.enterEmailFirst": "أدخل بريدك الإلكتروني أعلاه ثم اضغط \"هل نسيت كلمة المرور؟\" مرة أخرى.",
     "auth.signUpSuccess": "تم التسجيل بنجاح! يرجى التحقق من بريدك الإلكتروني لتأكيد حسابك.",
-    "auth.resetSent": "أرسلنا رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني."
+    "auth.resetSent": "أرسلنا رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني.",
+    "tab.account": "الحساب",
+    "tab.accountAria": "فتح الحساب"
   }
 }

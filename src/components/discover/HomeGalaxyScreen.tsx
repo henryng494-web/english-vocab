@@ -267,7 +267,9 @@ export function HomeGalaxyScreen(props: HomeGalaxyScreenProps) {
         <header className="home-galaxy__topbar">
           <div className="home-galaxy__topbar-left">
             <AppMenuButton />
-            <span className="home-galaxy__avatar" aria-hidden>{avatarInitial}</span>
+            <Link href="/account" aria-label={t("tab.accountAria")} className="home-galaxy__avatar">
+              {avatarInitial}
+            </Link>
             <p className={`home-galaxy__topbar-greeting ${displayFontClass}`}>
               {t("home.greeting", { name: greetingName })}
             </p>

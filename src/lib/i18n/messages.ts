@@ -27,6 +27,8 @@ const viMessages = {
     "tab.journey": "Hành trình",
     "tab.review": "Ôn tập",
     "tab.library": "Thư viện",
+    "tab.account": "Tài khoản",
+    "tab.accountAria": "Mở trang tài khoản",
     "tab.dueAria": "{count} từ cần ôn hôm nay",
 
     "menu.title": "Menu",
@@ -358,6 +360,8 @@ export const enFallbackMessages = {
     "tab.journey": "Journey",
     "tab.review": "Review",
     "tab.library": "Library",
+    "tab.account": "Account",
+    "tab.accountAria": "Open account",
     "tab.dueAria": "{count} words due today",
 
     "menu.title": "Menu",
