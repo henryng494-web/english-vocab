@@ -1,3 +1,4 @@
+import { wordPageHref } from "@/lib/api-base";
 import {
   getLocalWordsByFilter,
   type WordLibraryFilter,
@@ -36,7 +37,7 @@ export function buildWordLibraryDetailHref(
     filter: context.filter,
     sort: context.sort,
   });
-  return `/word/${encodeURIComponent(word.toLowerCase())}?${params.toString()}`;
+  return wordPageHref(word, params.toString());
 }
 
 export type WordLibraryNeighbors = {

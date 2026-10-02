@@ -1,8 +1,8 @@
 "use client";
 
-import { installApiBaseFetch } from "@/lib/api-base";
+import { installApiBase } from "@/lib/api-base";
 
-installApiBaseFetch();
+installApiBase();
 
 export function ApiBaseInstaller() {
   return null;

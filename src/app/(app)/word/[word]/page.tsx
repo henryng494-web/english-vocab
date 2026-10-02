@@ -48,7 +48,9 @@ function statusLabel(status: ReturnType<typeof getLocalWordStatus>): string | nu
 function WordDetailPageContent() {
   const params = useParams<{ word: string }>();
   const searchParams = useSearchParams();
-  const word = decodeURIComponent(params.word ?? "").trim().toLowerCase();
+  const rawWord =
+    params.word === "_" ? (searchParams.get("w") ?? "") : (params.word ?? "");
+  const word = decodeURIComponent(rawWord).trim().toLowerCase();
   const libraryContext = parseWordLibraryNavContext(searchParams);
   const libraryNeighbors = useMemo(() => {
     if (!word || !libraryContext) return null;

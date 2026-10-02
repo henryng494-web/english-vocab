@@ -1,4 +1,5 @@
 "use client";
+import { wordPageHref } from "@/lib/api-base";
 
 import Link from "next/link";
 import { capitalizeFirst } from "@/lib/format-text";
@@ -24,7 +25,7 @@ type WordListProps = {
 
 function wordHref(word: string, libraryContext?: WordLibraryNavContext): string {
   if (!libraryContext) {
-    return `/word/${encodeURIComponent(word.toLowerCase())}`;
+    return wordPageHref(word);
   }
   return buildWordLibraryDetailHref(word, libraryContext);
 }
