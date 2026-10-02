@@ -79,6 +79,7 @@ export default function LoginPage() {
   const [mode, setMode] = useState<Mode>("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [feedback, setFeedback] = useState<Feedback>(null);
@@ -97,8 +98,14 @@ export default function LoginPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (loading) return;
-    setLoading(true);
     setFeedback(null);
+
+    if (mode === "signup" && password !== confirmPassword) {
+      setFeedback({ kind: "error", text: "Mật khẩu xác nhận không khớp. Vui lòng nhập lại." });
+      return;
+    }
+
+    setLoading(true);
 
     const supabase = createClientIfConfigured();
     if (!supabase) {
@@ -139,8 +146,10 @@ export default function LoginPage() {
       } else {
         setFeedback({
           kind: "success",
-          text: "Đăng ký thành công! Hãy kiểm tra email để xác nhận tài khoản.",
+          text: "Đăng ký thành công! Vui lòng kiểm tra email để xác nhận tài khoản.",
         });
+        setPassword("");
+        setConfirmPassword("");
       }
     } catch (error) {
       if (mountedRef.current) {
@@ -195,6 +204,13 @@ export default function LoginPage() {
 
   const isSignIn = mode === "signin";
 
+  function switchMode(next: Mode) {
+    if (loading || next === mode) return;
+    setMode(next);
+    setFeedback(null);
+    setConfirmPassword("");
+  }
+
   return (
     <main
       className="flex min-h-dvh items-center justify-center bg-background px-4"
@@ -217,8 +233,37 @@ export default function LoginPage() {
             {isSignIn ? "Đăng nhập" : "Tạo tài khoản"}
           </h1>
           <p className="mt-2 text-sm text-foreground/60">
-            Đăng nhập để lưu tiến trình học từ vựng của bạn
+            {isSignIn
+              ? "Đăng nhập để lưu tiến trình học từ vựng của bạn"
+              : "Đăng ký để lưu và đồng bộ tiến trình học trên mọi thiết bị"}
           </p>
+        </div>
+
+        <div
+          role="tablist"
+          aria-label="Chế độ xác thực"
+          className="mt-6 grid grid-cols-2 gap-1 rounded-xl bg-primary-50 p-1"
+        >
+          {(["signin", "signup"] as const).map((tab) => {
+            const active = mode === tab;
+            return (
+              <button
+                key={tab}
+                type="button"
+                role="tab"
+                aria-selected={active}
+                disabled={loading}
+                onClick={() => switchMode(tab)}
+                className={`rounded-lg px-3 py-2 text-sm font-semibold transition-colors disabled:opacity-60 ${
+                  active
+                    ? "bg-primary text-foreground shadow-sm"
+                    : "text-foreground/60 hover:text-foreground"
+                }`}
+              >
+                {tab === "signin" ? "Đăng nhập" : "Đăng ký"}
+              </button>
+            );
+          })}
         </div>
 
         {!supabaseReady ? (
@@ -230,7 +275,7 @@ export default function LoginPage() {
           </p>
         ) : null}
 
-        <form className="mt-6 space-y-4" onSubmit={handleSubmit} noValidate={false}>
+        <form className="mt-5 space-y-4" onSubmit={handleSubmit} noValidate={false}>
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-foreground/80">
               Email
@@ -265,7 +310,7 @@ export default function LoginPage() {
                 autoCapitalize="none"
                 autoCorrect="off"
                 autoComplete={isSignIn ? "current-password" : "new-password"}
-                enterKeyHint="go"
+                enterKeyHint={isSignIn ? "go" : "next"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -296,6 +341,35 @@ export default function LoginPage() {
             ) : null}
           </div>
 
+          {!isSignIn ? (
+            <div>
+              <label
+                htmlFor="confirm-password"
+                className="block text-sm font-medium text-foreground/80"
+              >
+                Xác nhận mật khẩu
+              </label>
+              <input
+                id="confirm-password"
+                name="confirm-password"
+                type={showPassword ? "text" : "password"}
+                autoCapitalize="none"
+                autoCorrect="off"
+                autoComplete="new-password"
+                enterKeyHint="go"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+                minLength={6}
+                aria-invalid={confirmPassword.length > 0 && confirmPassword !== password}
+                className={`mt-1 ${inputClass}`}
+              />
+              {confirmPassword.length > 0 && confirmPassword !== password ? (
+                <p className="mt-1 text-xs text-red-700">Mật khẩu xác nhận không khớp.</p>
+              ) : null}
+            </div>
+          ) : null}
+
           {feedback ? (
             <p
               role={feedback.kind === "error" ? "alert" : "status"}
@@ -321,7 +395,7 @@ export default function LoginPage() {
               {loading
                 ? "Đang xử lý..."
                 : isSignIn
-                  ? "Sign in"
+                  ? "Đăng nhập"
                   : "Đăng ký"}
             </span>
           </button>
@@ -331,10 +405,7 @@ export default function LoginPage() {
           {isSignIn ? "Chưa có tài khoản? " : "Đã có tài khoản? "}
           <button
             type="button"
-            onClick={() => {
-              setMode(isSignIn ? "signup" : "signin");
-              setFeedback(null);
-            }}
+            onClick={() => switchMode(isSignIn ? "signup" : "signin")}
             disabled={loading}
             className="font-semibold text-primary-700 hover:underline disabled:opacity-50"
           >
