@@ -852,20 +852,35 @@ export async function generateSimilarWordsWithGemini(
 }
 
 export async function generateSimilarWordsBatchWithGemini(
-  items: { word: string; pos?: string | null; meaning?: string | null }[],
+  items: {
+    word: string;
+    pos?: string | null;
+    meaning?: string | null;
+    definition?: string | null;
+  }[],
 ): Promise<Record<string, string[]> | null> {
   const list = items
-    .map(
-      (item) =>
-        `- ${item.word} (${item.pos?.trim() || "?"}; ${item.meaning?.trim() || ""})`,
-    )
+    .map((item) => {
+      const parts = [
+        item.pos?.trim() || "?",
+        item.meaning?.trim() ? `main meaning: ${item.meaning.trim()}` : "",
+        item.definition?.trim() ? `definition: ${item.definition.trim()}` : "",
+      ].filter(Boolean);
+      return `- ${item.word} (${parts.join("; ")})`;
+    })
     .join("\n");
-  const prompt = `English learner flashcards. For EACH headword give 1-3 similar English words (near-synonyms or closely related, same part of speech, common everyday vocabulary, a single word each, lowercase, never the headword or its inflections/derivations).
+  const prompt = `English learner flashcards. For EACH headword, list its closest SYNONYMS in the sense given by the card's main meaning (if the word is polysemous, use only the most common sense shown).
+
+Rules:
+- Only true near-synonyms that could replace the headword in an everyday sentence with the same meaning. Do NOT include loosely related, associated, broader/narrower, or opposite words (e.g. "exposure" must NOT map to "vulnerability").
+- Words must be simple and common in everyday conversation, at the same or an easier level than the headword. Avoid technical, literary, archaic, or rare words.
+- Same part of speech as the card. Single words, lowercase. Never the headword or its inflections/derived forms.
+- Give 1 to 4 words, best match first. If fewer than 2 genuinely fit, return only those that fit (an empty list is allowed).
 
 Headwords:
 ${list}
 
-Return ONLY JSON: {"results":{"<headword>":["w1","w2","w3"], ...}}`;
+Return ONLY JSON: {"results":{"<headword>":["w1","w2"], ...}}`;
   const text = await generateTranslationGeminiText(prompt);
   if (!text) return null;
   const match = text.match(/\{[\s\S]*\}/);

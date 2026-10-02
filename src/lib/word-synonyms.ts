@@ -22,6 +22,7 @@ export function normalizeSimilarWords(
   raw: unknown,
   headword: string,
   familyWords: string[] = [],
+  max = 3,
 ): string[] {
   const blocked = new Set(
     [headword, ...familyWords].map((item) => item.trim().toLowerCase()),
@@ -37,7 +38,7 @@ export function normalizeSimilarWords(
     if (blocked.has(word)) continue;
     if (out.includes(word)) continue;
     out.push(word);
-    if (out.length >= 3) break;
+    if (out.length >= max) break;
   }
 
   return out;

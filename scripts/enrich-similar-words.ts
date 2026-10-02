@@ -45,6 +45,7 @@ type Row = {
   word: string;
   word_type: string | null;
   vietnamese_meaning: string | null;
+  english_definition: string | null;
   phrase_translations: Record<string, unknown> | null;
 };
 
@@ -57,7 +58,7 @@ async function main() {
   for (let from = 0; ; from += 1000) {
     let q = supabase
       .from("word_details")
-      .select("word, word_type, vietnamese_meaning, phrase_translations")
+      .select("word, word_type, vietnamese_meaning, english_definition, phrase_translations")
       .order("word")
       .range(from, from + 999);
     if (onlyWord) q = q.eq("word", onlyWord);
@@ -92,6 +93,7 @@ async function main() {
           word: r.word,
           pos: r.word_type,
           meaning: r.vietnamese_meaning?.split(/[\n,;]/)[0],
+          definition: r.english_definition,
         })),
       );
       if (!result) {
@@ -106,6 +108,7 @@ async function main() {
           result[row.word.toLowerCase()],
           row.word,
           getFamilyDisplayWords(row.word),
+          4,
         );
         done++;
         if (!similar.length) {
