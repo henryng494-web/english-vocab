@@ -1,3 +1,4 @@
+import { parseExamples } from "@/lib/parse-examples";
 import {
   allowOnDemandGeminiForThisRequest,
   geminiRealtimeKey,
@@ -57,6 +58,17 @@ import {
 import type { WordDetail } from "@/types/database";
 import { isRlsOrPermissionError } from "@/lib/user-facing-error";
 import { NextResponse } from "next/server";
+
+function hasServableStoredCard(detail: WordDetail): boolean {
+  const examples = parseExamples(detail.examples);
+  return (
+    Boolean(detail.vietnamese_meaning?.trim()) &&
+    Boolean(detail.word_type?.trim()) &&
+    /^\/.+\/$/.test(detail.phonetic?.trim() ?? "") &&
+    examples.length > 0 &&
+    examples.every((item) => item.en.trim() && item.vi?.trim())
+  );
+}
 
 function errorMessage(error: unknown): string {
   if (error instanceof Error) return error.message;
@@ -458,8 +470,17 @@ async function handleGet(request: Request): Promise<Response> {
 
     const frequencyRank = rank ?? getPresetRank(word) ?? 5000;
 
+    // Gemini is off: regeneration cannot happen, so a stored row with core
+    // fields beats the empty basic fallback (block, heat, …).
+    const serveStored =
+      Boolean(dbDetail) &&
+      !forceRepair &&
+      isRealtimeGeminiDisabled() &&
+      !allowOnDemandGeminiForThisRequest() &&
+      hasServableStoredCard(dbDetail!);
+
     let repairedDbDetail = dbDetail ?? null;
-    if (dbDetail) {
+    if (dbDetail && !serveStored) {
       const vietnamese_meaning = await repairPersistedMeaningIfNeeded(
         word,
         dbDetail,
@@ -496,11 +517,12 @@ async function handleGet(request: Request): Promise<Response> {
     const preferCurated = hasQualityStandardVocab(word);
 
     if (
-      !forceRepair &&
-      !preferCurated &&
-      !examplesStillMisaligned &&
-      !meaningsStillBad &&
-      isPersistedWordDetailComplete(repairedDbDetail, word)
+      serveStored ||
+      (!forceRepair &&
+        !preferCurated &&
+        !examplesStillMisaligned &&
+        !meaningsStillBad &&
+        isPersistedWordDetailComplete(repairedDbDetail, word))
     ) {
       const searchKeyword = imageSearchKeyword(
         word,
