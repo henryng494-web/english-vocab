@@ -12,6 +12,7 @@ import {
   type LearnerLocale,
   type PronounceAccent,
   type PronounceSpeed,
+  hasStoredAppLanguage,
 } from "@/lib/app-settings";
 import { applyLegacySettingsCleanup } from "@/lib/purge-stale-spanish-locale";
 import {
@@ -42,15 +43,30 @@ type AppSettingsContextValue = AppSettings & {
 
 const AppSettingsContext = createContext<AppSettingsContextValue | null>(null);
 
-export function AppSettingsProvider({ children }: { children: React.ReactNode }) {
-  const [settings, setSettings] = useState<AppSettings>(getDefaultAppSettings);
+export function AppSettingsProvider({
+  children,
+  fallbackLanguage,
+}: {
+  children: React.ReactNode;
+  /** Used until the user picks a language (e.g. English for public legal pages). */
+  fallbackLanguage?: AppLocale;
+}) {
+  const [settings, setSettings] = useState<AppSettings>(() => {
+    const defaults = getDefaultAppSettings();
+    return fallbackLanguage ? { ...defaults, appLanguage: fallbackLanguage } : defaults;
+  });
 
   const [settingsReady, setSettingsReady] = useState(false);
 
   const refresh = useCallback(() => {
-    setSettings(readAppSettings());
+    const stored = readAppSettings();
+    setSettings(
+      fallbackLanguage && !hasStoredAppLanguage()
+        ? { ...stored, appLanguage: fallbackLanguage }
+        : stored,
+    );
     setSettingsReady(true);
-  }, []);
+  }, [fallbackLanguage]);
 
   useEffect(() => {
     applyLegacySettingsCleanup();

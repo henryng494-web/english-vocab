@@ -171,6 +171,17 @@ export function readAppSettings(): AppSettings {
   }
 }
 
+export function hasStoredAppLanguage(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return false;
+    return isAppLocale((JSON.parse(raw) as { appLanguage?: unknown }).appLanguage);
+  } catch {
+    return false;
+  }
+}
+
 export function writeAppSettings(next: AppSettings): void {
   if (typeof window === "undefined") return;
   localStorage.setItem(STORAGE_KEY, JSON.stringify(next));

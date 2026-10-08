@@ -65,7 +65,7 @@ export function MobileShell({ children }: { children: React.ReactNode }) {
 
   if (isPublicPath(pathname)) {
     return (
-      <AppSettingsProvider>
+      <AppSettingsProvider fallbackLanguage="en">
         <AppLocaleSync />
         <AppMenuProvider>
           <div className="app-page">
