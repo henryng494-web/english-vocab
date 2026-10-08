@@ -1,5 +1,6 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import { AppLocaleSync } from "@/components/layout/AppLocaleSync";
 import { BottomTabBar } from "@/components/layout/BottomTabBar";
 import { StudyReminderScheduler } from "@/components/layout/StudyReminderScheduler";
@@ -50,7 +51,33 @@ function MobileShellInner({ children }: { children: React.ReactNode }) {
   );
 }
 
+/** Legal pages must open for anyone (store reviewers, crawlers) without onboarding or bootstrap. */
+const PUBLIC_PATHS = ["/privacy", "/terms"];
+
+function isPublicPath(pathname: string | null): boolean {
+  if (!pathname) return false;
+  const normalized = pathname.replace(/\/+$/, "") || "/";
+  return PUBLIC_PATHS.includes(normalized);
+}
+
 export function MobileShell({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+
+  if (isPublicPath(pathname)) {
+    return (
+      <AppSettingsProvider>
+        <AppLocaleSync />
+        <AppMenuProvider>
+          <div className="app-page">
+            <div className="app-shell mx-auto w-full max-w-lg bg-background">
+              <div className="shell-content">{children}</div>
+            </div>
+          </div>
+        </AppMenuProvider>
+      </AppSettingsProvider>
+    );
+  }
+
   return (
     <AppSettingsProvider>
       <AppLocaleSync />
