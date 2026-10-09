@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { RevenueCatSync } from "@/components/layout/RevenueCatSync";
 import { ApiBaseInstaller } from "@/components/layout/ApiBaseInstaller";
 import { ThemeRoot } from "@/components/theme/ThemeRoot";
 import { viewportBootstrapScript } from "@/lib/viewport-bootstrap-script";
@@ -52,6 +53,7 @@ export default function RootLayout({
       </head>
       <body className="antialiased">
         <ApiBaseInstaller />
+        <RevenueCatSync />
         <ThemeRoot>{children}</ThemeRoot>
       </body>
     </html>

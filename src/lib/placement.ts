@@ -84,6 +84,7 @@ export function scorePlacement(
 }
 
 const STORAGE_KEY = "english-vocab-placement-v1";
+export const PLACEMENT_SAVED_EVENT = "placement-saved";
 
 export type StoredPlacement = {
   rangeId: string;
@@ -118,6 +119,7 @@ export function savePlacement(placement: Omit<StoredPlacement, "savedAt">): Stor
     /* private mode */
   }
   void syncPlacementToAccount(stored);
+  window.dispatchEvent(new Event(PLACEMENT_SAVED_EVENT));
   return stored;
 }
 

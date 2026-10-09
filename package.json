@@ -71,6 +71,7 @@
     "@capacitor/core": "^8.5.2",
     "@capacitor/ios": "^8.5.2",
     "@google/generative-ai": "^0.24.0",
+    "@revenuecat/purchases-capacitor": "^13.7.3",
     "@supabase/ssr": "^0.6.1",
     "@supabase/supabase-js": "^2.49.1",
     "edge-tts-universal": "^1.4.0",
