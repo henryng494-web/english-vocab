@@ -1,6 +1,7 @@
 "use client";
 
 import { PaywallContent } from "@/components/paywall/PaywallContent";
+import { PRO_STATUS_EVENT, isGatingActive, readProCache, writeProCache } from "@/lib/pro-access";
 import { getProStatus, type ProStatus } from "@/lib/revenuecat";
 import {
   createContext,
@@ -14,6 +15,8 @@ import {
 
 type PaywallContextValue = {
   isPro: boolean;
+  /** True when the free-tier limits apply (subscriptions purchasable and user is not Pro). */
+  isFree: boolean;
   openPaywall: () => void;
   closePaywall: () => void;
 };
@@ -24,13 +27,23 @@ export function PaywallProvider({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
   const [isPro, setIsPro] = useState(false);
 
+  const [gating, setGating] = useState(false);
+
   useEffect(() => {
     let cancelled = false;
+    setIsPro(readProCache());
+    setGating(isGatingActive());
     void getProStatus().then((status) => {
-      if (!cancelled) setIsPro(status.isPro);
+      if (cancelled) return;
+      if (!status.checked) return;
+      setIsPro(status.isPro);
+      writeProCache(status.isPro);
     });
+    const sync = () => setIsPro(readProCache());
+    window.addEventListener(PRO_STATUS_EVENT, sync);
     return () => {
       cancelled = true;
+      window.removeEventListener(PRO_STATUS_EVENT, sync);
     };
   }, []);
 
@@ -42,11 +55,14 @@ export function PaywallProvider({ children }: { children: ReactNode }) {
 
   const openPaywall = useCallback(() => setOpen(true), []);
   const closePaywall = useCallback(() => setOpen(false), []);
-  const onProChange = useCallback((status: ProStatus) => setIsPro(status.isPro), []);
+  const onProChange = useCallback((status: ProStatus) => {
+    setIsPro(status.isPro);
+    writeProCache(status.isPro);
+  }, []);
 
   const value = useMemo(
-    () => ({ isPro, openPaywall, closePaywall }),
-    [isPro, openPaywall, closePaywall],
+    () => ({ isPro, isFree: gating && !isPro, openPaywall, closePaywall }),
+    [isPro, gating, openPaywall, closePaywall],
   );
 
   return (
@@ -71,6 +87,7 @@ export function PaywallProvider({ children }: { children: ReactNode }) {
 
 const FALLBACK: PaywallContextValue = {
   isPro: false,
+  isFree: false,
   openPaywall: () => {},
   closePaywall: () => {},
 };

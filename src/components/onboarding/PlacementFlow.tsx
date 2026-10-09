@@ -1,6 +1,8 @@
 "use client";
 
 import { PaywallContent } from "@/components/paywall/PaywallContent";
+import { usePaywall } from "@/context/PaywallContext";
+import { isRangeFree } from "@/lib/pro-access";
 import { useAppSettings } from "@/context/AppSettingsContext";
 import { PLACEMENT_QUESTIONS_PER_LEVEL } from "@/data/placement-questions";
 import { WORD_RANGES } from "@/data/word-ranges";
@@ -43,6 +45,7 @@ type PlacementFlowProps = {
 export function PlacementFlow({ onDone }: PlacementFlowProps) {
   const { t } = useI18n();
   const { appLanguage } = useAppSettings();
+  const { isFree, openPaywall } = usePaywall();
   const [step, setStep] = useState<Step>("choice");
   const [quiz, setQuiz] = useState<PlacementQuiz[]>([]);
   const [index, setIndex] = useState(0);
@@ -266,6 +269,7 @@ export function PlacementFlow({ onDone }: PlacementFlowProps) {
         <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label={t("placement.gridTitle")}>
           {WORD_RANGES.map((range) => {
             const active = gridPick === range.id;
+            const locked = isFree && !isRangeFree(range.id);
             return (
               <button
                 key={range.id}
@@ -273,9 +277,12 @@ export function PlacementFlow({ onDone }: PlacementFlowProps) {
                 role="radio"
                 aria-checked={active}
                 className={`onboarding__row justify-center${active ? " is-active" : ""}`}
-                onClick={() => setGridPick(range.id)}
+                onClick={() => (locked ? openPaywall() : setGridPick(range.id))}
               >
-                <span className="onboarding__label text-center">{range.label}</span>
+                <span className="onboarding__label text-center">
+                  {locked ? "🔒 " : ""}
+                  {range.label}
+                </span>
               </button>
             );
           })}

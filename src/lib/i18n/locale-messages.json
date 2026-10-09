@@ -392,7 +392,7 @@
     "paywall.perMonth": "{price} / mes",
     "paywall.popular": "Más popular",
     "paywall.save": "Ahorra un {percent}%",
-    "paywall.ctaTrial": "Empieza tu prueba gratis de 3 días",
+    "paywall.ctaTrial": "Empieza tu prueba gratis de 7 días",
     "paywall.ctaUpgrade": "Mejorar ahora",
     "paywall.cancelAnytime": "Cancela cuando quieras.",
     "paywall.restore": "Restaurar compras",
@@ -407,7 +407,11 @@
     "paywall.proActive": "Eres miembro Pro",
     "paywall.accountTitle": "Jungle Pro",
     "paywall.accountDesc": "Desbloquea todos los rangos, repasos ilimitados y funciones de IA.",
-    "paywall.close": "Cerrar"
+    "paywall.close": "Cerrar",
+    "paywall.planLifetime": "De por vida",
+    "paywall.lifetimeBadge": "Oferta de por vida",
+    "paywall.oneTime": "{price} pago único",
+    "paywall.lifetimeNote": "Pago único. Tuyo para siempre."
   },
   "pt": {
     "tab.home": "Início",
@@ -802,7 +806,7 @@
     "paywall.perMonth": "{price} / mês",
     "paywall.popular": "Mais popular",
     "paywall.save": "Economize {percent}%",
-    "paywall.ctaTrial": "Iniciar teste grátis de 3 dias",
+    "paywall.ctaTrial": "Começar teste grátis de 7 dias",
     "paywall.ctaUpgrade": "Fazer upgrade agora",
     "paywall.cancelAnytime": "Cancele quando quiser.",
     "paywall.restore": "Restaurar compras",
@@ -817,7 +821,11 @@
     "paywall.proActive": "Você é um membro Pro",
     "paywall.accountTitle": "Jungle Pro",
     "paywall.accountDesc": "Desbloqueie todos os níveis, revisões ilimitadas e recursos de IA.",
-    "paywall.close": "Fechar"
+    "paywall.close": "Fechar",
+    "paywall.planLifetime": "Vitalício",
+    "paywall.lifetimeBadge": "Oferta vitalícia",
+    "paywall.oneTime": "{price} pagamento único",
+    "paywall.lifetimeNote": "Pagamento único. Seu para sempre."
   },
   "ja": {
     "tab.home": "ホーム",
@@ -1212,7 +1220,7 @@
     "paywall.perMonth": "{price} / 月",
     "paywall.popular": "一番人気",
     "paywall.save": "{percent}%お得",
-    "paywall.ctaTrial": "3日間の無料体験を始める",
+    "paywall.ctaTrial": "7日間の無料体験を始める",
     "paywall.ctaUpgrade": "今すぐアップグレード",
     "paywall.cancelAnytime": "いつでも解約できます。",
     "paywall.restore": "購入内容を復元",
@@ -1227,7 +1235,11 @@
     "paywall.proActive": "Proメンバーです",
     "paywall.accountTitle": "Jungle Pro",
     "paywall.accountDesc": "全ランクの解放、無制限の復習、AI機能が利用可能です。",
-    "paywall.close": "閉じる"
+    "paywall.close": "閉じる",
+    "paywall.planLifetime": "買い切りプラン",
+    "paywall.lifetimeBadge": "買い切り限定",
+    "paywall.oneTime": "{price}（1回のみ）",
+    "paywall.lifetimeNote": "1回のお支払いで、ずっと使えます。"
   },
   "ko": {
     "tab.home": "홈",
@@ -1622,7 +1634,7 @@
     "paywall.perMonth": "{price} / 월",
     "paywall.popular": "인기",
     "paywall.save": "{percent}% 할인",
-    "paywall.ctaTrial": "3일 무료 체험 시작하기",
+    "paywall.ctaTrial": "7일 무료 체험 시작하기",
     "paywall.ctaUpgrade": "지금 업그레이드하기",
     "paywall.cancelAnytime": "언제든 취소할 수 있어요.",
     "paywall.restore": "구매 내역 복원",
@@ -1637,7 +1649,11 @@
     "paywall.proActive": "Pro 회원입니다",
     "paywall.accountTitle": "Jungle Pro",
     "paywall.accountDesc": "모든 랭크, 무제한 복습, AI 기능을 모두 해제해 보세요.",
-    "paywall.close": "닫기"
+    "paywall.close": "닫기",
+    "paywall.planLifetime": "평생 이용권",
+    "paywall.lifetimeBadge": "평생 소장 혜택",
+    "paywall.oneTime": "{price} 1회 결제",
+    "paywall.lifetimeNote": "한 번만 결제하면 평생 이용할 수 있어요."
   },
   "zh": {
     "tab.home": "首页",
@@ -2032,7 +2048,7 @@
     "paywall.perMonth": "{price} / 月",
     "paywall.popular": "最受欢迎",
     "paywall.save": "立省 {percent}%",
-    "paywall.ctaTrial": "开启 3 天免费试用",
+    "paywall.ctaTrial": "开启 7 天免费试用",
     "paywall.ctaUpgrade": "立即升级",
     "paywall.cancelAnytime": "随时可取消。",
     "paywall.restore": "恢复购买",
@@ -2047,7 +2063,11 @@
     "paywall.proActive": "你已经是 Pro 会员",
     "paywall.accountTitle": "Jungle Pro",
     "paywall.accountDesc": "解锁所有段位、无限次复习及 AI 功能。",
-    "paywall.close": "关闭"
+    "paywall.close": "关闭",
+    "paywall.planLifetime": "终身",
+    "paywall.lifetimeBadge": "终身特惠",
+    "paywall.oneTime": "{price} 一次性支付",
+    "paywall.lifetimeNote": "一次付费，永久拥有。"
   },
   "th": {
     "tab.home": "หน้าแรก",
@@ -2442,7 +2462,7 @@
     "paywall.perMonth": "{price} / เดือน",
     "paywall.popular": "ยอดนิยม",
     "paywall.save": "ประหยัด {percent}%",
-    "paywall.ctaTrial": "เริ่มทดลองใช้ฟรี 3 วัน",
+    "paywall.ctaTrial": "เริ่มทดลองใช้ฟรี 7 วัน",
     "paywall.ctaUpgrade": "อัปเกรดเลย",
     "paywall.cancelAnytime": "ยกเลิกได้ตลอดเวลา",
     "paywall.restore": "กู้คืนรายการซื้อ",
@@ -2457,7 +2477,11 @@
     "paywall.proActive": "คุณเป็นสมาชิก Pro แล้ว",
     "paywall.accountTitle": "Jungle Pro",
     "paywall.accountDesc": "ปลดล็อกทุกระดับขั้น ทบทวนไม่จำกัด พร้อมฟีเจอร์ AI",
-    "paywall.close": "ปิด"
+    "paywall.close": "ปิด",
+    "paywall.planLifetime": "ตลอดชีพ",
+    "paywall.lifetimeBadge": "ข้อเสนอตลอดชีพ",
+    "paywall.oneTime": "จ่ายครั้งเดียว {price}",
+    "paywall.lifetimeNote": "จ่ายครั้งเดียว ใช้งานได้ตลอดไป"
   },
   "id": {
     "tab.home": "Beranda",
@@ -2852,7 +2876,7 @@
     "paywall.perMonth": "{price} / bulan",
     "paywall.popular": "Populer",
     "paywall.save": "Hemat {percent}%",
-    "paywall.ctaTrial": "Mulai uji coba gratis 3 hari",
+    "paywall.ctaTrial": "Mulai Uji Coba Gratis 7 Hari",
     "paywall.ctaUpgrade": "Upgrade sekarang",
     "paywall.cancelAnytime": "Batalkan kapan saja.",
     "paywall.restore": "Pulihkan pembelian",
@@ -2867,7 +2891,11 @@
     "paywall.proActive": "Kamu adalah anggota Pro",
     "paywall.accountTitle": "Jungle Pro",
     "paywall.accountDesc": "Buka semua tingkatan, review tanpa batas, dan fitur AI.",
-    "paywall.close": "Tutup"
+    "paywall.close": "Tutup",
+    "paywall.planLifetime": "Seumur Hidup",
+    "paywall.lifetimeBadge": "Penawaran Seumur Hidup",
+    "paywall.oneTime": "{price} sekali bayar",
+    "paywall.lifetimeNote": "Sekali bayar. Milikmu selamanya."
   },
   "fr": {
     "tab.home": "Accueil",
@@ -3262,7 +3290,7 @@
     "paywall.perMonth": "{price} / mois",
     "paywall.popular": "Populaire",
     "paywall.save": "Économisez {percent}%",
-    "paywall.ctaTrial": "Commencer l'essai gratuit de 3 jours",
+    "paywall.ctaTrial": "Commencer l'essai gratuit de 7 jours",
     "paywall.ctaUpgrade": "Passer à Pro maintenant",
     "paywall.cancelAnytime": "Annulez à tout moment.",
     "paywall.restore": "Restaurer les achats",
@@ -3277,7 +3305,11 @@
     "paywall.proActive": "Vous êtes membre Pro",
     "paywall.accountTitle": "Jungle Pro",
     "paywall.accountDesc": "Débloquez tous les rangs, les révisions illimitées et les fonctionnalités IA.",
-    "paywall.close": "Fermer"
+    "paywall.close": "Fermer",
+    "paywall.planLifetime": "À vie",
+    "paywall.lifetimeBadge": "Offre à vie",
+    "paywall.oneTime": "{price} paiement unique",
+    "paywall.lifetimeNote": "Paiement unique. À vous pour toujours."
   },
   "de": {
     "tab.home": "Startseite",
@@ -3672,7 +3704,7 @@
     "paywall.perMonth": "{price} / Monat",
     "paywall.popular": "Beliebt",
     "paywall.save": "Spare {percent}%",
-    "paywall.ctaTrial": "3 Tage kostenlos testen",
+    "paywall.ctaTrial": "Jetzt 7 Tage kostenlos testen",
     "paywall.ctaUpgrade": "Jetzt upgraden",
     "paywall.cancelAnytime": "Jederzeit kündbar.",
     "paywall.restore": "Käufe wiederherstellen",
@@ -3687,7 +3719,11 @@
     "paywall.proActive": "Du bist Pro-Mitglied",
     "paywall.accountTitle": "Jungle Pro",
     "paywall.accountDesc": "Schalte alle Ränge, unbegrenzte Wiederholungen und KI-Funktionen frei.",
-    "paywall.close": "Schließen"
+    "paywall.close": "Schließen",
+    "paywall.planLifetime": "Lebenslang",
+    "paywall.lifetimeBadge": "Lebenslanges Angebot",
+    "paywall.oneTime": "{price} einmalig",
+    "paywall.lifetimeNote": "Einmalige Zahlung. Für immer dein."
   },
   "it": {
     "tab.home": "Home",
@@ -4082,7 +4118,7 @@
     "paywall.perMonth": "{price} / mese",
     "paywall.popular": "Più popolare",
     "paywall.save": "Risparmia il {percent}%",
-    "paywall.ctaTrial": "Inizia la prova gratuita di 3 giorni",
+    "paywall.ctaTrial": "Inizia la prova gratuita di 7 giorni",
     "paywall.ctaUpgrade": "Passa a Pro ora",
     "paywall.cancelAnytime": "Annulla in qualsiasi momento.",
     "paywall.restore": "Ripristina acquisti",
@@ -4097,7 +4133,11 @@
     "paywall.proActive": "Sei un membro Pro",
     "paywall.accountTitle": "Jungle Pro",
     "paywall.accountDesc": "Sblocca tutti i ranghi, ripassi illimitati e funzionalità IA.",
-    "paywall.close": "Chiudi"
+    "paywall.close": "Chiudi",
+    "paywall.planLifetime": "A vita",
+    "paywall.lifetimeBadge": "Offerta a vita",
+    "paywall.oneTime": "{price} una tantum",
+    "paywall.lifetimeNote": "Pagamento unico. Tuo per sempre."
   },
   "tr": {
     "tab.home": "Ana Sayfa",
@@ -4492,7 +4532,7 @@
     "paywall.perMonth": "{price} / ay",
     "paywall.popular": "En Popüler",
     "paywall.save": "%{percent} tasarruf et",
-    "paywall.ctaTrial": "3 günlük ücretsiz denemeyi başlat",
+    "paywall.ctaTrial": "7 Günlük Ücretsiz Denemeyi Başlat",
     "paywall.ctaUpgrade": "Şimdi yükselt",
     "paywall.cancelAnytime": "İstediğin zaman iptal et.",
     "paywall.restore": "Satın alımları geri yükle",
@@ -4507,7 +4547,11 @@
     "paywall.proActive": "Pro üyesisin",
     "paywall.accountTitle": "Jungle Pro",
     "paywall.accountDesc": "Tüm derecelerin, sınırsız tekrarların ve yapay zekâ özelliklerinin kilidini aç.",
-    "paywall.close": "Kapat"
+    "paywall.close": "Kapat",
+    "paywall.planLifetime": "Ömür Boyu",
+    "paywall.lifetimeBadge": "Ömür Boyu Fırsat",
+    "paywall.oneTime": "Tek seferlik {price}",
+    "paywall.lifetimeNote": "Tek seferlik ödeme. Sonsuza kadar senin."
   },
   "ar": {
     "tab.home": "الرئيسية",
@@ -4902,7 +4946,7 @@
     "paywall.perMonth": "{price} / شهرياً",
     "paywall.popular": "الأكثر شعبية",
     "paywall.save": "وفّر {percent}%",
-    "paywall.ctaTrial": "ابدأ تجربة مجانية لمدة 3 أيام",
+    "paywall.ctaTrial": "ابدأ التجربة المجانية لمدة 7 أيام",
     "paywall.ctaUpgrade": "ترقية الآن",
     "paywall.cancelAnytime": "يمكنك الإلغاء في أي وقت.",
     "paywall.restore": "استعادة المشتريات",
@@ -4917,6 +4961,10 @@
     "paywall.proActive": "أنت عضو في Pro",
     "paywall.accountTitle": "Jungle Pro",
     "paywall.accountDesc": "افتح جميع الرتب ومراجعات غير محدودة وميزات الذكاء الاصطناعي.",
-    "paywall.close": "إغلاق"
+    "paywall.close": "إغلاق",
+    "paywall.planLifetime": "مدى الحياة",
+    "paywall.lifetimeBadge": "عرض مدى الحياة",
+    "paywall.oneTime": "{price} لمرة واحدة",
+    "paywall.lifetimeNote": "دفعة واحدة. ملكك للأبد."
   }
 }

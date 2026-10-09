@@ -40,7 +40,7 @@ export default function AccountPage() {
           </section>
 
           <section className="home-card border-accent-200 bg-card">
-            <h2 className={`home-section-title ${displayFontClass}`}>👑 {t("paywall.accountTitle")}</h2>
+            <h2 className={`home-section-title ${displayFontClass}`}>{t("paywall.accountTitle")}</h2>
             <p className="home-body-text mt-1">
               {isPro ? t("paywall.proActive") : t("paywall.accountDesc")}
             </p>
@@ -48,7 +48,7 @@ export default function AccountPage() {
               <button
                 type="button"
                 onClick={openPaywall}
-                className="btn-pill-primary mt-4 flex w-full justify-center px-5 py-3.5"
+                className="mt-4 flex w-full justify-center rounded-full bg-[#7c3aed] px-5 py-3.5 font-bold text-white"
               >
                 {t("paywall.upgradeBtn")}
               </button>

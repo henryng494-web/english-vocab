@@ -30,9 +30,11 @@ export type ProStatus = {
   isPro: boolean;
   expiresAt: string | null;
   willRenew: boolean;
+  /** False when RevenueCat could not be reached, so callers must not overwrite cached status. */
+  checked: boolean;
 };
 
-const FREE_STATUS: ProStatus = { isPro: false, expiresAt: null, willRenew: false };
+const FREE_STATUS: ProStatus = { isPro: false, expiresAt: null, willRenew: false, checked: false };
 
 let sdkPromise: Promise<PurchasesModule | null> | null = null;
 let configured = false;
@@ -139,8 +141,9 @@ function toStatus(
   info: { entitlements: { active: Record<string, { expirationDate?: string | null; willRenew?: boolean }> } },
 ): ProStatus {
   const entitlement = info.entitlements.active[PRO_ENTITLEMENT_ID];
-  if (!entitlement) return FREE_STATUS;
+  if (!entitlement) return { ...FREE_STATUS, checked: true };
   return {
+    checked: true,
     isPro: true,
     expiresAt: entitlement.expirationDate ?? null,
     willRenew: entitlement.willRenew === true,
@@ -166,6 +169,7 @@ export async function isPro(): Promise<boolean> {
 const MOCK_PACKAGES: PlanPackage[] = [
   { identifier: "$rc_monthly", title: "Monthly", description: "Billed every month", priceString: "$4.99", price: 4.99, hasFreeTrial: false, packageType: "MONTHLY", raw: null },
   { identifier: "$rc_annual", title: "Annual", description: "Best value", priceString: "$23.99", price: 23.99, hasFreeTrial: true, packageType: "ANNUAL", raw: null },
+  { identifier: "$rc_lifetime", title: "Lifetime", description: "Pay once, keep forever", priceString: "$59.99", price: 59.99, hasFreeTrial: false, packageType: "LIFETIME", raw: null },
 ];
 
 /** Packages of the current offering; empty on web unless mock mode is on. */

@@ -282,9 +282,9 @@ export function HomeGalaxyScreen(props: HomeGalaxyScreenProps) {
                 type="button"
                 onClick={openPaywall}
                 aria-label={t("paywall.upgradeBtn")}
-                className="rounded-full bg-primary px-2.5 py-1 text-xs font-extrabold text-foreground"
+                className="rounded-full bg-[#7c3aed] px-2.5 py-1 text-xs font-extrabold text-white"
               >
-                👑 Pro
+                Pro
               </button>
             )}
             <Link

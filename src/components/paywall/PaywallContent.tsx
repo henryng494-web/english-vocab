@@ -22,7 +22,17 @@ type PaywallContentProps = {
 
 const BENEFITS = ["paywall.benefit1", "paywall.benefit2", "paywall.benefit3", "paywall.benefit4"] as const;
 
+const BRAND = "#7c3aed";
+
 function pickPlans(packages: PlanPackage[]) {
+  const lifetime =
+    packages.find((p) => p.packageType === "LIFETIME" || p.identifier === "$rc_lifetime") ?? null;
+  const rest = packages.filter((p) => p !== lifetime);
+  const { annual, monthly } = pickRecurring(rest);
+  return { annual, monthly, lifetime };
+}
+
+function pickRecurring(packages: PlanPackage[]) {
   const annual =
     packages.find((p) => p.packageType === "ANNUAL" || p.identifier === "$rc_annual") ?? null;
   const monthly =
@@ -43,8 +53,8 @@ export function PaywallContent({ onClose, onProChange, closeIfUnavailable }: Pay
     void getOfferings().then((list) => {
       if (cancelled) return;
       setPackages(list);
-      const { annual, monthly } = pickPlans(list);
-      setSelectedId((annual ?? monthly)?.identifier ?? null);
+      const { annual, monthly, lifetime } = pickPlans(list);
+      setSelectedId((annual ?? monthly ?? lifetime)?.identifier ?? null);
       if (list.length === 0 && closeIfUnavailable) onClose();
     });
     return () => {
@@ -53,8 +63,8 @@ export function PaywallContent({ onClose, onProChange, closeIfUnavailable }: Pay
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const { annual, monthly } = useMemo(() => pickPlans(packages ?? []), [packages]);
-  const selected = [annual, monthly].find((plan) => plan?.identifier === selectedId) ?? null;
+  const { annual, monthly, lifetime } = useMemo(() => pickPlans(packages ?? []), [packages]);
+  const selected = [annual, monthly, lifetime].find((plan) => plan?.identifier === selectedId) ?? null;
 
   const savePercent = useMemo(() => {
     if (!annual || !monthly || monthly.price <= 0) return 0;
@@ -98,7 +108,7 @@ export function PaywallContent({ onClose, onProChange, closeIfUnavailable }: Pay
     }
   }
 
-  function planCard(plan: PlanPackage, kind: "annual" | "monthly") {
+  function planCard(plan: PlanPackage, kind: "annual" | "monthly" | "lifetime") {
     const active = plan.identifier === selectedId;
     return (
       <button
@@ -107,25 +117,47 @@ export function PaywallContent({ onClose, onProChange, closeIfUnavailable }: Pay
         role="radio"
         aria-checked={active}
         onClick={() => setSelectedId(plan.identifier)}
+        style={active ? { borderColor: BRAND, backgroundColor: `${BRAND}14` } : undefined}
         className={`relative w-full rounded-2xl border-2 px-4 py-3 text-left transition-colors ${
-          active ? "border-primary bg-primary-50" : "border-primary-200 bg-surface"
+          active ? "" : "border-primary-200 bg-surface"
         }`}
       >
-        {kind === "annual" ? (
-          <span className="absolute -top-2.5 right-3 rounded-full bg-accent-700 px-2.5 py-0.5 text-[11px] font-bold text-white">
-            {savePercent > 0
-              ? `${t("paywall.popular")} · ${t("paywall.save", { percent: savePercent })}`
-              : t("paywall.popular")}
+        {kind !== "monthly" ? (
+          <span
+            className="absolute -top-2.5 right-3 rounded-full px-2.5 py-0.5 text-[11px] font-bold text-white"
+            style={{ backgroundColor: BRAND }}
+          >
+            {kind === "annual"
+              ? savePercent > 0
+                ? `${t("paywall.popular")} · ${t("paywall.save", { percent: savePercent })}`
+                : t("paywall.popular")
+              : t("paywall.lifetimeBadge")}
           </span>
         ) : null}
-        <span className="flex items-center justify-between gap-3">
-          <span className="font-bold text-foreground">
-            {kind === "annual" ? t("paywall.planAnnual") : t("paywall.planMonthly")}
+        <span className="flex items-center gap-3">
+          <span
+            className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 text-[11px] font-bold text-white"
+            style={{
+              borderColor: active ? BRAND : "#cbd5e1",
+              backgroundColor: active ? BRAND : "transparent",
+            }}
+            aria-hidden
+          >
+            {active ? "✓" : ""}
+          </span>
+          <span className="flex-1 font-bold text-foreground">
+            {kind === "annual"
+              ? t("paywall.planAnnual")
+              : kind === "monthly"
+                ? t("paywall.planMonthly")
+                : t("paywall.planLifetime")}
           </span>
           <span className="text-sm font-semibold text-foreground/80">
             {kind === "annual"
               ? t("paywall.perYear", { price: plan.priceString })
-              : t("paywall.perMonth", { price: plan.priceString })}
+              : kind === "monthly"
+                ? t("paywall.perMonth", { price: plan.priceString })
+                : t("paywall.oneTime", { price: plan.priceString })}
           </span>
         </span>
       </button>
@@ -150,7 +182,8 @@ export function PaywallContent({ onClose, onProChange, closeIfUnavailable }: Pay
       </div>
 
       <div className="mt-1 text-center">
-        <p className="text-5xl" aria-hidden>👑</p>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/assets/mascot-croc.png" alt="" aria-hidden className="mx-auto h-16 w-auto" />
         <h1 className={`mt-2 text-2xl font-bold text-foreground ${displayFontClass}`}>
           {t("paywall.title")}
         </h1>
@@ -161,7 +194,8 @@ export function PaywallContent({ onClose, onProChange, closeIfUnavailable }: Pay
         {BENEFITS.map((key) => (
           <li key={key} className="flex items-start gap-3 text-sm font-medium text-foreground">
             <span
-              className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-foreground"
+              className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white"
+              style={{ backgroundColor: BRAND }}
               aria-hidden
             >
               ✓
@@ -180,6 +214,7 @@ export function PaywallContent({ onClose, onProChange, closeIfUnavailable }: Pay
         ) : null}
         {annual ? planCard(annual, "annual") : null}
         {monthly ? planCard(monthly, "monthly") : null}
+        {lifetime ? planCard(lifetime, "lifetime") : null}
       </div>
 
       {message ? (
@@ -200,14 +235,18 @@ export function PaywallContent({ onClose, onProChange, closeIfUnavailable }: Pay
         onClick={handlePurchase}
         disabled={!selected || busy}
         aria-busy={busy}
-        className="btn-pill-primary mt-5 w-full justify-center py-3.5 disabled:opacity-60"
+        style={{ backgroundColor: BRAND }}
+        className="mt-5 flex w-full items-center justify-center rounded-full py-3.5 text-base font-bold text-white shadow-sm disabled:opacity-60"
       >
         {busy ? "…" : ctaLabel}
       </button>
-      <p className="mt-2 text-center text-xs text-foreground/55">{t("paywall.cancelAnytime")}</p>
+      <p className="mt-2 text-center text-xs text-foreground/55">
+        {selected?.packageType === "LIFETIME" ? t("paywall.lifetimeNote") : t("paywall.cancelAnytime")}
+      </p>
 
       <div className="mt-4 flex flex-col items-center gap-2 text-sm">
-        <button type="button" onClick={handleRestore} disabled={busy} className="font-semibold text-primary-700 hover:underline disabled:opacity-60">
+        <button type="button" onClick={handleRestore} disabled={busy} style={{ color: BRAND }}
+          className="font-semibold hover:underline disabled:opacity-60">
           {t("paywall.restore")}
         </button>
         <button type="button" onClick={onClose} className="text-foreground/60 hover:text-foreground">

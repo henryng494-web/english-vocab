@@ -82,6 +82,8 @@ import {
   prefetchCardLocaleContent,
 } from "@/lib/locale-content-prefetch";
 import { readOnboarding, shouldShowOnboarding } from "@/lib/onboarding";
+import { usePaywall } from "@/context/PaywallContext";
+import { isRangeFree } from "@/lib/pro-access";
 import { readPlacement } from "@/lib/placement";
 import { useSyncExternalStore } from "react";
 import {
@@ -143,6 +145,8 @@ export default function DiscoverPage() {
     inSession &&
     (searchParams.get("daily") === "1" || readDailySession()?.phase === "journey");
   const [rangeId, setRangeId] = useState(DEFAULT_BOOTSTRAP_RANGE);
+  const { isFree, openPaywall } = usePaywall();
+  const rangeLocked = isFree && !isRangeFree(rangeId);
   const [queue, setQueue] = useState<DiscoverListItem[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [currentWord, setCurrentWord] = useState<DiscoverWordData | null>(null);
@@ -176,6 +180,10 @@ export default function DiscoverPage() {
   const lastCompletedSaveRef = useRef(0);
   const rangeFetchGenRef = useRef(0);
   const onboardingChecked = useRef(false);
+
+  useEffect(() => {
+    if (rangeLocked) setRangeId(DEFAULT_BOOTSTRAP_RANGE);
+  }, [rangeLocked]);
 
   useEffect(() => {
     if (onboardingChecked.current) return;
@@ -869,11 +877,17 @@ export default function DiscoverPage() {
         trailing={
           <HeaderSelect
             value={rangeId}
-            onChange={setRangeId}
+            onChange={(id) => {
+              if (isFree && !isRangeFree(id)) {
+                openPaywall();
+                return;
+              }
+              setRangeId(id);
+            }}
             aria-label={t("journey.selectBand")}
             options={WORD_RANGES.map((range) => ({
               id: range.id,
-              label: range.compactLabel,
+              label: isFree && !isRangeFree(range.id) ? `🔒 ${range.compactLabel}` : range.compactLabel,
             }))}
           />
         }
