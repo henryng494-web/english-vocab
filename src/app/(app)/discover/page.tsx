@@ -158,6 +158,7 @@ export default function DiscoverPage() {
   const [recommendedRank, setRecommendedRank] = useState<string | null>(null);
   const { isFree, openPaywall, showUpgradePrompt } = usePaywall();
   const freeHighRank = isFree && !isRangeFree(rangeId);
+  const [rangeReady, setRangeReady] = useState(false);
   const [freeHighQuotaHit, setFreeHighQuotaHit] = useState(false);
   const [queue, setQueue] = useState<DiscoverListItem[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -202,14 +203,12 @@ export default function DiscoverPage() {
     onboardingChecked.current = true;
     const state = readOnboarding();
     setShowOnboarding(shouldShowOnboarding());
-    const initial = readInitialRank();
-    setRecommendedRank(readRecommendedRank());
+    const placement = readPlacement();
+    const initial = readInitialRank() ?? placement?.rangeId ?? null;
+    setRecommendedRank(readRecommendedRank() ?? (placement?.source === "test" ? placement.rangeId : null));
     if (initial && WORD_RANGES.some((range) => range.id === initial)) setRangeId(initial);
     else if (state.completed) setRangeId(state.preferredRangeId);
-    else {
-      const placement = readPlacement();
-      if (placement) setRangeId(placement.rangeId);
-    }
+    setRangeReady(true);
   }, []);
 
   useEffect(() => {
@@ -587,7 +586,8 @@ export default function DiscoverPage() {
   }, [queue, warmRangeImages]);
 
   useEffect(() => {
-    if (!bootstrapRanges || loadingList) return;
+    if (!rangeReady || !bootstrapRanges || loadingList) return;
+    if (initializedRangeRef.current !== rangeId) return;
     if (queue.length > 0) {
       autoJumpingRef.current = false;
       return;
@@ -605,6 +605,7 @@ export default function DiscoverPage() {
     queue.length,
     queueLengthsByRange,
     rangeId,
+    rangeReady,
   ]);
 
   useEffect(() => {
