@@ -84,7 +84,12 @@ import {
 import { readOnboarding, shouldShowOnboarding } from "@/lib/onboarding";
 import { usePaywall } from "@/context/PaywallContext";
 import { isRangeFree } from "@/lib/pro-access";
-import { readPlacement } from "@/lib/placement";
+import {
+  readInitialRank,
+  readPlacement,
+  readRecommendedRank,
+  saveSelectedRank,
+} from "@/lib/placement";
 import { useSyncExternalStore } from "react";
 import {
   getReviewDueCount,
@@ -145,6 +150,7 @@ export default function DiscoverPage() {
     inSession &&
     (searchParams.get("daily") === "1" || readDailySession()?.phase === "journey");
   const [rangeId, setRangeId] = useState(DEFAULT_BOOTSTRAP_RANGE);
+  const [recommendedRank, setRecommendedRank] = useState<string | null>(null);
   const { isFree, openPaywall } = usePaywall();
   const rangeLocked = isFree && !isRangeFree(rangeId);
   const [queue, setQueue] = useState<DiscoverListItem[]>([]);
@@ -190,7 +196,10 @@ export default function DiscoverPage() {
     onboardingChecked.current = true;
     const state = readOnboarding();
     setShowOnboarding(shouldShowOnboarding());
-    if (state.completed) setRangeId(state.preferredRangeId);
+    const initial = readInitialRank();
+    setRecommendedRank(readRecommendedRank());
+    if (initial && WORD_RANGES.some((range) => range.id === initial)) setRangeId(initial);
+    else if (state.completed) setRangeId(state.preferredRangeId);
     else {
       const placement = readPlacement();
       if (placement) setRangeId(placement.rangeId);
@@ -883,11 +892,13 @@ export default function DiscoverPage() {
                 return;
               }
               setRangeId(id);
+              saveSelectedRank(id);
             }}
             aria-label={t("journey.selectBand")}
             options={WORD_RANGES.map((range) => ({
               id: range.id,
               label: isFree && !isRangeFree(range.id) ? `🔒 ${range.compactLabel}` : range.compactLabel,
+              badge: range.id === recommendedRank ? t("journey.recommendedBadge") : undefined,
             }))}
           />
         }

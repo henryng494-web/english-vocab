@@ -6,6 +6,7 @@ import { createPortal } from "react-dom";
 type HeaderSelectOption = {
   id: string;
   label: string;
+  badge?: string;
 };
 
 type HeaderSelectProps = {
@@ -103,6 +104,11 @@ export function HeaderSelect({
                         {active ? "✓" : ""}
                       </span>
                       {option.label}
+                      {option.badge ? (
+                        <span className="ml-2 rounded-full bg-primary-100 px-2 py-0.5 text-[10px] font-semibold text-primary-800">
+                          {option.badge}
+                        </span>
+                      ) : null}
                     </button>
                   </li>
                 );

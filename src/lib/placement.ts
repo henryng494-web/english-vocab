@@ -86,6 +86,45 @@ export function scorePlacement(
 const STORAGE_KEY = "english-vocab-placement-v1";
 export const PLACEMENT_SAVED_EVENT = "placement-saved";
 
+export const RECOMMENDED_RANK_KEY = "user_recommended_rank";
+export const SELECTED_RANK_KEY = "user_selected_rank";
+
+function readRankKey(key: string): string | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const value = localStorage.getItem(key)?.trim();
+    return value || null;
+  } catch {
+    return null;
+  }
+}
+
+function writeRankKey(key: string, rangeId: string): void {
+  try {
+    localStorage.setItem(key, rangeId);
+  } catch {
+    /* private mode */
+  }
+}
+
+export function readRecommendedRank(): string | null {
+  return readRankKey(RECOMMENDED_RANK_KEY);
+}
+
+export function readSelectedRank(): string | null {
+  return readRankKey(SELECTED_RANK_KEY);
+}
+
+export function saveSelectedRank(rangeId: string): void {
+  if (typeof window === "undefined") return;
+  writeRankKey(SELECTED_RANK_KEY, rangeId);
+}
+
+/** Rank the Discover screen opens on: last pick, else test recommendation. */
+export function readInitialRank(): string | null {
+  return readSelectedRank() ?? readRecommendedRank();
+}
+
 export type StoredPlacement = {
   rangeId: string;
   tier: PlacementTier;
@@ -118,6 +157,8 @@ export function savePlacement(placement: Omit<StoredPlacement, "savedAt">): Stor
   } catch {
     /* private mode */
   }
+  if (stored.source === "test") writeRankKey(RECOMMENDED_RANK_KEY, stored.rangeId);
+  writeRankKey(SELECTED_RANK_KEY, stored.rangeId);
   void syncPlacementToAccount(stored);
   window.dispatchEvent(new Event(PLACEMENT_SAVED_EVENT));
   return stored;
