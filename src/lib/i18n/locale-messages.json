@@ -411,7 +411,10 @@
     "paywall.planLifetime": "De por vida",
     "paywall.lifetimeBadge": "Oferta de por vida",
     "paywall.oneTime": "{price} pago único",
-    "paywall.lifetimeNote": "Pago único. Tuyo para siempre."
+    "paywall.lifetimeNote": "Pago único. Tuyo para siempre.",
+    "paywall.reviewLimit": "Has usado tus {count} repasos gratis de hoy. ¡Pásate a Jungle Pro para tener repasos ilimitados!",
+    "paywall.aiLocked": "Las formas de palabras y palabras similares con IA son una función de Jungle Pro. ¡Pásate a Pro para desbloquearlas!",
+    "paywall.promptTitle": "Función de Jungle Pro"
   },
   "pt": {
     "tab.home": "Início",
@@ -825,7 +828,10 @@
     "paywall.planLifetime": "Vitalício",
     "paywall.lifetimeBadge": "Oferta vitalícia",
     "paywall.oneTime": "{price} pagamento único",
-    "paywall.lifetimeNote": "Pagamento único. Seu para sempre."
+    "paywall.lifetimeNote": "Pagamento único. Seu para sempre.",
+    "paywall.reviewLimit": "Você já usou todas as {count} revisões gratuitas de hoje. Faça upgrade para o Jungle Pro para ter revisões ilimitadas!",
+    "paywall.aiLocked": "As variações e palavras similares com IA são um recurso do Jungle Pro. Faça upgrade para desbloquear!",
+    "paywall.promptTitle": "Recurso do Jungle Pro"
   },
   "ja": {
     "tab.home": "ホーム",
@@ -1239,7 +1245,10 @@
     "paywall.planLifetime": "買い切りプラン",
     "paywall.lifetimeBadge": "買い切り限定",
     "paywall.oneTime": "{price}（1回のみ）",
-    "paywall.lifetimeNote": "1回のお支払いで、ずっと使えます。"
+    "paywall.lifetimeNote": "1回のお支払いで、ずっと使えます。",
+    "paywall.reviewLimit": "今日の無料復習（{count}回）を使い切りました。Jungle Proにアップグレードして、無制限で復習しましょう！",
+    "paywall.aiLocked": "AIによる派生語や類義語の表示はJungle Pro限定の機能です。アップグレードしてアンロックしよう！",
+    "paywall.promptTitle": "Jungle Pro限定機能"
   },
   "ko": {
     "tab.home": "홈",
@@ -1653,7 +1662,10 @@
     "paywall.planLifetime": "평생 이용권",
     "paywall.lifetimeBadge": "평생 소장 혜택",
     "paywall.oneTime": "{price} 1회 결제",
-    "paywall.lifetimeNote": "한 번만 결제하면 평생 이용할 수 있어요."
+    "paywall.lifetimeNote": "한 번만 결제하면 평생 이용할 수 있어요.",
+    "paywall.reviewLimit": "오늘 무료 복습 {count}회를 모두 사용했어요. Jungle Pro로 업그레이드하고 무제한으로 복습해 보세요!",
+    "paywall.aiLocked": "AI 기반 단어 변형 및 유사어는 Jungle Pro 전용 기능이에요. 업그레이드해서 잠금을 해제해 보세요!",
+    "paywall.promptTitle": "Jungle Pro 전용 기능"
   },
   "zh": {
     "tab.home": "首页",
@@ -2067,7 +2079,10 @@
     "paywall.planLifetime": "终身",
     "paywall.lifetimeBadge": "终身特惠",
     "paywall.oneTime": "{price} 一次性支付",
-    "paywall.lifetimeNote": "一次付费，永久拥有。"
+    "paywall.lifetimeNote": "一次付费，永久拥有。",
+    "paywall.reviewLimit": "你今天的 {count} 次免费复习额度已用完。升级至 Jungle Pro 即可体验无限复习！",
+    "paywall.aiLocked": "AI 智能词形与近义词解析为 Jungle Pro 专属功能。升级即可解锁！",
+    "paywall.promptTitle": "Jungle Pro 专属功能"
   },
   "th": {
     "tab.home": "หน้าแรก",
@@ -2481,7 +2496,10 @@
     "paywall.planLifetime": "ตลอดชีพ",
     "paywall.lifetimeBadge": "ข้อเสนอตลอดชีพ",
     "paywall.oneTime": "จ่ายครั้งเดียว {price}",
-    "paywall.lifetimeNote": "จ่ายครั้งเดียว ใช้งานได้ตลอดไป"
+    "paywall.lifetimeNote": "จ่ายครั้งเดียว ใช้งานได้ตลอดไป",
+    "paywall.reviewLimit": "วันนี้คุณใช้สิทธิ์ทบทวนฟรีครบ {count} ครั้งแล้ว อัปเกรดเป็น Jungle Pro เพื่อทบทวนได้ไม่จำกัด!",
+    "paywall.aiLocked": "รูปคำและคำที่มีความหมายคล้ายกันด้วย AI เป็นฟีเจอร์เฉพาะ Jungle Pro อัปเกรดเพื่อปลดล็อกเลย!",
+    "paywall.promptTitle": "ฟีเจอร์เฉพาะ Jungle Pro"
   },
   "id": {
     "tab.home": "Beranda",
@@ -2895,7 +2913,10 @@
     "paywall.planLifetime": "Seumur Hidup",
     "paywall.lifetimeBadge": "Penawaran Seumur Hidup",
     "paywall.oneTime": "{price} sekali bayar",
-    "paywall.lifetimeNote": "Sekali bayar. Milikmu selamanya."
+    "paywall.lifetimeNote": "Sekali bayar. Milikmu selamanya.",
+    "paywall.reviewLimit": "Kamu telah menggunakan semua {count} ulasan gratis hari ini. Upgrade ke Jungle Pro untuk ulasan tanpa batas!",
+    "paywall.aiLocked": "Bentuk kata dan kata serupa berbasis AI adalah fitur Jungle Pro. Upgrade untuk membukanya!",
+    "paywall.promptTitle": "Fitur Jungle Pro"
   },
   "fr": {
     "tab.home": "Accueil",
@@ -3309,7 +3330,10 @@
     "paywall.planLifetime": "À vie",
     "paywall.lifetimeBadge": "Offre à vie",
     "paywall.oneTime": "{price} paiement unique",
-    "paywall.lifetimeNote": "Paiement unique. À vous pour toujours."
+    "paywall.lifetimeNote": "Paiement unique. À vous pour toujours.",
+    "paywall.reviewLimit": "Tu as utilisé toutes tes {count} révisions gratuites aujourd'hui. Passe à Jungle Pro pour des révisions illimitées !",
+    "paywall.aiLocked": "Les formes de mots et mots similaires générés par l'IA sont réservés à Jungle Pro. Passe à la version supérieure pour les débloquer !",
+    "paywall.promptTitle": "Fonctionnalité Jungle Pro"
   },
   "de": {
     "tab.home": "Startseite",
@@ -3723,7 +3747,10 @@
     "paywall.planLifetime": "Lebenslang",
     "paywall.lifetimeBadge": "Lebenslanges Angebot",
     "paywall.oneTime": "{price} einmalig",
-    "paywall.lifetimeNote": "Einmalige Zahlung. Für immer dein."
+    "paywall.lifetimeNote": "Einmalige Zahlung. Für immer dein.",
+    "paywall.reviewLimit": "Du hast heute alle {count} kostenlosen Wiederholungen genutzt. Upgrade auf Jungle Pro für unbegrenzte Wiederholungen!",
+    "paywall.aiLocked": "KI-gestützte Wortformen und ähnliche Wörter sind ein Jungle Pro-Feature. Upgrade jetzt, um sie freizuschalten!",
+    "paywall.promptTitle": "Jungle Pro-Feature"
   },
   "it": {
     "tab.home": "Home",
@@ -4137,7 +4164,10 @@
     "paywall.planLifetime": "A vita",
     "paywall.lifetimeBadge": "Offerta a vita",
     "paywall.oneTime": "{price} una tantum",
-    "paywall.lifetimeNote": "Pagamento unico. Tuo per sempre."
+    "paywall.lifetimeNote": "Pagamento unico. Tuo per sempre.",
+    "paywall.reviewLimit": "Hai usato tutti i {count} ripassi gratuiti di oggi. Passa a Jungle Pro per ripassare senza limiti!",
+    "paywall.aiLocked": "Le forme delle parole e i termini simili basati sull'IA sono una funzione di Jungle Pro. Passa a Pro per sbloccarli!",
+    "paywall.promptTitle": "Funzione Jungle Pro"
   },
   "tr": {
     "tab.home": "Ana Sayfa",
@@ -4551,7 +4581,10 @@
     "paywall.planLifetime": "Ömür Boyu",
     "paywall.lifetimeBadge": "Ömür Boyu Fırsat",
     "paywall.oneTime": "Tek seferlik {price}",
-    "paywall.lifetimeNote": "Tek seferlik ödeme. Sonsuza kadar senin."
+    "paywall.lifetimeNote": "Tek seferlik ödeme. Sonsuza kadar senin.",
+    "paywall.reviewLimit": "Bugün {count} ücretsiz tekrar hakkının hepsini kullandın. Sınırsız tekrar için Jungle Pro'ya yükselt!",
+    "paywall.aiLocked": "Yapay zekâ destekli kelime biçimleri ve benzer kelimeler bir Jungle Pro özelliğidir. Kilitlerini açmak için yükselt!",
+    "paywall.promptTitle": "Jungle Pro özelliği"
   },
   "ar": {
     "tab.home": "الرئيسية",
@@ -4965,6 +4998,9 @@
     "paywall.planLifetime": "مدى الحياة",
     "paywall.lifetimeBadge": "عرض مدى الحياة",
     "paywall.oneTime": "{price} لمرة واحدة",
-    "paywall.lifetimeNote": "دفعة واحدة. ملكك للأبد."
+    "paywall.lifetimeNote": "دفعة واحدة. ملكك للأبد.",
+    "paywall.reviewLimit": "لقد استخدمت جميع المراجعات المجانية الـ {count} اليوم. ترقَّ إلى Jungle Pro للحصول على مراجعات غير محدودة!",
+    "paywall.aiLocked": "صيغ الكلمات والكلمات المشابهة المدعومة بالذكاء الاصطناعي هي إحدى ميزات Jungle Pro. ترقَّ لفتحها!",
+    "paywall.promptTitle": "ميزة Jungle Pro"
   }
 }

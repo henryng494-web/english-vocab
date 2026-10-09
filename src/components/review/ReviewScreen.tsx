@@ -89,6 +89,8 @@ import {
   prefetchReviewClues,
 } from "@/lib/review-word-hydrate";
 import type { LearningStatus, VocabWord } from "@/types/database";
+import { usePaywall } from "@/context/PaywallContext";
+import { FREE_DAILY_REVIEWS } from "@/lib/pro-access";
 import { useI18n } from "@/hooks/use-i18n";
 import {
   finishReviewPhase,
@@ -1274,6 +1276,13 @@ export function ReviewScreen() {
     () => 0,
   );
   const dailyReviewPlan = getDailyReviewPlan();
+  const { isFree, showUpgradePrompt } = usePaywall();
+
+  useEffect(() => {
+    if (isFree && todayReviewsCompleted >= FREE_DAILY_REVIEWS) {
+      showUpgradePrompt("reviews");
+    }
+  }, [isFree, todayReviewsCompleted, showUpgradePrompt]);
 
   const showSpinner = (loading && queue.length === 0) || (queue.length > 0 && !sessionReady);
   const batchComplete = sessionDone || isTodayReviewBatchComplete();

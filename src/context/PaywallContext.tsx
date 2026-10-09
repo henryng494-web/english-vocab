@@ -1,7 +1,8 @@
 "use client";
 
 import { PaywallContent } from "@/components/paywall/PaywallContent";
-import { PRO_STATUS_EVENT, isGatingActive, readProCache, writeProCache } from "@/lib/pro-access";
+import { useI18n } from "@/hooks/use-i18n";
+import { FREE_DAILY_REVIEWS, PRO_STATUS_EVENT, isGatingActive, readProCache, writeProCache } from "@/lib/pro-access";
 import { getProStatus, type ProStatus } from "@/lib/revenuecat";
 import {
   createContext,
@@ -19,7 +20,11 @@ type PaywallContextValue = {
   isFree: boolean;
   openPaywall: () => void;
   closePaywall: () => void;
+  /** Explains a Pro-only limit and offers to open the Paywall. */
+  showUpgradePrompt: (reason: UpgradeReason) => void;
 };
+
+export type UpgradeReason = "reviews" | "ai";
 
 const PaywallContext = createContext<PaywallContextValue | null>(null);
 
@@ -28,6 +33,8 @@ export function PaywallProvider({ children }: { children: ReactNode }) {
   const [isPro, setIsPro] = useState(false);
 
   const [gating, setGating] = useState(false);
+  const [prompt, setPrompt] = useState<UpgradeReason | null>(null);
+  const { t } = useI18n();
 
   useEffect(() => {
     let cancelled = false;
@@ -53,7 +60,11 @@ export function PaywallProvider({ children }: { children: ReactNode }) {
     return () => document.body.classList.remove("app-menu-open");
   }, [open]);
 
-  const openPaywall = useCallback(() => setOpen(true), []);
+  const openPaywall = useCallback(() => {
+    setPrompt(null);
+    setOpen(true);
+  }, []);
+  const showUpgradePrompt = useCallback((reason: UpgradeReason) => setPrompt(reason), []);
   const closePaywall = useCallback(() => setOpen(false), []);
   const onProChange = useCallback((status: ProStatus) => {
     setIsPro(status.isPro);
@@ -61,13 +72,53 @@ export function PaywallProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo(
-    () => ({ isPro, isFree: gating && !isPro, openPaywall, closePaywall }),
-    [isPro, gating, openPaywall, closePaywall],
+    () => ({ isPro, isFree: gating && !isPro, openPaywall, closePaywall, showUpgradePrompt }),
+    [isPro, gating, openPaywall, closePaywall, showUpgradePrompt],
   );
 
   return (
     <PaywallContext.Provider value={value}>
       {children}
+      {prompt && !open ? (
+        <div
+          className="fixed inset-0 z-[1090] flex items-center justify-center bg-slate-900/45 px-6"
+          role="presentation"
+          onClick={() => setPrompt(null)}
+        >
+          <div
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="upgrade-prompt-title"
+            className="w-full max-w-sm rounded-2xl bg-surface p-5 text-center shadow-xl"
+            onClick={(event) => event.stopPropagation()}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/assets/mascot-croc.png" alt="" aria-hidden className="mx-auto h-12 w-auto" />
+            <h2 id="upgrade-prompt-title" className="mt-2 text-lg font-bold text-foreground">
+              {t("paywall.promptTitle")}
+            </h2>
+            <p className="mt-2 text-sm text-foreground/75">
+              {prompt === "reviews"
+                ? t("paywall.reviewLimit", { count: FREE_DAILY_REVIEWS })
+                : t("paywall.aiLocked")}
+            </p>
+            <button
+              type="button"
+              onClick={openPaywall}
+              className="mt-4 flex w-full justify-center rounded-full bg-[#7c3aed] py-3 font-bold text-white"
+            >
+              {t("paywall.ctaUpgrade")}
+            </button>
+            <button
+              type="button"
+              onClick={() => setPrompt(null)}
+              className="mt-2 w-full py-2 text-sm text-foreground/60"
+            >
+              {t("paywall.later")}
+            </button>
+          </div>
+        </div>
+      ) : null}
       {open ? (
         <div
           className="fixed inset-0 z-[1100] overflow-y-auto bg-background"
@@ -90,6 +141,7 @@ const FALLBACK: PaywallContextValue = {
   isFree: false,
   openPaywall: () => {},
   closePaywall: () => {},
+  showUpgradePrompt: () => {},
 };
 
 export function usePaywall(): PaywallContextValue {

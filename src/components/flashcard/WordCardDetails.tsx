@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { VocabExampleList } from "@/components/flashcard/VocabExampleList";
 import { WordLearningChunks } from "@/components/flashcard/WordLearningChunks";
+import { usePaywall } from "@/context/PaywallContext";
 import { useI18n } from "@/hooks/use-i18n";
 import { useCardSimilarWords } from "@/hooks/use-card-similar-words";
 import { capitalizeFirst } from "@/lib/format-text";
@@ -128,6 +129,7 @@ export function WordCardDetails({
   }).filter((item) => item.trim());
   const canFlip = rows.length > 1;
   const [showFamily, setShowFamily] = useState(false);
+  const { isFree, showUpgradePrompt } = usePaywall();
   const [hintReady, setHintReady] = useState(hintGraceMs <= 0);
   const examplesScrollingRef = useRef(false);
   const scrollIdleTimerRef = useRef<number | null>(null);
@@ -182,6 +184,10 @@ export function WordCardDetails({
 
   function toggle() {
     if (!canFlip || !hintReady) return;
+    if (isFree && !showFamily) {
+      showUpgradePrompt("ai");
+      return;
+    }
     setShowFamily((current) => !current);
   }
 
