@@ -10,6 +10,7 @@ import {
 import { useI18n } from "@/hooks/use-i18n";
 import { displayFontClass } from "@/lib/fonts";
 import { completeOnboarding } from "@/lib/onboarding";
+import { readPlacement } from "@/lib/placement";
 import { useCallback, useState } from "react";
 
 type OnboardingModalProps = {
@@ -27,8 +28,9 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
   const stepIndex = STEPS.indexOf(step);
 
   const finish = useCallback(() => {
-    completeOnboarding(DEFAULT_BOOTSTRAP_RANGE, dailyGoalMinutes);
-    onComplete(DEFAULT_BOOTSTRAP_RANGE);
+    const rangeId = readPlacement()?.rangeId ?? DEFAULT_BOOTSTRAP_RANGE;
+    completeOnboarding(rangeId, dailyGoalMinutes);
+    onComplete(rangeId);
   }, [dailyGoalMinutes, onComplete]);
 
   return (

@@ -6,6 +6,7 @@ import {
   ONBOARDING_STEP1_TITLE,
   ONBOARDING_STEP2_COPY,
 } from "@/components/onboarding/onboarding-copy";
+import { PlacementFlow } from "@/components/onboarding/PlacementFlow";
 import { useAppSettings } from "@/context/AppSettingsContext";
 import { displayFontClass } from "@/lib/fonts";
 import {
@@ -21,6 +22,7 @@ export function OnboardingScreen() {
     useAppSettings();
   const [picked, setPicked] = useState<LearnerLocale | null>(null);
   const [appChoice, setAppChoice] = useState<AppLocale>("en");
+  const [placing, setPlacing] = useState(false);
 
   function chooseLearner(locale: LearnerLocale) {
     setLearnerLocale(locale);
@@ -64,6 +66,10 @@ export function OnboardingScreen() {
     );
   }
 
+  if (placing) {
+    return <PlacementFlow onDone={completeOnboarding} />;
+  }
+
   const copy = ONBOARDING_STEP2_COPY[appChoice];
   const titleCopy = ONBOARDING_STEP2_COPY[picked];
   const options: AppLocale[] = ["en", picked];
@@ -100,7 +106,7 @@ export function OnboardingScreen() {
         </ul>
       </div>
       <div className="onboarding__footer">
-        <button type="button" className="onboarding__cta" onClick={completeOnboarding}>
+        <button type="button" className="onboarding__cta" onClick={() => setPlacing(true)}>
           {copy.continue}
         </button>
       </div>

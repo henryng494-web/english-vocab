@@ -82,6 +82,7 @@ import {
   prefetchCardLocaleContent,
 } from "@/lib/locale-content-prefetch";
 import { readOnboarding, shouldShowOnboarding } from "@/lib/onboarding";
+import { readPlacement } from "@/lib/placement";
 import { useSyncExternalStore } from "react";
 import {
   getReviewDueCount,
@@ -182,6 +183,10 @@ export default function DiscoverPage() {
     const state = readOnboarding();
     setShowOnboarding(shouldShowOnboarding());
     if (state.completed) setRangeId(state.preferredRangeId);
+    else {
+      const placement = readPlacement();
+      if (placement) setRangeId(placement.rangeId);
+    }
   }, []);
 
   useEffect(() => {
