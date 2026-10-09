@@ -7,11 +7,27 @@ import { usePaywall } from "@/context/PaywallContext";
 import { useI18n } from "@/hooks/use-i18n";
 import { displayFontClass } from "@/lib/fonts";
 import { LAYOUT_VERSION } from "@/lib/layout-version";
+import { deleteAccountAndData } from "@/lib/delete-account";
 import Link from "next/link";
+import { useState } from "react";
 
 export default function AccountPage() {
   const { t } = useI18n();
   const { isPro, openPaywall } = usePaywall();
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState(false);
+
+  async function confirmDelete() {
+    setDeleting(true);
+    setDeleteError(false);
+    try {
+      await deleteAccountAndData();
+    } catch {
+      setDeleting(false);
+      setDeleteError(true);
+    }
+  }
 
   return (
     <div className="app-screen app-screen--home">
@@ -68,6 +84,17 @@ export default function AccountPage() {
             </Link>
           </section>
 
+          <button
+            type="button"
+            onClick={() => {
+              setDeleteError(false);
+              setConfirmOpen(true);
+            }}
+            className="flex w-full justify-center rounded-full bg-red-600 px-5 py-3.5 font-bold text-white"
+          >
+            {t("account.deleteBtn")}
+          </button>
+
           {process.env.NODE_ENV !== "production" && (
             <p className="pt-4 text-center text-[10px] text-foreground/30">
               Layout {LAYOUT_VERSION}
@@ -75,6 +102,42 @@ export default function AccountPage() {
           )}
         </div>
       </div>
+
+      {confirmOpen ? (
+        <div
+          className="fixed inset-0 z-[1090] flex items-center justify-center bg-slate-900/45 px-6"
+          role="presentation"
+          onClick={() => (deleting ? undefined : setConfirmOpen(false))}
+        >
+          <div
+            role="alertdialog"
+            aria-modal="true"
+            className="w-full max-w-sm rounded-2xl bg-surface p-5 text-center shadow-xl"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <p className="text-sm text-foreground/80">{t("account.deleteConfirm")}</p>
+            {deleteError ? (
+              <p className="mt-3 text-sm text-red-600">{t("account.deleteFailed")}</p>
+            ) : null}
+            <button
+              type="button"
+              disabled={deleting}
+              onClick={() => void confirmDelete()}
+              className="mt-4 flex w-full justify-center rounded-full bg-red-600 py-3 font-bold text-white disabled:opacity-60"
+            >
+              {deleting ? t("account.deleting") : t("account.deleteConfirmBtn")}
+            </button>
+            <button
+              type="button"
+              disabled={deleting}
+              onClick={() => setConfirmOpen(false)}
+              className="mt-2 w-full py-2 text-sm text-foreground/60"
+            >
+              {t("account.deleteCancel")}
+            </button>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
