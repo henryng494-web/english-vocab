@@ -3,6 +3,7 @@
 import { AppHeader } from "@/components/layout/AppHeader";
 import { InstallAppHint } from "@/components/layout/InstallAppHint";
 import { JungleMascot, JungleCastPill } from "@/components/mascot/JungleMascot";
+import { usePaywall } from "@/context/PaywallContext";
 import { useI18n } from "@/hooks/use-i18n";
 import { displayFontClass } from "@/lib/fonts";
 import { LAYOUT_VERSION } from "@/lib/layout-version";
@@ -10,6 +11,7 @@ import Link from "next/link";
 
 export default function AccountPage() {
   const { t } = useI18n();
+  const { isPro, openPaywall } = usePaywall();
 
   return (
     <div className="app-screen app-screen--home">
@@ -35,6 +37,22 @@ export default function AccountPage() {
                 <JungleCastPill size={24} />
               </div>
             </div>
+          </section>
+
+          <section className="home-card border-accent-200 bg-card">
+            <h2 className={`home-section-title ${displayFontClass}`}>👑 {t("paywall.accountTitle")}</h2>
+            <p className="home-body-text mt-1">
+              {isPro ? t("paywall.proActive") : t("paywall.accountDesc")}
+            </p>
+            {isPro ? null : (
+              <button
+                type="button"
+                onClick={openPaywall}
+                className="btn-pill-primary mt-4 flex w-full justify-center px-5 py-3.5"
+              >
+                {t("paywall.upgradeBtn")}
+              </button>
+            )}
           </section>
 
           <InstallAppHint />

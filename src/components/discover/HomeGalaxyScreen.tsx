@@ -10,6 +10,7 @@ import {
   subscribeWeeklyStreak,
   type WeekDayStatus,
 } from "@/lib/weekly-streak";
+import { usePaywall } from "@/context/PaywallContext";
 import { useI18n } from "@/hooks/use-i18n";
 import { getDailyReviewPlan } from "@/lib/daily-goal";
 import {
@@ -206,6 +207,7 @@ function WordsLeftProgressBar({ learned, total }: { learned: number; total: numb
 
 export function HomeGalaxyScreen(props: HomeGalaxyScreenProps) {
   const { t, goalTypeLabel } = useI18n();
+  const { isPro, openPaywall } = usePaywall();
   const [greetingName, setGreetingName] = useState(() => t("home.greetingDefault"));
 
   useEffect(() => {
@@ -275,6 +277,16 @@ export function HomeGalaxyScreen(props: HomeGalaxyScreenProps) {
             </p>
           </div>
           <div className="home-galaxy__topbar-right">
+            {isPro ? null : (
+              <button
+                type="button"
+                onClick={openPaywall}
+                aria-label={t("paywall.upgradeBtn")}
+                className="rounded-full bg-primary px-2.5 py-1 text-xs font-extrabold text-foreground"
+              >
+                👑 Pro
+              </button>
+            )}
             <Link
               href="/search"
               className="home-galaxy__topbar-icon"

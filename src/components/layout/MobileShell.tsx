@@ -8,6 +8,7 @@ import { StudyTimeTracker } from "@/components/layout/StudyTimeTracker";
 import { ViewportHeightSync } from "@/components/layout/ViewportHeightSync";
 import { OnboardingScreen } from "@/components/onboarding/OnboardingScreen";
 import { WelcomeSplash } from "@/components/welcome/WelcomeSplash";
+import { PaywallProvider } from "@/context/PaywallContext";
 import { AppMenuProvider } from "@/context/AppMenuContext";
 import { AppSettingsProvider, useAppSettings } from "@/context/AppSettingsContext";
 import {
@@ -83,7 +84,9 @@ export function MobileShell({ children }: { children: React.ReactNode }) {
       <AppLocaleSync />
       <AppMenuProvider>
         <AppBootstrapProvider>
-          <MobileShellInner>{children}</MobileShellInner>
+          <PaywallProvider>
+            <MobileShellInner>{children}</MobileShellInner>
+          </PaywallProvider>
         </AppBootstrapProvider>
       </AppMenuProvider>
     </AppSettingsProvider>

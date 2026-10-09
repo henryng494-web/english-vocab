@@ -1,5 +1,6 @@
 "use client";
 
+import { PaywallContent } from "@/components/paywall/PaywallContent";
 import { useAppSettings } from "@/context/AppSettingsContext";
 import { PLACEMENT_QUESTIONS_PER_LEVEL } from "@/data/placement-questions";
 import { WORD_RANGES } from "@/data/word-ranges";
@@ -16,7 +17,7 @@ import {
 } from "@/lib/placement";
 import { useMemo, useState } from "react";
 
-type Step = "choice" | "test" | "result" | "grid";
+type Step = "choice" | "test" | "result" | "grid" | "paywall";
 
 const TIER_EMOJI: Record<string, string> = {
   bronze: "🥉",
@@ -88,7 +89,7 @@ export function PlacementFlow({ onDone }: PlacementFlowProps) {
       correct: outcome.correct,
       total: outcome.total,
     });
-    onDone();
+    setStep("paywall");
   }
 
   function confirmGrid() {
@@ -104,6 +105,16 @@ export function PlacementFlow({ onDone }: PlacementFlowProps) {
   }
 
   const rtl = appLanguage === "ar";
+
+  if (step === "paywall") {
+    return (
+      <main className="onboarding" aria-label={t("paywall.title")} dir={rtl ? "rtl" : "ltr"}>
+        <div className="onboarding__scroll">
+          <PaywallContent onClose={onDone} closeIfUnavailable />
+        </div>
+      </main>
+    );
+  }
 
   if (step === "choice") {
     return (

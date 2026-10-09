@@ -11,14 +11,17 @@ type PurchasesModule = typeof import("@revenuecat/purchases-capacitor");
 export const PRO_ENTITLEMENT_ID =
   process.env.NEXT_PUBLIC_REVENUECAT_ENTITLEMENT?.trim() || "pro";
 
-const MOCK_MODE = process.env.NEXT_PUBLIC_REVENUECAT_MOCK === "1";
+export const REVENUECAT_MOCK_MODE = process.env.NEXT_PUBLIC_REVENUECAT_MOCK === "1";
 
 export type PlanPackage = {
   identifier: string;
   title: string;
   description: string;
   priceString: string;
+  /** Numeric price in the store currency; used to compute the yearly saving. */
+  price: number;
   packageType: string;
+  hasFreeTrial: boolean;
   /** Opaque handle passed back to `purchasePackage`. */
   raw: unknown;
 };
@@ -161,13 +164,13 @@ export async function isPro(): Promise<boolean> {
 }
 
 const MOCK_PACKAGES: PlanPackage[] = [
-  { identifier: "$rc_monthly", title: "Monthly", description: "Billed every month", priceString: "$4.99", packageType: "MONTHLY", raw: null },
-  { identifier: "$rc_annual", title: "Annual", description: "Best value", priceString: "$29.99", packageType: "ANNUAL", raw: null },
+  { identifier: "$rc_monthly", title: "Monthly", description: "Billed every month", priceString: "$4.99", price: 4.99, hasFreeTrial: false, packageType: "MONTHLY", raw: null },
+  { identifier: "$rc_annual", title: "Annual", description: "Best value", priceString: "$23.99", price: 23.99, hasFreeTrial: true, packageType: "ANNUAL", raw: null },
 ];
 
 /** Packages of the current offering; empty on web unless mock mode is on. */
 export async function getOfferings(): Promise<PlanPackage[]> {
-  if (!isNativePlatform()) return MOCK_MODE ? MOCK_PACKAGES : [];
+  if (!isNativePlatform()) return REVENUECAT_MOCK_MODE ? MOCK_PACKAGES : [];
   if (!(await initRevenueCat())) return [];
   const sdk = await loadSdk();
   if (!sdk) return [];
@@ -178,6 +181,8 @@ export async function getOfferings(): Promise<PlanPackage[]> {
       title: pkg.product.title,
       description: pkg.product.description,
       priceString: pkg.product.priceString,
+      price: pkg.product.price,
+      hasFreeTrial: pkg.product.introPrice?.price === 0,
       packageType: String(pkg.packageType),
       raw: pkg,
     }));
