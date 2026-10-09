@@ -1,7 +1,8 @@
 import {
-  PLACEMENT_LEVEL_WEIGHT,
-  PLACEMENT_QUESTIONS_PER_LEVEL,
+  PLACEMENT_LEVEL_DIFFICULTY,
+  PLACEMENT_QUESTIONS_PER_DIFFICULTY,
   PLACEMENT_QUESTION_BANK,
+  type PlacementDifficulty,
   type PlacementLevel,
   type PlacementQuestion,
 } from "@/data/placement-questions";
@@ -13,16 +14,14 @@ export type PlacementTierInfo = {
   tier: PlacementTier;
   level: PlacementLevel;
   rangeId: string;
-  /** Minimum weighted ratio (0–1) required for this tier. */
-  minRatio: number;
 };
 
 export const PLACEMENT_TIERS: readonly PlacementTierInfo[] = [
-  { tier: "bronze", level: "A1", rangeId: "1-100", minRatio: 0 },
-  { tier: "silver", level: "A2", rangeId: "501-1000", minRatio: 0.15 },
-  { tier: "gold", level: "B1", rangeId: "1001-3000", minRatio: 0.3 },
-  { tier: "platinum", level: "B2", rangeId: "3001-5000", minRatio: 0.5 },
-  { tier: "master", level: "C1", rangeId: "5001-plus", minRatio: 0.75 },
+  { tier: "bronze", level: "A1", rangeId: "1-100" },
+  { tier: "silver", level: "A2", rangeId: "501-1000" },
+  { tier: "gold", level: "B1", rangeId: "1001-3000" },
+  { tier: "platinum", level: "B2", rangeId: "3001-5000" },
+  { tier: "master", level: "C1", rangeId: "5001-plus" },
 ];
 
 export type PlacementQuiz = {
@@ -39,14 +38,15 @@ function shuffle<T>(items: readonly T[]): T[] {
   return copy;
 }
 
-/** 10 questions ordered easy → hard, each with shuffled options. */
+/** 3 easy + 4 medium + 3 hard questions ordered easy → hard, each with shuffled options. */
 export function buildPlacementQuiz(): PlacementQuiz[] {
-  const levels = Object.keys(PLACEMENT_QUESTIONS_PER_LEVEL) as PlacementLevel[];
-  const picked = levels.flatMap((level) =>
-    shuffle(PLACEMENT_QUESTION_BANK.filter((q) => q.level === level)).slice(
-      0,
-      PLACEMENT_QUESTIONS_PER_LEVEL[level],
-    ),
+  const order: PlacementDifficulty[] = ["easy", "medium", "hard"];
+  const picked = order.flatMap((difficulty) =>
+    shuffle(
+      PLACEMENT_QUESTION_BANK.filter(
+        (q) => PLACEMENT_LEVEL_DIFFICULTY[q.level] === difficulty,
+      ),
+    ).slice(0, PLACEMENT_QUESTIONS_PER_DIFFICULTY[difficulty]),
   );
   return picked.map((question) => ({
     question,
@@ -58,29 +58,55 @@ export type PlacementOutcome = {
   correct: number;
   total: number;
   ratio: number;
+  byDifficulty: Record<PlacementDifficulty, { correct: number; total: number }>;
   tier: PlacementTierInfo;
 };
+
+/** C1 (rank 5000+) needs ≥ 2/3 hard answers AND ≥ 8/10 overall. */
+export const C1_MIN_HARD_CORRECT = 2;
+export const C1_MIN_TOTAL_CORRECT = 8;
+
+function tierByTier(tier: PlacementTier): PlacementTierInfo {
+  return PLACEMENT_TIERS.find((item) => item.tier === tier) ?? PLACEMENT_TIERS[0];
+}
+
+export function pickPlacementTier(
+  byDifficulty: Record<PlacementDifficulty, { correct: number; total: number }>,
+): PlacementTierInfo {
+  const easy = byDifficulty.easy.correct;
+  const medium = byDifficulty.medium.correct;
+  const hard = byDifficulty.hard.correct;
+  const total = easy + medium + hard;
+  if (hard >= C1_MIN_HARD_CORRECT && total >= C1_MIN_TOTAL_CORRECT) {
+    return tierByTier("master");
+  }
+  // Without the C1 gate, strong easy/medium answers top out at B2 (rank 3001–5000).
+  if (medium >= 3 && total >= 6) return tierByTier("platinum");
+  if (medium >= 2 || total >= 5) return tierByTier("gold");
+  if (easy >= 2 || total >= 3) return tierByTier("silver");
+  return tierByTier("bronze");
+}
 
 export function scorePlacement(
   quiz: readonly PlacementQuiz[],
   answers: readonly (string | null)[],
 ): PlacementOutcome {
-  let earned = 0;
-  let possible = 0;
+  const byDifficulty: PlacementOutcome["byDifficulty"] = {
+    easy: { correct: 0, total: 0 },
+    medium: { correct: 0, total: 0 },
+    hard: { correct: 0, total: 0 },
+  };
   let correct = 0;
   quiz.forEach(({ question }, index) => {
-    const weight = PLACEMENT_LEVEL_WEIGHT[question.level];
-    possible += weight;
+    const bucket = byDifficulty[PLACEMENT_LEVEL_DIFFICULTY[question.level]];
+    bucket.total += 1;
     if (answers[index] === question.answer) {
-      earned += weight;
+      bucket.correct += 1;
       correct += 1;
     }
   });
-  const ratio = possible > 0 ? earned / possible : 0;
-  const tier =
-    [...PLACEMENT_TIERS].reverse().find((item) => ratio >= item.minRatio) ??
-    PLACEMENT_TIERS[0];
-  return { correct, total: quiz.length, ratio, tier };
+  const ratio = quiz.length > 0 ? correct / quiz.length : 0;
+  return { correct, total: quiz.length, ratio, byDifficulty, tier: pickPlacementTier(byDifficulty) };
 }
 
 const STORAGE_KEY = "english-vocab-placement-v1";

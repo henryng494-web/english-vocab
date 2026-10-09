@@ -9,12 +9,21 @@ export type PlacementQuestion = {
   distractors: [string, string, string];
 };
 
-export const PLACEMENT_LEVEL_WEIGHT: Record<PlacementLevel, number> = {
-  A1: 1,
-  A2: 2,
-  B1: 3,
-  B2: 4,
-  C1: 5,
+export type PlacementDifficulty = "easy" | "medium" | "hard";
+
+/** Easy ≈ rank 1–2000, medium ≈ rank 2000–4000, hard ≈ rank 5000+. */
+export const PLACEMENT_LEVEL_DIFFICULTY: Record<PlacementLevel, PlacementDifficulty> = {
+  A1: "easy",
+  A2: "easy",
+  B1: "medium",
+  B2: "medium",
+  C1: "hard",
+};
+
+export const PLACEMENT_QUESTIONS_PER_DIFFICULTY: Record<PlacementDifficulty, number> = {
+  easy: 3,
+  medium: 4,
+  hard: 3,
 };
 
 export const PLACEMENT_QUESTION_BANK: readonly PlacementQuestion[] = [
@@ -29,13 +38,7 @@ export const PLACEMENT_QUESTION_BANK: readonly PlacementQuestion[] = [
   { id: "b2-assume", level: "B2", clue: "To believe something is true without having proof.", answer: "assume", distractors: ["assure", "assess", "assist"] },
   { id: "b2-widespread", level: "B2", clue: "Found or happening in many places or among many people.", answer: "widespread", distractors: ["temporary", "reluctant", "ambiguous"] },
   { id: "c1-concise", level: "C1", clue: "Giving a lot of information in very few words.", answer: "concise", distractors: ["elaborate", "vague", "lenient"] },
+  { id: "c1-ubiquitous", level: "C1", clue: "Seeming to be present everywhere at the same time.", answer: "ubiquitous", distractors: ["scarce", "obsolete", "fragile"] },
+  { id: "c1-mitigate", level: "C1", clue: "To reduce the harmful effect of something.", answer: "mitigate", distractors: ["instigate", "contemplate", "fabricate"] },
   { id: "c1-alleviate", level: "C1", clue: "To make pain or a problem less severe.", answer: "alleviate", distractors: ["exacerbate", "procrastinate", "scrutinize"] },
 ];
-
-export const PLACEMENT_QUESTIONS_PER_LEVEL: Record<PlacementLevel, number> = {
-  A1: 2,
-  A2: 2,
-  B1: 2,
-  B2: 2,
-  C1: 2,
-};

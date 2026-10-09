@@ -4,7 +4,7 @@ import { PaywallContent } from "@/components/paywall/PaywallContent";
 import { usePaywall } from "@/context/PaywallContext";
 import { isRangeFree } from "@/lib/pro-access";
 import { useAppSettings } from "@/context/AppSettingsContext";
-import { PLACEMENT_QUESTIONS_PER_LEVEL } from "@/data/placement-questions";
+import { PLACEMENT_QUESTIONS_PER_DIFFICULTY } from "@/data/placement-questions";
 import { WORD_RANGES } from "@/data/word-ranges";
 import { useI18n } from "@/hooks/use-i18n";
 import { displayFontClass } from "@/lib/fonts";
@@ -55,7 +55,7 @@ export function PlacementFlow({ onDone }: PlacementFlowProps) {
   const [gridPick, setGridPick] = useState<string | null>(null);
 
   const totalQuestions = useMemo(
-    () => Object.values(PLACEMENT_QUESTIONS_PER_LEVEL).reduce((a, b) => a + b, 0),
+    () => Object.values(PLACEMENT_QUESTIONS_PER_DIFFICULTY).reduce((a, b) => a + b, 0),
     [],
   );
 
