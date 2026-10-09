@@ -415,7 +415,8 @@
     "paywall.reviewLimit": "Has usado tus {count} repasos gratis de hoy. ¡Pásate a Jungle Pro para tener repasos ilimitados!",
     "paywall.aiLocked": "Las formas de palabras y palabras similares con IA son una función de Jungle Pro. ¡Pásate a Pro para desbloquearlas!",
     "paywall.promptTitle": "Función de Jungle Pro",
-    "journey.recommendedBadge": "Recomendado para ti"
+    "journey.recommendedBadge": "Recomendado para ti",
+    "paywall.freeLearnDone": "¡Has terminado tus lecciones gratuitas de hoy! Pásate a Jungle Pro (Mensual, Anual o De por vida) para aprender sin límites."
   },
   "pt": {
     "tab.home": "Início",
@@ -833,7 +834,8 @@
     "paywall.reviewLimit": "Você já usou todas as {count} revisões gratuitas de hoje. Faça upgrade para o Jungle Pro para ter revisões ilimitadas!",
     "paywall.aiLocked": "As variações e palavras similares com IA são um recurso do Jungle Pro. Faça upgrade para desbloquear!",
     "paywall.promptTitle": "Recurso do Jungle Pro",
-    "journey.recommendedBadge": "Recomendado para você"
+    "journey.recommendedBadge": "Recomendado para você",
+    "paywall.freeLearnDone": "Você concluiu as lições gratuitas de hoje. Faça o upgrade para o Jungle Pro (Mensal, Anual ou Vitalício) para aprender sem limites!"
   },
   "ja": {
     "tab.home": "ホーム",
@@ -1251,7 +1253,8 @@
     "paywall.reviewLimit": "今日の無料復習（{count}回）を使い切りました。Jungle Proにアップグレードして、無制限で復習しましょう！",
     "paywall.aiLocked": "AIによる派生語や類義語の表示はJungle Pro限定の機能です。アップグレードしてアンロックしよう！",
     "paywall.promptTitle": "Jungle Pro限定機能",
-    "journey.recommendedBadge": "あなたにおすすめ"
+    "journey.recommendedBadge": "あなたにおすすめ",
+    "paywall.freeLearnDone": "今日の無料レッスンが終了しました。Jungle Pro（月額・年額・買い切り）にアップグレードして、制限なしで学びましょう！"
   },
   "ko": {
     "tab.home": "홈",
@@ -1669,7 +1672,8 @@
     "paywall.reviewLimit": "오늘 무료 복습 {count}회를 모두 사용했어요. Jungle Pro로 업그레이드하고 무제한으로 복습해 보세요!",
     "paywall.aiLocked": "AI 기반 단어 변형 및 유사어는 Jungle Pro 전용 기능이에요. 업그레이드해서 잠금을 해제해 보세요!",
     "paywall.promptTitle": "Jungle Pro 전용 기능",
-    "journey.recommendedBadge": "회원님을 위한 추천"
+    "journey.recommendedBadge": "회원님을 위한 추천",
+    "paywall.freeLearnDone": "오늘의 무료 레슨을 모두 완료했어요. Jungle Pro(월간, 연간 또는 평생 이용권)로 업그레이드하고 제한 없이 마음껏 배워보세요!"
   },
   "zh": {
     "tab.home": "首页",
@@ -2087,7 +2091,8 @@
     "paywall.reviewLimit": "你今天的 {count} 次免费复习额度已用完。升级至 Jungle Pro 即可体验无限复习！",
     "paywall.aiLocked": "AI 智能词形与近义词解析为 Jungle Pro 专属功能。升级即可解锁！",
     "paywall.promptTitle": "Jungle Pro 专属功能",
-    "journey.recommendedBadge": "为你推荐"
+    "journey.recommendedBadge": "为你推荐",
+    "paywall.freeLearnDone": "你已经学完今天的免费课程啦！升级到 Jungle Pro（按月、按年或终身），畅享无限学习！"
   },
   "th": {
     "tab.home": "หน้าแรก",
@@ -2505,7 +2510,8 @@
     "paywall.reviewLimit": "วันนี้คุณใช้สิทธิ์ทบทวนฟรีครบ {count} ครั้งแล้ว อัปเกรดเป็น Jungle Pro เพื่อทบทวนได้ไม่จำกัด!",
     "paywall.aiLocked": "รูปคำและคำที่มีความหมายคล้ายกันด้วย AI เป็นฟีเจอร์เฉพาะ Jungle Pro อัปเกรดเพื่อปลดล็อกเลย!",
     "paywall.promptTitle": "ฟีเจอร์เฉพาะ Jungle Pro",
-    "journey.recommendedBadge": "แนะนำสำหรับคุณ"
+    "journey.recommendedBadge": "แนะนำสำหรับคุณ",
+    "paywall.freeLearnDone": "คุณเรียนบทเรียนฟรีของวันนี้ครบแล้ว อัปเกรดเป็น Jungle Pro (แบบรายเดือน รายปี หรือตลอดชีพ) เพื่อเรียนรู้ได้ไม่จำกัด!"
   },
   "id": {
     "tab.home": "Beranda",
@@ -2923,7 +2929,8 @@
     "paywall.reviewLimit": "Kamu telah menggunakan semua {count} ulasan gratis hari ini. Upgrade ke Jungle Pro untuk ulasan tanpa batas!",
     "paywall.aiLocked": "Bentuk kata dan kata serupa berbasis AI adalah fitur Jungle Pro. Upgrade untuk membukanya!",
     "paywall.promptTitle": "Fitur Jungle Pro",
-    "journey.recommendedBadge": "Direkomendasikan untukmu"
+    "journey.recommendedBadge": "Direkomendasikan untukmu",
+    "paywall.freeLearnDone": "Kamu sudah menyelesaikan pelajaran gratis hari ini. Upgrade ke Jungle Pro (Bulanan, Tahunan, atau Seumur Hidup) untuk belajar tanpa batas!"
   },
   "fr": {
     "tab.home": "Accueil",
@@ -3341,7 +3348,8 @@
     "paywall.reviewLimit": "Tu as utilisé toutes tes {count} révisions gratuites aujourd'hui. Passe à Jungle Pro pour des révisions illimitées !",
     "paywall.aiLocked": "Les formes de mots et mots similaires générés par l'IA sont réservés à Jungle Pro. Passe à la version supérieure pour les débloquer !",
     "paywall.promptTitle": "Fonctionnalité Jungle Pro",
-    "journey.recommendedBadge": "Recommandé pour vous"
+    "journey.recommendedBadge": "Recommandé pour vous",
+    "paywall.freeLearnDone": "Tu as terminé tes leçons gratuites du jour. Passe à Jungle Pro (Mensuel, Annuel ou À vie) pour apprendre sans limites !"
   },
   "de": {
     "tab.home": "Startseite",
@@ -3759,7 +3767,8 @@
     "paywall.reviewLimit": "Du hast heute alle {count} kostenlosen Wiederholungen genutzt. Upgrade auf Jungle Pro für unbegrenzte Wiederholungen!",
     "paywall.aiLocked": "KI-gestützte Wortformen und ähnliche Wörter sind ein Jungle Pro-Feature. Upgrade jetzt, um sie freizuschalten!",
     "paywall.promptTitle": "Jungle Pro-Feature",
-    "journey.recommendedBadge": "Für dich empfohlen"
+    "journey.recommendedBadge": "Für dich empfohlen",
+    "paywall.freeLearnDone": "Du hast deine heutigen kostenlosen Lektionen beendet. Hol dir Jungle Pro (Monatlich, Jährlich oder Lebenslang), um ohne Limits zu lernen!"
   },
   "it": {
     "tab.home": "Home",
@@ -4177,7 +4186,8 @@
     "paywall.reviewLimit": "Hai usato tutti i {count} ripassi gratuiti di oggi. Passa a Jungle Pro per ripassare senza limiti!",
     "paywall.aiLocked": "Le forme delle parole e i termini simili basati sull'IA sono una funzione di Jungle Pro. Passa a Pro per sbloccarli!",
     "paywall.promptTitle": "Funzione Jungle Pro",
-    "journey.recommendedBadge": "Consigliato per te"
+    "journey.recommendedBadge": "Consigliato per te",
+    "paywall.freeLearnDone": "Hai completato le lezioni gratuite di oggi. Passa a Jungle Pro (Mensile, Annuale o A vita) per imparare senza limiti!"
   },
   "tr": {
     "tab.home": "Ana Sayfa",
@@ -4595,7 +4605,8 @@
     "paywall.reviewLimit": "Bugün {count} ücretsiz tekrar hakkının hepsini kullandın. Sınırsız tekrar için Jungle Pro'ya yükselt!",
     "paywall.aiLocked": "Yapay zekâ destekli kelime biçimleri ve benzer kelimeler bir Jungle Pro özelliğidir. Kilitlerini açmak için yükselt!",
     "paywall.promptTitle": "Jungle Pro özelliği",
-    "journey.recommendedBadge": "Sana önerilen"
+    "journey.recommendedBadge": "Sana önerilen",
+    "paywall.freeLearnDone": "Bugünkü ücretsiz derslerini tamamladın. Sınırsız öğrenmek için Jungle Pro'ya (Aylık, Yıllık veya Ömür Boyu) yükselt!"
   },
   "ar": {
     "tab.home": "الرئيسية",
@@ -5013,6 +5024,7 @@
     "paywall.reviewLimit": "لقد استخدمت جميع المراجعات المجانية الـ {count} اليوم. ترقَّ إلى Jungle Pro للحصول على مراجعات غير محدودة!",
     "paywall.aiLocked": "صيغ الكلمات والكلمات المشابهة المدعومة بالذكاء الاصطناعي هي إحدى ميزات Jungle Pro. ترقَّ لفتحها!",
     "paywall.promptTitle": "ميزة Jungle Pro",
-    "journey.recommendedBadge": "موصى به لك"
+    "journey.recommendedBadge": "موصى به لك",
+    "paywall.freeLearnDone": "لقد أنهيت دروس اليوم المجانية. ترقَّ إلى Jungle Pro (شهريًا، سنويًا، أو مدى الحياة) لتتعلم بلا حدود!"
   }
 }

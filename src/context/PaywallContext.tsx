@@ -24,7 +24,7 @@ type PaywallContextValue = {
   showUpgradePrompt: (reason: UpgradeReason) => void;
 };
 
-export type UpgradeReason = "reviews" | "ai";
+export type UpgradeReason = "reviews" | "ai" | "learn";
 
 const PaywallContext = createContext<PaywallContextValue | null>(null);
 
@@ -100,7 +100,9 @@ export function PaywallProvider({ children }: { children: ReactNode }) {
             <p className="mt-2 text-sm text-foreground/75">
               {prompt === "reviews"
                 ? t("paywall.reviewLimit", { count: FREE_DAILY_REVIEWS })
-                : t("paywall.aiLocked")}
+                : prompt === "learn"
+                  ? t("paywall.freeLearnDone")
+                  : t("paywall.aiLocked")}
             </p>
             <button
               type="button"

@@ -83,7 +83,12 @@ import {
 } from "@/lib/locale-content-prefetch";
 import { readOnboarding, shouldShowOnboarding } from "@/lib/onboarding";
 import { usePaywall } from "@/context/PaywallContext";
-import { isRangeFree } from "@/lib/pro-access";
+import {
+  FREE_HIGH_RANK_DAILY_NEW_WORDS,
+  incrementFreeHighRankLearned,
+  isFreeHighRankQuotaReached,
+  isRangeFree,
+} from "@/lib/pro-access";
 import {
   readInitialRank,
   readPlacement,
@@ -151,8 +156,9 @@ export default function DiscoverPage() {
     (searchParams.get("daily") === "1" || readDailySession()?.phase === "journey");
   const [rangeId, setRangeId] = useState(DEFAULT_BOOTSTRAP_RANGE);
   const [recommendedRank, setRecommendedRank] = useState<string | null>(null);
-  const { isFree, openPaywall } = usePaywall();
-  const rangeLocked = isFree && !isRangeFree(rangeId);
+  const { isFree, openPaywall, showUpgradePrompt } = usePaywall();
+  const freeHighRank = isFree && !isRangeFree(rangeId);
+  const [freeHighQuotaHit, setFreeHighQuotaHit] = useState(false);
   const [queue, setQueue] = useState<DiscoverListItem[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [currentWord, setCurrentWord] = useState<DiscoverWordData | null>(null);
@@ -188,8 +194,8 @@ export default function DiscoverPage() {
   const onboardingChecked = useRef(false);
 
   useEffect(() => {
-    if (rangeLocked) setRangeId(DEFAULT_BOOTSTRAP_RANGE);
-  }, [rangeLocked]);
+    setFreeHighQuotaHit(freeHighRank && isFreeHighRankQuotaReached());
+  }, [freeHighRank, rangeId, todayLearned]);
 
   useEffect(() => {
     if (onboardingChecked.current) return;
@@ -709,6 +715,11 @@ export default function DiscoverPage() {
       return;
     }
 
+    if (status === "new" && freeHighRank && isFreeHighRankQuotaReached()) {
+      showUpgradePrompt("learn");
+      return;
+    }
+
     unlockSpeechFromUserGesture();
 
     const word = currentItem.word.trim().toLowerCase();
@@ -736,6 +747,9 @@ export default function DiscoverPage() {
     }));
     if (status === "new") {
       setTodayLearned(incrementTodayWordsLearned());
+      if (freeHighRank && incrementFreeHighRankLearned() >= FREE_HIGH_RANK_DAILY_NEW_WORDS) {
+        showUpgradePrompt("learn");
+      }
       syncStreak();
       if (isDailyJourney) {
         const result = recordDailyNewWord();
@@ -887,17 +901,13 @@ export default function DiscoverPage() {
           <HeaderSelect
             value={rangeId}
             onChange={(id) => {
-              if (isFree && !isRangeFree(id)) {
-                openPaywall();
-                return;
-              }
               setRangeId(id);
               saveSelectedRank(id);
             }}
             aria-label={t("journey.selectBand")}
             options={WORD_RANGES.map((range) => ({
               id: range.id,
-              label: isFree && !isRangeFree(range.id) ? `🔒 ${range.compactLabel}` : range.compactLabel,
+              label: range.compactLabel,
               badge: range.id === recommendedRank ? t("journey.recommendedBadge") : undefined,
             }))}
           />
@@ -913,6 +923,16 @@ export default function DiscoverPage() {
           <p className="shrink-0 rounded-xl border border-primary-200 bg-primary-50 px-4 py-3 text-sm text-primary-800">
             {error}
           </p>
+        )}
+
+        {!error && freeHighQuotaHit && (
+          <button
+            type="button"
+            onClick={openPaywall}
+            className="shrink-0 rounded-xl border border-violet-200 bg-violet-50 px-4 py-3 text-left text-sm text-violet-900"
+          >
+            {t("paywall.freeLearnDone")}
+          </button>
         )}
 
         {!error && dailyQuotaReached && (
@@ -972,7 +992,7 @@ export default function DiscoverPage() {
                   if (currentItem) speakNextJourneyWordInGesture(currentItem);
                 }}
                 onClick={() => updateStatus("new")}
-                disabled={dailyQuotaReached}
+                disabled={dailyQuotaReached || freeHighQuotaHit}
                 className="btn-pill-primary w-full disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {t("journey.learnThis")}
