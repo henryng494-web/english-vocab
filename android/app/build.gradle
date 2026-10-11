@@ -1,5 +1,19 @@
 apply plugin: 'com.android.application'
 
+// Release signing: set ANDROID_KEYSTORE_PATH, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS and
+// ANDROID_KEY_PASSWORD (or the same names as Gradle properties). Without them the build is signed
+// with the local debug keystore so `bundleRelease` still works for testing; such a bundle is NOT
+// accepted by Google Play.
+def signingValue = { String name ->
+    def value = System.getenv(name) ?: (project.hasProperty(name) ? project.property(name) : null)
+    value ? value.toString() : null
+}
+def releaseKeystorePath = signingValue('ANDROID_KEYSTORE_PATH')
+def hasReleaseKeystore = releaseKeystorePath != null && file(releaseKeystorePath).exists()
+if (!hasReleaseKeystore) {
+    logger.warn("ANDROID_KEYSTORE_PATH not set or missing: release builds are signed with the debug keystore.")
+}
+
 android {
     namespace = "com.junglejokers.vocab"
     compileSdk = rootProject.ext.compileSdkVersion
@@ -7,8 +21,8 @@ android {
         applicationId "com.junglejokers.vocab"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        versionCode Integer.parseInt(signingValue('ANDROID_VERSION_CODE') ?: '1')
+        versionName signingValue('ANDROID_VERSION_NAME') ?: '1.0.0'
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -16,11 +30,35 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        release {
+            if (hasReleaseKeystore) {
+                storeFile file(releaseKeystorePath)
+                storePassword signingValue('ANDROID_KEYSTORE_PASSWORD')
+                keyAlias signingValue('ANDROID_KEY_ALIAS')
+                keyPassword signingValue('ANDROID_KEY_PASSWORD') ?: signingValue('ANDROID_KEYSTORE_PASSWORD')
+            } else {
+                def debugKeystore = new File(System.getProperty('user.home'), '.android/debug.keystore')
+                if (debugKeystore.exists()) {
+                    storeFile debugKeystore
+                    storePassword 'android'
+                    keyAlias 'androiddebugkey'
+                    keyPassword 'android'
+                }
+            }
+        }
+    }
     buildTypes {
         release {
+            signingConfig signingConfigs.release
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
+    }
+    bundle {
+        language { enableSplit = true }
+        density { enableSplit = true }
+        abi { enableSplit = true }
     }
 }
 
