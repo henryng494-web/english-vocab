@@ -3,7 +3,8 @@
     {
       "appId": "e6241ae9",
       "androidPath": "android",
-      "iosPath": "ios"
+      "iosPath": "ios",
+      "webBuildCommand": "npm run build:mobile"
     }
   ]
 }
