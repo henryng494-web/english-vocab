@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit",
     "build:mobile": "node scripts/build-mobile.mjs",
     "cap:sync": "npx cap sync",
+    "verify:appflow-layout": "node scripts/verify-appflow-layout.mjs",
     "build:check": "NEXT_DIST_DIR=.next-check next build",
     "verify": "npm run typecheck && npm run lint",
     "db:migrate:multilang": "npx tsx scripts/apply-word-details-multilang-migration.ts",
