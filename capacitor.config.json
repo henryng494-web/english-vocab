@@ -1,0 +1,12 @@
+{
+  "appId": "com.junglejokers.vocab",
+  "appName": "Jungle Jokers",
+  "webDir": "out",
+  "android": {
+    "path": "android"
+  },
+  "ios": {
+    "path": "ios",
+    "contentInset": "always"
+  }
+}
