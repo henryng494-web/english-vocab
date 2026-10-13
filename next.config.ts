@@ -1,6 +1,7 @@
 import { readFileSync } from "fs";
 import type { NextConfig } from "next";
 
+/** Static export for Capacitor/Appflow — set via `npm run build:mobile` (MOBILE_BUILD=1), not plain `next build`. */
 const isMobileBuild = process.env.MOBILE_BUILD === "1";
 
 const appVersion = (

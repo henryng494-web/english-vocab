@@ -27,6 +27,24 @@ requirePath("ios/App/App.xcodeproj", "iOS native project");
 const cap = JSON.parse(readFileSync(join(repoRoot, "capacitor.config.json"), "utf8"));
 const androidPath = cap.android?.path ?? "android";
 const iosPath = cap.ios?.path ?? "ios";
+const webDir = cap.webDir ?? "www";
+
+if (webDir !== "out") {
+  errors.push(`capacitor.config.json webDir must be "out" for Next static export (got "${webDir}")`);
+}
+
+const nextConfigPath = join(repoRoot, "next.config.ts");
+if (!existsSync(nextConfigPath)) {
+  errors.push("Missing next.config.ts");
+} else {
+  const nextConfig = readFileSync(nextConfigPath, "utf8");
+  if (!/output:\s*["']export["']/.test(nextConfig)) {
+    errors.push('next.config.ts must set output: "export" for mobile/Appflow builds');
+  }
+  if (!nextConfig.includes("MOBILE_BUILD")) {
+    errors.push("next.config.ts should gate static export on MOBILE_BUILD (Vercel uses non-export build)");
+  }
+}
 
 if (androidPath.includes("..") || iosPath.includes("..")) {
   errors.push("Capacitor platform paths must not escape the repo root");
@@ -62,6 +80,12 @@ if (existsSync(join(repoRoot, "appflow.config.json"))) {
     if (join(repoRoot, ip) !== join(repoRoot, iosPath)) {
       errors.push(`appflow iosPath "${ip}" does not match capacitor ios.path "${iosPath}"`);
     }
+    const webBuild = app.webBuildCommand ?? "";
+    if (!webBuild.includes("build:mobile")) {
+      errors.push(
+        `appflow webBuildCommand must run npm run build:mobile (sets MOBILE_BUILD + writes out/); got "${webBuild || "(default)"}"`,
+      );
+    }
   }
 }
 
@@ -70,4 +94,6 @@ if (errors.length) {
   process.exit(1);
 }
 
-console.log("[verify-appflow-layout] OK — capacitor.config.json and android/ at repo root");
+console.log(
+  "[verify-appflow-layout] OK — webDir=out, next.config.ts mobile export, android/ at repo root",
+);
