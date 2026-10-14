@@ -43,6 +43,21 @@ next-env.d.ts
 /out
 .mobile-build-stash
 .next-mobile
+
+# Android native (Appflow builds on CI; keep local artifacts untracked)
 /android/app/build
+/android/build
+/android/.gradle
+/android/local.properties
+/android/keystore.properties
+*.jks
+*.keystore
+
+# iOS native (Capacitor; synced web assets and Xcode user data)
 /ios/App/Pods
 /ios/App/build
+/ios/App/output
+/ios/App/App/public
+/ios/**/DerivedData
+/ios/**/xcuserdata
+**/*.xcuserstate
