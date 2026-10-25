@@ -1,3 +1,4 @@
+import { isFreeTier } from "@/lib/pro-access";
 import { normalizeSimilarWords } from "@/lib/similar-words-normalize";
 
 export type CardSimilarPrefetchInput = {
@@ -54,6 +55,10 @@ export function prefetchCardSimilarWords(
 
   const existing = inflight.get(key);
   if (existing) return existing;
+
+  if (isFreeTier()) {
+    return Promise.resolve([]);
+  }
 
   const params = new URLSearchParams({ word: headword });
   if (input.wordType?.trim()) params.set("pos", input.wordType.trim());
