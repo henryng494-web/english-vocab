@@ -1,6 +1,11 @@
+import { IS_MOBILE_BUILD } from "@/lib/api-base";
 import { localDateKey } from "@/lib/local-date";
 import { WORD_RANGES } from "@/data/word-ranges";
-import { REVENUECAT_MOCK_MODE, isRevenueCatAvailable } from "@/lib/revenuecat";
+import {
+  REVENUECAT_MOCK_MODE,
+  isNativePlatform,
+  isRevenueCatAvailable,
+} from "@/lib/revenuecat";
 
 /** Ranks above this are "high ranks": Free users may open them but get a tiny daily new-word allowance. */
 export const FREE_MAX_RANK = 500;
@@ -11,11 +16,14 @@ const CACHE_KEY = "jj-pro-status-v1";
 export const PRO_STATUS_EVENT = "pro-status-changed";
 
 /**
- * Gating only applies where a subscription can actually be bought (native app with a RevenueCat
- * key, or mock mode), so plain web users are never locked out of content they cannot unlock.
+ * Free-tier limits apply on shipped mobile builds and native shells even when RevenueCat keys
+ * are missing (paywall may show "unavailable" until keys are set). Plain web (non-export) stays
+ * open so Vercel users are not locked out of content they cannot purchase in-browser.
  */
 export function isGatingActive(): boolean {
-  return isRevenueCatAvailable() || REVENUECAT_MOCK_MODE;
+  if (REVENUECAT_MOCK_MODE) return true;
+  if (IS_MOBILE_BUILD || isNativePlatform()) return true;
+  return isRevenueCatAvailable();
 }
 
 export function readProCache(): boolean {

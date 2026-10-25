@@ -12,6 +12,7 @@ import {
 import { ReviewSenseQuestion } from "@/components/review/ReviewSenseQuestion";
 import { JungleMascot } from "@/components/mascot/JungleMascot";
 import {
+  getTodayReviewsCompleted,
   getTodayReviewsCompletedSnapshot,
   incrementTodayReviewsCompleted,
   subscribeTodayReviewsCompleted,
@@ -125,6 +126,7 @@ export function ReviewScreen() {
     patchBoth,
     patchWordFields,
   } = useReviewSession();
+  const { isFree, showUpgradePrompt } = usePaywall();
   const [index, setIndex] = useState(0);
   const [phase, setPhase] = useState<Phase>("question");
   const [sessionReady, setSessionReady] = useState(false);
@@ -756,11 +758,17 @@ export function ReviewScreen() {
       }
       return;
     }
+    if (isFree && getTodayReviewsCompleted() >= FREE_DAILY_REVIEWS) {
+      sessionStartedRef.current = false;
+      setSessionReady(false);
+      showUpgradePrompt("reviews");
+      return;
+    }
     if (sessionStartedRef.current) return;
 
     sessionStartedRef.current = true;
     void beginSession(queue, allWords.length > 0 ? allWords : queue);
-  }, [loading, queue.length, beginSession, allWords.length]);
+  }, [loading, queue.length, beginSession, allWords.length, isFree, showUpgradePrompt]);
 
   /** Warm first-word MP3 as soon as the queue exists (before session UI mounts). */
   useEffect(() => {
@@ -1246,6 +1254,10 @@ export function ReviewScreen() {
       }
       markReviewSessionCompleted(currentWord.word, remaining);
       patchQueue(remaining);
+      if (isFree && getTodayReviewsCompleted() >= FREE_DAILY_REVIEWS) {
+        showUpgradePrompt("reviews");
+        return;
+      }
       incrementTodayReviewsCompleted();
       syncStreak();
 
@@ -1276,7 +1288,6 @@ export function ReviewScreen() {
     () => 0,
   );
   const dailyReviewPlan = getDailyReviewPlan();
-  const { isFree, showUpgradePrompt } = usePaywall();
 
   useEffect(() => {
     if (isFree && todayReviewsCompleted >= FREE_DAILY_REVIEWS) {

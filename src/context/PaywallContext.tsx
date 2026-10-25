@@ -2,8 +2,11 @@
 
 import { PaywallContent } from "@/components/paywall/PaywallContent";
 import { useI18n } from "@/hooks/use-i18n";
+import { loginPathWithReturn, isClientSignedIn } from "@/lib/auth-session";
 import { FREE_DAILY_REVIEWS, PRO_STATUS_EVENT, isGatingActive, readProCache, writeProCache } from "@/lib/pro-access";
+import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { getProStatus, type ProStatus } from "@/lib/revenuecat";
+import { usePathname, useRouter } from "next/navigation";
 import {
   createContext,
   useCallback,
@@ -35,14 +38,23 @@ export function PaywallProvider({ children }: { children: ReactNode }) {
   const [gating, setGating] = useState(false);
   const [prompt, setPrompt] = useState<UpgradeReason | null>(null);
   const { t } = useI18n();
+  const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     let cancelled = false;
-    setIsPro(readProCache());
-    setGating(isGatingActive());
+    const active = isGatingActive();
+    setGating(active);
+    setIsPro(active ? false : readProCache());
     void getProStatus().then((status) => {
       if (cancelled) return;
-      if (!status.checked) return;
+      if (!status.checked) {
+        if (active) {
+          setIsPro(false);
+          writeProCache(false);
+        }
+        return;
+      }
       setIsPro(status.isPro);
       writeProCache(status.isPro);
     });
@@ -61,9 +73,15 @@ export function PaywallProvider({ children }: { children: ReactNode }) {
   }, [open]);
 
   const openPaywall = useCallback(() => {
-    setPrompt(null);
-    setOpen(true);
-  }, []);
+    void (async () => {
+      setPrompt(null);
+      if (gating && isSupabaseConfigured() && !(await isClientSignedIn())) {
+        router.push(loginPathWithReturn(pathname || "/discover"));
+        return;
+      }
+      setOpen(true);
+    })();
+  }, [gating, pathname, router]);
   const showUpgradePrompt = useCallback((reason: UpgradeReason) => setPrompt(reason), []);
   const closePaywall = useCallback(() => setOpen(false), []);
   const onProChange = useCallback((status: ProStatus) => {

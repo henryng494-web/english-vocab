@@ -6,8 +6,13 @@ import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { AppSettingsProvider } from "@/context/AppSettingsContext";
 import { useI18n } from "@/hooks/use-i18n";
 import { displayFontClass } from "@/lib/fonts";
-import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useRef, useState } from "react";
+
+function safeReturnPath(next: string | null): string {
+  if (!next || !next.startsWith("/") || next.startsWith("//")) return "/discover";
+  return next;
+}
 
 type Mode = "signin" | "signup";
 type Feedback = { kind: "error" | "success"; text: string } | null;
@@ -64,6 +69,8 @@ const inputClass =
 
 function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const afterAuth = safeReturnPath(searchParams.get("next"));
   const { t } = useI18n();
   const [mode, setMode] = useState<Mode>("signin");
   const [email, setEmail] = useState("");
@@ -115,7 +122,7 @@ function LoginForm() {
           setLoading(false);
           return;
         }
-        router.replace("/discover");
+        router.replace(afterAuth);
         router.refresh();
         return;
       }
@@ -423,7 +430,9 @@ function LoginForm() {
 export default function LoginPage() {
   return (
     <AppSettingsProvider>
-      <LoginForm />
+      <Suspense fallback={<main className="min-h-screen bg-background" aria-busy="true" />}>
+        <LoginForm />
+      </Suspense>
     </AppSettingsProvider>
   );
 }
