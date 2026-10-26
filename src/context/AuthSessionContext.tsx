@@ -8,6 +8,7 @@ import {
   persistLearnerDisplayName,
   readLearnerDisplayName,
 } from "@/lib/user-display-name";
+import { syncLearnerNicknameToSupabase } from "@/lib/learner-nickname";
 import { persistAuthSignedInFlag } from "@/lib/auth-session";
 import { writeProCache } from "@/lib/pro-access";
 import type { Session, User } from "@supabase/supabase-js";
@@ -37,9 +38,15 @@ type AuthSessionContextValue = {
 const AuthSessionContext = createContext<AuthSessionContextValue | null>(null);
 
 function syncProfileFromUser(user: User | null): void {
+  persistAuthSignedInFlag(Boolean(user));
+  if (!user) return;
+  const local = readLearnerDisplayName();
+  if (local) {
+    void syncLearnerNicknameToSupabase(local);
+    return;
+  }
   const name = displayNameFromUser(user);
   if (name) persistLearnerDisplayName(name);
-  persistAuthSignedInFlag(Boolean(user));
 }
 
 export function AuthSessionProvider({ children }: { children: ReactNode }) {
