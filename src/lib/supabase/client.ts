@@ -42,13 +42,21 @@ function browserClientOptions() {
     : undefined;
 }
 
+let sharedBrowserClient: SupabaseClient | null = null;
+
 export function createClientIfConfigured(): SupabaseClient | null {
   const config = getSupabaseConfigOptional();
   if (!config) return null;
-  return createBrowserClient(config.url, config.anonKey, browserClientOptions());
+  if (!sharedBrowserClient) {
+    sharedBrowserClient = createBrowserClient(config.url, config.anonKey, browserClientOptions());
+  }
+  return sharedBrowserClient;
 }
 
 export function createClient(): SupabaseClient {
+  const configured = createClientIfConfigured();
+  if (configured) return configured;
   const { url, anonKey } = getSupabaseConfig();
-  return createBrowserClient(url, anonKey, browserClientOptions());
+  sharedBrowserClient = createBrowserClient(url, anonKey, browserClientOptions());
+  return sharedBrowserClient;
 }

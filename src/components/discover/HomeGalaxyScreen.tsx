@@ -10,7 +10,9 @@ import {
   subscribeWeeklyStreak,
   type WeekDayStatus,
 } from "@/lib/weekly-streak";
+import { useAuthSession } from "@/context/AuthSessionContext";
 import { usePaywall } from "@/context/PaywallContext";
+import { readLearnerDisplayName } from "@/lib/user-display-name";
 import { useI18n } from "@/hooks/use-i18n";
 import { getDailyReviewPlan } from "@/lib/daily-goal";
 import {
@@ -207,17 +209,12 @@ function WordsLeftProgressBar({ learned, total }: { learned: number; total: numb
 
 export function HomeGalaxyScreen(props: HomeGalaxyScreenProps) {
   const { t, goalTypeLabel } = useI18n();
-  const { isPro, openPaywall } = usePaywall();
-  const [greetingName, setGreetingName] = useState(() => t("home.greetingDefault"));
-
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem("vocab-learner-display-name")?.trim();
-      if (stored) setGreetingName(stored);
-    } catch {
-      /* ignore */
-    }
-  }, [t]);
+  const { isPro } = usePaywall();
+  const { displayName: authDisplayName, ready: authReady } = useAuthSession();
+  const greetingName =
+    authReady && authDisplayName.trim()
+      ? authDisplayName.trim()
+      : readLearnerDisplayName() || t("home.greetingDefault");
 
   const avatarInitial = useMemo(() => {
     const trimmed = greetingName.trim();
@@ -277,16 +274,14 @@ export function HomeGalaxyScreen(props: HomeGalaxyScreenProps) {
             </p>
           </div>
           <div className="home-galaxy__topbar-right">
-            {isPro ? null : (
-              <button
-                type="button"
-                onClick={openPaywall}
-                aria-label={t("paywall.upgradeBtn")}
-                className="rounded-full bg-[#7c3aed] px-2.5 py-1 text-xs font-extrabold text-white"
+            {isPro ? (
+              <span
+                className="rounded-full bg-[#7c3aed]/15 px-2.5 py-1 text-xs font-extrabold text-[#7c3aed]"
+                aria-label={t("paywall.proActive")}
               >
                 Pro
-              </button>
-            )}
+              </span>
+            ) : null}
             <Link
               href="/search"
               className="home-galaxy__topbar-icon"
