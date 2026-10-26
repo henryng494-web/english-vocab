@@ -17,12 +17,19 @@ export const FREE_DAILY_NEW_WORDS = 10;
 const CACHE_KEY = "jj-pro-status-v1";
 export const PRO_STATUS_EVENT = "pro-status-changed";
 
+/** Local `npm run dev` and optional dashboard flag — test Free limits in the browser. */
+const DEV_OR_FORCED_GATING =
+  process.env.NODE_ENV === "development" ||
+  process.env.NEXT_PUBLIC_FORCE_FREE_GATING === "1";
+
 /**
  * Free-tier limits apply on shipped mobile builds and native shells even when RevenueCat keys
  * are missing (paywall may show "unavailable" until keys are set). Plain web (non-export) stays
- * open so Vercel users are not locked out of content they cannot purchase in-browser.
+ * open on production Vercel so users are not locked out of content they cannot purchase in-browser.
+ * Development and `NEXT_PUBLIC_FORCE_FREE_GATING=1` enable gating for local paywall testing.
  */
 export function isGatingActive(): boolean {
+  if (DEV_OR_FORCED_GATING) return true;
   if (REVENUECAT_MOCK_MODE) return true;
   if (IS_MOBILE_BUILD || isNativePlatform()) return true;
   return isRevenueCatAvailable();
