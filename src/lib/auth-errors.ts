@@ -1,0 +1,99 @@
+import type { MessageKey } from "@/lib/i18n/messages";
+
+type Translate = (key: MessageKey, params?: Record<string, string | number>) => string;
+
+type AuthErrorLike = {
+  message?: string;
+  code?: string;
+  status?: number;
+};
+
+export type AuthMode = "signin" | "signup";
+
+function normalizeMessage(error: AuthErrorLike | string | undefined): string {
+  if (!error) return "";
+  if (typeof error === "string") return error;
+  return (error.message ?? "").trim();
+}
+
+function errorCode(error: AuthErrorLike | string | undefined): string {
+  if (!error || typeof error === "string") return "";
+  return (error.code ?? "").trim().toLowerCase();
+}
+
+/** Maps Supabase Auth errors to user-facing copy; falls back to server message when safe. */
+export function describeAuthError(
+  t: Translate,
+  error: AuthErrorLike | string | undefined,
+  mode: AuthMode,
+): string {
+  const text = normalizeMessage(error).toLowerCase();
+  const code = errorCode(error);
+
+  if (code === "weak_password" || text.includes("weak password")) {
+    return t("auth.err.weakPassword");
+  }
+  if (
+    code === "signup_disabled" ||
+    text.includes("signups not allowed") ||
+    text.includes("signup is disabled")
+  ) {
+    return t("auth.err.signUpDisabled");
+  }
+  if (
+    text.includes("redirect") &&
+    (text.includes("not allowed") || text.includes("validate") || text.includes("invalid"))
+  ) {
+    return t("auth.err.redirectNotAllowed");
+  }
+  if (text.includes("invalid login credentials")) return t("auth.err.invalidCredentials");
+  if (text.includes("email not confirmed")) return t("auth.err.emailNotConfirmed");
+  if (
+    code === "user_already_exists" ||
+    text.includes("already registered") ||
+    text.includes("already been registered") ||
+    text.includes("user already registered")
+  ) {
+    return t("auth.err.alreadyRegistered");
+  }
+  if (
+    text.includes("password") &&
+    (text.includes("least") || text.includes("short") || text.includes("characters"))
+  ) {
+    return t("auth.err.passwordShort");
+  }
+  if (
+    code === "over_email_send_rate_limit" ||
+    code === "over_request_rate_limit" ||
+    text.includes("rate limit") ||
+    text.includes("too many")
+  ) {
+    return t("auth.err.rateLimit");
+  }
+  if (
+    text.includes("fetch") ||
+    text.includes("network") ||
+    text.includes("failed to fetch") ||
+    text.includes("load failed")
+  ) {
+    return t("auth.err.network");
+  }
+  if (
+    code === "email_address_invalid" ||
+    text.includes("valid email") ||
+    text.includes("invalid email") ||
+    text.includes("unable to validate email")
+  ) {
+    return t("auth.err.invalidEmail");
+  }
+
+  const raw = normalizeMessage(error);
+  if (raw && mode === "signup") {
+    return t("auth.err.signUpDetail", { detail: raw });
+  }
+  if (raw && mode === "signin") {
+    return t("auth.err.signInDetail", { detail: raw });
+  }
+
+  return mode === "signin" ? t("auth.err.signInFailed") : t("auth.err.signUpFailed");
+}
