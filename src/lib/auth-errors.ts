@@ -1,5 +1,4 @@
 import type { MessageKey } from "@/lib/i18n/messages";
-import { isLikelyFetchFailure, isUnreliableNavigatorOnLine } from "@/lib/network-status";
 
 type Translate = (key: MessageKey, params?: Record<string, string | number>) => string;
 
@@ -11,6 +10,35 @@ export type AuthErrorLike = {
   status?: number;
   name?: string;
 };
+
+/** Raw error text for UI (TestFlight debugging). Never maps to generic "network" copy. */
+export function formatAuthErrorForUi(error: unknown): string {
+  if (error == null) return "Unknown error";
+  if (typeof error === "string") {
+    const s = error.trim();
+    return s || "Unknown error";
+  }
+  if (error instanceof Error) {
+    const msg = error.message?.trim();
+    if (msg) return msg;
+    return error.toString();
+  }
+  if (typeof error === "object") {
+    const msg = "message" in error ? String(error.message ?? "").trim() : "";
+    const code = "code" in error && error.code ? String(error.code) : "";
+    const name = "name" in error && error.name ? String(error.name) : "";
+    if (msg && code) return `${msg} (${code})`;
+    if (msg) return msg;
+    if (code) return code;
+    if (name) return name;
+    try {
+      return String(error);
+    } catch {
+      return "Unknown error";
+    }
+  }
+  return String(error);
+}
 
 /** Console diagnostics for TestFlight / mobile (no passwords). */
 export function logSupabaseAuthError(
@@ -47,7 +75,10 @@ function errorCode(error: AuthErrorLike | string | undefined): string {
   return (error.code ?? "").trim().toLowerCase();
 }
 
-/** Maps Supabase Auth errors to user-facing copy; falls back to server message when safe. */
+/**
+ * Maps known Supabase Auth errors to friendly copy. Anything else (including fetch failures)
+ * returns the raw server/runtime message on the UI — never a generic "no network" string.
+ */
 export function describeAuthError(
   t: Translate,
   error: AuthErrorLike | string | undefined,
@@ -96,15 +127,6 @@ export function describeAuthError(
   ) {
     return t("auth.err.rateLimit");
   }
-  if (isLikelyFetchFailure(error)) {
-    const raw = normalizeMessage(error);
-    if (isUnreliableNavigatorOnLine()) {
-      return raw
-        ? t("auth.err.requestFailedDetail", { detail: raw })
-        : t("auth.err.requestFailed");
-    }
-    return t("auth.err.network");
-  }
   if (
     code === "email_address_invalid" ||
     text.includes("valid email") ||
@@ -114,13 +136,8 @@ export function describeAuthError(
     return t("auth.err.invalidEmail");
   }
 
-  const raw = normalizeMessage(error);
-  if (raw && mode === "signup") {
-    return t("auth.err.signUpDetail", { detail: raw });
-  }
-  if (raw && mode === "signin") {
-    return t("auth.err.signInDetail", { detail: raw });
-  }
+  const raw = formatAuthErrorForUi(error);
+  if (raw && raw !== "Unknown error") return raw;
 
   return mode === "signin" ? t("auth.err.signInFailed") : t("auth.err.signUpFailed");
 }
