@@ -156,7 +156,12 @@ function LoginForm() {
           kind: "error",
           text: describeAuthError(
             t,
-            error instanceof Error ? error : { message: "network" },
+            error instanceof Error
+              ? error
+              : {
+                  message:
+                    typeof error === "object" && error !== null ? String(error) : "unknown",
+                },
             mode,
           ),
         });
@@ -213,7 +218,12 @@ function LoginForm() {
           kind: "error",
           text: describeAuthError(
             t,
-            error instanceof Error ? error : { message: "network" },
+            error instanceof Error
+              ? error
+              : {
+                  message:
+                    typeof error === "object" && error !== null ? String(error) : "unknown",
+                },
             "signin",
           ),
         });

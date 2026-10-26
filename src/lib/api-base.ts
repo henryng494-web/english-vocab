@@ -1,9 +1,19 @@
 import { createClientIfConfigured } from "@/lib/supabase/client";
 
+/** Strip markdown/wrapper text from dashboard env values (e.g. `[https://x](https://x)`). */
+export function normalizePublicOrigin(raw: string): string {
+  let s = raw.trim();
+  const markdown = s.match(/\((https:\/\/[^)\s]+)\)/);
+  if (markdown?.[1]) s = markdown[1];
+  else {
+    const bare = s.match(/https:\/\/[^\s\]\[]+/);
+    if (bare?.[0]) s = bare[0];
+  }
+  return s.replace(/\/+$/, "");
+}
+
 /** Base URL of the deployed web app for the Capacitor (static export) build. Empty on the web. */
-export const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL ?? "")
-  .trim()
-  .replace(/\/+$/, "");
+export const API_BASE_URL = normalizePublicOrigin(process.env.NEXT_PUBLIC_API_BASE_URL ?? "");
 
 export const IS_MOBILE_BUILD = process.env.NEXT_PUBLIC_MOBILE_BUILD === "1";
 

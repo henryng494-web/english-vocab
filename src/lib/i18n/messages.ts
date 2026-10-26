@@ -441,6 +441,8 @@ const viMessages = {
     "auth.err.signInDetail": "Đăng nhập không thành công: {detail}",
     "auth.err.rateLimit": "Bạn thao tác quá nhanh. Vui lòng thử lại sau ít phút.",
     "auth.err.network": "Không có kết nối mạng. Vui lòng kiểm tra internet và thử lại.",
+    "auth.err.requestFailed": "Không gọi được máy chủ. Kiểm tra cấu hình app (URL API / Supabase) hoặc thử lại.",
+    "auth.err.requestFailedDetail": "Không gọi được máy chủ: {detail}",
     "auth.err.invalidEmail": "Email không hợp lệ.",
     "auth.err.signInFailed": "Đăng nhập không thành công. Vui lòng thử lại.",
     "auth.err.signUpFailed": "Đăng ký không thành công. Vui lòng thử lại.",
@@ -901,6 +903,9 @@ export const enFallbackMessages = {
     "auth.err.signInDetail": "Sign in failed: {detail}",
     "auth.err.rateLimit": "Too many attempts. Please try again in a few minutes.",
     "auth.err.network": "No network connection. Check your internet and try again.",
+    "auth.err.requestFailed":
+      "Could not reach the server. Check app config (API / Supabase URL) or try again.",
+    "auth.err.requestFailedDetail": "Could not reach the server: {detail}",
     "auth.err.invalidEmail": "Invalid email address.",
     "auth.err.signInFailed": "Sign in failed. Please try again.",
     "auth.err.signUpFailed": "Sign up failed. Please try again.",

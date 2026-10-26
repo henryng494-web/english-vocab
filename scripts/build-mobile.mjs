@@ -12,7 +12,19 @@ import { join } from "node:path";
 const root = process.cwd();
 const DEFAULT_API_BASE_URL = "https://english-vocab-omega.vercel.app";
 const MAX_OUT_MB = 50;
-const apiBase = (process.env.NEXT_PUBLIC_API_BASE_URL?.trim() || DEFAULT_API_BASE_URL).replace(/\/+$/, "");
+function normalizePublicOrigin(raw) {
+  let s = String(raw ?? "").trim();
+  const markdown = s.match(/\((https:\/\/[^)\s]+)\)/);
+  if (markdown?.[1]) s = markdown[1];
+  else {
+    const bare = s.match(/https:\/\/[^\s\]\[]+/);
+    if (bare?.[0]) s = bare[0];
+  }
+  return s.replace(/\/+$/, "");
+}
+const apiBase = normalizePublicOrigin(
+  process.env.NEXT_PUBLIC_API_BASE_URL?.trim() || DEFAULT_API_BASE_URL,
+);
 if (!/^https:\/\/[^/\s]+$/.test(apiBase)) {
   console.error(`[build:mobile] NEXT_PUBLIC_API_BASE_URL must be an https origin, got "${apiBase}"`);
   process.exit(1);
