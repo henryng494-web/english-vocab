@@ -1,8 +1,6 @@
 import { getMaxNewWordsPerDay, getTodayWordsLearned } from "@/lib/daily-goal";
 import { getTodayReviewsCompleted } from "@/lib/daily-reviews";
-import { canLearnNewWordTodayWithReviewBonus } from "@/lib/review-srs";
 import {
-  isFreeDailyNewWordLimitReached,
   isFreeDailyReviewLimitReached,
   isFreeHighRankQuotaReached,
   isFreeTier,
@@ -23,11 +21,9 @@ export function freeTierBlockReason(
 
   const due = options?.dueReviewCount ?? 0;
   const rangeId = options?.rangeId;
+  const learnedToday = getTodayWordsLearned();
   const dailyCap = getMaxNewWordsPerDay();
-  if (isFreeDailyNewWordLimitReached(getTodayWordsLearned(), dailyCap)) {
-    return "learn";
-  }
-  if (!canLearnNewWordTodayWithReviewBonus(due)) {
+  if (learnedToday >= dailyCap) {
     return "learn";
   }
   if (rangeId && !isRangeFree(rangeId) && isFreeHighRankQuotaReached()) {

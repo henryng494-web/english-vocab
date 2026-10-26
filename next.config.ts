@@ -9,7 +9,13 @@ const appVersion = (
 ).version;
 
 const nextConfig: NextConfig = {
-  env: { NEXT_PUBLIC_APP_VERSION: appVersion ?? "" },
+  env: {
+    NEXT_PUBLIC_APP_VERSION: appVersion ?? "",
+    ...(process.env.NODE_ENV === "development" &&
+    process.env.NEXT_PUBLIC_FORCE_FREE_GATING == null
+      ? { NEXT_PUBLIC_FORCE_FREE_GATING: "1" }
+      : {}),
+  },
   ...(isMobileBuild ? { output: "export" as const, trailingSlash: true } : {}),
   // Lets `npm run build:check` build into a separate dir while `npm run dev` is running.
   distDir: process.env.NEXT_DIST_DIR || ".next",

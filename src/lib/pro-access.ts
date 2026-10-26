@@ -22,14 +22,39 @@ const DEV_OR_FORCED_GATING =
   process.env.NODE_ENV === "development" ||
   process.env.NEXT_PUBLIC_FORCE_FREE_GATING === "1";
 
+const LOCAL_WEB_HOSTS = new Set(["localhost", "127.0.0.1", "[::1]"]);
+
+/** Browser is on a local dev host (runtime — works even if NODE_ENV was inlined wrong). */
+export function isBrowserFreeGatingHost(): boolean {
+  if (typeof window === "undefined") return false;
+  return LOCAL_WEB_HOSTS.has(window.location.hostname);
+}
+
+/**
+ * Web QA: apply Free caps in the browser. Ignores stale `jj-pro-status-v1` unless
+ * `NEXT_PUBLIC_QA_AS_PRO=1`. Also honors localStorage `jj-force-free-gating=1`.
+ */
+export function isWebFreeLimitQaMode(): boolean {
+  if (DEV_OR_FORCED_GATING) return true;
+  if (isBrowserFreeGatingHost()) return true;
+  if (typeof window !== "undefined") {
+    try {
+      if (localStorage.getItem("jj-force-free-gating") === "1") return true;
+    } catch {
+      /* private mode */
+    }
+  }
+  return false;
+}
+
 /**
  * Free-tier limits apply on shipped mobile builds and native shells even when RevenueCat keys
  * are missing (paywall may show "unavailable" until keys are set). Plain web (non-export) stays
  * open on production Vercel so users are not locked out of content they cannot purchase in-browser.
- * Development and `NEXT_PUBLIC_FORCE_FREE_GATING=1` enable gating for local paywall testing.
+ * Development, localhost, and `NEXT_PUBLIC_FORCE_FREE_GATING=1` enable gating for paywall testing.
  */
 export function isGatingActive(): boolean {
-  if (DEV_OR_FORCED_GATING) return true;
+  if (isWebFreeLimitQaMode()) return true;
   if (REVENUECAT_MOCK_MODE) return true;
   if (IS_MOBILE_BUILD || isNativePlatform()) return true;
   return isRevenueCatAvailable();
@@ -55,7 +80,10 @@ export function writeProCache(isPro: boolean): void {
 }
 
 export function isFreeTier(): boolean {
-  return isGatingActive() && !readProCache();
+  if (!isGatingActive()) return false;
+  if (process.env.NEXT_PUBLIC_QA_AS_PRO === "1") return false;
+  if (isWebFreeLimitQaMode()) return true;
+  return !readProCache();
 }
 
 export function isRangeFree(rangeId: string): boolean {

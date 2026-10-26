@@ -12,6 +12,7 @@ import {
   getMaxNewWordsPerDay,
 } from "@/lib/daily-goal";
 import { readAppSettings } from "@/lib/app-settings";
+import { isFreeTier } from "@/lib/pro-access";
 
 /** Internal SRS ladder — includes extra early 1-day and 5-day steps. */
 export const SRS_LADDER = [1, 1, 3, 5, 7, 14, 30] as const;
@@ -192,8 +193,9 @@ export function progressBarFilledSegments(
   return idx >= 0 ? idx + 1 : 1;
 }
 
-/** Soft cap: allow new words after completing enough reviews today. */
+/** Soft cap: allow new words after completing enough reviews today (Pro only). */
 export function canLearnNewWordTodayWithReviewBonus(dueTotal: number): boolean {
+  if (isFreeTier()) return canLearnNewWordToday();
   if (canLearnNewWordToday()) return true;
   const settings = readAppSettings();
   const maxNew = getMaxNewWordsPerDay(settings);

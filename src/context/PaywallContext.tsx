@@ -4,7 +4,14 @@ import { PaywallContent } from "@/components/paywall/PaywallContent";
 import { useI18n } from "@/hooks/use-i18n";
 import { AUTH_SESSION_EVENT } from "@/context/AuthSessionContext";
 import { loginPathWithReturn, isClientSignedIn } from "@/lib/auth-session";
-import { FREE_DAILY_REVIEWS, PRO_STATUS_EVENT, isGatingActive, readProCache, writeProCache } from "@/lib/pro-access";
+import {
+  FREE_DAILY_REVIEWS,
+  PRO_STATUS_EVENT,
+  isFreeTier,
+  isGatingActive,
+  readProCache,
+  writeProCache,
+} from "@/lib/pro-access";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { getProStatus, type ProStatus } from "@/lib/revenuecat";
 import { usePathname, useRouter } from "next/navigation";
@@ -37,6 +44,7 @@ export function PaywallProvider({ children }: { children: ReactNode }) {
   const [isPro, setIsPro] = useState(false);
 
   const [gating, setGating] = useState(false);
+  const [freeTier, setFreeTier] = useState(false);
   const [prompt, setPrompt] = useState<UpgradeReason | null>(null);
   const { t } = useI18n();
   const router = useRouter();
@@ -44,8 +52,12 @@ export function PaywallProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let cancelled = false;
+    const syncTierFlags = () => {
+      setGating(isGatingActive());
+      setFreeTier(isFreeTier());
+    };
+    syncTierFlags();
     const active = isGatingActive();
-    setGating(active);
 
     const applyProStatus = (status: ProStatus) => {
       if (cancelled) return;
@@ -68,14 +80,19 @@ export function PaywallProvider({ children }: { children: ReactNode }) {
     };
 
     refreshPro();
-    const syncCache = () => setIsPro(readProCache());
+    const syncCache = () => {
+      setIsPro(readProCache());
+      syncTierFlags();
+    };
     const onAuth = () => refreshPro(400);
     window.addEventListener(PRO_STATUS_EVENT, syncCache);
     window.addEventListener(AUTH_SESSION_EVENT, onAuth);
+    window.addEventListener("storage", syncTierFlags);
     return () => {
       cancelled = true;
       window.removeEventListener(PRO_STATUS_EVENT, syncCache);
       window.removeEventListener(AUTH_SESSION_EVENT, onAuth);
+      window.removeEventListener("storage", syncTierFlags);
     };
   }, []);
 
@@ -103,8 +120,14 @@ export function PaywallProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo(
-    () => ({ isPro, isFree: gating && !isPro, openPaywall, closePaywall, showUpgradePrompt }),
-    [isPro, gating, openPaywall, closePaywall, showUpgradePrompt],
+    () => ({
+      isPro: gating && !freeTier && isPro,
+      isFree: freeTier,
+      openPaywall,
+      closePaywall,
+      showUpgradePrompt,
+    }),
+    [isPro, gating, freeTier, openPaywall, closePaywall, showUpgradePrompt],
   );
 
   return (
