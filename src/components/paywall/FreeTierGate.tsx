@@ -12,19 +12,17 @@ import type { ReactNode } from "react";
 
 type FreeTierGateProps = {
   action: "review" | "learn";
-  dueReviewCount?: number;
-  rangeId?: string;
   children: ReactNode;
 };
 
 /** Blocks children when daily Free/guest limits are exhausted. */
-export function FreeTierGate({ action, dueReviewCount, rangeId, children }: FreeTierGateProps) {
+export function FreeTierGate({ action, children }: FreeTierGateProps) {
   const { isFree, openPaywall } = usePaywall();
   const { isSignedIn } = useAuthSession();
   const { t } = useI18n();
   const router = useRouter();
   const pathname = usePathname();
-  const reason = freeTierBlockReason(action, { dueReviewCount, rangeId });
+  const reason = freeTierBlockReason(action);
   const guest = (isSupabaseConfigured() && !isSignedIn) || isGuestUser();
 
   if (!isFree || !reason) {
