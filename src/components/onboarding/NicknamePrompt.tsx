@@ -40,17 +40,9 @@ export function NicknamePrompt({ onComplete }: NicknamePromptProps) {
     <div className="app-page">
       <div className="app-shell mx-auto flex min-h-[100dvh] w-full max-w-lg flex-col justify-center bg-background px-6 py-10">
         <div className="home-card border-violet-200 bg-card p-6 text-center shadow-sm">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/assets/mascot-croc.png"
-            alt=""
-            aria-hidden
-            className="mx-auto h-20 w-auto"
-          />
-          <h1 className={`mt-4 text-xl font-bold text-foreground ${displayFontClass}`}>
+          <h1 className={`text-xl font-bold text-foreground ${displayFontClass}`}>
             {t("nickname.promptTitle")}
           </h1>
-          <p className="home-body-text mt-2 text-foreground/75">{t("nickname.promptDesc")}</p>
           <label className="sr-only" htmlFor="learner-nickname">
             {t("nickname.fieldLabel")}
           </label>
