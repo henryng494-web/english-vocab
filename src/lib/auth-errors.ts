@@ -2,13 +2,38 @@ import type { MessageKey } from "@/lib/i18n/messages";
 
 type Translate = (key: MessageKey, params?: Record<string, string | number>) => string;
 
-type AuthErrorLike = {
+export type AuthMode = "signin" | "signup";
+
+export type AuthErrorLike = {
   message?: string;
   code?: string;
   status?: number;
+  name?: string;
 };
 
-export type AuthMode = "signin" | "signup";
+/** Console diagnostics for TestFlight / mobile (no passwords). */
+export function logSupabaseAuthError(
+  scope: string,
+  error: AuthErrorLike | unknown,
+  extra?: Record<string, unknown>,
+): void {
+  if (typeof console === "undefined") return;
+  const payload =
+    error && typeof error === "object"
+      ? {
+          message: "message" in error ? String(error.message) : undefined,
+          code: "code" in error ? String(error.code) : undefined,
+          status: "status" in error ? error.status : undefined,
+          name: "name" in error ? String(error.name) : undefined,
+        }
+      : { message: String(error) };
+  console.warn(`[supabase-auth] ${scope}`, { ...payload, ...extra });
+}
+
+export function logAuthRedirect(scope: string, emailRedirectTo: string): void {
+  if (typeof console === "undefined") return;
+  console.info(`[supabase-auth] ${scope} emailRedirectTo=${emailRedirectTo}`);
+}
 
 function normalizeMessage(error: AuthErrorLike | string | undefined): string {
   if (!error) return "";
