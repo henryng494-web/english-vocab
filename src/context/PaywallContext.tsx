@@ -117,6 +117,14 @@ export function PaywallProvider({ children }: { children: ReactNode }) {
   }, [gating, pathname, router]);
   const showUpgradePrompt = useCallback((reason: UpgradeReason) => setPrompt(reason), []);
   const closePaywall = useCallback(() => setOpen(false), []);
+  const dismissPromptAndGoBack = useCallback(() => {
+    setPrompt(null);
+    if (typeof window !== "undefined" && window.history.length > 1) {
+      router.back();
+    } else {
+      router.push("/discover");
+    }
+  }, [router]);
   const onProChange = useCallback((status: ProStatus) => {
     setIsPro(status.isPro);
     writeProCache(status.isPro);
@@ -178,18 +186,24 @@ export function PaywallProvider({ children }: { children: ReactNode }) {
               >
                 {t("paywall.signInToContinue")}
               </button>
+            ) : (
+              <button
+                type="button"
+                onClick={openPaywall}
+                className="mt-4 flex w-full justify-center rounded-full bg-[#7c3aed] py-3 font-bold text-white"
+              >
+                {t("paywall.ctaUpgrade")}
+              </button>
+            )}
+            {prompt === "learn" || prompt === "reviews" ? (
+              <button
+                type="button"
+                onClick={dismissPromptAndGoBack}
+                className="mt-2 flex w-full justify-center rounded-full border-2 border-[#7c3aed] bg-white py-3 font-bold text-[#7c3aed]"
+              >
+                {t("paywall.back")}
+              </button>
             ) : null}
-            <button
-              type="button"
-              onClick={openPaywall}
-              className={`flex w-full justify-center rounded-full py-3 font-bold text-white ${
-                guest || guestSync
-                  ? "mt-2 border-2 border-[#7c3aed] bg-transparent text-[#7c3aed]"
-                  : "mt-4 bg-[#7c3aed]"
-              }`}
-            >
-              {t("paywall.ctaUpgrade")}
-            </button>
             {prompt === "ai" ? (
               <button
                 type="button"

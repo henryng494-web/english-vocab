@@ -15,6 +15,9 @@ type FreeTierGateProps = {
   children: ReactNode;
 };
 
+const outlinePrimaryBtn =
+  "w-full max-w-xs rounded-full border-2 border-[#7c3aed] bg-white py-3 font-bold text-[#7c3aed]";
+
 /** Blocks children when daily Free/guest limits are exhausted. */
 export function FreeTierGate({ action, children }: FreeTierGateProps) {
   const { isFree, openPaywall } = usePaywall();
@@ -38,6 +41,14 @@ export function FreeTierGate({ action, children }: FreeTierGateProps) {
           ? t("paywall.reviewLimit", { count: FREE_DAILY_REVIEWS })
           : t("paywall.freeLearnDone");
 
+  function goBack() {
+    if (typeof window !== "undefined" && window.history.length > 1) {
+      router.back();
+    } else {
+      router.push("/discover");
+    }
+  }
+
   return (
     <div className="app-screen app-screen--home flex flex-col">
       <div className="flex flex-1 flex-col items-center justify-center gap-4 px-6 text-center">
@@ -53,17 +64,17 @@ export function FreeTierGate({ action, children }: FreeTierGateProps) {
           >
             {t("paywall.signInToContinue")}
           </button>
-        ) : null}
-        <button
-          type="button"
-          onClick={openPaywall}
-          className={`w-full max-w-xs rounded-full py-3 font-bold ${
-            guest
-              ? "border-2 border-[#7c3aed] bg-transparent text-[#7c3aed]"
-              : "bg-[#7c3aed] text-white"
-          }`}
-        >
-          {t("paywall.ctaUpgrade")}
+        ) : (
+          <button
+            type="button"
+            onClick={openPaywall}
+            className="w-full max-w-xs rounded-full bg-[#7c3aed] py-3 font-bold text-white"
+          >
+            {t("paywall.ctaUpgrade")}
+          </button>
+        )}
+        <button type="button" onClick={goBack} className={outlinePrimaryBtn}>
+          {t("paywall.back")}
         </button>
       </div>
     </div>
