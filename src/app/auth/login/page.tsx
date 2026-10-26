@@ -1,6 +1,11 @@
 "use client";
 
-import { describeAuthError, logAuthRedirect, logSupabaseAuthError } from "@/lib/auth-errors";
+import {
+  describeAuthError,
+  formatAuthErrorForUi,
+  logAuthRedirect,
+  logSupabaseAuthError,
+} from "@/lib/auth-errors";
 import { resolveAuthCallbackUrl } from "@/lib/auth-redirect";
 import { createClientIfConfigured } from "@/lib/supabase/client";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
@@ -152,19 +157,7 @@ function LoginForm() {
     } catch (error) {
       logSupabaseAuthError(`submit:${mode}`, error);
       if (mountedRef.current) {
-        setFeedback({
-          kind: "error",
-          text: describeAuthError(
-            t,
-            error instanceof Error
-              ? error
-              : {
-                  message:
-                    typeof error === "object" && error !== null ? String(error) : "unknown",
-                },
-            mode,
-          ),
-        });
+        setFeedback({ kind: "error", text: formatAuthErrorForUi(error) });
       }
     }
     if (mountedRef.current) setLoading(false);
@@ -213,20 +206,9 @@ function LoginForm() {
         setFeedback({ kind: "success", text: t("auth.resetSent") });
       }
     } catch (error) {
+      logSupabaseAuthError("resetPassword:catch", error);
       if (mountedRef.current) {
-        setFeedback({
-          kind: "error",
-          text: describeAuthError(
-            t,
-            error instanceof Error
-              ? error
-              : {
-                  message:
-                    typeof error === "object" && error !== null ? String(error) : "unknown",
-                },
-            "signin",
-          ),
-        });
+        setFeedback({ kind: "error", text: formatAuthErrorForUi(error) });
       }
     }
     if (mountedRef.current) setLoading(false);
