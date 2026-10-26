@@ -1,7 +1,7 @@
 import { getTodayReviewsCompleted } from "@/lib/daily-reviews";
 import { countLearningWords } from "@/lib/learning-storage";
 import { localDateKey } from "@/lib/local-date";
-import { FREE_DAILY_REVIEWS, isFreeTier } from "@/lib/pro-access";
+import { FREE_DAILY_NEW_WORDS, FREE_DAILY_REVIEWS, isFreeTier } from "@/lib/pro-access";
 import { readAppSettings, type AppSettings } from "@/lib/app-settings";
 
 const DAILY_GOAL_KEY = "vocab-journey-daily-goal-v1";
@@ -40,7 +40,8 @@ export function recommendedNewWordsForMinutes(minutes: number): number {
 export function getMaxNewWordsPerDay(
   settings: AppSettings = readAppSettings(),
 ): number {
-  return recommendedNewWordsForMinutes(settings.dailyGoalMinutes);
+  const plan = recommendedNewWordsForMinutes(settings.dailyGoalMinutes);
+  return isFreeTier() ? Math.min(plan, FREE_DAILY_NEW_WORDS) : plan;
 }
 
 /**

@@ -11,6 +11,8 @@ import {
 export const FREE_MAX_RANK = 500;
 export const FREE_HIGH_RANK_DAILY_NEW_WORDS = 3;
 export const FREE_DAILY_REVIEWS = 30;
+/** Max new words per calendar day on Free (all rank bands; high-rank has an extra cap). */
+export const FREE_DAILY_NEW_WORDS = 10;
 
 const CACHE_KEY = "jj-pro-status-v1";
 export const PRO_STATUS_EVENT = "pro-status-changed";
@@ -90,4 +92,14 @@ export function incrementFreeHighRankLearned(): number {
 
 export function isFreeHighRankQuotaReached(): boolean {
   return getFreeHighRankLearnedToday() >= FREE_HIGH_RANK_DAILY_NEW_WORDS;
+}
+
+/** Free-tier review reps used today (only meaningful when {@link isFreeTier}). */
+export function isFreeDailyReviewLimitReached(completedToday: number): boolean {
+  return isFreeTier() && completedToday >= FREE_DAILY_REVIEWS;
+}
+
+/** Free-tier new words used today vs cap (only meaningful when {@link isFreeTier}). */
+export function isFreeDailyNewWordLimitReached(learnedToday: number, dailyCap: number): boolean {
+  return isFreeTier() && learnedToday >= dailyCap;
 }
