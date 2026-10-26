@@ -3,20 +3,28 @@
 import { AppHeader } from "@/components/layout/AppHeader";
 import { InstallAppHint } from "@/components/layout/InstallAppHint";
 import { JungleMascot, JungleCastPill } from "@/components/mascot/JungleMascot";
+import { useAuthSession } from "@/context/AuthSessionContext";
 import { usePaywall } from "@/context/PaywallContext";
 import { useI18n } from "@/hooks/use-i18n";
 import { displayFontClass } from "@/lib/fonts";
 import { LAYOUT_VERSION } from "@/lib/layout-version";
 import { deleteAccountAndData } from "@/lib/delete-account";
+import { isSupabaseConfigured } from "@/lib/supabase/env";
 import Link from "next/link";
 import { useState } from "react";
 
 export default function AccountPage() {
   const { t } = useI18n();
   const { isPro, openPaywall } = usePaywall();
+  const { ready: authReady, isSignedIn, displayName, email, signOut } = useAuthSession();
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
+
+  const supabaseOn = isSupabaseConfigured();
+  const profileLine =
+    displayName.trim() || email?.trim() || (authReady ? t("account.signedInGeneric") : "…");
 
   async function confirmDelete() {
     setDeleting(true);
@@ -26,6 +34,15 @@ export default function AccountPage() {
     } catch {
       setDeleting(false);
       setDeleteError(true);
+    }
+  }
+
+  async function handleSignOut() {
+    setSigningOut(true);
+    try {
+      await signOut();
+    } finally {
+      setSigningOut(false);
     }
   }
 
@@ -47,6 +64,11 @@ export default function AccountPage() {
             <div>
               <div className="flex items-center gap-2">
                 <h2 className={`home-section-title ${displayFontClass}`}>Jungle Jokers</h2>
+                {isPro ? (
+                  <span className="rounded-full bg-[#7c3aed]/15 px-2 py-0.5 text-[10px] font-bold uppercase text-[#7c3aed]">
+                    Pro
+                  </span>
+                ) : null}
               </div>
               <p className="home-body-text text-pink-700">{t("account.tagline")}</p>
               <div className="mt-2">
@@ -54,6 +76,39 @@ export default function AccountPage() {
               </div>
             </div>
           </section>
+
+          {supabaseOn && isSignedIn ? (
+            <section className="home-card border-slate-200 bg-card">
+              <h2 className={`home-section-title ${displayFontClass}`}>{t("account.manageTitle")}</h2>
+              <p className="home-body-text mt-1">{t("account.signedInAs", { name: profileLine })}</p>
+              {email && displayName.trim() && email !== displayName ? (
+                <p className="home-body-text mt-1 text-foreground/60">{email}</p>
+              ) : null}
+              <button
+                type="button"
+                disabled={signingOut}
+                onClick={() => void handleSignOut()}
+                className="mt-4 flex w-full justify-center rounded-full border border-foreground/15 bg-surface px-5 py-3.5 font-semibold text-foreground disabled:opacity-60"
+              >
+                {signingOut ? t("account.signingOut") : t("account.signOut")}
+              </button>
+
+              <div className="mt-8 border-t border-red-100 pt-6">
+                <h3 className="text-sm font-bold text-red-700">{t("account.dangerZone")}</h3>
+                <p className="home-body-text mt-1 text-foreground/70">{t("account.deleteSectionDesc")}</p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDeleteError(false);
+                    setConfirmOpen(true);
+                  }}
+                  className="mt-4 flex w-full justify-center rounded-full bg-red-600 px-5 py-3.5 font-bold text-white"
+                >
+                  {t("account.deleteBtn")}
+                </button>
+              </div>
+            </section>
+          ) : null}
 
           <section className="home-card border-accent-200 bg-card">
             <h2 className={`home-section-title ${displayFontClass}`}>{t("paywall.accountTitle")}</h2>
@@ -73,27 +128,18 @@ export default function AccountPage() {
 
           <InstallAppHint />
 
-          <section className="home-card border-primary-200 bg-card">
-            <h2 className={`home-section-title ${displayFontClass}`}>{t("account.signIn")}</h2>
-            <p className="home-body-text mt-1">{t("account.signInDesc")}</p>
-            <Link
-              href="/auth/login"
-              className="btn-pill-primary mt-4 flex w-full justify-center px-5 py-3.5"
-            >
-              {t("account.signInBtn")}
-            </Link>
-          </section>
-
-          <button
-            type="button"
-            onClick={() => {
-              setDeleteError(false);
-              setConfirmOpen(true);
-            }}
-            className="flex w-full justify-center rounded-full bg-red-600 px-5 py-3.5 font-bold text-white"
-          >
-            {t("account.deleteBtn")}
-          </button>
+          {supabaseOn && !isSignedIn ? (
+            <section className="home-card border-primary-200 bg-card">
+              <h2 className={`home-section-title ${displayFontClass}`}>{t("account.signIn")}</h2>
+              <p className="home-body-text mt-1">{t("account.signInDesc")}</p>
+              <Link
+                href="/auth/login?next=/account"
+                className="btn-pill-primary mt-4 flex w-full justify-center px-5 py-3.5"
+              >
+                {t("account.signInBtn")}
+              </Link>
+            </section>
+          ) : null}
 
           {process.env.NODE_ENV !== "production" && (
             <p className="pt-4 text-center text-[10px] text-foreground/30">

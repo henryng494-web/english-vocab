@@ -98,7 +98,7 @@ function LoginForm() {
 
     try {
       if (mode === "signin") {
-        const { error } = await supabase.auth.signInWithPassword({
+        const { data, error } = await supabase.auth.signInWithPassword({
           email: email.trim(),
           password,
         });
@@ -108,6 +108,9 @@ function LoginForm() {
           setFeedback({ kind: "error", text: describeAuthError(t, error, mode) });
           setLoading(false);
           return;
+        }
+        if (!data.session) {
+          await supabase.auth.getSession();
         }
         router.replace(afterAuth);
         router.refresh();
@@ -143,6 +146,7 @@ function LoginForm() {
         logSupabaseAuthError("signUp", error, { emailRedirectTo: redirect.url });
         setFeedback({ kind: "error", text: describeAuthError(t, error, mode) });
       } else if (data.session) {
+        await supabase.auth.getSession();
         router.replace(afterAuth);
         router.refresh();
         return;

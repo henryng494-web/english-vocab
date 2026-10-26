@@ -2,6 +2,7 @@
 
 import { PaywallContent } from "@/components/paywall/PaywallContent";
 import { useI18n } from "@/hooks/use-i18n";
+import { AUTH_SESSION_EVENT } from "@/context/AuthSessionContext";
 import { loginPathWithReturn, isClientSignedIn } from "@/lib/auth-session";
 import { FREE_DAILY_REVIEWS, PRO_STATUS_EVENT, isGatingActive, readProCache, writeProCache } from "@/lib/pro-access";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
@@ -45,8 +46,8 @@ export function PaywallProvider({ children }: { children: ReactNode }) {
     let cancelled = false;
     const active = isGatingActive();
     setGating(active);
-    setIsPro(active ? false : readProCache());
-    void getProStatus().then((status) => {
+
+    const applyProStatus = (status: ProStatus) => {
       if (cancelled) return;
       if (!status.checked) {
         if (active) {
@@ -57,12 +58,24 @@ export function PaywallProvider({ children }: { children: ReactNode }) {
       }
       setIsPro(status.isPro);
       writeProCache(status.isPro);
-    });
-    const sync = () => setIsPro(readProCache());
-    window.addEventListener(PRO_STATUS_EVENT, sync);
+    };
+
+    const refreshPro = (delayMs = 0) => {
+      setIsPro(active ? false : readProCache());
+      window.setTimeout(() => {
+        void getProStatus().then(applyProStatus);
+      }, delayMs);
+    };
+
+    refreshPro();
+    const syncCache = () => setIsPro(readProCache());
+    const onAuth = () => refreshPro(400);
+    window.addEventListener(PRO_STATUS_EVENT, syncCache);
+    window.addEventListener(AUTH_SESSION_EVENT, onAuth);
     return () => {
       cancelled = true;
-      window.removeEventListener(PRO_STATUS_EVENT, sync);
+      window.removeEventListener(PRO_STATUS_EVENT, syncCache);
+      window.removeEventListener(AUTH_SESSION_EVENT, onAuth);
     };
   }, []);
 
