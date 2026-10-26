@@ -8,6 +8,7 @@ import {
   persistLearnerDisplayName,
   readLearnerDisplayName,
 } from "@/lib/user-display-name";
+import { persistAuthSignedInFlag } from "@/lib/auth-session";
 import { writeProCache } from "@/lib/pro-access";
 import type { Session, User } from "@supabase/supabase-js";
 import {
@@ -38,6 +39,7 @@ const AuthSessionContext = createContext<AuthSessionContextValue | null>(null);
 function syncProfileFromUser(user: User | null): void {
   const name = displayNameFromUser(user);
   if (name) persistLearnerDisplayName(name);
+  persistAuthSignedInFlag(Boolean(user));
 }
 
 export function AuthSessionProvider({ children }: { children: ReactNode }) {
@@ -65,6 +67,7 @@ export function AuthSessionProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const supabase = createClientIfConfigured();
     if (!supabase) {
+      persistAuthSignedInFlag(false);
       setReady(true);
       return;
     }
@@ -78,6 +81,9 @@ export function AuthSessionProvider({ children }: { children: ReactNode }) {
         displayNameFromUser(data.session?.user ?? null) || readLearnerDisplayName(),
       );
       setReady(true);
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new Event(AUTH_SESSION_EVENT));
+      }
     });
 
     const { data: listener } = supabase.auth.onAuthStateChange((_event, nextSession) => {

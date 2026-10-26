@@ -1,3 +1,5 @@
+import { isAuthSignedInSync, isGuestUser } from "@/lib/auth-session";
+import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { IS_MOBILE_BUILD } from "@/lib/api-base";
 import { localDateKey } from "@/lib/local-date";
 import { WORD_RANGES } from "@/data/word-ranges";
@@ -79,11 +81,25 @@ export function writeProCache(isPro: boolean): void {
   window.dispatchEvent(new Event(PRO_STATUS_EVENT));
 }
 
-export function isFreeTier(): boolean {
-  if (!isGatingActive()) return false;
+/**
+ * Daily caps (10 new words / 30 reviews) apply to guests and signed-in Free users.
+ * Pro subscribers (signed-in + RevenueCat cache) are exempt. Guests are always capped
+ * even if a stale Pro cache exists in localStorage.
+ */
+export function isUsageLimited(): boolean {
   if (process.env.NEXT_PUBLIC_QA_AS_PRO === "1") return false;
+  if (!isSupabaseConfigured()) {
+    return isWebFreeLimitQaMode() || isGatingActive();
+  }
   if (isWebFreeLimitQaMode()) return true;
+  if (isGuestUser()) return true;
+  if (!isAuthSignedInSync()) return true;
   return !readProCache();
+}
+
+/** @deprecated Alias — limits apply to Free + guest; use {@link isUsageLimited}. */
+export function isFreeTier(): boolean {
+  return isUsageLimited();
 }
 
 export function isRangeFree(rangeId: string): boolean {
