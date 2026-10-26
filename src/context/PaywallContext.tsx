@@ -2,13 +2,13 @@
 
 import { PaywallContent } from "@/components/paywall/PaywallContent";
 import { useI18n } from "@/hooks/use-i18n";
-import { AUTH_SESSION_EVENT } from "@/context/AuthSessionContext";
-import { loginPathWithReturn, isClientSignedIn } from "@/lib/auth-session";
+import { AUTH_SESSION_EVENT, useAuthSession } from "@/context/AuthSessionContext";
+import { isGuestUser, loginPathWithReturn, isClientSignedIn } from "@/lib/auth-session";
 import {
   FREE_DAILY_REVIEWS,
   PRO_STATUS_EVENT,
-  isFreeTier,
   isGatingActive,
+  isUsageLimited,
   readProCache,
   writeProCache,
 } from "@/lib/pro-access";
@@ -49,12 +49,15 @@ export function PaywallProvider({ children }: { children: ReactNode }) {
   const { t } = useI18n();
   const router = useRouter();
   const pathname = usePathname();
+  const { isSignedIn } = useAuthSession();
+  const guest = isSupabaseConfigured() && !isSignedIn;
+  const guestSync = isGuestUser();
 
   useEffect(() => {
     let cancelled = false;
     const syncTierFlags = () => {
       setGating(isGatingActive());
-      setFreeTier(isFreeTier());
+      setFreeTier(isUsageLimited());
     };
     syncTierFlags();
     const active = isGatingActive();
@@ -152,26 +155,50 @@ export function PaywallProvider({ children }: { children: ReactNode }) {
               {t("paywall.promptTitle")}
             </h2>
             <p className="mt-2 text-sm text-foreground/75">
-              {prompt === "reviews"
-                ? t("paywall.reviewLimit", { count: FREE_DAILY_REVIEWS })
-                : prompt === "learn"
-                  ? t("paywall.freeLearnDone")
-                  : t("paywall.aiLocked")}
+              {guest || guestSync
+                ? prompt === "reviews"
+                  ? t("paywall.guestReviewLimit", { count: FREE_DAILY_REVIEWS })
+                  : prompt === "learn"
+                    ? t("paywall.guestLearnLimit")
+                    : t("paywall.guestAiLimit")
+                : prompt === "reviews"
+                  ? t("paywall.reviewLimit", { count: FREE_DAILY_REVIEWS })
+                  : prompt === "learn"
+                    ? t("paywall.freeLearnDone")
+                    : t("paywall.aiLocked")}
             </p>
+            {guest || guestSync ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setPrompt(null);
+                  router.push(loginPathWithReturn(pathname || "/discover"));
+                }}
+                className="mt-4 flex w-full justify-center rounded-full bg-[#7c3aed] py-3 font-bold text-white"
+              >
+                {t("paywall.signInToContinue")}
+              </button>
+            ) : null}
             <button
               type="button"
               onClick={openPaywall}
-              className="mt-4 flex w-full justify-center rounded-full bg-[#7c3aed] py-3 font-bold text-white"
+              className={`flex w-full justify-center rounded-full py-3 font-bold text-white ${
+                guest || guestSync
+                  ? "mt-2 border-2 border-[#7c3aed] bg-transparent text-[#7c3aed]"
+                  : "mt-4 bg-[#7c3aed]"
+              }`}
             >
               {t("paywall.ctaUpgrade")}
             </button>
-            <button
-              type="button"
-              onClick={() => setPrompt(null)}
-              className="mt-2 w-full py-2 text-sm text-foreground/60"
-            >
-              {t("paywall.later")}
-            </button>
+            {prompt === "ai" ? (
+              <button
+                type="button"
+                onClick={() => setPrompt(null)}
+                className="mt-2 w-full py-2 text-sm text-foreground/60"
+              >
+                {t("paywall.later")}
+              </button>
+            ) : null}
           </div>
         </div>
       ) : null}
