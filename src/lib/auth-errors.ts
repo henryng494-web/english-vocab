@@ -1,4 +1,5 @@
 import type { MessageKey } from "@/lib/i18n/messages";
+import { isLikelyFetchFailure, isUnreliableNavigatorOnLine } from "@/lib/network-status";
 
 type Translate = (key: MessageKey, params?: Record<string, string | number>) => string;
 
@@ -95,12 +96,13 @@ export function describeAuthError(
   ) {
     return t("auth.err.rateLimit");
   }
-  if (
-    text.includes("fetch") ||
-    text.includes("network") ||
-    text.includes("failed to fetch") ||
-    text.includes("load failed")
-  ) {
+  if (isLikelyFetchFailure(error)) {
+    const raw = normalizeMessage(error);
+    if (isUnreliableNavigatorOnLine()) {
+      return raw
+        ? t("auth.err.requestFailedDetail", { detail: raw })
+        : t("auth.err.requestFailed");
+    }
     return t("auth.err.network");
   }
   if (
