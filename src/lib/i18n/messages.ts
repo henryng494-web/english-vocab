@@ -435,6 +435,8 @@ const viMessages = {
     "auth.err.weakPassword": "Mật khẩu quá yếu hoặc dễ đoán. Hãy dùng mật khẩu dài hơn, có chữ và số.",
     "auth.err.signUpDisabled": "Đăng ký email đang tắt trên hệ thống. Liên hệ quản trị viên hoặc thử lại sau.",
     "auth.err.redirectNotAllowed": "Liên kết xác nhận email chưa được cấu hình đúng trên Supabase (Redirect URL).",
+    "auth.err.missingApiBase":
+      "App mobile chưa có NEXT_PUBLIC_API_BASE_URL (URL Vercel). Cần rebuild Appflow với biến môi trường này.",
     "auth.err.signUpDetail": "Đăng ký không thành công: {detail}",
     "auth.err.signInDetail": "Đăng nhập không thành công: {detail}",
     "auth.err.rateLimit": "Bạn thao tác quá nhanh. Vui lòng thử lại sau ít phút.",
@@ -893,6 +895,8 @@ export const enFallbackMessages = {
     "auth.err.weakPassword": "Password is too weak or too common. Use a longer password with letters and numbers.",
     "auth.err.signUpDisabled": "Email sign-up is disabled on the server. Contact support or try again later.",
     "auth.err.redirectNotAllowed": "Email confirmation redirect URL is not allowed in Supabase settings.",
+    "auth.err.missingApiBase":
+      "Mobile app is missing NEXT_PUBLIC_API_BASE_URL (Vercel HTTPS origin). Rebuild via Appflow with this env var.",
     "auth.err.signUpDetail": "Sign up failed: {detail}",
     "auth.err.signInDetail": "Sign in failed: {detail}",
     "auth.err.rateLimit": "Too many attempts. Please try again in a few minutes.",

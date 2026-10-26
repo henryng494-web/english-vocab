@@ -1,7 +1,7 @@
 "use client";
 
-import { describeAuthError } from "@/lib/auth-errors";
-import { getAuthCallbackUrl } from "@/lib/auth-redirect";
+import { describeAuthError, logAuthRedirect, logSupabaseAuthError } from "@/lib/auth-errors";
+import { resolveAuthCallbackUrl } from "@/lib/auth-redirect";
 import { createClientIfConfigured } from "@/lib/supabase/client";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { AppSettingsProvider } from "@/context/AppSettingsContext";
@@ -99,6 +99,7 @@ function LoginForm() {
         });
         if (!mountedRef.current) return;
         if (error) {
+          logSupabaseAuthError("signInWithPassword", error);
           setFeedback({ kind: "error", text: describeAuthError(t, error, mode) });
           setLoading(false);
           return;
@@ -108,14 +109,33 @@ function LoginForm() {
         return;
       }
 
-      const emailRedirectTo = getAuthCallbackUrl();
+      const redirect = resolveAuthCallbackUrl();
+      if (!redirect.ok) {
+        logSupabaseAuthError("signUp:redirect", {
+          message: redirect.reason,
+          code: redirect.reason,
+        }, {
+          apiBaseUrl: process.env.NEXT_PUBLIC_API_BASE_URL ?? "(empty)",
+        });
+        setFeedback({
+          kind: "error",
+          text:
+            redirect.reason === "missing_api_base"
+              ? t("auth.err.missingApiBase")
+              : t("auth.err.redirectNotAllowed"),
+        });
+        setLoading(false);
+        return;
+      }
+      logAuthRedirect("signUp", redirect.url);
       const { data, error } = await supabase.auth.signUp({
         email: email.trim(),
         password,
-        ...(emailRedirectTo ? { options: { emailRedirectTo } } : {}),
+        options: { emailRedirectTo: redirect.url },
       });
       if (!mountedRef.current) return;
       if (error) {
+        logSupabaseAuthError("signUp", error, { emailRedirectTo: redirect.url });
         setFeedback({ kind: "error", text: describeAuthError(t, error, mode) });
       } else if (data.session) {
         router.replace(afterAuth);
@@ -130,6 +150,7 @@ function LoginForm() {
         setConfirmPassword("");
       }
     } catch (error) {
+      logSupabaseAuthError(`submit:${mode}`, error);
       if (mountedRef.current) {
         setFeedback({
           kind: "error",
@@ -161,19 +182,31 @@ function LoginForm() {
     }
     setLoading(true);
     try {
-      const resetRedirect = getAuthCallbackUrl();
+      const resetRedirect = resolveAuthCallbackUrl();
+      if (!resetRedirect.ok) {
+        logSupabaseAuthError("resetPassword:redirect", { message: resetRedirect.reason });
+        setFeedback({
+          kind: "error",
+          text:
+            resetRedirect.reason === "missing_api_base"
+              ? t("auth.err.missingApiBase")
+              : t("auth.err.redirectNotAllowed"),
+        });
+        setLoading(false);
+        return;
+      }
+      const redirectTo = `${resetRedirect.url}?next=/account`;
+      logAuthRedirect("resetPasswordForEmail", redirectTo);
       const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-        ...(resetRedirect ? { redirectTo: `${resetRedirect}?next=/account` } : {}),
+        redirectTo,
       });
       if (!mountedRef.current) return;
-      setFeedback(
-        error
-          ? { kind: "error", text: describeAuthError(t, error, "signin") }
-          : {
-              kind: "success",
-              text: t("auth.resetSent"),
-            },
-      );
+      if (error) {
+        logSupabaseAuthError("resetPasswordForEmail", error, { redirectTo });
+        setFeedback({ kind: "error", text: describeAuthError(t, error, "signin") });
+      } else {
+        setFeedback({ kind: "success", text: t("auth.resetSent") });
+      }
     } catch (error) {
       if (mountedRef.current) {
         setFeedback({
