@@ -1,6 +1,7 @@
 "use client";
 
-import { API_BASE_URL } from "@/lib/api-base";
+import { describeAuthError } from "@/lib/auth-errors";
+import { getAuthCallbackUrl } from "@/lib/auth-redirect";
 import { createClientIfConfigured } from "@/lib/supabase/client";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { AppSettingsProvider } from "@/context/AppSettingsContext";
@@ -16,24 +17,6 @@ function safeReturnPath(next: string | null): string {
 
 type Mode = "signin" | "signup";
 type Feedback = { kind: "error" | "success"; text: string } | null;
-
-type Translate = ReturnType<typeof useI18n>["t"];
-
-function describeAuthError(t: Translate, message: string | undefined, mode: Mode): string {
-  const text = (message ?? "").toLowerCase();
-  if (text.includes("invalid login credentials")) return t("auth.err.invalidCredentials");
-  if (text.includes("email not confirmed")) return t("auth.err.emailNotConfirmed");
-  if (text.includes("already registered") || text.includes("already been registered")) {
-    return t("auth.err.alreadyRegistered");
-  }
-  if (text.includes("password") && text.includes("least")) return t("auth.err.passwordShort");
-  if (text.includes("rate limit") || text.includes("too many")) return t("auth.err.rateLimit");
-  if (text.includes("fetch") || text.includes("network")) return t("auth.err.network");
-  if (text.includes("valid email") || text.includes("invalid email")) {
-    return t("auth.err.invalidEmail");
-  }
-  return mode === "signin" ? t("auth.err.signInFailed") : t("auth.err.signUpFailed");
-}
 
 function EyeIcon({ off }: { off: boolean }) {
   return (
@@ -89,8 +72,6 @@ function LoginForm() {
     };
   }, []);
 
-  const redirectBase = API_BASE_URL || (typeof window !== "undefined" ? window.location.origin : "");
-
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (loading) return;
@@ -118,7 +99,7 @@ function LoginForm() {
         });
         if (!mountedRef.current) return;
         if (error) {
-          setFeedback({ kind: "error", text: describeAuthError(t, error.message, mode) });
+          setFeedback({ kind: "error", text: describeAuthError(t, error, mode) });
           setLoading(false);
           return;
         }
@@ -127,16 +108,17 @@ function LoginForm() {
         return;
       }
 
+      const emailRedirectTo = getAuthCallbackUrl();
       const { data, error } = await supabase.auth.signUp({
         email: email.trim(),
         password,
-        options: { emailRedirectTo: `${redirectBase}/auth/callback` },
+        ...(emailRedirectTo ? { options: { emailRedirectTo } } : {}),
       });
       if (!mountedRef.current) return;
       if (error) {
-        setFeedback({ kind: "error", text: describeAuthError(t, error.message, mode) });
+        setFeedback({ kind: "error", text: describeAuthError(t, error, mode) });
       } else if (data.session) {
-        router.replace("/discover");
+        router.replace(afterAuth);
         router.refresh();
         return;
       } else {
@@ -151,7 +133,11 @@ function LoginForm() {
       if (mountedRef.current) {
         setFeedback({
           kind: "error",
-          text: describeAuthError(t, error instanceof Error ? error.message : "network", mode),
+          text: describeAuthError(
+            t,
+            error instanceof Error ? error : { message: "network" },
+            mode,
+          ),
         });
       }
     }
@@ -175,13 +161,14 @@ function LoginForm() {
     }
     setLoading(true);
     try {
+      const resetRedirect = getAuthCallbackUrl();
       const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-        redirectTo: `${redirectBase}/auth/callback?next=/account`,
+        ...(resetRedirect ? { redirectTo: `${resetRedirect}?next=/account` } : {}),
       });
       if (!mountedRef.current) return;
       setFeedback(
         error
-          ? { kind: "error", text: describeAuthError(t, error.message, "signin") }
+          ? { kind: "error", text: describeAuthError(t, error, "signin") }
           : {
               kind: "success",
               text: t("auth.resetSent"),
@@ -191,7 +178,11 @@ function LoginForm() {
       if (mountedRef.current) {
         setFeedback({
           kind: "error",
-          text: describeAuthError(t, error instanceof Error ? error.message : "network", "signin"),
+          text: describeAuthError(
+            t,
+            error instanceof Error ? error : { message: "network" },
+            "signin",
+          ),
         });
       }
     }
