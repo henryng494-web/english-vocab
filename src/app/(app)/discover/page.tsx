@@ -85,11 +85,9 @@ import { readOnboarding, shouldShowOnboarding } from "@/lib/onboarding";
 import { usePaywall } from "@/context/PaywallContext";
 import { freeTierBlockReason } from "@/lib/free-tier-gate";
 import {
-  FREE_HIGH_RANK_DAILY_NEW_WORDS,
-  incrementFreeHighRankLearned,
-  isFreeHighRankQuotaReached,
-  isRangeFree,
-} from "@/lib/pro-access";
+  canFreeUserLearnNewWord,
+  recordFreeNewWordLearned,
+} from "@/lib/free-new-word-limit";
 import {
   readInitialRank,
   readPlacement,
@@ -158,9 +156,8 @@ export default function DiscoverPage() {
   const [rangeId, setRangeId] = useState(DEFAULT_BOOTSTRAP_RANGE);
   const [recommendedRank, setRecommendedRank] = useState<string | null>(null);
   const { isFree, openPaywall, showUpgradePrompt } = usePaywall();
-  const freeHighRank = isFree && !isRangeFree(rangeId);
   const [rangeReady, setRangeReady] = useState(false);
-  const [freeHighQuotaHit, setFreeHighQuotaHit] = useState(false);
+  const freeLearnBlocked = isFree && !canFreeUserLearnNewWord();
   const [queue, setQueue] = useState<DiscoverListItem[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [currentWord, setCurrentWord] = useState<DiscoverWordData | null>(null);
@@ -194,10 +191,6 @@ export default function DiscoverPage() {
   const lastCompletedSaveRef = useRef(0);
   const rangeFetchGenRef = useRef(0);
   const onboardingChecked = useRef(false);
-
-  useEffect(() => {
-    setFreeHighQuotaHit(freeHighRank && isFreeHighRankQuotaReached());
-  }, [freeHighRank, rangeId, todayLearned]);
 
   useEffect(() => {
     if (onboardingChecked.current) return;
@@ -702,10 +695,7 @@ export default function DiscoverPage() {
     if (!currentItem) return;
 
     if (status === "new") {
-      const learnBlock = freeTierBlockReason("learn", {
-        dueReviewCount: totalDueReviewCount,
-        rangeId,
-      });
+      const learnBlock = freeTierBlockReason("learn");
       if (learnBlock) {
         showUpgradePrompt(learnBlock);
         return;
@@ -725,11 +715,6 @@ export default function DiscoverPage() {
         );
         return;
       }
-    }
-
-    if (status === "new" && freeHighRank && isFreeHighRankQuotaReached()) {
-      showUpgradePrompt("learn");
-      return;
     }
 
     unlockSpeechFromUserGesture();
@@ -759,8 +744,11 @@ export default function DiscoverPage() {
     }));
     if (status === "new") {
       setTodayLearned(incrementTodayWordsLearned());
-      if (freeHighRank && incrementFreeHighRankLearned() >= FREE_HIGH_RANK_DAILY_NEW_WORDS) {
-        showUpgradePrompt("learn");
+      if (isFree) {
+        recordFreeNewWordLearned();
+        if (!canFreeUserLearnNewWord()) {
+          showUpgradePrompt("learn");
+        }
       }
       syncStreak();
       if (isDailyJourney) {
@@ -846,9 +834,9 @@ export default function DiscoverPage() {
   }
 
   const dailyNewWordMax = getMaxNewWordsPerDay();
-  const dailyQuotaReached = !canLearnNewWordTodayWithReviewBonus(
-    totalDueReviewCount,
-  );
+  const dailyQuotaReached = isFree
+    ? freeLearnBlocked
+    : !canLearnNewWordTodayWithReviewBonus(totalDueReviewCount);
   const dailyGoalMinutes = readAppSettings().dailyGoalMinutes;
 
   if (!inSession) {
@@ -883,10 +871,7 @@ export default function DiscoverPage() {
             goalTarget={goalProgress.target}
             todayWordsLearned={todayLearned}
             onStartJourney={() => {
-              const learnBlock = freeTierBlockReason("learn", {
-                dueReviewCount: totalDueReviewCount,
-                rangeId,
-              });
+              const learnBlock = freeTierBlockReason("learn");
               if (learnBlock) {
                 showUpgradePrompt(learnBlock);
                 return;
@@ -952,17 +937,17 @@ export default function DiscoverPage() {
           </p>
         )}
 
-        {!error && freeHighQuotaHit && (
+        {!error && isFree && freeLearnBlocked && (
           <button
             type="button"
-            onClick={openPaywall}
+            onClick={() => showUpgradePrompt("learn")}
             className="shrink-0 rounded-xl border border-violet-200 bg-violet-50 px-4 py-3 text-left text-sm text-violet-900"
           >
             {t("paywall.freeLearnDone")}
           </button>
         )}
 
-        {!error && dailyQuotaReached && (
+        {!error && !isFree && dailyQuotaReached && (
           <p className="shrink-0 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
             {t("journey.dailyQuotaReached", {
               count: todayLearned,
@@ -1019,7 +1004,7 @@ export default function DiscoverPage() {
                   if (currentItem) speakNextJourneyWordInGesture(currentItem);
                 }}
                 onClick={() => updateStatus("new")}
-                disabled={dailyQuotaReached || freeHighQuotaHit}
+                disabled={dailyQuotaReached}
                 className="btn-pill-primary w-full disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {t("journey.learnThis")}

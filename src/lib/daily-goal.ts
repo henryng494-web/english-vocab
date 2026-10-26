@@ -1,7 +1,14 @@
 import { getTodayReviewsCompleted } from "@/lib/daily-reviews";
 import { countLearningWords } from "@/lib/learning-storage";
 import { localDateKey } from "@/lib/local-date";
-import { FREE_DAILY_NEW_WORDS, FREE_DAILY_REVIEWS, isFreeTier } from "@/lib/pro-access";
+import {
+  FREE_DAILY_NEW_AFTER_BOOTSTRAP,
+  FREE_LIFETIME_NEW_WORDS,
+  canFreeUserLearnNewWord,
+  getFreeLifetimeNewWordsLearned,
+  getFreeNewWordAllowanceRemaining,
+} from "@/lib/free-new-word-limit";
+import { FREE_DAILY_REVIEWS, isFreeTier } from "@/lib/pro-access";
 import { readAppSettings, type AppSettings } from "@/lib/app-settings";
 
 const DAILY_GOAL_KEY = "vocab-journey-daily-goal-v1";
@@ -41,7 +48,13 @@ export function getMaxNewWordsPerDay(
   settings: AppSettings = readAppSettings(),
 ): number {
   const plan = recommendedNewWordsForMinutes(settings.dailyGoalMinutes);
-  return isFreeTier() ? Math.min(plan, FREE_DAILY_NEW_WORDS) : plan;
+  if (!isFreeTier()) return plan;
+  const remaining = getFreeNewWordAllowanceRemaining();
+  if (!Number.isFinite(remaining)) return plan;
+  if (getFreeLifetimeNewWordsLearned() < FREE_LIFETIME_NEW_WORDS) {
+    return Math.max(remaining, 0);
+  }
+  return FREE_DAILY_NEW_AFTER_BOOTSTRAP;
 }
 
 /**
@@ -76,12 +89,14 @@ export function getTodayWordsLearned(): number {
 export function isDailyNewWordQuotaReached(
   settings: AppSettings = readAppSettings(),
 ): boolean {
+  if (isFreeTier()) return !canFreeUserLearnNewWord();
   return getTodayWordsLearned() >= getMaxNewWordsPerDay(settings);
 }
 
 export function canLearnNewWordToday(
   settings: AppSettings = readAppSettings(),
 ): boolean {
+  if (isFreeTier()) return canFreeUserLearnNewWord();
   return !isDailyNewWordQuotaReached(settings);
 }
 
