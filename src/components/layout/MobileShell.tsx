@@ -6,7 +6,10 @@ import { BottomTabBar } from "@/components/layout/BottomTabBar";
 import { StudyReminderScheduler } from "@/components/layout/StudyReminderScheduler";
 import { StudyTimeTracker } from "@/components/layout/StudyTimeTracker";
 import { ViewportHeightSync } from "@/components/layout/ViewportHeightSync";
+import { NicknamePrompt } from "@/components/onboarding/NicknamePrompt";
 import { OnboardingScreen } from "@/components/onboarding/OnboardingScreen";
+import { needsLearnerNicknamePrompt } from "@/lib/learner-nickname";
+import { LEARNER_DISPLAY_NAME_EVENT } from "@/lib/user-display-name";
 import { WelcomeSplash } from "@/components/welcome/WelcomeSplash";
 import { PaywallProvider } from "@/context/PaywallContext";
 import { AppMenuProvider } from "@/context/AppMenuContext";
@@ -15,10 +18,22 @@ import {
   AppBootstrapProvider,
   useAppBootstrap,
 } from "@/context/AppBootstrapContext";
+import { useCallback, useEffect, useState } from "react";
 
 function MobileShellInner({ children }: { children: React.ReactNode }) {
   const { ready, progress } = useAppBootstrap();
   const { settingsReady, hasOnboarded } = useAppSettings();
+  const [nicknameReady, setNicknameReady] = useState(false);
+
+  const syncNicknameGate = useCallback(() => {
+    setNicknameReady(!needsLearnerNicknamePrompt());
+  }, []);
+
+  useEffect(() => {
+    syncNicknameGate();
+    window.addEventListener(LEARNER_DISPLAY_NAME_EVENT, syncNicknameGate);
+    return () => window.removeEventListener(LEARNER_DISPLAY_NAME_EVENT, syncNicknameGate);
+  }, [syncNicknameGate]);
 
   if (!settingsReady) {
     return <div className="app-page" aria-busy="true" />;
@@ -32,6 +47,10 @@ function MobileShellInner({ children }: { children: React.ReactNode }) {
         </div>
       </div>
     );
+  }
+
+  if (!nicknameReady) {
+    return <NicknamePrompt onComplete={syncNicknameGate} />;
   }
 
   return (

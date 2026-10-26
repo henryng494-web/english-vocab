@@ -10,8 +10,10 @@ import { displayFontClass } from "@/lib/fonts";
 import { LAYOUT_VERSION } from "@/lib/layout-version";
 import { deleteAccountAndData } from "@/lib/delete-account";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
+import { readLearnerDisplayName } from "@/lib/user-display-name";
+import { saveLearnerNickname } from "@/lib/learner-nickname";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function AccountPage() {
   const { t } = useI18n();
@@ -21,6 +23,13 @@ export default function AccountPage() {
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
+  const [nicknameDraft, setNicknameDraft] = useState("");
+  const [nicknameSaving, setNicknameSaving] = useState(false);
+  const [nicknameMessage, setNicknameMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    setNicknameDraft(readLearnerDisplayName());
+  }, [displayName]);
 
   const supabaseOn = isSupabaseConfigured();
   const profileLine =
@@ -43,6 +52,21 @@ export default function AccountPage() {
       await signOut();
     } finally {
       setSigningOut(false);
+    }
+  }
+
+  async function handleSaveNickname() {
+    setNicknameSaving(true);
+    setNicknameMessage(null);
+    try {
+      const saved = await saveLearnerNickname(nicknameDraft);
+      if (!saved) {
+        setNicknameMessage(t("nickname.required"));
+        return;
+      }
+      setNicknameMessage(t("account.nicknameSaved"));
+    } finally {
+      setNicknameSaving(false);
     }
   }
 
@@ -75,6 +99,33 @@ export default function AccountPage() {
                 <JungleCastPill size={24} />
               </div>
             </div>
+          </section>
+
+          <section className="home-card border-violet-200 bg-card">
+            <h2 className={`home-section-title ${displayFontClass}`}>{t("account.nicknameTitle")}</h2>
+            <p className="home-body-text mt-1">{t("account.nicknameDesc")}</p>
+            <label className="sr-only" htmlFor="account-nickname">
+              {t("nickname.fieldLabel")}
+            </label>
+            <input
+              id="account-nickname"
+              type="text"
+              maxLength={32}
+              value={nicknameDraft}
+              onChange={(event) => setNicknameDraft(event.target.value)}
+              className="mt-3 w-full rounded-2xl border border-foreground/15 bg-surface px-4 py-3 text-base text-foreground outline-none focus:border-[#7c3aed]"
+            />
+            {nicknameMessage ? (
+              <p className="mt-2 text-sm text-foreground/70">{nicknameMessage}</p>
+            ) : null}
+            <button
+              type="button"
+              disabled={nicknameSaving}
+              onClick={() => void handleSaveNickname()}
+              className="btn-pill-primary mt-4 flex w-full justify-center py-3.5 disabled:opacity-60"
+            >
+              {nicknameSaving ? t("nickname.saving") : t("account.nicknameSave")}
+            </button>
           </section>
 
           {supabaseOn && isSignedIn ? (

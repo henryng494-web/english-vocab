@@ -12,7 +12,10 @@ import {
 } from "@/lib/weekly-streak";
 import { useAuthSession } from "@/context/AuthSessionContext";
 import { usePaywall } from "@/context/PaywallContext";
-import { readLearnerDisplayName } from "@/lib/user-display-name";
+import {
+  LEARNER_DISPLAY_NAME_EVENT,
+  readLearnerDisplayName,
+} from "@/lib/user-display-name";
 import { useI18n } from "@/hooks/use-i18n";
 import { getDailyReviewPlan } from "@/lib/daily-goal";
 import {
@@ -211,10 +214,18 @@ export function HomeGalaxyScreen(props: HomeGalaxyScreenProps) {
   const { t, goalTypeLabel } = useI18n();
   const { isPro } = usePaywall();
   const { displayName: authDisplayName, ready: authReady } = useAuthSession();
+  const storedNickname = useSyncExternalStore(
+    (onStoreChange) => {
+      window.addEventListener(LEARNER_DISPLAY_NAME_EVENT, onStoreChange);
+      return () => window.removeEventListener(LEARNER_DISPLAY_NAME_EVENT, onStoreChange);
+    },
+    () => readLearnerDisplayName(),
+    () => "",
+  );
   const greetingName =
-    authReady && authDisplayName.trim()
-      ? authDisplayName.trim()
-      : readLearnerDisplayName() || t("home.greetingDefault");
+    storedNickname.trim() ||
+    (authReady && authDisplayName.trim() ? authDisplayName.trim() : "") ||
+    t("home.greetingDefault");
 
   const avatarInitial = useMemo(() => {
     const trimmed = greetingName.trim();
