@@ -6,7 +6,9 @@ import {
   primeJourneyAudioFromUserGesture,
   warmFirstReviewWordPronunciation,
 } from "@/lib/pronunciation-preload";
+import { usePaywall } from "@/context/PaywallContext";
 import { useI18n } from "@/hooks/use-i18n";
+import { freeTierBlockReason } from "@/lib/free-tier-gate";
 
 type TabItem = {
   href: string;
@@ -85,6 +87,7 @@ export function BottomTabBar() {
   const pathname = usePathname();
   const router = useRouter();
   const { t } = useI18n();
+  const { showUpgradePrompt } = usePaywall();
 
   const tabs: TabItem[] = [
     {
@@ -159,6 +162,14 @@ export function BottomTabBar() {
             <Link
               key={tab.href}
               href={tab.href}
+              onClick={(event) => {
+                if (tab.href !== "/learn") return;
+                const reason = freeTierBlockReason("review");
+                if (reason) {
+                  event.preventDefault();
+                  showUpgradePrompt(reason);
+                }
+              }}
               onPointerDown={(event) => {
                 if (tab.href === "/learn") {
                   warmFirstReviewWordPronunciation();

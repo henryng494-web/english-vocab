@@ -83,6 +83,7 @@ import {
 } from "@/lib/locale-content-prefetch";
 import { readOnboarding, shouldShowOnboarding } from "@/lib/onboarding";
 import { usePaywall } from "@/context/PaywallContext";
+import { freeTierBlockReason } from "@/lib/free-tier-gate";
 import {
   FREE_HIGH_RANK_DAILY_NEW_WORDS,
   incrementFreeHighRankLearned,
@@ -700,20 +701,30 @@ export default function DiscoverPage() {
   function updateStatus(status: "mastered" | "new") {
     if (!currentItem) return;
 
-    if (
-      status === "new" &&
-      !canLearnNewWordTodayWithReviewBonus(totalDueReviewCount)
-    ) {
-      const max = getMaxNewWordsPerDay();
-      const minutes = readAppSettings().dailyGoalMinutes;
-      setError(
-        t("journey.dailyQuotaReached", {
-          count: getTodayWordsLearned(),
-          max,
-          minutes,
-        }),
-      );
-      return;
+    if (status === "new") {
+      const learnBlock = freeTierBlockReason("learn", {
+        dueReviewCount: totalDueReviewCount,
+        rangeId,
+      });
+      if (learnBlock) {
+        showUpgradePrompt(learnBlock);
+        return;
+      }
+      if (
+        !canLearnNewWordTodayWithReviewBonus(totalDueReviewCount) &&
+        !isFree
+      ) {
+        const max = getMaxNewWordsPerDay();
+        const minutes = readAppSettings().dailyGoalMinutes;
+        setError(
+          t("journey.dailyQuotaReached", {
+            count: getTodayWordsLearned(),
+            max,
+            minutes,
+          }),
+        );
+        return;
+      }
     }
 
     if (status === "new" && freeHighRank && isFreeHighRankQuotaReached()) {
@@ -871,9 +882,24 @@ export default function DiscoverPage() {
             goalCurrent={goalProgress.current}
             goalTarget={goalProgress.target}
             todayWordsLearned={todayLearned}
-            onStartJourney={() => router.push("/journey")}
+            onStartJourney={() => {
+              const learnBlock = freeTierBlockReason("learn", {
+                dueReviewCount: totalDueReviewCount,
+                rangeId,
+              });
+              if (learnBlock) {
+                showUpgradePrompt(learnBlock);
+                return;
+              }
+              router.push("/journey");
+            }}
             onStartJourneyPointerDown={() => primeJourneyAudioFromUserGesture()}
             onStartReview={() => {
+              const reviewBlock = freeTierBlockReason("review");
+              if (reviewBlock) {
+                showUpgradePrompt(reviewBlock);
+                return;
+              }
               warmFirstReviewWordPronunciation();
               router.push("/learn");
             }}
