@@ -503,6 +503,20 @@ export function playWordAudioInUserGesture(word: string): boolean {
   }
 
   startPlayback(audio, key);
+
+  window.setTimeout(() => {
+    if (audio.dataset.wordKey !== key) return;
+    if (!audio.paused && audio.currentTime > 0) return;
+    if (audio.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA && audio.paused) {
+      logPronunciation({
+        stage: "mp3-play-stalled",
+        word,
+        detail: "no-audio-after-gesture",
+      });
+      notifyPlaybackFailure(key, "media-error", new Error("mp3-stalled"));
+    }
+  }, 900);
+
   return true;
 }
 
