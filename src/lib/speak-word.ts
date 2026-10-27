@@ -1,3 +1,4 @@
+import { getPronounceAccent } from "@/lib/pronounce-accent";
 import {
   applyNaturalSpeechSettings,
   getSpeechVoiceSync,
@@ -13,7 +14,6 @@ import {
   playWordAudioInUserGesture,
   playWordAudioWhenReady,
   preloadWordAudioElement,
-  primeAudioPipelineInUserGesture,
   setGesturePlaybackFailureHandler,
   stopWordAudio,
   warmWordAudioBytes,
@@ -31,31 +31,66 @@ const FIRST_CARD_MP3_WAIT_MS = 450;
 
 let firstCardAutoSpoken = false;
 
-function speakWithSynthesisFallback(text: string): boolean {
+function ttsLangForAccent(): string {
+  const accent = getPronounceAccent();
+  if (accent === "uk") return "en-GB";
+  if (accent === "au") return "en-AU";
+  return "en-US";
+}
+
+/** Browser Web Speech — synchronous inside tap; no network MP3 required. */
+function speakWithBrowserTts(text: string, stage: string): boolean {
   if (typeof window === "undefined" || !window.speechSynthesis) {
-    logPronunciation({ stage: "tts-unavailable", word: text });
+    logPronunciation({ stage: "tts-unavailable", word: text, detail: stage });
     return false;
   }
   try {
     const synth = window.speechSynthesis;
+    stopWordAudio();
     synth.cancel();
     primeSpeechSynthesisInGesture();
     const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = ttsLangForAccent();
     applyNaturalSpeechSettings(utterance, getSpeechVoiceSync());
     utterance.onerror = (event) => {
       logPronunciation({
         stage: "tts-error",
         word: text,
-        detail: event.error ?? "speech-synthesis-error",
+        detail: `${stage}:${event.error ?? "speech-synthesis-error"}`,
       });
     };
     speakUtteranceInGesture(utterance);
-    logPronunciation({ stage: "tts-started", word: text });
+    logPronunciation({ stage, word: text, detail: "browser-tts" });
     return true;
   } catch (error) {
-    logPronunciation({ stage: "tts-error", word: text, error });
+    logPronunciation({ stage: "tts-error", word: text, detail: stage, error });
     return false;
   }
+}
+
+function speakWithSynthesisFallback(text: string): boolean {
+  return speakWithBrowserTts(text, "tts-fallback");
+}
+
+/**
+ * Manual tap / pointerdown — always speak via Web Speech first (MP3 optional later).
+ * Guarantees audible output in the user gesture even when API/MP3 fails.
+ */
+function speakPrimaryInUserGesture(text: string): void {
+  unlockSpeechFromUserGesture();
+  primeSpeechSynthesisInGesture();
+  const spoke = speakWithBrowserTts(text, "tts-primary-gesture");
+  if (!spoke) {
+    logPronunciation({
+      stage: "tts-primary-failed",
+      word: text,
+      detail: "will-retry-mp3",
+    });
+    preloadWordAudioElement(text);
+    void warmWordAudioBytes(text);
+    playWordAudioInUserGesture(text);
+  }
+  preloadWordPronunciation(text);
 }
 
 if (typeof window !== "undefined") {
@@ -158,13 +193,7 @@ export function speakWordInUserGesture(text: string): void {
   const trimmed = text?.trim();
   if (!trimmed || typeof window === "undefined") return;
 
-  unlockSpeechFromUserGesture();
-  primeSpeechSynthesisInGesture();
-  preloadWordAudioElement(trimmed);
-  void warmWordAudioBytes(trimmed);
-  if (!playWordAudioInUserGesture(trimmed)) {
-    speakWithSynthesisFallback(trimmed);
-  }
+  speakPrimaryInUserGesture(trimmed);
 
   const key = trimmed.toLowerCase();
   lastSpoken = { text: key, at: Date.now() };
@@ -236,7 +265,7 @@ async function speakMp3Auto(
   if (!stillCurrentRequest(requestId, key)) return;
   if (isWordAudioPlaying(text)) return;
 
-  if (isFirstCard && speakWithSynthesisFallback(text)) return;
+  if (speakWithSynthesisFallback(text)) return;
 
   await warmWordAudioBytes(text, { bustCache: true });
   if (!stillCurrentRequest(requestId, key)) return;
@@ -295,6 +324,9 @@ export function speakEnglishTextAuto(text: string): void {
   const key = trimmed.toLowerCase();
   lastSpoken = { text: key, at: Date.now() };
   speakRequestId += 1;
+  if (!hasWordAudioBlob(trimmed) && !isWordAudioElementReady(trimmed)) {
+    if (speakWithSynthesisFallback(trimmed)) return;
+  }
   void speakMp3Auto(trimmed, speakRequestId);
 }
 
@@ -306,16 +338,7 @@ export function speakEnglishText(
   const trimmed = claimSpeak(text, Boolean(_options?.force));
   if (!trimmed) return;
 
-  unlockSpeechFromUserGesture();
-  primeSpeechSynthesisInGesture();
-  if (isAppleWebKit()) {
-    primeAudioPipelineInUserGesture();
-  }
-  preloadWordAudioElement(trimmed);
-  void warmWordAudioBytes(trimmed);
-  if (!playWordAudioInUserGesture(trimmed)) {
-    speakWithSynthesisFallback(trimmed);
-  }
+  speakPrimaryInUserGesture(trimmed);
 }
 
 export function cancelSpeech(): void {
