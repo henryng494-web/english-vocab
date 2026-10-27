@@ -489,34 +489,18 @@ export function playWordAudioInUserGesture(word: string): boolean {
     return false;
   }
 
-  const src = resolvePlayableSrc(word);
+  const src = absoluteAudioUrl(resolvePlayableUrl(word));
   if (!src) {
     logPronunciation({ stage: "mp3-play-failed", word, detail: "no-src" });
     return false;
   }
 
-  if (audio.dataset.wordKey !== key || !audioSrcMatches(audio, src)) {
-    audio.pause();
-    audio.dataset.wordKey = key;
-    audio.src = src;
-    // Do not call load() here — it resets the buffer and breaks iOS gesture playback.
-  }
+  audio.pause();
+  audio.dataset.wordKey = key;
+  audio.src = src;
+  // Do not call load() here — it resets the buffer and breaks iOS gesture playback.
 
   startPlayback(audio, key);
-
-  window.setTimeout(() => {
-    if (audio.dataset.wordKey !== key) return;
-    if (!audio.paused && audio.currentTime > 0) return;
-    if (audio.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA && audio.paused) {
-      logPronunciation({
-        stage: "mp3-play-stalled",
-        word,
-        detail: "no-audio-after-gesture",
-      });
-      notifyPlaybackFailure(key, "media-error", new Error("mp3-stalled"));
-    }
-  }, 900);
-
   return true;
 }
 
