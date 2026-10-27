@@ -1,5 +1,7 @@
 "use client";
 
+import { OnboardingSetupProgress } from "@/components/onboarding/OnboardingSetupProgress";
+import { ONBOARDING_NICKNAME_STEP_INDEX } from "@/components/onboarding/onboarding-setup-steps";
 import { useI18n } from "@/hooks/use-i18n";
 import { displayFontClass } from "@/lib/fonts";
 import { saveLearnerNickname } from "@/lib/learner-nickname";
@@ -37,38 +39,50 @@ export function NicknamePrompt({ onComplete }: NicknamePromptProps) {
   }
 
   return (
-    <div className="app-page">
-      <div className="app-shell mx-auto flex min-h-[100dvh] w-full max-w-lg flex-col justify-center bg-background px-6 py-10">
-        <div className="home-card border-violet-200 bg-card p-6 text-center shadow-sm">
-          <h1 className={`text-xl font-bold text-foreground ${displayFontClass}`}>
-            {t("nickname.promptTitle")}
-          </h1>
-          <label className="sr-only" htmlFor="learner-nickname">
-            {t("nickname.fieldLabel")}
-          </label>
-          <input
-            id="learner-nickname"
-            type="text"
-            autoComplete="nickname"
-            maxLength={32}
-            value={value}
-            onChange={(event) => setValue(event.target.value)}
-            placeholder={t("nickname.placeholder")}
-            className="mt-5 w-full rounded-2xl border border-foreground/15 bg-surface px-4 py-3.5 text-center text-base text-foreground outline-none focus:border-[#7c3aed] focus:ring-2 focus:ring-[#7c3aed]/25"
-            onKeyDown={(event) => {
-              if (event.key === "Enter") void handleSubmit();
-            }}
-          />
-          {error ? <p className="mt-2 text-sm text-red-600">{error}</p> : null}
-          <button
-            type="button"
-            disabled={saving}
-            onClick={() => void handleSubmit()}
-            className="btn-pill-primary mt-5 flex w-full justify-center py-3.5 disabled:opacity-60"
-          >
-            {saving ? t("nickname.saving") : t("nickname.continue")}
-          </button>
-        </div>
+    <div
+      className="onboarding"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="nickname-prompt-title"
+    >
+      <div className="onboarding__panel">
+        <OnboardingSetupProgress activeStepIndex={ONBOARDING_NICKNAME_STEP_INDEX} />
+
+        <h2 id="nickname-prompt-title" className={`onboarding__title ${displayFontClass}`}>
+          {t("nickname.promptTitle")}
+        </h2>
+        <p className="onboarding__body">{t("nickname.promptDesc")}</p>
+
+        <label className="sr-only" htmlFor="learner-nickname">
+          {t("nickname.fieldLabel")}
+        </label>
+        <input
+          id="learner-nickname"
+          type="text"
+          autoComplete="nickname"
+          maxLength={32}
+          value={value}
+          onChange={(event) => setValue(event.target.value)}
+          placeholder={t("nickname.placeholder")}
+          className="onboarding__input"
+          onKeyDown={(event) => {
+            if (event.key === "Enter") void handleSubmit();
+          }}
+        />
+        {error ? (
+          <p className="onboarding__error" role="alert">
+            {error}
+          </p>
+        ) : null}
+
+        <button
+          type="button"
+          disabled={saving}
+          className="btn-pill-primary onboarding__cta"
+          onClick={() => void handleSubmit()}
+        >
+          {saving ? t("nickname.saving") : t("nickname.continue")}
+        </button>
       </div>
     </div>
   );

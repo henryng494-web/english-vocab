@@ -11,6 +11,8 @@ import { useI18n } from "@/hooks/use-i18n";
 import { displayFontClass } from "@/lib/fonts";
 import { completeOnboarding } from "@/lib/onboarding";
 import { readPlacement } from "@/lib/placement";
+import { OnboardingSetupProgress } from "@/components/onboarding/OnboardingSetupProgress";
+import { onboardingGuideStepIndex } from "@/components/onboarding/onboarding-setup-steps";
 import { useCallback, useState } from "react";
 
 type OnboardingModalProps = {
@@ -25,8 +27,6 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
   const [step, setStep] = useState<Step>("welcome");
   const [dailyGoalMinutes, setDailyGoalMinutes] = useState<DailyGoalMinutes>(20);
 
-  const stepIndex = STEPS.indexOf(step);
-
   const finish = useCallback(() => {
     const rangeId = readPlacement()?.rangeId ?? DEFAULT_BOOTSTRAP_RANGE;
     completeOnboarding(rangeId, dailyGoalMinutes);
@@ -36,14 +36,7 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
   return (
     <div className="onboarding" role="dialog" aria-modal="true" aria-label={t("onboarding.aria")}>
       <div className="onboarding__panel">
-        <div className="onboarding__progress" aria-hidden>
-          {STEPS.map((item, index) => (
-            <span
-              key={item}
-              className={`onboarding__dot${index <= stepIndex ? " is-active" : ""}`}
-            />
-          ))}
-        </div>
+        <OnboardingSetupProgress activeStepIndex={onboardingGuideStepIndex(step)} />
 
         {step === "welcome" ? (
           <>
