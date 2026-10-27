@@ -68,6 +68,7 @@
     "audit:vocab-abbreviations": "npx tsx scripts/audit-vocab-abbreviations.ts"
   },
   "dependencies": {
+    "@capacitor-community/text-to-speech": "^6.1.0",
     "@capacitor/android": "^8.5.2",
     "@capacitor/core": "^8.5.2",
     "@capacitor/ios": "^8.5.2",

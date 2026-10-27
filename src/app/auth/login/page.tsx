@@ -6,7 +6,8 @@ import {
   logAuthRedirect,
   logSupabaseAuthError,
 } from "@/lib/auth-errors";
-import { resolveAuthCallbackUrl } from "@/lib/auth-redirect";
+import { isMobileAuthContext, resolveAuthCallbackUrl } from "@/lib/auth-redirect";
+import { navigateAfterAuth, normalizeMobileAppPath } from "@/lib/auth-navigation";
 import { createClientIfConfigured } from "@/lib/supabase/client";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { AppSettingsProvider } from "@/context/AppSettingsContext";
@@ -112,7 +113,11 @@ function LoginForm() {
         if (!data.session) {
           await supabase.auth.getSession();
         }
-        router.replace(afterAuth);
+        if (isMobileAuthContext()) {
+          navigateAfterAuth(afterAuth);
+          return;
+        }
+        router.replace(normalizeMobileAppPath(afterAuth));
         router.refresh();
         return;
       }
@@ -147,7 +152,11 @@ function LoginForm() {
         setFeedback({ kind: "error", text: describeAuthError(t, error, mode) });
       } else if (data.session) {
         await supabase.auth.getSession();
-        router.replace(afterAuth);
+        if (isMobileAuthContext()) {
+          navigateAfterAuth(afterAuth);
+          return;
+        }
+        router.replace(normalizeMobileAppPath(afterAuth));
         router.refresh();
         return;
       } else {
@@ -163,8 +172,9 @@ function LoginForm() {
       if (mountedRef.current) {
         setFeedback({ kind: "error", text: formatAuthErrorForUi(error) });
       }
+    } finally {
+      if (mountedRef.current) setLoading(false);
     }
-    if (mountedRef.current) setLoading(false);
   }
 
   async function handleForgotPassword() {

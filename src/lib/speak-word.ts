@@ -1,4 +1,6 @@
 import { getPronounceAccent } from "@/lib/pronounce-accent";
+import { isNativeCapacitorShell } from "@/lib/network-status";
+import { speakNativeText } from "@/lib/native-tts";
 import {
   applyNaturalSpeechSettings,
   getSpeechVoiceSync,
@@ -79,6 +81,18 @@ function speakWithSynthesisFallback(text: string): boolean {
 function speakPrimaryInUserGesture(text: string): void {
   unlockSpeechFromUserGesture();
   primeSpeechSynthesisInGesture();
+  preloadWordPronunciation(text);
+
+  if (isNativeCapacitorShell()) {
+    void (async () => {
+      if (await speakNativeText(text)) return;
+      if (speakWithBrowserTts(text, "tts-primary-gesture")) return;
+      preloadWordAudioElement(text);
+      playWordAudioInUserGesture(text);
+    })();
+    return;
+  }
+
   const spoke = speakWithBrowserTts(text, "tts-primary-gesture");
   if (!spoke) {
     logPronunciation({
@@ -90,7 +104,6 @@ function speakPrimaryInUserGesture(text: string): void {
     void warmWordAudioBytes(text);
     playWordAudioInUserGesture(text);
   }
-  preloadWordPronunciation(text);
 }
 
 if (typeof window !== "undefined") {

@@ -9,8 +9,28 @@ import {
   getSupabaseConfig,
   getSupabaseConfigOptional,
 } from "@/lib/supabase/env";
+import {
+  shouldProxySupabaseAuthFetch,
+  toSupabaseAuthProxyUrl,
+} from "@/lib/supabase/mobile-auth-proxy";
+
+function resolveFetchUrl(input: RequestInfo | URL): string {
+  if (typeof input === "string") return input;
+  if (input instanceof URL) return input.href;
+  if (input instanceof Request) return input.url;
+  return String(input);
+}
 
 function capacitorAwareFetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
+  const config = getSupabaseConfigOptional();
+  const resolved = resolveFetchUrl(input);
+  if (config && shouldProxySupabaseAuthFetch(resolved, config.url)) {
+    const proxyUrl = toSupabaseAuthProxyUrl(resolved, config.url);
+    return globalThis.fetch(proxyUrl, init).catch((err) => {
+      logSupabaseAuthError("fetch:auth-proxy", err, { url: proxyUrl });
+      throw err;
+    });
+  }
   if (isBrowserOfflineSignal()) {
     console.warn("[supabase-auth] navigator.onLine is false (web); attempting fetch anyway");
   } else if (
@@ -37,9 +57,7 @@ function capacitorAwareFetch(input: RequestInfo | URL, init?: RequestInit): Prom
 }
 
 function browserClientOptions() {
-  return isUnreliableNavigatorOnLine()
-    ? { global: { fetch: capacitorAwareFetch } }
-    : undefined;
+  return { global: { fetch: capacitorAwareFetch } };
 }
 
 let sharedBrowserClient: SupabaseClient | null = null;
