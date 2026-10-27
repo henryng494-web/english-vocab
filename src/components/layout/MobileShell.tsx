@@ -19,6 +19,10 @@ import {
   useAppBootstrap,
 } from "@/context/AppBootstrapContext";
 import { MIN_WELCOME_MS, type BootstrapProgress } from "@/lib/app-bootstrap";
+import {
+  hasCompletedStartupSplash,
+  markStartupSplashCompleted,
+} from "@/lib/startup-splash-session";
 import { useCallback, useEffect, useState } from "react";
 
 function StartupSplash({ progress }: { progress: BootstrapProgress }) {
@@ -38,7 +42,7 @@ function MobileShellInner({ children }: { children: React.ReactNode }) {
   const { settingsReady, hasOnboarded } = useAppSettings();
   const [nicknameReady, setNicknameReady] = useState(false);
   const [minSplashElapsed, setMinSplashElapsed] = useState(false);
-  const [startupSplashDone, setStartupSplashDone] = useState(false);
+  const [startupSplashDone, setStartupSplashDone] = useState(() => hasCompletedStartupSplash());
 
   const syncNicknameGate = useCallback(() => {
     setNicknameReady(!needsLearnerNicknamePrompt());
@@ -56,8 +60,13 @@ function MobileShellInner({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
+    if (hasCompletedStartupSplash() && settingsReady) {
+      setStartupSplashDone(true);
+      return;
+    }
     if (bootstrapReady && settingsReady && minSplashElapsed) {
       setStartupSplashDone(true);
+      markStartupSplashCompleted();
     }
   }, [bootstrapReady, settingsReady, minSplashElapsed]);
 
