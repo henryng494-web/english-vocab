@@ -173,6 +173,31 @@ body {
   animation: app-setup-enter 0.35s ease;
 }
 
+.account-delete-footer {
+  padding: 0.5rem 0 1.5rem;
+  text-align: center;
+}
+
+.account-delete-link {
+  border: 0;
+  background: none;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: rgb(248 113 113);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.account-delete-link:hover {
+  color: rgb(239 68 68);
+}
+
+.account-delete-link:active {
+  color: rgb(220 38 38);
+}
+
 .app-shell {
   display: grid;
   grid-template-rows: minmax(0, 1fr) auto;
