@@ -1,5 +1,6 @@
 import {
   fetchDictionaryAudioBytes,
+  lookupFallbackTtsAudio,
   parsePronounceAccentParam,
 } from "@/lib/dictionary-pronunciation";
 import { lookupNeuralTtsAudio } from "@/lib/neural-pronunciation";
@@ -37,15 +38,21 @@ export async function GET(request: NextRequest) {
     });
   }
 
+  let engine: "neural" | "fallback-http" = "neural";
   let bytes = await lookupNeuralTtsAudio(text, accent);
   if (!bytes) {
     await new Promise((resolve) => setTimeout(resolve, NEURAL_RETRY_DELAY_MS));
     bytes = await lookupNeuralTtsAudio(text, accent);
   }
 
+  if (!bytes && isSinglePronounceWord(text)) {
+    bytes = await lookupFallbackTtsAudio(text);
+    if (bytes) engine = "fallback-http";
+  }
+
   if (!bytes) {
     return NextResponse.json(
-      { error: "Neural TTS unavailable" },
+      { error: "Pronunciation unavailable" },
       {
         status: 503,
         headers: {
@@ -60,7 +67,7 @@ export async function GET(request: NextRequest) {
     headers: {
       "Content-Type": "audio/mpeg",
       "Cache-Control": "public, max-age=2592000, stale-while-revalidate=86400",
-      "X-Pronounce-Engine": "neural",
+      "X-Pronounce-Engine": engine,
     },
   });
 }

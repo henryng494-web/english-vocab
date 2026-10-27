@@ -2,8 +2,10 @@ import {
   applyNaturalSpeechSettings,
   getSpeechVoiceSync,
   isAppleWebKit,
+  primeSpeechSynthesisInGesture,
   speakUtteranceInGesture,
 } from "@/lib/speech-voice";
+import { logPronunciation } from "@/lib/pronunciation-log";
 import {
   hasWordAudioBlob,
   isWordAudioElementReady,
@@ -12,6 +14,7 @@ import {
   playWordAudioWhenReady,
   preloadWordAudioElement,
   primeAudioPipelineInUserGesture,
+  setGesturePlaybackFailureHandler,
   stopWordAudio,
   warmWordAudioBytes,
 } from "@/lib/word-pronunciation-audio";
@@ -29,17 +32,37 @@ const FIRST_CARD_MP3_WAIT_MS = 450;
 let firstCardAutoSpoken = false;
 
 function speakWithSynthesisFallback(text: string): boolean {
-  if (typeof window === "undefined" || !window.speechSynthesis) return false;
+  if (typeof window === "undefined" || !window.speechSynthesis) {
+    logPronunciation({ stage: "tts-unavailable", word: text });
+    return false;
+  }
   try {
     const synth = window.speechSynthesis;
     synth.cancel();
+    primeSpeechSynthesisInGesture();
     const utterance = new SpeechSynthesisUtterance(text);
     applyNaturalSpeechSettings(utterance, getSpeechVoiceSync());
+    utterance.onerror = (event) => {
+      logPronunciation({
+        stage: "tts-error",
+        word: text,
+        detail: event.error ?? "speech-synthesis-error",
+      });
+    };
     speakUtteranceInGesture(utterance);
+    logPronunciation({ stage: "tts-started", word: text });
     return true;
-  } catch {
+  } catch (error) {
+    logPronunciation({ stage: "tts-error", word: text, error });
     return false;
   }
+}
+
+if (typeof window !== "undefined") {
+  setGesturePlaybackFailureHandler((word, reason) => {
+    logPronunciation({ stage: "gesture-fallback-tts", word, detail: reason });
+    speakWithSynthesisFallback(word);
+  });
 }
 
 let speechUnlocked = false;
@@ -136,9 +159,12 @@ export function speakWordInUserGesture(text: string): void {
   if (!trimmed || typeof window === "undefined") return;
 
   unlockSpeechFromUserGesture();
+  primeSpeechSynthesisInGesture();
   preloadWordAudioElement(trimmed);
   void warmWordAudioBytes(trimmed);
-  playWordAudioInUserGesture(trimmed);
+  if (!playWordAudioInUserGesture(trimmed)) {
+    speakWithSynthesisFallback(trimmed);
+  }
 
   const key = trimmed.toLowerCase();
   lastSpoken = { text: key, at: Date.now() };
@@ -217,6 +243,8 @@ async function speakMp3Auto(
   preloadWordAudioElement(text, { force: true });
   const played = await playWordAudioWhenReady(text, AUTO_MP3_RETRY_MS);
   if (!played && stillCurrentRequest(requestId, key) && !isWordAudioPlaying(text)) {
+    if (speakWithSynthesisFallback(text)) return;
+    logPronunciation({ stage: "auto-speak-blocked", word: text, detail: "pending-next-tap" });
     // Autoplay blocked: replay on the user's next tap.
     pendingAutoSpeak = text;
   }
@@ -279,12 +307,15 @@ export function speakEnglishText(
   if (!trimmed) return;
 
   unlockSpeechFromUserGesture();
+  primeSpeechSynthesisInGesture();
   if (isAppleWebKit()) {
     primeAudioPipelineInUserGesture();
   }
   preloadWordAudioElement(trimmed);
   void warmWordAudioBytes(trimmed);
-  playWordAudioInUserGesture(trimmed);
+  if (!playWordAudioInUserGesture(trimmed)) {
+    speakWithSynthesisFallback(trimmed);
+  }
 }
 
 export function cancelSpeech(): void {

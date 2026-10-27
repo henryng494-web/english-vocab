@@ -6,6 +6,19 @@ import {
 } from "@/lib/pronounce-accent";
 import { normalizePronounceText } from "@/lib/pronounce-text";
 import { getPronouncePlaybackRate } from "@/lib/pronounce-speed";
+import { logPronunciation } from "@/lib/pronunciation-log";
+
+type PlaybackFailureReason = "no-element" | "no-src" | "autoplay-blocked" | "media-error";
+
+let gesturePlaybackFailureHandler: ((word: string, reason: PlaybackFailureReason) => void) | null =
+  null;
+
+/** Client fallback (e.g. SpeechSynthesis) when MP3 play() fails inside a user gesture. */
+export function setGesturePlaybackFailureHandler(
+  handler: ((word: string, reason: PlaybackFailureReason) => void) | null,
+): void {
+  gesturePlaybackFailureHandler = handler;
+}
 
 const audioUrlCache = new Map<string, string | null>();
 const pendingLookups = new Map<string, Promise<string | null>>();
@@ -97,7 +110,24 @@ function resolveAudioElement(): HTMLAudioElement | null {
   return found;
 }
 
-function startPlayback(audio: HTMLAudioElement): void {
+function notifyPlaybackFailure(
+  wordKey: string | undefined,
+  reason: PlaybackFailureReason,
+  error?: unknown,
+): void {
+  const word = wordKey?.includes(":") ? wordKey.split(":").slice(1).join(":") : wordKey;
+  logPronunciation({
+    stage: "mp3-play-failed",
+    word,
+    detail: reason,
+    error,
+  });
+  if (word && gesturePlaybackFailureHandler) {
+    gesturePlaybackFailureHandler(word, reason);
+  }
+}
+
+function startPlayback(audio: HTMLAudioElement, wordKey?: string): void {
   applyPlaybackRate(audio);
   currentAudio = audio;
   try {
@@ -106,13 +136,21 @@ function startPlayback(audio: HTMLAudioElement): void {
     /* media not seekable yet — play() still queues playback */
   }
 
+  const fail = (reason: PlaybackFailureReason, error?: unknown) => {
+    if (currentAudio === audio) currentAudio = null;
+    notifyPlaybackFailure(wordKey ?? audio.dataset.wordKey, reason, error);
+  };
+
   const playAttempt = () => {
     const playPromise = audio.play();
     if (!playPromise || typeof playPromise.catch !== "function") return;
     playPromise.catch((err: unknown) => {
+      const blocked =
+        err instanceof DOMException &&
+        (err.name === "NotAllowedError" || err.name === "AbortError");
       if (audio.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
-        void audio.play().catch(() => {
-          if (currentAudio === audio) currentAudio = null;
+        void audio.play().catch((retryErr) => {
+          fail(blocked ? "autoplay-blocked" : "media-error", retryErr);
         });
         return;
       }
@@ -121,8 +159,8 @@ function startPlayback(audio: HTMLAudioElement): void {
         audio.removeEventListener("canplaythrough", onReady);
         if (currentAudio !== audio) return;
         applyPlaybackRate(audio);
-        void audio.play().catch(() => {
-          if (currentAudio === audio) currentAudio = null;
+        void audio.play().catch((retryErr) => {
+          fail(blocked ? "autoplay-blocked" : "media-error", retryErr);
         });
       };
       audio.addEventListener("canplay", onReady);
@@ -442,10 +480,20 @@ export function playWordAudioInUserGesture(word: string): boolean {
   if (typeof window === "undefined") return false;
   const key = cacheKey(word);
   const audio = getAudioElement();
-  if (!key || !audio) return false;
+  if (!key || !audio) {
+    logPronunciation({
+      stage: "mp3-play-failed",
+      word,
+      detail: !audio ? "no-audio-element" : "invalid-word",
+    });
+    return false;
+  }
 
   const src = resolvePlayableSrc(word);
-  if (!src) return false;
+  if (!src) {
+    logPronunciation({ stage: "mp3-play-failed", word, detail: "no-src" });
+    return false;
+  }
 
   if (audio.dataset.wordKey !== key || !audioSrcMatches(audio, src)) {
     audio.pause();
@@ -454,7 +502,7 @@ export function playWordAudioInUserGesture(word: string): boolean {
     // Do not call load() here — it resets the buffer and breaks iOS gesture playback.
   }
 
-  startPlayback(audio);
+  startPlayback(audio, key);
   return true;
 }
 

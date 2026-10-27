@@ -75,28 +75,36 @@ export async function fetchDictionaryAudioBytes(
 }
 
 /** Upstream dictionary MP3 URL (cross-origin). */
+const DICTIONARY_USER_AGENT =
+  "Mozilla/5.0 (compatible; EnglishVocab/1.0; +https://english-vocab-omega.vercel.app)";
+
 export async function lookupDictionaryAudioUrl(
   word: string,
   accent: PronounceAccent = DEFAULT_PRONOUNCE_ACCENT,
 ): Promise<string | null> {
-  const key = `${accent}:${word.trim().toLowerCase()}`;
-  if (!key) return null;
-  if (upstreamAudioCache.has(key)) return upstreamAudioCache.get(key) ?? null;
+  const normalized = word.trim().toLowerCase();
+  if (!normalized) return null;
+  const cacheKey = `${accent}:${normalized}`;
+  if (upstreamAudioCache.has(cacheKey)) return upstreamAudioCache.get(cacheKey) ?? null;
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 4500);
 
   try {
     const response = await fetch(
-      `https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(key)}`,
+      `https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(normalized)}`,
       {
         signal: controller.signal,
+        headers: {
+          Accept: "application/json",
+          "User-Agent": DICTIONARY_USER_AGENT,
+        },
         next: { revalidate: 60 * 60 * 24 * 30 },
       },
     );
 
     if (!response.ok) {
-      upstreamAudioCache.set(key, null);
+      upstreamAudioCache.set(cacheKey, null);
       return null;
     }
 
@@ -108,15 +116,15 @@ export async function lookupDictionaryAudioUrl(
           const firstKey = upstreamAudioCache.keys().next().value;
           if (firstKey) upstreamAudioCache.delete(firstKey);
         }
-        upstreamAudioCache.set(key, audioUrl);
+        upstreamAudioCache.set(cacheKey, audioUrl);
         return audioUrl;
       }
     }
 
-    upstreamAudioCache.set(key, null);
+    upstreamAudioCache.set(cacheKey, null);
     return null;
   } catch {
-    upstreamAudioCache.set(key, null);
+    upstreamAudioCache.set(cacheKey, null);
     return null;
   } finally {
     clearTimeout(timeout);
