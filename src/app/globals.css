@@ -159,6 +159,20 @@ body {
   overflow: hidden;
 }
 
+@keyframes app-setup-enter {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.app-setup-enter {
+  animation: app-setup-enter 0.35s ease;
+}
+
 .app-shell {
   display: grid;
   grid-template-rows: minmax(0, 1fr) auto;
