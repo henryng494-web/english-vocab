@@ -143,21 +143,6 @@ export default function AccountPage() {
               >
                 {signingOut ? t("account.signingOut") : t("account.signOut")}
               </button>
-
-              <div className="mt-8 border-t border-red-100 pt-6">
-                <h3 className="text-sm font-bold text-red-700">{t("account.dangerZone")}</h3>
-                <p className="home-body-text mt-1 text-foreground/70">{t("account.deleteSectionDesc")}</p>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setDeleteError(false);
-                    setConfirmOpen(true);
-                  }}
-                  className="mt-4 flex w-full justify-center rounded-full bg-red-600 px-5 py-3.5 font-bold text-white"
-                >
-                  {t("account.deleteBtn")}
-                </button>
-              </div>
             </section>
           ) : null}
 
@@ -190,6 +175,21 @@ export default function AccountPage() {
                 {t("account.signInBtn")}
               </Link>
             </section>
+          ) : null}
+
+          {supabaseOn && isSignedIn ? (
+            <div className="account-delete-footer">
+              <button
+                type="button"
+                className="account-delete-link"
+                onClick={() => {
+                  setDeleteError(false);
+                  setConfirmOpen(true);
+                }}
+              >
+                {t("account.deleteBtn")}
+              </button>
+            </div>
           ) : null}
 
           {process.env.NODE_ENV !== "production" && (
