@@ -1,6 +1,6 @@
 import { getPronounceAccent } from "@/lib/pronounce-accent";
 import { isNativeCapacitorShell } from "@/lib/network-status";
-import { speakNativeText } from "@/lib/native-tts";
+import { speakNativeText, stopNativeTts } from "@/lib/native-tts";
 import {
   applyNaturalSpeechSettings,
   getSpeechVoiceSync,
@@ -74,35 +74,67 @@ function speakWithSynthesisFallback(text: string): boolean {
   return speakWithBrowserTts(text, "tts-fallback");
 }
 
+function isCurrentSpeakRequest(requestId: number, text: string): boolean {
+  const key = text.trim().toLowerCase();
+  return requestId === speakRequestId && lastSpoken?.text === key;
+}
+
+/** Stop MP3, Web Speech, and native TTS before starting a new word. */
+function cancelAllPronunciation(): void {
+  stopWordAudio();
+  void stopNativeTts();
+  if (typeof window !== "undefined" && window.speechSynthesis) {
+    window.speechSynthesis.cancel();
+  }
+}
+
+const GESTURE_MP3_WAIT_MS = 320;
+
+async function speakMp3ThenTtsFallback(text: string, requestId: number): Promise<void> {
+  await warmWordAudioBytes(text);
+  if (!isCurrentSpeakRequest(requestId, text)) return;
+
+  preloadWordAudioElement(text, { force: true });
+  if (await playWordAudioWhenReady(text, GESTURE_MP3_WAIT_MS, { preserveBuffer: false })) {
+    logPronunciation({ stage: "mp3-gesture-primary", word: text, detail: "buffered" });
+    return;
+  }
+  if (!isCurrentSpeakRequest(requestId, text)) return;
+
+  if (await speakNativeText(text)) return;
+  if (!isCurrentSpeakRequest(requestId, text)) return;
+
+  speakWithBrowserTts(text, "tts-fallback-gesture");
+}
+
 /**
- * Manual tap / pointerdown — always speak via Web Speech first (MP3 optional later).
- * Guarantees audible output in the user gesture even when API/MP3 fails.
+ * Manual tap — cancel stale audio, prefer dictionary MP3, then native/Web TTS.
  */
 function speakPrimaryInUserGesture(text: string): void {
+  cancelAllPronunciation();
   unlockSpeechFromUserGesture();
   primeSpeechSynthesisInGesture();
   preloadWordPronunciation(text);
 
+  const requestId = speakRequestId;
+
   if (isNativeCapacitorShell()) {
-    void (async () => {
-      if (await speakNativeText(text)) return;
-      if (speakWithBrowserTts(text, "tts-primary-gesture")) return;
-      preloadWordAudioElement(text);
-      playWordAudioInUserGesture(text);
-    })();
+    if (playWordAudioInUserGesture(text)) {
+      logPronunciation({ stage: "mp3-gesture-primary", word: text, detail: "immediate" });
+      return;
+    }
+    void speakMp3ThenTtsFallback(text, requestId);
+    return;
+  }
+
+  if (playWordAudioInUserGesture(text)) {
+    logPronunciation({ stage: "mp3-gesture-primary", word: text, detail: "immediate" });
     return;
   }
 
   const spoke = speakWithBrowserTts(text, "tts-primary-gesture");
   if (!spoke) {
-    logPronunciation({
-      stage: "tts-primary-failed",
-      word: text,
-      detail: "will-retry-mp3",
-    });
-    preloadWordAudioElement(text);
-    void warmWordAudioBytes(text);
-    playWordAudioInUserGesture(text);
+    void speakMp3ThenTtsFallback(text, requestId);
   }
 }
 
@@ -203,14 +235,10 @@ export function wasRecentlySpokenInGesture(text: string): boolean {
 
 /** Pronounce inside tap/click — required on iOS before async auto-play works. */
 export function speakWordInUserGesture(text: string): void {
-  const trimmed = text?.trim();
-  if (!trimmed || typeof window === "undefined") return;
+  const trimmed = claimSpeak(text, true);
+  if (!trimmed) return;
 
   speakPrimaryInUserGesture(trimmed);
-
-  const key = trimmed.toLowerCase();
-  lastSpoken = { text: key, at: Date.now() };
-  speakRequestId += 1;
   pendingGestureAutoSpeak = null;
 }
 
@@ -355,7 +383,7 @@ export function speakEnglishText(
 }
 
 export function cancelSpeech(): void {
-  stopWordAudio();
+  cancelAllPronunciation();
 }
 
 export function preloadWordPronunciation(word: string): void {

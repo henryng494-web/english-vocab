@@ -8,6 +8,8 @@ import {
 } from "@/lib/pronunciation-preload";
 import { usePaywall } from "@/context/PaywallContext";
 import { useI18n } from "@/hooks/use-i18n";
+import { IS_MOBILE_BUILD } from "@/lib/api-base";
+import { normalizeMobileAppPath } from "@/lib/auth-navigation";
 import { freeTierBlockReason } from "@/lib/free-tier-gate";
 
 type TabItem = {
@@ -83,6 +85,16 @@ function AccountIcon({ active }: { active: boolean }) {
   );
 }
 
+function tabHref(path: string): string {
+  return IS_MOBILE_BUILD ? normalizeMobileAppPath(path) : path;
+}
+
+function pathsMatch(pathname: string, href: string): boolean {
+  const normalized = pathname.replace(/\/+$/, "") || "/";
+  const target = href.replace(/\/+$/, "") || "/";
+  return normalized === target || normalized.startsWith(`${target}/`);
+}
+
 export function BottomTabBar() {
   const pathname = usePathname();
   const router = useRouter();
@@ -94,27 +106,27 @@ export function BottomTabBar() {
       href: "/discover",
       label: t("tab.home"),
       match: (path) =>
-        path.startsWith("/discover") ||
-        path.startsWith("/search") ||
-        path.startsWith("/word/"),
+        pathsMatch(path, "/discover") ||
+        pathsMatch(path, "/search") ||
+        path.includes("/word/"),
       icon: (active) => <DiscoverIcon active={active} />,
     },
     {
       href: "/journey",
       label: t("tab.journey"),
-      match: (path) => path.startsWith("/journey"),
+      match: (path) => pathsMatch(path, "/journey"),
       icon: (active) => <JourneyIcon active={active} />,
     },
     {
       href: "/learn",
       label: t("tab.review"),
-      match: (path) => path.startsWith("/learn"),
+      match: (path) => pathsMatch(path, "/learn"),
       icon: (active) => <LearnIcon active={active} />,
     },
     {
       href: "/account",
       label: t("tab.account"),
-      match: (path) => path.startsWith("/account"),
+      match: (path) => pathsMatch(path, "/account"),
       icon: (active) => <AccountIcon active={active} />,
     },
   ];
@@ -158,10 +170,12 @@ export function BottomTabBar() {
 
           const journeyTab = tab.href === "/journey";
 
+          const href = tabHref(tab.href);
+
           return (
             <Link
               key={tab.href}
-              href={tab.href}
+              href={href}
               onClick={(event) => {
                 if (tab.href !== "/learn") return;
                 const reason = freeTierBlockReason("review");
@@ -178,8 +192,8 @@ export function BottomTabBar() {
                 if (!journeyTab) return;
                 event.preventDefault();
                 primeJourneyAudioFromUserGesture();
-                if (!pathname.startsWith("/journey")) {
-                  router.push("/journey");
+                if (!pathsMatch(pathname, "/journey")) {
+                  router.push(tabHref("/journey"));
                 }
               }}
               className={`tab-bar-link ${
