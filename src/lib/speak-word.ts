@@ -1,12 +1,5 @@
-import { getPronounceAccent } from "@/lib/pronounce-accent";
-import { isNativeCapacitorShell } from "@/lib/network-status";
-import { speakNativeText, stopNativeTts } from "@/lib/native-tts";
 import {
-  applyNaturalSpeechSettings,
-  getSpeechVoiceSync,
   isAppleWebKit,
-  primeSpeechSynthesisInGesture,
-  speakUtteranceInGesture,
 } from "@/lib/speech-voice";
 import { logPronunciation } from "@/lib/pronunciation-log";
 import {
@@ -16,7 +9,7 @@ import {
   playWordAudioInUserGesture,
   playWordAudioWhenReady,
   preloadWordAudioElement,
-  setGesturePlaybackFailureHandler,
+  primeAudioPipelineInUserGesture,
   stopWordAudio,
   warmWordAudioBytes,
 } from "@/lib/word-pronunciation-audio";
@@ -33,115 +26,19 @@ const FIRST_CARD_MP3_WAIT_MS = 450;
 
 let firstCardAutoSpoken = false;
 
-function ttsLangForAccent(): string {
-  const accent = getPronounceAccent();
-  if (accent === "uk") return "en-GB";
-  if (accent === "au") return "en-AU";
-  return "en-US";
-}
-
-/** Browser Web Speech — synchronous inside tap; no network MP3 required. */
-function speakWithBrowserTts(text: string, stage: string): boolean {
-  if (typeof window === "undefined" || !window.speechSynthesis) {
-    logPronunciation({ stage: "tts-unavailable", word: text, detail: stage });
-    return false;
-  }
-  try {
-    const synth = window.speechSynthesis;
-    stopWordAudio();
-    synth.cancel();
-    primeSpeechSynthesisInGesture();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = ttsLangForAccent();
-    applyNaturalSpeechSettings(utterance, getSpeechVoiceSync());
-    utterance.onerror = (event) => {
-      logPronunciation({
-        stage: "tts-error",
-        word: text,
-        detail: `${stage}:${event.error ?? "speech-synthesis-error"}`,
-      });
-    };
-    speakUtteranceInGesture(utterance);
-    logPronunciation({ stage, word: text, detail: "browser-tts" });
-    return true;
-  } catch (error) {
-    logPronunciation({ stage: "tts-error", word: text, detail: stage, error });
-    return false;
-  }
-}
-
-function speakWithSynthesisFallback(text: string): boolean {
-  return speakWithBrowserTts(text, "tts-fallback");
-}
-
-function isCurrentSpeakRequest(requestId: number, text: string): boolean {
-  const key = text.trim().toLowerCase();
-  return requestId === speakRequestId && lastSpoken?.text === key;
-}
-
-/** Stop MP3, Web Speech, and native TTS before starting a new word. */
-function cancelAllPronunciation(): void {
-  stopWordAudio();
-  void stopNativeTts();
-  if (typeof window !== "undefined" && window.speechSynthesis) {
-    window.speechSynthesis.cancel();
-  }
-}
-
-const GESTURE_MP3_WAIT_MS = 320;
-
-async function speakMp3ThenTtsFallback(text: string, requestId: number): Promise<void> {
-  await warmWordAudioBytes(text);
-  if (!isCurrentSpeakRequest(requestId, text)) return;
-
-  preloadWordAudioElement(text, { force: true });
-  if (await playWordAudioWhenReady(text, GESTURE_MP3_WAIT_MS, { preserveBuffer: false })) {
-    logPronunciation({ stage: "mp3-gesture-primary", word: text, detail: "buffered" });
-    return;
-  }
-  if (!isCurrentSpeakRequest(requestId, text)) return;
-
-  if (await speakNativeText(text)) return;
-  if (!isCurrentSpeakRequest(requestId, text)) return;
-
-  speakWithBrowserTts(text, "tts-fallback-gesture");
-}
-
-/**
- * Manual tap — cancel stale audio, prefer dictionary MP3, then native/Web TTS.
- */
-function speakPrimaryInUserGesture(text: string): void {
-  cancelAllPronunciation();
+/** Manual tap — single shared `<audio>` + dictionary MP3 URL (sync play in gesture). */
+function speakMp3InUserGesture(text: string): void {
   unlockSpeechFromUserGesture();
-  primeSpeechSynthesisInGesture();
-  preloadWordPronunciation(text);
-
-  const requestId = speakRequestId;
-
-  if (isNativeCapacitorShell()) {
-    if (playWordAudioInUserGesture(text)) {
-      logPronunciation({ stage: "mp3-gesture-primary", word: text, detail: "immediate" });
-      return;
-    }
-    void speakMp3ThenTtsFallback(text, requestId);
-    return;
+  if (isAppleWebKit()) {
+    primeAudioPipelineInUserGesture();
   }
-
-  if (playWordAudioInUserGesture(text)) {
-    logPronunciation({ stage: "mp3-gesture-primary", word: text, detail: "immediate" });
-    return;
-  }
-
-  const spoke = speakWithBrowserTts(text, "tts-primary-gesture");
-  if (!spoke) {
-    void speakMp3ThenTtsFallback(text, requestId);
-  }
-}
-
-if (typeof window !== "undefined") {
-  setGesturePlaybackFailureHandler((word, reason) => {
-    logPronunciation({ stage: "gesture-fallback-tts", word, detail: reason });
-    speakWithSynthesisFallback(word);
+  stopWordAudio();
+  preloadWordAudioElement(text, { force: true });
+  const played = playWordAudioInUserGesture(text);
+  logPronunciation({
+    stage: "mp3-tap",
+    word: text,
+    detail: played ? "play-called" : "play-not-started",
   });
 }
 
@@ -153,8 +50,12 @@ const unlockListeners = new Set<() => void>();
 const GESTURE_AUTO_DEDUPE_MS = 900;
 
 function readSpeechUnlockedFromStorage(): boolean {
-  if (typeof sessionStorage === "undefined") return false;
-  return sessionStorage.getItem(SPEECH_UNLOCK_KEY) === "1";
+  if (typeof localStorage === "undefined") return false;
+  try {
+    return localStorage.getItem(SPEECH_UNLOCK_KEY) === "1";
+  } catch {
+    return false;
+  }
 }
 
 export function isSpeechUnlocked(): boolean {
@@ -193,7 +94,7 @@ export function unlockSpeechFromUserGesture(): void {
   const wasUnlocked = isSpeechUnlocked();
   speechUnlocked = true;
   try {
-    sessionStorage.setItem(SPEECH_UNLOCK_KEY, "1");
+    localStorage.setItem(SPEECH_UNLOCK_KEY, "1");
   } catch {
     /* private mode */
   }
@@ -233,12 +134,12 @@ export function wasRecentlySpokenInGesture(text: string): boolean {
   );
 }
 
-/** Pronounce inside tap/click — required on iOS before async auto-play works. */
+/** Pronounce inside tap/click — MP3 only, synchronous play() in gesture. */
 export function speakWordInUserGesture(text: string): void {
   const trimmed = claimSpeak(text, true);
   if (!trimmed) return;
 
-  speakPrimaryInUserGesture(trimmed);
+  speakMp3InUserGesture(trimmed);
   pendingGestureAutoSpeak = null;
 }
 
@@ -306,16 +207,12 @@ async function speakMp3Auto(
   if (!stillCurrentRequest(requestId, key)) return;
   if (isWordAudioPlaying(text)) return;
 
-  if (speakWithSynthesisFallback(text)) return;
-
   await warmWordAudioBytes(text, { bustCache: true });
   if (!stillCurrentRequest(requestId, key)) return;
   preloadWordAudioElement(text, { force: true });
   const played = await playWordAudioWhenReady(text, AUTO_MP3_RETRY_MS);
   if (!played && stillCurrentRequest(requestId, key) && !isWordAudioPlaying(text)) {
-    if (speakWithSynthesisFallback(text)) return;
     logPronunciation({ stage: "auto-speak-blocked", word: text, detail: "pending-next-tap" });
-    // Autoplay blocked: replay on the user's next tap.
     pendingAutoSpeak = text;
   }
 }
@@ -365,13 +262,10 @@ export function speakEnglishTextAuto(text: string): void {
   const key = trimmed.toLowerCase();
   lastSpoken = { text: key, at: Date.now() };
   speakRequestId += 1;
-  if (!hasWordAudioBlob(trimmed) && !isWordAudioElementReady(trimmed)) {
-    if (speakWithSynthesisFallback(trimmed)) return;
-  }
   void speakMp3Auto(trimmed, speakRequestId);
 }
 
-/** Manual tap — must start play synchronously inside the user gesture. */
+/** Manual tap — dictionary MP3 via HTML5 audio (no TTS / native speech stack). */
 export function speakEnglishText(
   text: string,
   _options?: { force?: boolean },
@@ -379,11 +273,11 @@ export function speakEnglishText(
   const trimmed = claimSpeak(text, Boolean(_options?.force));
   if (!trimmed) return;
 
-  speakPrimaryInUserGesture(trimmed);
+  speakMp3InUserGesture(trimmed);
 }
 
 export function cancelSpeech(): void {
-  cancelAllPronunciation();
+  stopWordAudio();
 }
 
 export function preloadWordPronunciation(word: string): void {
