@@ -18,12 +18,27 @@ import {
   AppBootstrapProvider,
   useAppBootstrap,
 } from "@/context/AppBootstrapContext";
+import { MIN_WELCOME_MS, type BootstrapProgress } from "@/lib/app-bootstrap";
 import { useCallback, useEffect, useState } from "react";
 
+function StartupSplash({ progress }: { progress: BootstrapProgress }) {
+  return (
+    <div className="app-page">
+      <div className="app-shell mx-auto w-full max-w-lg bg-background">
+        <div className="shell-content">
+          <WelcomeSplash progress={progress} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function MobileShellInner({ children }: { children: React.ReactNode }) {
-  const { ready, progress } = useAppBootstrap();
+  const { ready: bootstrapReady, progress } = useAppBootstrap();
   const { settingsReady, hasOnboarded } = useAppSettings();
   const [nicknameReady, setNicknameReady] = useState(false);
+  const [minSplashElapsed, setMinSplashElapsed] = useState(false);
+  const [startupSplashDone, setStartupSplashDone] = useState(false);
 
   const syncNicknameGate = useCallback(() => {
     setNicknameReady(!needsLearnerNicknamePrompt());
@@ -35,13 +50,24 @@ function MobileShellInner({ children }: { children: React.ReactNode }) {
     return () => window.removeEventListener(LEARNER_DISPLAY_NAME_EVENT, syncNicknameGate);
   }, [syncNicknameGate]);
 
-  if (!settingsReady) {
-    return <div className="app-page" aria-busy="true" />;
+  useEffect(() => {
+    const timer = window.setTimeout(() => setMinSplashElapsed(true), MIN_WELCOME_MS);
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    if (bootstrapReady && settingsReady && minSplashElapsed) {
+      setStartupSplashDone(true);
+    }
+  }, [bootstrapReady, settingsReady, minSplashElapsed]);
+
+  if (!startupSplashDone) {
+    return <StartupSplash progress={progress} />;
   }
 
   if (!hasOnboarded) {
     return (
-      <div className="app-page">
+      <div className="app-page app-setup-enter">
         <div className="app-shell mx-auto w-full max-w-lg bg-background">
           <OnboardingScreen />
         </div>
@@ -50,7 +76,11 @@ function MobileShellInner({ children }: { children: React.ReactNode }) {
   }
 
   if (!nicknameReady) {
-    return <NicknamePrompt onComplete={syncNicknameGate} />;
+    return (
+      <div className="app-setup-enter">
+        <NicknamePrompt onComplete={syncNicknameGate} />
+      </div>
+    );
   }
 
   return (
@@ -58,13 +88,10 @@ function MobileShellInner({ children }: { children: React.ReactNode }) {
       <ViewportHeightSync />
       <StudyTimeTracker />
       <StudyReminderScheduler />
-      <div className="app-page">
+      <div className="app-page app-setup-enter">
         <div className="app-shell mx-auto w-full max-w-lg bg-background">
-          <div className="shell-content">
-            {ready ? children : null}
-            {!ready ? <WelcomeSplash progress={progress} /> : null}
-          </div>
-          {ready ? <BottomTabBar /> : null}
+          <div className="shell-content">{children}</div>
+          <BottomTabBar />
         </div>
       </div>
     </>
