@@ -5,7 +5,7 @@ import {
   preloadSpeechVoices,
   unlockSpeechFromUserGesture,
 } from "@/lib/speak-word";
-import { primeAudioPipelineInUserGesture } from "@/lib/word-pronunciation-audio";
+import { primeSharedAudioInUserGesture } from "@/lib/word-pronunciation-audio";
 import { useEffect } from "react";
 
 function isSpeakButtonTarget(target: EventTarget | null): boolean {
@@ -25,21 +25,22 @@ export function SpeechVoiceWarmup() {
       // Skip silent priming when the first tap is the speak button — it plays MP3
       // in the same gesture and silent priming would race and cancel playback.
       if (!isSpeakButtonTarget(event.target)) {
-        primeAudioPipelineInUserGesture();
+        primeSharedAudioInUserGesture();
       }
     };
 
+    document.addEventListener("touchstart", onFirstTouch, {
+      capture: true,
+      passive: true,
+    });
     document.addEventListener("pointerdown", onFirstTouch, {
       capture: true,
       passive: true,
     });
-    document.addEventListener("click", onFirstTouch, {
-      capture: true,
-    });
 
     return () => {
+      document.removeEventListener("touchstart", onFirstTouch, { capture: true });
       document.removeEventListener("pointerdown", onFirstTouch, { capture: true });
-      document.removeEventListener("click", onFirstTouch, { capture: true });
     };
   }, []);
 

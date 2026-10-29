@@ -1,6 +1,7 @@
 "use client";
 
 import { speakEnglishText, unlockSpeechFromUserGesture } from "@/lib/speak-word";
+import { primeSharedAudioInUserGesture } from "@/lib/word-pronunciation-audio";
 import { useCallback, useRef } from "react";
 import { useI18n } from "@/hooks/use-i18n";
 
@@ -48,9 +49,14 @@ export function SpeakButton({
 
   const speak = useCallback(() => {
     if (!text) return;
+    primeSharedAudioInUserGesture();
     unlockSpeechFromUserGesture();
     speakEnglishText(text, { force: true });
   }, [text]);
+
+  const primeOnTouch = useCallback(() => {
+    primeSharedAudioInUserGesture();
+  }, []);
 
   const handlePointerDown = useCallback(
     (event: React.PointerEvent<HTMLButtonElement>) => {
@@ -87,6 +93,7 @@ export function SpeakButton({
     <button
       type="button"
       data-pronounce-speak
+      onTouchStart={primeOnTouch}
       onPointerDown={handlePointerDown}
       onClick={handleClick}
       className={`${toneClass} ${className}`.trim()}
