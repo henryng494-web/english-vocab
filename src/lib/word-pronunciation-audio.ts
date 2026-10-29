@@ -10,15 +10,8 @@ import { logPronunciation } from "@/lib/pronunciation-log";
 
 type PlaybackFailureReason = "no-element" | "no-src" | "autoplay-blocked" | "media-error";
 
-let gesturePlaybackFailureHandler: ((word: string, reason: PlaybackFailureReason) => void) | null =
-  null;
-
-/** Client fallback (e.g. SpeechSynthesis) when MP3 play() fails inside a user gesture. */
-export function setGesturePlaybackFailureHandler(
-  handler: ((word: string, reason: PlaybackFailureReason) => void) | null,
-): void {
-  gesturePlaybackFailureHandler = handler;
-}
+/** Bumped on every stop / superseding play so stale canplay handlers never replay the wrong word. */
+let playbackEpoch = 0;
 
 const audioUrlCache = new Map<string, string | null>();
 const pendingLookups = new Map<string, Promise<string | null>>();
@@ -69,6 +62,11 @@ function resolvePlayableSrc(word: string): string {
   return absoluteAudioUrl(resolvePlayableUrl(word));
 }
 
+/** Tap path: warmed MP3 blob when ready, otherwise stream same-origin `/api/pronounce/audio`. */
+function resolveGesturePlaySrc(word: string): string {
+  return resolvePlayableSrc(word);
+}
+
 function absoluteAudioUrl(relativePath: string): string {
   if (typeof window === "undefined") return relativePath;
   return new URL(apiUrl(relativePath), window.location.origin).href;
@@ -110,26 +108,45 @@ function resolveAudioElement(): HTMLAudioElement | null {
   return found;
 }
 
+function wordFromCacheKey(wordKey: string | undefined): string | undefined {
+  if (!wordKey) return undefined;
+  return wordKey.includes(":") ? wordKey.split(":").slice(1).join(":") : wordKey;
+}
+
 function notifyPlaybackFailure(
   wordKey: string | undefined,
   reason: PlaybackFailureReason,
   error?: unknown,
 ): void {
-  const word = wordKey?.includes(":") ? wordKey.split(":").slice(1).join(":") : wordKey;
   logPronunciation({
     stage: "mp3-play-failed",
-    word,
+    word: wordFromCacheKey(wordKey),
     detail: reason,
     error,
   });
-  if (word && gesturePlaybackFailureHandler) {
-    gesturePlaybackFailureHandler(word, reason);
-  }
 }
 
-function startPlayback(audio: HTMLAudioElement, wordKey?: string): void {
+function playbackStillActive(
+  audio: HTMLAudioElement,
+  epoch: number,
+  wordKey: string,
+): boolean {
+  return (
+    Number(audio.dataset.playbackEpoch) === epoch &&
+    audio.dataset.wordKey === wordKey
+  );
+}
+
+function startPlayback(
+  audio: HTMLAudioElement,
+  wordKey: string,
+  epoch: number,
+): void {
   applyPlaybackRate(audio);
   currentAudio = audio;
+  audio.dataset.playbackEpoch = String(epoch);
+  audio.dataset.wordKey = wordKey;
+
   try {
     audio.currentTime = 0;
   } catch {
@@ -137,35 +154,48 @@ function startPlayback(audio: HTMLAudioElement, wordKey?: string): void {
   }
 
   const fail = (reason: PlaybackFailureReason, error?: unknown) => {
+    if (!playbackStillActive(audio, epoch, wordKey)) return;
     if (currentAudio === audio) currentAudio = null;
-    notifyPlaybackFailure(wordKey ?? audio.dataset.wordKey, reason, error);
+    notifyPlaybackFailure(wordKey, reason, error);
   };
 
+  const onMediaError = () => {
+    if (!playbackStillActive(audio, epoch, wordKey)) return;
+    fail("media-error");
+  };
+  audio.addEventListener("error", onMediaError, { once: true });
+
   const playAttempt = () => {
-    const playPromise = audio.play();
-    if (!playPromise || typeof playPromise.catch !== "function") return;
-    playPromise.catch((err: unknown) => {
-      const blocked =
-        err instanceof DOMException &&
-        (err.name === "NotAllowedError" || err.name === "AbortError");
-      if (audio.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
-        void audio.play().catch((retryErr) => {
-          fail(blocked ? "autoplay-blocked" : "media-error", retryErr);
-        });
-        return;
-      }
-      const onReady = () => {
-        audio.removeEventListener("canplay", onReady);
-        audio.removeEventListener("canplaythrough", onReady);
-        if (currentAudio !== audio) return;
-        applyPlaybackRate(audio);
-        void audio.play().catch((retryErr) => {
-          fail(blocked ? "autoplay-blocked" : "media-error", retryErr);
-        });
-      };
-      audio.addEventListener("canplay", onReady);
-      audio.addEventListener("canplaythrough", onReady);
-    });
+    try {
+      const playPromise = audio.play();
+      if (!playPromise || typeof playPromise.catch !== "function") return;
+      playPromise.catch((err: unknown) => {
+        if (!playbackStillActive(audio, epoch, wordKey)) return;
+        const blocked =
+          err instanceof DOMException &&
+          (err.name === "NotAllowedError" || err.name === "AbortError");
+        if (audio.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
+          void audio.play().catch((retryErr) => {
+            fail(blocked ? "autoplay-blocked" : "media-error", retryErr);
+          });
+          return;
+        }
+        const onReady = () => {
+          audio.removeEventListener("canplay", onReady);
+          audio.removeEventListener("canplaythrough", onReady);
+          if (!playbackStillActive(audio, epoch, wordKey)) return;
+          if (currentAudio !== audio) return;
+          applyPlaybackRate(audio);
+          void audio.play().catch((retryErr) => {
+            fail(blocked ? "autoplay-blocked" : "media-error", retryErr);
+          });
+        };
+        audio.addEventListener("canplay", onReady);
+        audio.addEventListener("canplaythrough", onReady);
+      });
+    } catch (err) {
+      fail("media-error", err);
+    }
   };
 
   playAttempt();
@@ -377,11 +407,15 @@ export function isWordAudioElementReady(word: string): boolean {
 function waitForAudioElementReady(
   word: string,
   timeoutMs: number,
+  guard?: () => boolean,
 ): Promise<boolean> {
   const key = cacheKey(word);
   const audio = getAudioElement();
   if (!key || !audio) return Promise.resolve(false);
+  if (guard && !guard()) return Promise.resolve(false);
   if (isWordAudioElementReady(word)) return Promise.resolve(true);
+
+  const epoch = playbackEpoch;
 
   return new Promise((resolve) => {
     let settled = false;
@@ -395,7 +429,14 @@ function waitForAudioElementReady(
       resolve(ready);
     };
     const onReady = () => {
-      if (audio.dataset.wordKey === key && audio.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
+      if (guard && !guard()) {
+        finish(false);
+        return;
+      }
+      if (
+        playbackStillActive(audio, epoch, key) &&
+        audio.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA
+      ) {
         finish(true);
       }
     };
@@ -407,10 +448,15 @@ function waitForAudioElementReady(
 }
 
 export function stopWordAudio(): void {
+  playbackEpoch += 1;
   const audio = getAudioElement();
   if (!audio) return;
   audio.pause();
-  audio.currentTime = 0;
+  try {
+    audio.currentTime = 0;
+  } catch {
+    /* ignore */
+  }
   if (currentAudio === audio) currentAudio = null;
 }
 
@@ -489,18 +535,24 @@ export function playWordAudioInUserGesture(word: string): boolean {
     return false;
   }
 
-  const src = absoluteAudioUrl(resolvePlayableUrl(word));
+  const src = resolveGesturePlaySrc(word);
   if (!src) {
     logPronunciation({ stage: "mp3-play-failed", word, detail: "no-src" });
     return false;
   }
 
+  const epoch = playbackEpoch;
   audio.pause();
+  try {
+    audio.currentTime = 0;
+  } catch {
+    /* ignore */
+  }
   audio.dataset.wordKey = key;
   audio.src = src;
   // Do not call load() here — it resets the buffer and breaks iOS gesture playback.
 
-  startPlayback(audio, key);
+  startPlayback(audio, key, epoch);
   return true;
 }
 
@@ -508,12 +560,15 @@ export function playWordAudioInUserGesture(word: string): boolean {
 export async function playWordAudioWhenReady(
   word: string,
   timeoutMs = 450,
-  options?: { preserveBuffer?: boolean },
+  options?: { preserveBuffer?: boolean; guard?: () => boolean },
 ): Promise<boolean> {
   if (typeof window === "undefined") return false;
   const key = cacheKey(word);
   const audio = getAudioElement();
   if (!key || !audio) return false;
+
+  const guard = options?.guard;
+  if (guard && !guard()) return false;
 
   if (isWordAudioPlaying(word)) return true;
 
@@ -526,12 +581,15 @@ export async function playWordAudioWhenReady(
     preloadWordAudioElement(word, { force: true });
   }
 
+  const epoch = playbackEpoch;
+
   if (!isWordAudioElementReady(word)) {
-    const ready = await waitForAudioElementReady(word, timeoutMs);
+    const ready = await waitForAudioElementReady(word, timeoutMs, guard);
     if (!ready) return false;
   }
 
-  if (audio.dataset.wordKey !== key) return false;
+  if (guard && !guard()) return false;
+  if (!playbackStillActive(audio, epoch, key)) return false;
 
   if (isWordAudioPlaying(word)) return true;
 
@@ -543,11 +601,15 @@ export async function playWordAudioWhenReady(
       resolve(ok);
     };
     const onPlaying = () => {
-      if (audio.dataset.wordKey === key && !audio.paused) finish(true);
+      if (guard && !guard()) {
+        finish(false);
+        return;
+      }
+      if (playbackStillActive(audio, epoch, key) && !audio.paused) finish(true);
     };
     timer = window.setTimeout(() => finish(isWordAudioPlaying(word)), timeoutMs);
     audio.addEventListener("playing", onPlaying);
-    startPlayback(audio);
+    startPlayback(audio, key, epoch);
   });
 }
 
