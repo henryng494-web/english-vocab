@@ -26,19 +26,26 @@ const FIRST_CARD_MP3_WAIT_MS = 450;
 
 let firstCardAutoSpoken = false;
 
-/** Manual tap — single shared `<audio>` + dictionary MP3 URL (sync play in gesture). */
-function speakMp3InUserGesture(text: string): void {
+/** Manual tap — shared `<audio>` + dictionary / neural MP3 (sync play() in gesture). */
+function speakMp3InUserGesture(text: string, requestId: number): void {
   unlockSpeechFromUserGesture();
+  if (typeof window !== "undefined" && window.speechSynthesis) {
+    try {
+      window.speechSynthesis.cancel();
+    } catch {
+      /* ignore */
+    }
+  }
   if (isAppleWebKit()) {
     primeAudioPipelineInUserGesture();
   }
   stopWordAudio();
-  preloadWordAudioElement(text, { force: true });
+  void warmWordAudioBytes(text);
   const played = playWordAudioInUserGesture(text);
   logPronunciation({
     stage: "mp3-tap",
     word: text,
-    detail: played ? "play-called" : "play-not-started",
+    detail: played ? `play-called#${requestId}` : "play-not-started",
   });
 }
 
@@ -139,7 +146,7 @@ export function speakWordInUserGesture(text: string): void {
   const trimmed = claimSpeak(text, true);
   if (!trimmed) return;
 
-  speakMp3InUserGesture(trimmed);
+  speakMp3InUserGesture(trimmed, speakRequestId);
   pendingGestureAutoSpeak = null;
 }
 
@@ -178,17 +185,21 @@ async function speakMp3Auto(
   requestId: number,
 ): Promise<void> {
   const key = text.toLowerCase();
+  const guard = () => stillCurrentRequest(requestId, key);
+
+  stopWordAudio();
+  if (!guard()) return;
+
   const buffered =
     hasWordAudioBlob(text) || isWordAudioElementReady(text);
 
   if (!buffered) {
-    stopWordAudio();
     preloadWordAudioElement(text, { force: true });
     await warmWordAudioBytes(text);
   } else {
     preloadWordAudioElement(text);
   }
-  if (!stillCurrentRequest(requestId, key)) return;
+  if (!guard()) return;
   if (isWordAudioPlaying(text)) return;
 
   const isFirstCard = !firstCardAutoSpoken;
@@ -200,18 +211,21 @@ async function speakMp3Auto(
   if (
     await playWordAudioWhenReady(text, waitMs, {
       preserveBuffer: buffered,
+      guard,
     })
   ) {
     return;
   }
-  if (!stillCurrentRequest(requestId, key)) return;
+  if (!guard()) return;
   if (isWordAudioPlaying(text)) return;
 
   await warmWordAudioBytes(text, { bustCache: true });
-  if (!stillCurrentRequest(requestId, key)) return;
+  if (!guard()) return;
   preloadWordAudioElement(text, { force: true });
-  const played = await playWordAudioWhenReady(text, AUTO_MP3_RETRY_MS);
-  if (!played && stillCurrentRequest(requestId, key) && !isWordAudioPlaying(text)) {
+  const played = await playWordAudioWhenReady(text, AUTO_MP3_RETRY_MS, {
+    guard,
+  });
+  if (!played && guard() && !isWordAudioPlaying(text)) {
     logPronunciation({ stage: "auto-speak-blocked", word: text, detail: "pending-next-tap" });
     pendingAutoSpeak = text;
   }
@@ -273,7 +287,7 @@ export function speakEnglishText(
   const trimmed = claimSpeak(text, Boolean(_options?.force));
   if (!trimmed) return;
 
-  speakMp3InUserGesture(trimmed);
+  speakMp3InUserGesture(trimmed, speakRequestId);
 }
 
 export function cancelSpeech(): void {
