@@ -153,6 +153,7 @@ export default function DiscoverPage() {
     wordCache: bootstrapWordCache,
     patchRangeAfterSave,
     bootstrapComplete,
+    bootstrapHasData,
     refreshBootstrap,
   } = useAppBootstrap();
   const { ready: authReady } = useAuthSession();
@@ -283,7 +284,7 @@ export default function DiscoverPage() {
     return lengths;
   }, [bootstrapRanges, rangeId, queue.length]);
 
-  const hasBootstrapData = bootstrapComplete;
+  const hasBootstrapData = bootstrapHasData;
 
   const allRangesFinished = useMemo(
     () =>
@@ -293,11 +294,13 @@ export default function DiscoverPage() {
     [hasBootstrapData, queueLengthsByRange],
   );
 
+  const bootstrapRefreshAttempted = useRef(false);
   useEffect(() => {
-    if (!authReady || !rangeReady) return;
-    if (bootstrapComplete) return;
+    if (!authReady || !rangeReady || bootstrapHasData) return;
+    if (bootstrapRefreshAttempted.current) return;
+    bootstrapRefreshAttempted.current = true;
     void refreshBootstrap();
-  }, [authReady, rangeReady, bootstrapComplete, refreshBootstrap]);
+  }, [authReady, rangeReady, bootstrapHasData, refreshBootstrap]);
 
   const warmRangeImages = useCallback((items: DiscoverListItem[]) => {
     const batch = items.slice(0, IMAGE_WARM_COUNT).map(listItemImageTarget);
@@ -642,11 +645,16 @@ export default function DiscoverPage() {
       return;
     }
 
-    if (!bootstrapRanges) return;
+    if (!bootstrapRanges) {
+      if (!bootstrapComplete) return;
+      initializedRangeRef.current = rangeId;
+      void fetchRange();
+      return;
+    }
 
     initializedRangeRef.current = rangeId;
     void fetchRange();
-  }, [bootstrapRanges, fetchRange, rangeId]);
+  }, [bootstrapRanges, bootstrapComplete, fetchRange, rangeId]);
 
   useEffect(() => {
     if (!currentItem) {
@@ -979,7 +987,7 @@ export default function DiscoverPage() {
           </p>
         )}
 
-        {loadingList || (!bootstrapComplete && !error) ? (
+        {loadingList && queue.length === 0 && !error ? (
           <div className="journey-main journey-main--center">
             <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary-100 border-t-primary" />
           </div>

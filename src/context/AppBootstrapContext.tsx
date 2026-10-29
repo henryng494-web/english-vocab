@@ -17,6 +17,7 @@ import {
   DEFAULT_BOOTSTRAP_RANGE,
   BOOTSTRAP_PRELOAD_DEFAULT,
   BOOTSTRAP_FAILSAFE_MS,
+  BOOTSTRAP_UI_RELEASE_MS,
   isBootstrapSnapshotUsable,
   type AppBootstrapSnapshot,
   type BootstrapProgress,
@@ -32,7 +33,10 @@ import type { ReviewSession } from "@/lib/review-session";
 
 type AppBootstrapContextValue = {
   ready: boolean;
+  /** UI gate — always true within ~5s so Journey never infinite-spins. */
   bootstrapComplete: boolean;
+  /** True when at least one discover band loaded successfully. */
+  bootstrapHasData: boolean;
   progress: BootstrapProgress;
   ranges: Record<string, RangeBootstrapData> | null;
   wordCache: Record<string, DiscoverWordData> | null;
@@ -84,7 +88,20 @@ export function AppBootstrapProvider({ children }: { children: ReactNode }) {
         : null,
   );
   const [reviewOverride, setReviewOverride] = useState<ReviewSession | null>(null);
+  const [uiReleased, setUiReleased] = useState(
+    () => completedSnapshot !== null && isBootstrapSnapshotUsable(completedSnapshot),
+  );
   const bootstrapRunRef = useRef(0);
+
+  const releaseUi = useCallback(() => {
+    setUiReleased(true);
+  }, []);
+
+  useEffect(() => {
+    if (uiReleased) return;
+    const timer = window.setTimeout(releaseUi, BOOTSTRAP_UI_RELEASE_MS);
+    return () => window.clearTimeout(timer);
+  }, [uiReleased, releaseUi]);
 
   const runBootstrap = useCallback(async (options?: { force?: boolean }) => {
     if (
@@ -109,7 +126,7 @@ export function AppBootstrapProvider({ children }: { children: ReactNode }) {
           if (runId === bootstrapRunRef.current) setProgress(next);
         }),
         new Promise<AppBootstrapSnapshot>((resolve) => {
-          setTimeout(() => resolve(FAILSAFE_SNAPSHOT), BOOTSTRAP_FAILSAFE_MS);
+          setTimeout(() => resolve(FAILSAFE_SNAPSHOT), BOOTSTRAP_UI_RELEASE_MS);
         }),
       ]);
 
@@ -129,14 +146,20 @@ export function AppBootstrapProvider({ children }: { children: ReactNode }) {
         ]);
       }
       setReady(true);
+      releaseUi();
     } catch {
       await waitForWelcomeMinimum(startedAt);
       if (runId !== bootstrapRunRef.current) return;
       setProgress({ progress: 100, message: "Ready to learn!" });
-      setSnapshot(null);
+      if (completedSnapshot && isBootstrapSnapshotUsable(completedSnapshot)) {
+        setSnapshot(completedSnapshot);
+      } else {
+        setSnapshot(null);
+      }
       setReady(true);
+      releaseUi();
     }
-  }, []);
+  }, [releaseUi]);
 
   useEffect(() => {
     void runBootstrap();
@@ -144,18 +167,12 @@ export function AppBootstrapProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const retryIfNeeded = () => {
-      if (!isBootstrapSnapshotUsable(completedSnapshot)) {
-        void runBootstrap({ force: true });
-      }
+      if (isBootstrapSnapshotUsable(completedSnapshot)) return;
+      void runBootstrap({ force: true });
     };
     window.addEventListener(AUTH_SESSION_EVENT, retryIfNeeded);
-    const onVisible = () => {
-      if (document.visibilityState === "visible") retryIfNeeded();
-    };
-    document.addEventListener("visibilitychange", onVisible);
     return () => {
       window.removeEventListener(AUTH_SESSION_EVENT, retryIfNeeded);
-      document.removeEventListener("visibilitychange", onVisible);
     };
   }, [runBootstrap]);
 
@@ -206,12 +223,14 @@ export function AppBootstrapProvider({ children }: { children: ReactNode }) {
     [],
   );
 
-  const bootstrapComplete = isBootstrapSnapshotUsable(snapshot);
+  const bootstrapHasData = isBootstrapSnapshotUsable(snapshot);
+  const bootstrapComplete = uiReleased;
 
   const value = useMemo<AppBootstrapContextValue>(
     () => ({
       ready,
       bootstrapComplete,
+      bootstrapHasData,
       progress,
       ranges: snapshot?.ranges ?? null,
       wordCache: snapshot?.wordCache ?? null,
@@ -224,6 +243,7 @@ export function AppBootstrapProvider({ children }: { children: ReactNode }) {
     [
       ready,
       bootstrapComplete,
+      bootstrapHasData,
       progress,
       snapshot,
       reviewOverride,
