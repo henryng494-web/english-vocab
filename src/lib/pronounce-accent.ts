@@ -15,13 +15,20 @@ export const NEURAL_VOICE_BY_ACCENT: Record<PronounceAccent, string> = {
   au: "en-AU-NatashaNeural",
 };
 
+/** Google HTTP TTS `tl` parameter per learner accent. */
+export const FALLBACK_TTS_LANG_BY_ACCENT: Record<PronounceAccent, string> = {
+  us: "en-US",
+  uk: "en-GB",
+  au: "en-AU",
+};
+
 export function isPronounceAccent(value: unknown): value is PronounceAccent {
   return value === "us" || value === "uk" || value === "au";
 }
 
 /** Cache-bust token when accent or voice mapping changes. */
 export function voiceVersionForAccent(accent: PronounceAccent): string {
-  return `v2-${accent}`;
+  return `v3-${accent}`;
 }
 
 const APP_SETTINGS_STORAGE_KEY = "vocab-app-settings-v1";

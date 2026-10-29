@@ -62,6 +62,7 @@ export async function GET(request: NextRequest) {
   if (!bytes) {
     bytes = await lookupFallbackTtsAudio(text, {
       timeoutMs: fallbackTimeoutMs(text),
+      accent,
     });
     if (bytes) engine = "fallback-http";
   }
@@ -97,6 +98,7 @@ export async function GET(request: NextRequest) {
       "Content-Type": "audio/mpeg",
       "Cache-Control": "public, max-age=2592000, stale-while-revalidate=86400",
       "X-Pronounce-Engine": engine,
+      "X-Pronounce-Accent": accent,
     },
   });
 }
