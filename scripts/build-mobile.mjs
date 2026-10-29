@@ -6,13 +6,37 @@
  * NOT bundled). Override the production URL with NEXT_PUBLIC_API_BASE_URL.
  */
 import { spawnSync } from "node:child_process";
-import { existsSync, mkdirSync, readdirSync, renameSync, rmSync, statSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  readdirSync,
+  renameSync,
+  rmSync,
+  statSync,
+  writeFileSync,
+} from "node:fs";
 import { join } from "node:path";
 
 const root = process.cwd();
 const webOnly =
   process.argv.includes("--web-only") || process.env.MOBILE_WEB_ONLY === "1";
-const DEFAULT_API_BASE_URL = "https://english-vocab-omega.vercel.app";
+const DEFAULT_API_BASE_URL = "https://www.junglejokers.com";
+
+const MOBILE_PUBLIC_ENV_KEYS = [
+  "NEXT_PUBLIC_SUPABASE_URL",
+  "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+];
+
+function requirePublicEnv(name) {
+  const value = process.env[name]?.trim();
+  if (!value) {
+    console.error(
+      `[build:mobile] Missing ${name}. Set it in Capawesome/Appflow environment variables before the web build.`,
+    );
+    process.exit(1);
+  }
+  return value;
+}
 const MAX_OUT_MB = 50;
 function normalizePublicOrigin(raw) {
   let s = String(raw ?? "").trim();
@@ -22,8 +46,15 @@ function normalizePublicOrigin(raw) {
     const bare = s.match(/https:\/\/[^\s\]\[]+/);
     if (bare?.[0]) s = bare[0];
   }
-  return s.replace(/\/+$/, "");
+  s = s.replace(/\/+$/, "");
+  if (s === "https://junglejokers.com") s = "https://www.junglejokers.com";
+  return s;
 }
+
+const mobilePublicEnv = Object.fromEntries(
+  MOBILE_PUBLIC_ENV_KEYS.map((key) => [key, requirePublicEnv(key)]),
+);
+
 const apiBase = normalizePublicOrigin(
   process.env.NEXT_PUBLIC_API_BASE_URL?.trim() || DEFAULT_API_BASE_URL,
 );
@@ -69,10 +100,19 @@ try {
   }
   rmSync(join(root, "out"), { recursive: true, force: true });
   rmSync(join(root, ".next-mobile"), { recursive: true, force: true });
+
+  console.log("[build:mobile] Baking public env into static bundle:");
+  console.log(`  NEXT_PUBLIC_API_BASE_URL=${apiBase}`);
+  console.log(`  NEXT_PUBLIC_SUPABASE_URL=${mobilePublicEnv.NEXT_PUBLIC_SUPABASE_URL}`);
+  console.log(
+    `  NEXT_PUBLIC_SUPABASE_ANON_KEY=${mobilePublicEnv.NEXT_PUBLIC_SUPABASE_ANON_KEY.slice(0, 8)}…`,
+  );
+
   run("npx", ["next", "build"], {
     MOBILE_BUILD: "1",
     NEXT_PUBLIC_MOBILE_BUILD: "1",
     NEXT_PUBLIC_API_BASE_URL: apiBase,
+    ...mobilePublicEnv,
     NEXT_DIST_DIR: ".next-mobile",
   });
 } finally {
@@ -105,6 +145,20 @@ function dirSize(dir) {
   }
   return total;
 }
+const manifestPath = join(root, "out", "mobile-build-manifest.json");
+const manifest = {
+  mobileBuild: true,
+  apiBaseUrl: apiBase,
+  supabaseUrl: mobilePublicEnv.NEXT_PUBLIC_SUPABASE_URL,
+  builtAt: new Date().toISOString(),
+};
+writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
+
+run("node", ["scripts/verify-mobile-bundle.mjs"], {
+  NEXT_PUBLIC_API_BASE_URL: apiBase,
+  NEXT_PUBLIC_SUPABASE_URL: mobilePublicEnv.NEXT_PUBLIC_SUPABASE_URL,
+});
+
 const outMb = dirSize(join(root, "out")) / 1024 / 1024;
 console.log(`[build:mobile] out/ size: ${outMb.toFixed(1)} MB (limit ${MAX_OUT_MB} MB)`);
 if (outMb > MAX_OUT_MB) {

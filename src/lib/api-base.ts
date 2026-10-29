@@ -9,7 +9,12 @@ export function normalizePublicOrigin(raw: string): string {
     const bare = s.match(/https:\/\/[^\s\]\[]+/);
     if (bare?.[0]) s = bare[0];
   }
-  return s.replace(/\/+$/, "");
+  s = s.replace(/\/+$/, "");
+  // Apex redirects (308) break some Capacitor fetch/CORS paths — use canonical www host.
+  if (s === "https://junglejokers.com") {
+    s = "https://www.junglejokers.com";
+  }
+  return s;
 }
 
 /** Base URL of the deployed web app for the Capacitor (static export) build. Empty on the web. */
