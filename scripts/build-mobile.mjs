@@ -30,7 +30,7 @@ if (!/^https:\/\/[^/\s]+$/.test(apiBase)) {
   process.exit(1);
 }
 const stash = join(root, ".mobile-build-stash");
-const serverOnly = ["src/app/api", "src/app/auth/callback", "src/app/auth/login/layout.tsx", "src/middleware.ts"];
+const serverOnly = ["src/app/api", "src/app/auth/callback", "src/middleware.ts"];
 const moved = [];
 
 function restore() {

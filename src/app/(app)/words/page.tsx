@@ -3,7 +3,6 @@
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AppHeader } from "@/components/layout/AppHeader";
-import { AppMenuButton } from "@/components/layout/AppMenuButton";
 import { WordLibrarySortBar } from "@/components/words/WordLibrarySortBar";
 import { WordList } from "@/components/words/WordList";
 import { useI18n } from "@/hooks/use-i18n";
@@ -111,7 +110,7 @@ function WordsPageContent() {
 
   return (
     <>
-      <AppHeader title={meta.title} leading={<AppMenuButton />} />
+      <AppHeader title={meta.title} />
 
       <div className="word-library page-scroll px-4">
         <WordLibraryFilterTabs filter={filter} onFilterChange={setFilter} />

@@ -1427,6 +1427,13 @@ body {
   gap: 0.25rem;
 }
 
+.app-header__leading {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.125rem;
+}
+
 .app-header__side--right {
   justify-content: flex-end;
   gap: 0.25rem;

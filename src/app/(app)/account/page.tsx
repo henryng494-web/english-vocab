@@ -72,14 +72,7 @@ export default function AccountPage() {
 
   return (
     <div className="app-screen app-screen--home">
-      <AppHeader
-        title={t("account.title")}
-        leading={
-          <Link href="/discover" className="app-header__icon-btn" aria-label={t("account.backHome")}>
-            ←
-          </Link>
-        }
-      />
+      <AppHeader title={t("account.title")} />
 
       <div className="page-scroll">
         <div className="space-y-6 px-4 pb-6">
