@@ -7,8 +7,11 @@ import {
 import { normalizePronounceText } from "@/lib/pronounce-text";
 import { getPronouncePlaybackRate } from "@/lib/pronounce-speed";
 import {
+  formatAudioPlayError,
   logAudioPlayRejection,
   logPronunciation,
+  logPronunciationStep,
+  nextPronunciationTraceId,
 } from "@/lib/pronunciation-log";
 import { isAppleWebKit } from "@/lib/speech-voice";
 
@@ -75,8 +78,12 @@ function resolveGesturePlaySrc(word: string): string {
 }
 
 function absoluteAudioUrl(relativePath: string): string {
-  if (typeof window === "undefined") return relativePath;
-  return new URL(apiUrl(relativePath), window.location.origin).href;
+  const resolved = apiUrl(relativePath);
+  if (resolved.startsWith("http://") || resolved.startsWith("https://")) {
+    return resolved;
+  }
+  if (typeof window === "undefined") return resolved;
+  return new URL(resolved, window.location.origin).href;
 }
 
 /** Compare resolved audio.src with an expected absolute URL. */
@@ -148,7 +155,89 @@ type StartPlaybackOptions = {
   /** User gesture path — one synchronous play(); no async canplay retry (Safari). */
   gesture?: boolean;
   word?: string;
+  traceId?: string;
 };
+
+async function probePronounceAudioUrl(
+  src: string,
+  traceId: string,
+  word: string,
+): Promise<void> {
+  try {
+    const response = await fetch(src, { cache: "no-store" });
+    const contentType = response.headers.get("content-type") ?? "(none)";
+    const engine = response.headers.get("x-pronounce-engine") ?? "(none)";
+    logPronunciationStep(
+      traceId,
+      "2b-api-response",
+      word,
+      `status=${response.status} content-type=${contentType} engine=${engine}`,
+    );
+    if (!response.ok) {
+      const body = (await response.text()).slice(0, 240);
+      logPronunciationStep(traceId, "2b-api-error-body", word, body || "(empty)");
+      return;
+    }
+    if (!contentType.toLowerCase().includes("audio")) {
+      const body = (await response.clone().text()).slice(0, 120);
+      logPronunciationStep(
+        traceId,
+        "2b-api-not-audio",
+        word,
+        `body-preview=${body}`,
+      );
+    }
+  } catch (err) {
+    logPronunciationStep(
+      traceId,
+      "2b-api-fetch-failed",
+      word,
+      formatAudioPlayError(err),
+      err,
+    );
+  }
+}
+
+function bindPlaybackDiagnostics(
+  audio: HTMLAudioElement,
+  traceId: string,
+  word: string,
+  epoch: number,
+  wordKey: string,
+): void {
+  const logMedia = (stage: string, extra?: string) => {
+    if (!playbackStillActive(audio, epoch, wordKey)) return;
+    logPronunciationStep(
+      traceId,
+      stage,
+      word,
+      extra ??
+        `readyState=${audio.readyState} networkState=${audio.networkState} paused=${audio.paused}`,
+    );
+  };
+
+  audio.addEventListener("loadstart", () => logMedia("4-media-loadstart"), { once: true });
+  audio.addEventListener("loadedmetadata", () => logMedia("4-media-loadedmetadata"), {
+    once: true,
+  });
+  audio.addEventListener("canplay", () => logMedia("4-media-canplay"), { once: true });
+  audio.addEventListener("playing", () => logMedia("5-media-playing"), { once: true });
+  audio.addEventListener(
+    "error",
+    () => {
+      const mediaError = audio.error;
+      logPronunciationStep(
+        traceId,
+        "5-media-error",
+        word,
+        mediaError
+          ? `code=${mediaError.code} message=${mediaError.message}`
+          : "unknown-media-error",
+      );
+    },
+    { once: true },
+  );
+}
 
 function startPlayback(
   audio: HTMLAudioElement,
@@ -181,8 +270,17 @@ function startPlayback(
 
   const gesture = options?.gesture === true;
   const logWord = options?.word ?? wordFromCacheKey(wordKey);
+  const traceId = options?.traceId;
 
   const playAttempt = () => {
+    if (traceId && logWord) {
+      logPronunciationStep(
+        traceId,
+        "3-play-called",
+        logWord,
+        `gesture=${gesture} readyState=${audio.readyState} src=${(audio.currentSrc || audio.src).slice(0, 120)}`,
+      );
+    }
     try {
       const playPromise = audio.play();
       if (!playPromise || typeof playPromise.catch !== "function") return;
@@ -555,24 +653,31 @@ export function primeWordAudioInUserGesture(_word: string): void {
  * Start pronunciation inside tap/click — must not await or gate on readyState.
  * iOS Safari/PWA only unlocks playback when play() runs during the user gesture.
  */
-export function playWordAudioInUserGesture(word: string): boolean {
+export function playWordAudioInUserGesture(
+  word: string,
+  traceId: string = nextPronunciationTraceId(),
+): boolean {
   if (typeof window === "undefined") return false;
   const key = cacheKey(word);
   const audio = getAudioElement();
   if (!key || !audio) {
-    logPronunciation({
-      stage: "mp3-play-failed",
+    logPronunciationStep(
+      traceId,
+      "1-play-abort",
       word,
-      detail: !audio ? "no-audio-element" : "invalid-word",
-    });
+      !audio ? "no-audio-element" : "invalid-word",
+    );
     return false;
   }
 
   const src = resolveGesturePlaySrc(word);
   if (!src) {
-    logPronunciation({ stage: "mp3-play-failed", word, detail: "no-src" });
+    logPronunciationStep(traceId, "1-play-abort", word, "no-src");
     return false;
   }
+
+  logPronunciationStep(traceId, "1-tap-play-start", word);
+  logPronunciationStep(traceId, "2-audio-src-set", word, src);
 
   const epoch = playbackEpoch;
   audio.pause();
@@ -585,7 +690,14 @@ export function playWordAudioInUserGesture(word: string): boolean {
   audio.src = src;
   // Do not call load() here — it resets the buffer and breaks iOS gesture playback.
 
-  startPlayback(audio, key, epoch, { gesture: true, word });
+  bindPlaybackDiagnostics(audio, traceId, word, epoch, key);
+  void probePronounceAudioUrl(src, traceId, word);
+
+  startPlayback(audio, key, epoch, {
+    gesture: isAppleWebKit(),
+    word,
+    traceId,
+  });
   return true;
 }
 

@@ -13,7 +13,20 @@ import { NextRequest, NextResponse } from "next/server";
 export const runtime = "nodejs";
 export const maxDuration = 15;
 
-const NEURAL_RETRY_DELAY_MS = 350;
+/** Stay under Vercel invocation limits — neural WebSocket often exceeds 10s on cold start. */
+const NEURAL_BUDGET_MS = 5000;
+
+async function lookupNeuralWithBudget(
+  text: string,
+  accent: ReturnType<typeof parsePronounceAccentParam>,
+): Promise<ArrayBuffer | null> {
+  return Promise.race([
+    lookupNeuralTtsAudio(text, accent),
+    new Promise<null>((resolve) => {
+      setTimeout(() => resolve(null), NEURAL_BUDGET_MS);
+    }),
+  ]);
+}
 
 export async function GET(request: NextRequest) {
   const text = parsePronounceTextParam(
@@ -26,28 +39,26 @@ export async function GET(request: NextRequest) {
 
   const accent = parsePronounceAccentParam(request.nextUrl.searchParams.get("accent"));
 
-  const dictionaryBytes =
-    isSinglePronounceWord(text) ? await fetchDictionaryAudioBytes(text, accent) : null;
-  if (dictionaryBytes) {
-    return new NextResponse(dictionaryBytes, {
-      headers: {
-        "Content-Type": "audio/mpeg",
-        "Cache-Control": "public, max-age=2592000, stale-while-revalidate=86400",
-        "X-Pronounce-Engine": "dictionary",
-      },
-    });
+  let engine: "dictionary" | "fallback-http" | "neural" = "fallback-http";
+  let bytes: ArrayBuffer | null = null;
+
+  if (isSinglePronounceWord(text)) {
+    bytes = await fetchDictionaryAudioBytes(text, accent);
+    if (bytes) engine = "dictionary";
   }
 
-  let engine: "neural" | "fallback-http" = "neural";
-  let bytes = await lookupNeuralTtsAudio(text, accent);
-  if (!bytes) {
-    await new Promise((resolve) => setTimeout(resolve, NEURAL_RETRY_DELAY_MS));
-    bytes = await lookupNeuralTtsAudio(text, accent);
-  }
-
+  // Fast HTTP TTS before Edge neural — avoids FUNCTION_INVOCATION_TIMEOUT on production.
   if (!bytes && isSinglePronounceWord(text)) {
     bytes = await lookupFallbackTtsAudio(text);
     if (bytes) engine = "fallback-http";
+  }
+
+  if (!bytes) {
+    const neural = await lookupNeuralWithBudget(text, accent);
+    if (neural) {
+      bytes = neural;
+      engine = "neural";
+    }
   }
 
   if (!bytes) {
@@ -58,6 +69,7 @@ export async function GET(request: NextRequest) {
         headers: {
           "Cache-Control": "no-store",
           "Retry-After": "1",
+          "X-Pronounce-Engine": "none",
         },
       },
     );
