@@ -1,5 +1,6 @@
 "use client";
 
+import { AppMenuButton } from "@/components/layout/AppMenuButton";
 import { useAppMenu } from "@/context/AppMenuContext";
 import { displayFontClass } from "@/lib/fonts";
 
@@ -28,7 +29,10 @@ export function AppHeader({
       <div className="app-header__safe-area">
         <div className="app-header__inner">
           <div className="app-header__side app-header__side--left">
-            {leading ?? <span className="app-header__spacer" aria-hidden />}
+            <div className="app-header__leading">
+              <AppMenuButton />
+              {leading}
+            </div>
           </div>
           {!hideTitle ? (
             <div className="app-header__title-container">

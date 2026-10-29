@@ -1,7 +1,6 @@
 "use client";
 
 import { AppHeader } from "@/components/layout/AppHeader";
-import { AppMenuButton } from "@/components/layout/AppMenuButton";
 import { JungleCastPill } from "@/components/mascot/JungleMascot";
 import { useI18n } from "@/hooks/use-i18n";
 import { API_BASE_URL } from "@/lib/api-base";
@@ -21,10 +20,7 @@ export default function AboutPage() {
 
   return (
     <div className="app-screen app-screen--home">
-      <AppHeader
-        title={t("about.title")}
-        leading={<AppMenuButton />}
-      />
+      <AppHeader title={t("about.title")} />
 
       <div className="page-scroll">
         <article className="settings-page px-4 pb-8">

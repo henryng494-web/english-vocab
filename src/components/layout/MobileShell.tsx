@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { AppLocaleSync } from "@/components/layout/AppLocaleSync";
-import { BottomTabBar } from "@/components/layout/BottomTabBar";
+import { AppNavigationFrame } from "@/components/layout/AppNavigationFrame";
 import { StudyReminderScheduler } from "@/components/layout/StudyReminderScheduler";
 import { StudyTimeTracker } from "@/components/layout/StudyTimeTracker";
 import { ViewportHeightSync } from "@/components/layout/ViewportHeightSync";
@@ -76,19 +76,17 @@ function MobileShellInner({ children }: { children: React.ReactNode }) {
 
   if (!hasOnboarded) {
     return (
-      <div className="app-page app-setup-enter">
-        <div className="app-shell mx-auto w-full max-w-lg bg-background">
-          <OnboardingScreen />
-        </div>
-      </div>
+      <AppNavigationFrame pageClassName="app-setup-enter">
+        <OnboardingScreen />
+      </AppNavigationFrame>
     );
   }
 
   if (!nicknameReady) {
     return (
-      <div className="app-setup-enter">
+      <AppNavigationFrame pageClassName="app-setup-enter">
         <NicknamePrompt onComplete={syncNicknameGate} />
-      </div>
+      </AppNavigationFrame>
     );
   }
 
@@ -97,12 +95,7 @@ function MobileShellInner({ children }: { children: React.ReactNode }) {
       <ViewportHeightSync />
       <StudyTimeTracker />
       <StudyReminderScheduler />
-      <div className="app-page app-setup-enter">
-        <div className="app-shell mx-auto w-full max-w-lg bg-background">
-          <div className="shell-content">{children}</div>
-          <BottomTabBar />
-        </div>
-      </div>
+      <AppNavigationFrame pageClassName="app-setup-enter">{children}</AppNavigationFrame>
     </>
   );
 }
@@ -124,11 +117,7 @@ export function MobileShell({ children }: { children: React.ReactNode }) {
       <AppSettingsProvider fallbackLanguage="en">
         <AppLocaleSync />
         <AppMenuProvider>
-          <div className="app-page">
-            <div className="app-shell mx-auto w-full max-w-lg bg-background">
-              <div className="shell-content">{children}</div>
-            </div>
-          </div>
+          <AppNavigationFrame>{children}</AppNavigationFrame>
         </AppMenuProvider>
       </AppSettingsProvider>
     );

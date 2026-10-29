@@ -1,7 +1,6 @@
 "use client";
 
 import { AppHeader } from "@/components/layout/AppHeader";
-import { AppMenuButton } from "@/components/layout/AppMenuButton";
 import { useI18n } from "@/hooks/use-i18n";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -67,7 +66,6 @@ export default function BugReportPage() {
             ←
           </button>
         }
-        trailing={<AppMenuButton />}
       />
 
       <div className="page-scroll">

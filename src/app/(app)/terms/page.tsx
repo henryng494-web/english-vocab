@@ -1,7 +1,6 @@
 "use client";
 
 import { AppHeader } from "@/components/layout/AppHeader";
-import { AppMenuButton } from "@/components/layout/AppMenuButton";
 import { useI18n } from "@/hooks/use-i18n";
 
 const SECTIONS = [1, 2, 3, 4, 5] as const;
@@ -11,10 +10,7 @@ export default function TermsPage() {
 
   return (
     <div className="app-screen app-screen--home">
-      <AppHeader
-        title={t("menu.terms")}
-        leading={<AppMenuButton />}
-      />
+      <AppHeader title={t("menu.terms")} />
 
       <div className="page-scroll">
         <article className="settings-page settings-page--legal px-4 pb-8">

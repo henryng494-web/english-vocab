@@ -1,7 +1,6 @@
 "use client";
 
 import { AppHeader } from "@/components/layout/AppHeader";
-import { AppMenuButton } from "@/components/layout/AppMenuButton";
 import { ReviewQuestion } from "@/components/review/ReviewQuestion";
 import { ReviewRecallQuestion } from "@/components/review/ReviewRecallQuestion";
 import { ReviewClozeQuestion } from "@/components/review/ReviewClozeQuestion";
@@ -1318,7 +1317,6 @@ export function ReviewScreen() {
               })
             : t("review.title")
         }
-        leading={<AppMenuButton />}
       />
 
       {showSpinner ? (

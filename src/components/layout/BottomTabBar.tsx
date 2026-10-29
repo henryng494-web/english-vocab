@@ -126,7 +126,8 @@ export function BottomTabBar() {
     {
       href: "/account",
       label: t("tab.account"),
-      match: (path) => pathsMatch(path, "/account"),
+      match: (path) =>
+        pathsMatch(path, "/account") || pathsMatch(path, "/auth/login"),
       icon: (active) => <AccountIcon active={active} />,
     },
   ];
