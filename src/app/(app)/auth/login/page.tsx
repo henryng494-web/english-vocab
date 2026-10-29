@@ -13,7 +13,6 @@ import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { useI18n } from "@/hooks/use-i18n";
 import { displayFontClass } from "@/lib/fonts";
-import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useRef, useState } from "react";
 
@@ -246,14 +245,7 @@ function LoginForm() {
 
   return (
     <div className="app-screen app-screen--home">
-      <AppHeader
-        title={headerTitle}
-        leading={
-          <Link href="/discover" className="app-header__icon-btn" aria-label={t("auth.backToApp")}>
-            ←
-          </Link>
-        }
-      />
+      <AppHeader title={headerTitle} />
 
       <div className="page-scroll flex justify-center px-4 pb-6 pt-2">
         <div className="w-full max-w-md rounded-2xl border border-primary-200 bg-surface p-6 shadow-sm sm:p-8">

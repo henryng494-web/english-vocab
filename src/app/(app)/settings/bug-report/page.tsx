@@ -3,11 +3,9 @@
 import { AppHeader } from "@/components/layout/AppHeader";
 import { useI18n } from "@/hooks/use-i18n";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 
 export default function BugReportPage() {
-  const router = useRouter();
   const { t } = useI18n();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [message, setMessage] = useState("");
@@ -54,19 +52,7 @@ export default function BugReportPage() {
 
   return (
     <div className="app-screen app-screen--home">
-      <AppHeader
-        title={t("reportBug.title")}
-        leading={
-          <button
-            type="button"
-            className="app-header__icon-btn"
-            aria-label={t("reportBug.back")}
-            onClick={() => router.back()}
-          >
-            ←
-          </button>
-        }
-      />
+      <AppHeader title={t("reportBug.title")} />
 
       <div className="page-scroll">
         <form className="settings-page px-4 pb-8" onSubmit={onSubmit}>

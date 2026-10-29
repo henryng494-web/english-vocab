@@ -929,16 +929,6 @@ export default function DiscoverPage() {
     <div className="app-screen app-screen--journey">
       <AppHeader
         title={t("journey.title")}
-        leading={
-          <button
-            type="button"
-            className="app-header__icon-btn"
-            aria-label={t("journey.backHome")}
-            onClick={() => router.push("/discover")}
-          >
-            ←
-          </button>
-        }
         trailing={
           <HeaderSelect
             value={rangeId}

@@ -6,7 +6,6 @@ import { displayFontClass } from "@/lib/fonts";
 
 type AppHeaderProps = {
   title: string;
-  leading?: React.ReactNode;
   trailing?: React.ReactNode;
   /** Hide visible title (e.g. Home — tab bar already labels the screen). */
   hideTitle?: boolean;
@@ -14,7 +13,6 @@ type AppHeaderProps = {
 
 export function AppHeader({
   title,
-  leading,
   trailing,
   hideTitle = false,
 }: AppHeaderProps) {
@@ -29,10 +27,7 @@ export function AppHeader({
       <div className="app-header__safe-area">
         <div className="app-header__inner">
           <div className="app-header__side app-header__side--left">
-            <div className="app-header__leading">
-              <AppMenuButton />
-              {leading}
-            </div>
+            <AppMenuButton />
           </div>
           {!hideTitle ? (
             <div className="app-header__title-container">
