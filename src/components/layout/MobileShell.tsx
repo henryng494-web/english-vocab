@@ -39,7 +39,7 @@ function StartupSplash({ progress }: { progress: BootstrapProgress }) {
 }
 
 function MobileShellInner({ children }: { children: React.ReactNode }) {
-  const { ready: bootstrapReady, progress } = useAppBootstrap();
+  const { ready: bootstrapReady, bootstrapHasData, progress } = useAppBootstrap();
   const { settingsReady, hasOnboarded } = useAppSettings();
   const [nicknameReady, setNicknameReady] = useState(false);
   const [minSplashElapsed, setMinSplashElapsed] = useState(false);
@@ -73,11 +73,16 @@ function MobileShellInner({ children }: { children: React.ReactNode }) {
       setStartupSplashDone(true);
       return;
     }
+    if (bootstrapHasData && settingsReady) {
+      setStartupSplashDone(true);
+      markStartupSplashCompleted();
+      return;
+    }
     if (bootstrapReady && settingsReady && minSplashElapsed) {
       setStartupSplashDone(true);
       markStartupSplashCompleted();
     }
-  }, [bootstrapReady, settingsReady, minSplashElapsed]);
+  }, [bootstrapReady, bootstrapHasData, settingsReady, minSplashElapsed]);
 
   if (!startupSplashDone) {
     return <StartupSplash progress={progress} />;
