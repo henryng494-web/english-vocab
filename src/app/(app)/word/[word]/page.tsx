@@ -193,26 +193,6 @@ function WordDetailPageContent() {
     <div className="app-screen app-screen--journey">
       <AppHeader
         title={word ? capitalizeFirst(word) : "Word"}
-        leading={
-          libraryContext ? (
-            <Link
-              href={buildWordLibraryListHref(libraryContext)}
-              className="app-header__icon-btn"
-              aria-label="Back to word list"
-            >
-              ←
-            </Link>
-          ) : (
-            <button
-              type="button"
-              className="app-header__icon-btn"
-              aria-label="Back"
-              onClick={() => window.history.back()}
-            >
-              ←
-            </button>
-          )
-        }
         trailing={
           <Link href="/search" className="app-header__icon-btn" aria-label="Search">
             🔍

@@ -67,14 +67,7 @@ function SearchPageContent() {
 
   return (
     <>
-      <AppHeader
-        title="Search"
-        leading={
-          <Link href="/discover" className="app-header__icon-btn" aria-label="Back">
-            ←
-          </Link>
-        }
-      />
+      <AppHeader title="Search" />
 
       <div className="word-search page-scroll px-4">
         <label className="word-search__field">
