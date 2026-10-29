@@ -167,11 +167,12 @@ async function probePronounceAudioUrl(
     const response = await fetch(src, { cache: "no-store" });
     const contentType = response.headers.get("content-type") ?? "(none)";
     const engine = response.headers.get("x-pronounce-engine") ?? "(none)";
+    const accentHeader = response.headers.get("x-pronounce-accent") ?? "(none)";
     logPronunciationStep(
       traceId,
       "2b-api-response",
       word,
-      `status=${response.status} content-type=${contentType} engine=${engine}`,
+      `status=${response.status} content-type=${contentType} engine=${engine} accent=${accentHeader}`,
     );
     if (!response.ok) {
       const body = (await response.text()).slice(0, 240);
@@ -337,8 +338,18 @@ function bindSettingsListener(): void {
     if (audio) applyPlaybackRate(audio);
     const nextAccent = getPronounceAccent();
     if (nextAccent !== lastAccent) {
+      const previousAccent = lastAccent;
       lastAccent = nextAccent;
+      stopWordAudio();
       clearPronounceAudioCaches();
+      if (audio) {
+        audio.removeAttribute("src");
+        delete audio.dataset.wordKey;
+      }
+      logPronunciation({
+        stage: "accent-changed",
+        detail: `${previousAccent} -> ${nextAccent} nextUrl=/api/pronounce/audio?text=hello&accent=${nextAccent}&v=${voiceVersionForAccent(nextAccent)}`,
+      });
     }
   });
 }
@@ -676,8 +687,9 @@ export function playWordAudioInUserGesture(
     return false;
   }
 
-  logPronunciationStep(traceId, "1-tap-play-start", word);
-  logPronunciationStep(traceId, "2-audio-src-set", word, src);
+  const accent = getPronounceAccent();
+  logPronunciationStep(traceId, "1-tap-play-start", word, `accent=${accent}`);
+  logPronunciationStep(traceId, "2-audio-src-set", word, `${src} accent=${accent}`);
 
   const epoch = playbackEpoch;
   audio.pause();

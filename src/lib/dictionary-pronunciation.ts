@@ -1,6 +1,7 @@
 import { apiUrl } from "@/lib/api-base";
 import {
   DEFAULT_PRONOUNCE_ACCENT,
+  FALLBACK_TTS_LANG_BY_ACCENT,
   isPronounceAccent,
   voiceVersionForAccent,
   type PronounceAccent,
@@ -154,11 +155,12 @@ export const FALLBACK_TTS_MAX_CHARS = 200;
 /** HTTP TTS fallback when Bing Edge WebSocket is unavailable (e.g. Vercel cold start). */
 export async function lookupFallbackTtsAudio(
   text: string,
-  options?: { timeoutMs?: number },
+  options?: { timeoutMs?: number; accent?: PronounceAccent },
 ): Promise<ArrayBuffer | null> {
   const q = text.trim();
   if (!q || q.length > FALLBACK_TTS_MAX_CHARS) return null;
 
+  const accent = options?.accent ?? DEFAULT_PRONOUNCE_ACCENT;
   const timeoutMs = options?.timeoutMs ?? 4500;
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
@@ -168,7 +170,7 @@ export async function lookupFallbackTtsAudio(
     url.searchParams.set("ie", "UTF-8");
     url.searchParams.set("client", "tw-ob");
     url.searchParams.set("q", q);
-    url.searchParams.set("tl", "en-US");
+    url.searchParams.set("tl", FALLBACK_TTS_LANG_BY_ACCENT[accent]);
 
     const response = await fetch(url.toString(), {
       signal: controller.signal,
