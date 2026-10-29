@@ -3,7 +3,26 @@ export type PronunciationLogEntry = {
   word?: string;
   detail?: string;
   error?: unknown;
+  traceId?: string;
 };
+
+let pronunciationTraceSeq = 0;
+
+/** Correlates console logs for one speaker tap (tap → src → play → media events). */
+export function nextPronunciationTraceId(): string {
+  pronunciationTraceSeq += 1;
+  return `p${pronunciationTraceSeq}`;
+}
+
+export function logPronunciationStep(
+  traceId: string,
+  stage: string,
+  word: string,
+  detail?: string,
+  error?: unknown,
+): void {
+  logPronunciation({ traceId, stage, word, detail, error });
+}
 
 function serializePlayError(error: unknown): { name: string; message: string } | unknown {
   if (error instanceof DOMException) {
@@ -30,7 +49,10 @@ export function formatAudioPlayError(error: unknown): string {
 export function logPronunciation(entry: PronunciationLogEntry): void {
   if (typeof console === "undefined") return;
   const payload = {
-    ...entry,
+    traceId: entry.traceId,
+    stage: entry.stage,
+    word: entry.word,
+    detail: entry.detail,
     error: entry.error !== undefined ? serializePlayError(entry.error) : undefined,
   };
   console.warn("[pronunciation]", payload);

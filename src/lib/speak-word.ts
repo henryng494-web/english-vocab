@@ -1,7 +1,11 @@
 import {
   isAppleWebKit,
 } from "@/lib/speech-voice";
-import { logPronunciation } from "@/lib/pronunciation-log";
+import {
+  logPronunciation,
+  logPronunciationStep,
+  nextPronunciationTraceId,
+} from "@/lib/pronunciation-log";
 import {
   hasWordAudioBlob,
   isWordAudioElementReady,
@@ -43,12 +47,12 @@ function speakMp3InUserGesture(text: string, requestId: number): void {
   if (!isAppleWebKit()) {
     void warmWordAudioBytes(text);
   }
-  const played = playWordAudioInUserGesture(text);
-  logPronunciation({
-    stage: "mp3-tap",
-    word: text,
-    detail: played ? `play-called#${requestId}` : "play-not-started",
-  });
+  const traceId = nextPronunciationTraceId();
+  logPronunciationStep(traceId, "0-speak-gesture", text, `request#${requestId}`);
+  const played = playWordAudioInUserGesture(text, traceId);
+  if (!played) {
+    logPronunciationStep(traceId, "1-play-abort", text, "play-not-started");
+  }
 }
 
 let speechUnlocked = false;
