@@ -5,25 +5,36 @@ import {
 } from "@/lib/dictionary-pronunciation";
 import { lookupNeuralTtsAudio } from "@/lib/neural-pronunciation";
 import {
+  isLongPronouncePhrase,
   isSinglePronounceWord,
   parsePronounceTextParam,
 } from "@/lib/pronounce-text";
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
-export const maxDuration = 15;
+/** Phrases need more synthesis time than single words on cold Vercel instances. */
+export const maxDuration = 30;
 
-/** Stay under Vercel invocation limits — neural WebSocket often exceeds 10s on cold start. */
-const NEURAL_BUDGET_MS = 5000;
+const NEURAL_BUDGET_WORD_MS = 5000;
+
+function neuralBudgetMs(text: string): number {
+  if (!isLongPronouncePhrase(text)) return NEURAL_BUDGET_WORD_MS;
+  return Math.min(22_000, 8000 + text.length * 40);
+}
+
+function fallbackTimeoutMs(text: string): number {
+  return Math.min(12_000, 4500 + text.length * 20);
+}
 
 async function lookupNeuralWithBudget(
   text: string,
   accent: ReturnType<typeof parsePronounceAccentParam>,
+  budgetMs: number,
 ): Promise<ArrayBuffer | null> {
   return Promise.race([
     lookupNeuralTtsAudio(text, accent),
     new Promise<null>((resolve) => {
-      setTimeout(() => resolve(null), NEURAL_BUDGET_MS);
+      setTimeout(() => resolve(null), budgetMs);
     }),
   ]);
 }
@@ -47,14 +58,20 @@ export async function GET(request: NextRequest) {
     if (bytes) engine = "dictionary";
   }
 
-  // Fast HTTP TTS before Edge neural — avoids FUNCTION_INVOCATION_TIMEOUT on production.
-  if (!bytes && isSinglePronounceWord(text)) {
-    bytes = await lookupFallbackTtsAudio(text);
+  // Fast HTTP TTS before Edge neural (words + short phrases).
+  if (!bytes) {
+    bytes = await lookupFallbackTtsAudio(text, {
+      timeoutMs: fallbackTimeoutMs(text),
+    });
     if (bytes) engine = "fallback-http";
   }
 
   if (!bytes) {
-    const neural = await lookupNeuralWithBudget(text, accent);
+    const neural = await lookupNeuralWithBudget(
+      text,
+      accent,
+      neuralBudgetMs(text),
+    );
     if (neural) {
       bytes = neural;
       engine = "neural";

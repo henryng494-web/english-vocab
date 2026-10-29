@@ -1,7 +1,9 @@
 "use client";
 
+import { SpeakButton } from "@/components/flashcard/SpeakButton";
 import { keepNaturalExamples } from "@/lib/example-quality";
 import type { VocabExample } from "@/lib/parse-examples";
+import { useI18n } from "@/hooks/use-i18n";
 
 type VocabExampleListProps = {
   word: string;
@@ -23,6 +25,7 @@ export function VocabExampleList({
   boxed = false,
   compact = false,
 }: VocabExampleListProps) {
+  const { t } = useI18n();
   const filled = keepNaturalExamples(word, examples, wordType, meaning);
   const visible = filled.slice(0, 2);
 
@@ -45,7 +48,16 @@ export function VocabExampleList({
     >
       {visible.map((ex, i) => (
         <li key={`${word}-ex-${i}`} className={itemClass}>
-          <p className={enClass}>{ex.en}</p>
+          <p className={`${enClass} flex items-start gap-2`}>
+            <span className="min-w-0 flex-1">{ex.en}</span>
+            <SpeakButton
+              text={ex.en}
+              variant="light"
+              iconOnly
+              ariaLabel={t("speak.phraseAria")}
+              className="!inline-flex !h-7 !w-7 shrink-0"
+            />
+          </p>
           {localeLoadingGloss && !ex.vi ? (
             <span
               className="vocab-examples__vi vocab-examples__vi--loading mt-0.5 block h-4 w-4/5 max-w-xs animate-pulse rounded bg-primary-50"

@@ -148,19 +148,26 @@ export function parsePronounceAccentParam(value: string | null): PronounceAccent
   return isPronounceAccent(value) ? value : DEFAULT_PRONOUNCE_ACCENT;
 }
 
-/** HTTP TTS fallback when Bing Edge WebSocket is unavailable (e.g. Vercel cold start). */
-export async function lookupFallbackTtsAudio(word: string): Promise<ArrayBuffer | null> {
-  const key = word.trim().toLowerCase();
-  if (!key) return null;
+/** Google translate_tts works reliably up to ~200 characters per request. */
+export const FALLBACK_TTS_MAX_CHARS = 200;
 
+/** HTTP TTS fallback when Bing Edge WebSocket is unavailable (e.g. Vercel cold start). */
+export async function lookupFallbackTtsAudio(
+  text: string,
+  options?: { timeoutMs?: number },
+): Promise<ArrayBuffer | null> {
+  const q = text.trim();
+  if (!q || q.length > FALLBACK_TTS_MAX_CHARS) return null;
+
+  const timeoutMs = options?.timeoutMs ?? 4500;
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 4500);
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
     const url = new URL("https://translate.google.com/translate_tts");
     url.searchParams.set("ie", "UTF-8");
     url.searchParams.set("client", "tw-ob");
-    url.searchParams.set("q", key);
+    url.searchParams.set("q", q);
     url.searchParams.set("tl", "en-US");
 
     const response = await fetch(url.toString(), {

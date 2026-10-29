@@ -1,3 +1,4 @@
+import { normalizePronounceText } from "@/lib/pronounce-text";
 import {
   isAppleWebKit,
 } from "@/lib/speech-voice";
@@ -31,7 +32,11 @@ const FIRST_CARD_MP3_WAIT_MS = 450;
 let firstCardAutoSpoken = false;
 
 /** Manual tap — shared `<audio>` + dictionary / neural MP3 (sync play() in gesture). */
-function speakMp3InUserGesture(text: string, requestId: number): void {
+function speakMp3InUserGesture(
+  text: string,
+  requestId: number,
+  traceId: string = nextPronunciationTraceId(),
+): void {
   unlockSpeechFromUserGesture();
   if (typeof window !== "undefined" && window.speechSynthesis) {
     try {
@@ -47,7 +52,6 @@ function speakMp3InUserGesture(text: string, requestId: number): void {
   if (!isAppleWebKit()) {
     void warmWordAudioBytes(text);
   }
-  const traceId = nextPronunciationTraceId();
   logPronunciationStep(traceId, "0-speak-gesture", text, `request#${requestId}`);
   const played = playWordAudioInUserGesture(text, traceId);
   if (!played) {
@@ -157,10 +161,10 @@ export function speakWordInUserGesture(text: string): void {
 }
 
 function claimSpeak(text: string, force: boolean): string | null {
-  const trimmed = text?.trim();
-  if (!trimmed || typeof window === "undefined") return null;
+  const normalized = normalizePronounceText(text ?? "");
+  if (!normalized || typeof window === "undefined") return null;
 
-  const key = trimmed.toLowerCase();
+  const key = normalized.toLowerCase();
   const now = Date.now();
   if (
     !force &&
@@ -172,7 +176,7 @@ function claimSpeak(text: string, force: boolean): string | null {
 
   lastSpoken = { text: key, at: now };
   speakRequestId += 1;
-  return trimmed;
+  return normalized;
 }
 
 function stillCurrentRequest(requestId: number, key: string): boolean {
@@ -290,10 +294,17 @@ export function speakEnglishText(
   text: string,
   _options?: { force?: boolean },
 ): void {
-  const trimmed = claimSpeak(text, Boolean(_options?.force));
-  if (!trimmed) return;
+  const traceId = nextPronunciationTraceId();
+  const normalized = normalizePronounceText(text ?? "");
+  if (!normalized) {
+    logPronunciationStep(traceId, "0-text-rejected", text?.trim() ?? "", "normalize-failed");
+    return;
+  }
 
-  speakMp3InUserGesture(trimmed, speakRequestId);
+  const claimed = claimSpeak(normalized, Boolean(_options?.force));
+  if (!claimed) return;
+
+  speakMp3InUserGesture(claimed, speakRequestId, traceId);
 }
 
 export function cancelSpeech(): void {
