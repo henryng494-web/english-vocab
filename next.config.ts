@@ -11,6 +11,14 @@ const appVersion = (
 const nextConfig: NextConfig = {
   env: {
     NEXT_PUBLIC_APP_VERSION: appVersion ?? "",
+    ...(isMobileBuild
+      ? {
+          NEXT_PUBLIC_MOBILE_BUILD: "1",
+          NEXT_PUBLIC_API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL ?? "",
+          NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "",
+        }
+      : {}),
     ...(process.env.NODE_ENV === "development" &&
     process.env.NEXT_PUBLIC_FORCE_FREE_GATING == null
       ? { NEXT_PUBLIC_FORCE_FREE_GATING: "1" }
