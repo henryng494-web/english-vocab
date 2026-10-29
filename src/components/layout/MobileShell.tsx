@@ -19,11 +19,7 @@ import {
   useAppBootstrap,
 } from "@/context/AppBootstrapContext";
 import { MIN_WELCOME_MS, type BootstrapProgress } from "@/lib/app-bootstrap";
-import {
-  hasCompletedStartupSplash,
-  markStartupSplashCompleted,
-  shouldSkipStartupSplashForReturningUser,
-} from "@/lib/startup-splash-session";
+import { markStartupSplashCompleted } from "@/lib/startup-splash-session";
 import { useCallback, useEffect, useState } from "react";
 
 function StartupSplash({ progress }: { progress: BootstrapProgress }) {
@@ -43,9 +39,8 @@ function MobileShellInner({ children }: { children: React.ReactNode }) {
   const { settingsReady, hasOnboarded } = useAppSettings();
   const [nicknameReady, setNicknameReady] = useState(false);
   const [minSplashElapsed, setMinSplashElapsed] = useState(false);
-  const [startupSplashDone, setStartupSplashDone] = useState(
-    () => hasCompletedStartupSplash() || shouldSkipStartupSplashForReturningUser(),
-  );
+  /** Welcome splash on every cold start / full reload — never skip. */
+  const [startupSplashDone, setStartupSplashDone] = useState(false);
 
   const syncNicknameGate = useCallback(() => {
     setNicknameReady(!needsLearnerNicknamePrompt());
@@ -69,19 +64,10 @@ function MobileShellInner({ children }: { children: React.ReactNode }) {
   }, [hasOnboarded, nicknameReady]);
 
   useEffect(() => {
-    if (hasCompletedStartupSplash() && settingsReady) {
-      setStartupSplashDone(true);
-      return;
-    }
-    if (bootstrapHasData && settingsReady) {
-      setStartupSplashDone(true);
-      markStartupSplashCompleted();
-      return;
-    }
-    if (bootstrapReady && settingsReady && minSplashElapsed) {
-      setStartupSplashDone(true);
-      markStartupSplashCompleted();
-    }
+    if (!settingsReady || !minSplashElapsed) return;
+    if (!bootstrapHasData && !bootstrapReady) return;
+    setStartupSplashDone(true);
+    markStartupSplashCompleted();
   }, [bootstrapReady, bootstrapHasData, settingsReady, minSplashElapsed]);
 
   if (!startupSplashDone) {

@@ -17,6 +17,7 @@ import {
   DEFAULT_BOOTSTRAP_RANGE,
   BOOTSTRAP_PRELOAD_DEFAULT,
   BOOTSTRAP_UI_RELEASE_MS,
+  MIN_WELCOME_MS,
   isBootstrapSnapshotUsable,
   type AppBootstrapSnapshot,
   type BootstrapProgress,
@@ -95,7 +96,11 @@ export function AppBootstrapProvider({ children }: { children: ReactNode }) {
   const hadInstantCache = isBootstrapSnapshotUsable(initialSnapshot);
 
   const [ready, setReady] = useState(hadInstantCache);
-  const [progress, setProgress] = useState<BootstrapProgress>(INITIAL_PROGRESS);
+  const [progress, setProgress] = useState<BootstrapProgress>(() =>
+    hadInstantCache
+      ? { progress: 35, message: "Welcome back!" }
+      : INITIAL_PROGRESS,
+  );
   const [snapshot, setSnapshot] = useState<AppBootstrapSnapshot | null>(
     initialSnapshot,
   );
@@ -119,6 +124,22 @@ export function AppBootstrapProvider({ children }: { children: ReactNode }) {
       seedJourneyBootstrapRanges(initialSnapshot.ranges);
     }
   }, [initialSnapshot]);
+
+  useEffect(() => {
+    if (!hadInstantCache) return;
+    const mid = window.setTimeout(
+      () => setProgress({ progress: 78, message: "Loading your journey…" }),
+      420,
+    );
+    const done = window.setTimeout(
+      () => setProgress({ progress: 100, message: "" }),
+      Math.max(900, MIN_WELCOME_MS - 280),
+    );
+    return () => {
+      window.clearTimeout(mid);
+      window.clearTimeout(done);
+    };
+  }, [hadInstantCache]);
 
   const syncBootstrapFromNetwork = useCallback(
     async (options?: { awaitWelcomeMinimum?: boolean }) => {
@@ -191,8 +212,8 @@ export function AppBootstrapProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (backgroundSyncStarted.current) return;
     backgroundSyncStarted.current = true;
-    void syncBootstrapFromNetwork({ awaitWelcomeMinimum: !hadInstantCache });
-  }, [hadInstantCache, syncBootstrapFromNetwork]);
+    void syncBootstrapFromNetwork({ awaitWelcomeMinimum: true });
+  }, [syncBootstrapFromNetwork]);
 
   useEffect(() => {
     const retryIfNeeded = () => {

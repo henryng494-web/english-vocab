@@ -24,19 +24,7 @@ export function markStartupSplashCompleted(): void {
   }
 }
 
-/** Returning learners with setup done should never see splash again (cold start included). */
+/** @deprecated Splash always runs on cold start; kept for older bundles that still import it. */
 export function shouldSkipStartupSplashForReturningUser(): boolean {
-  if (hasCompletedStartupSplash()) return true;
-  if (typeof localStorage === "undefined") return false;
-  try {
-    const nickname = localStorage.getItem("vocab-learner-display-name")?.trim();
-    const settingsRaw = localStorage.getItem("vocab-app-settings-v1");
-    if (!nickname || !settingsRaw) return false;
-    const settings = JSON.parse(settingsRaw) as { hasOnboarded?: boolean };
-    if (settings.hasOnboarded !== true) return false;
-    markStartupSplashCompleted();
-    return true;
-  } catch {
-    return false;
-  }
+  return false;
 }
