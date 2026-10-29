@@ -6,15 +6,18 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
+import { AUTH_SESSION_EVENT } from "@/context/AuthSessionContext";
 import {
   runAppBootstrap,
   waitForWelcomeMinimum,
   DEFAULT_BOOTSTRAP_RANGE,
   BOOTSTRAP_PRELOAD_DEFAULT,
   BOOTSTRAP_FAILSAFE_MS,
+  isBootstrapSnapshotUsable,
   type AppBootstrapSnapshot,
   type BootstrapProgress,
   type RangeBootstrapData,
@@ -23,11 +26,13 @@ import {
   seedJourneyBootstrapRanges,
   warmWordPronunciationsBatch,
 } from "@/lib/pronunciation-preload";
+import { waitForClientAuthReady } from "@/lib/wait-client-auth-ready";
 import type { DiscoverWordData } from "@/components/discover/DiscoverCard";
 import type { ReviewSession } from "@/lib/review-session";
 
 type AppBootstrapContextValue = {
   ready: boolean;
+  bootstrapComplete: boolean;
   progress: BootstrapProgress;
   ranges: Record<string, RangeBootstrapData> | null;
   wordCache: Record<string, DiscoverWordData> | null;
@@ -40,6 +45,7 @@ type AppBootstrapContextValue = {
     word: string,
     familyMembers?: string[] | null,
   ) => void;
+  refreshBootstrap: () => Promise<void>;
 };
 
 const AppBootstrapContext = createContext<AppBootstrapContextValue | null>(null);
@@ -49,47 +55,71 @@ const INITIAL_PROGRESS: BootstrapProgress = {
   message: "Welcome!",
 };
 
+const FAILSAFE_SNAPSHOT: AppBootstrapSnapshot = {
+  defaultRangeId: DEFAULT_BOOTSTRAP_RANGE,
+  ranges: {},
+  wordCache: {},
+  review: null,
+  complete: false,
+};
+
 /** Survives provider remounts (e.g. visiting /auth/login outside the app shell and coming back). */
 let completedSnapshot: AppBootstrapSnapshot | null = null;
 
+function applyLoadedSnapshot(loaded: AppBootstrapSnapshot): void {
+  if (isBootstrapSnapshotUsable(loaded)) {
+    completedSnapshot = loaded;
+  }
+}
+
 export function AppBootstrapProvider({ children }: { children: ReactNode }) {
-  const [ready, setReady] = useState(() => completedSnapshot !== null);
+  const [ready, setReady] = useState(
+    () => completedSnapshot !== null && isBootstrapSnapshotUsable(completedSnapshot),
+  );
   const [progress, setProgress] = useState<BootstrapProgress>(INITIAL_PROGRESS);
   const [snapshot, setSnapshot] = useState<AppBootstrapSnapshot | null>(
-    () => completedSnapshot,
+    () =>
+      completedSnapshot && isBootstrapSnapshotUsable(completedSnapshot)
+        ? completedSnapshot
+        : null,
   );
   const [reviewOverride, setReviewOverride] = useState<ReviewSession | null>(null);
+  const bootstrapRunRef = useRef(0);
 
-  useEffect(() => {
-    if (snapshot) completedSnapshot = snapshot;
-  }, [snapshot]);
+  const runBootstrap = useCallback(async (options?: { force?: boolean }) => {
+    if (
+      !options?.force &&
+      completedSnapshot &&
+      isBootstrapSnapshotUsable(completedSnapshot)
+    ) {
+      setSnapshot(completedSnapshot);
+      setReady(true);
+      return;
+    }
 
-  useEffect(() => {
-    if (completedSnapshot) return;
-    let cancelled = false;
+    const runId = ++bootstrapRunRef.current;
     const startedAt = Date.now();
 
-    void (async () => {
-      try {
-        const loaded = await Promise.race([
-          runAppBootstrap((next) => {
-            if (!cancelled) setProgress(next);
-          }),
-          new Promise<AppBootstrapSnapshot>((resolve) => {
-            setTimeout(() => {
-              resolve({
-                defaultRangeId: DEFAULT_BOOTSTRAP_RANGE,
-                ranges: {},
-                wordCache: {},
-                review: null,
-              });
-            }, BOOTSTRAP_FAILSAFE_MS);
-          }),
-        ]);
-        await waitForWelcomeMinimum(startedAt);
-        if (cancelled) return;
-        setSnapshot(loaded);
-        seedJourneyBootstrapRanges(loaded.ranges);
+    try {
+      await waitForClientAuthReady();
+      if (runId !== bootstrapRunRef.current) return;
+
+      const loaded = await Promise.race([
+        runAppBootstrap((next) => {
+          if (runId === bootstrapRunRef.current) setProgress(next);
+        }),
+        new Promise<AppBootstrapSnapshot>((resolve) => {
+          setTimeout(() => resolve(FAILSAFE_SNAPSHOT), BOOTSTRAP_FAILSAFE_MS);
+        }),
+      ]);
+
+      await waitForWelcomeMinimum(startedAt);
+      if (runId !== bootstrapRunRef.current) return;
+
+      applyLoadedSnapshot(loaded);
+      setSnapshot(isBootstrapSnapshotUsable(loaded) ? loaded : null);
+      seedJourneyBootstrapRanges(isBootstrapSnapshotUsable(loaded) ? loaded.ranges : null);
+      if (isBootstrapSnapshotUsable(loaded)) {
         const defaultQueue = loaded.ranges[DEFAULT_BOOTSTRAP_RANGE]?.queue ?? [];
         const reviewWords =
           loaded.review?.queue?.slice(0, 3).map((item) => item.word) ?? [];
@@ -97,19 +127,42 @@ export function AppBootstrapProvider({ children }: { children: ReactNode }) {
           ...reviewWords,
           ...defaultQueue.slice(0, BOOTSTRAP_PRELOAD_DEFAULT).map((item) => item.word),
         ]);
-        setReady(true);
-      } catch {
-        await waitForWelcomeMinimum(startedAt);
-        if (cancelled) return;
-        setProgress({ progress: 100, message: "Ready to learn!" });
-        setReady(true);
       }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
+      setReady(true);
+    } catch {
+      await waitForWelcomeMinimum(startedAt);
+      if (runId !== bootstrapRunRef.current) return;
+      setProgress({ progress: 100, message: "Ready to learn!" });
+      setSnapshot(null);
+      setReady(true);
+    }
   }, []);
+
+  useEffect(() => {
+    void runBootstrap();
+  }, [runBootstrap]);
+
+  useEffect(() => {
+    const retryIfNeeded = () => {
+      if (!isBootstrapSnapshotUsable(completedSnapshot)) {
+        void runBootstrap({ force: true });
+      }
+    };
+    window.addEventListener(AUTH_SESSION_EVENT, retryIfNeeded);
+    const onVisible = () => {
+      if (document.visibilityState === "visible") retryIfNeeded();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      window.removeEventListener(AUTH_SESSION_EVENT, retryIfNeeded);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, [runBootstrap]);
+
+  const refreshBootstrap = useCallback(async () => {
+    completedSnapshot = null;
+    await runBootstrap({ force: true });
+  }, [runBootstrap]);
 
   const updateReviewCache = useCallback((data: ReviewSession) => {
     setReviewOverride(data);
@@ -133,7 +186,7 @@ export function AppBootstrapProvider({ children }: { children: ReactNode }) {
             taken.has(member.trim().toLowerCase()),
           );
         });
-        return {
+        const next = {
           ...prev,
           ranges: {
             ...prev.ranges,
@@ -146,14 +199,19 @@ export function AppBootstrapProvider({ children }: { children: ReactNode }) {
             },
           },
         };
+        completedSnapshot = next;
+        return next;
       });
     },
     [],
   );
 
+  const bootstrapComplete = isBootstrapSnapshotUsable(snapshot);
+
   const value = useMemo<AppBootstrapContextValue>(
     () => ({
       ready,
+      bootstrapComplete,
       progress,
       ranges: snapshot?.ranges ?? null,
       wordCache: snapshot?.wordCache ?? null,
@@ -161,8 +219,18 @@ export function AppBootstrapProvider({ children }: { children: ReactNode }) {
       review: reviewOverride ?? snapshot?.review ?? null,
       updateReviewCache,
       patchRangeAfterSave,
+      refreshBootstrap,
     }),
-    [ready, progress, snapshot, reviewOverride, updateReviewCache, patchRangeAfterSave],
+    [
+      ready,
+      bootstrapComplete,
+      progress,
+      snapshot,
+      reviewOverride,
+      updateReviewCache,
+      patchRangeAfterSave,
+      refreshBootstrap,
+    ],
   );
 
   return (
