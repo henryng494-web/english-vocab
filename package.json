@@ -9,6 +9,8 @@
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "build:mobile": "node scripts/build-mobile.mjs",
+    "build:mobile:web": "node scripts/build-mobile.mjs --web-only",
+    "capawesome:build": "npm run build:mobile:web",
     "cap:sync": "npx cap sync",
     "verify:appflow-layout": "node scripts/verify-appflow-layout.mjs",
     "build:check": "NEXT_DIST_DIR=.next-check next build",

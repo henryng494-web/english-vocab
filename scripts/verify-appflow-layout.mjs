@@ -83,10 +83,18 @@ if (existsSync(join(repoRoot, "appflow.config.json"))) {
     const webBuild = app.webBuildCommand ?? "";
     if (!webBuild.includes("build:mobile")) {
       errors.push(
-        `appflow webBuildCommand must run npm run build:mobile (sets MOBILE_BUILD + writes out/); got "${webBuild || "(default)"}"`,
+        `appflow webBuildCommand must run npm run build:mobile:web (MOBILE_BUILD static export → out/); got "${webBuild || "(default)"}"`,
       );
     }
   }
+}
+
+const pkg = JSON.parse(readFileSync(join(repoRoot, "package.json"), "utf8"));
+const capawesomeBuild = pkg.scripts?.["capawesome:build"] ?? "";
+if (!capawesomeBuild.includes("build:mobile")) {
+  errors.push(
+    `package.json capawesome:build must run build:mobile:web (Capawesome Cloud defaults to "npm run build" which does not create out/)`,
+  );
 }
 
 if (errors.length) {
