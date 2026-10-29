@@ -6,7 +6,11 @@ import {
 } from "@/lib/pronounce-accent";
 import { normalizePronounceText } from "@/lib/pronounce-text";
 import { getPronouncePlaybackRate } from "@/lib/pronounce-speed";
-import { logPronunciation } from "@/lib/pronunciation-log";
+import {
+  logAudioPlayRejection,
+  logPronunciation,
+} from "@/lib/pronunciation-log";
+import { isAppleWebKit } from "@/lib/speech-voice";
 
 type PlaybackFailureReason = "no-element" | "no-src" | "autoplay-blocked" | "media-error";
 
@@ -62,9 +66,12 @@ function resolvePlayableSrc(word: string): string {
   return absoluteAudioUrl(resolvePlayableUrl(word));
 }
 
-/** Tap path: warmed MP3 blob when ready, otherwise stream same-origin `/api/pronounce/audio`. */
+/**
+ * Tap path (Safari/iOS): always assign the same-origin API MP3 URL on `.src`.
+ * Blob URLs are not used in-gesture — iOS treats them as async and blocks play().
+ */
 function resolveGesturePlaySrc(word: string): string {
-  return resolvePlayableSrc(word);
+  return absoluteAudioUrl(resolvePlayableUrl(word));
 }
 
 function absoluteAudioUrl(relativePath: string): string {
@@ -137,10 +144,17 @@ function playbackStillActive(
   );
 }
 
+type StartPlaybackOptions = {
+  /** User gesture path — one synchronous play(); no async canplay retry (Safari). */
+  gesture?: boolean;
+  word?: string;
+};
+
 function startPlayback(
   audio: HTMLAudioElement,
   wordKey: string,
   epoch: number,
+  options?: StartPlaybackOptions,
 ): void {
   applyPlaybackRate(audio);
   currentAudio = audio;
@@ -165,17 +179,30 @@ function startPlayback(
   };
   audio.addEventListener("error", onMediaError, { once: true });
 
+  const gesture = options?.gesture === true;
+  const logWord = options?.word ?? wordFromCacheKey(wordKey);
+
   const playAttempt = () => {
     try {
       const playPromise = audio.play();
       if (!playPromise || typeof playPromise.catch !== "function") return;
       playPromise.catch((err: unknown) => {
         if (!playbackStillActive(audio, epoch, wordKey)) return;
+        logAudioPlayRejection(
+          gesture ? "gesture-play" : "auto-play",
+          err,
+          logWord,
+        );
         const blocked =
           err instanceof DOMException &&
           (err.name === "NotAllowedError" || err.name === "AbortError");
+        if (gesture) {
+          fail(blocked ? "autoplay-blocked" : "media-error", err);
+          return;
+        }
         if (audio.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
           void audio.play().catch((retryErr) => {
+            logAudioPlayRejection("auto-play-retry", retryErr, logWord);
             fail(blocked ? "autoplay-blocked" : "media-error", retryErr);
           });
           return;
@@ -187,6 +214,7 @@ function startPlayback(
           if (currentAudio !== audio) return;
           applyPlaybackRate(audio);
           void audio.play().catch((retryErr) => {
+            logAudioPlayRejection("canplay-retry", retryErr, logWord);
             fail(blocked ? "autoplay-blocked" : "media-error", retryErr);
           });
         };
@@ -194,6 +222,7 @@ function startPlayback(
         audio.addEventListener("canplaythrough", onReady);
       });
     } catch (err) {
+      logAudioPlayRejection("play-sync-throw", err, logWord);
       fail("media-error", err);
     }
   };
@@ -321,7 +350,9 @@ export function preloadWordAudioElement(
     return;
   }
 
-  const src = resolvePlayableSrc(word);
+  const src = isAppleWebKit()
+    ? resolveGesturePlaySrc(word)
+    : resolvePlayableSrc(word);
   if (!src) return;
 
   if (audio.dataset.wordKey !== key || !audioSrcMatches(audio, src)) {
@@ -331,7 +362,10 @@ export function preloadWordAudioElement(
     }
     audio.dataset.wordKey = key;
     audio.src = src;
-    audio.load();
+    // Avoid load() on iOS — it breaks in-gesture play(); desktop can prefetch.
+    if (!isAppleWebKit()) {
+      audio.load();
+    }
   }
 }
 
@@ -464,51 +498,50 @@ export function stopWordAudio(): void {
 const SILENT_WAV_DATA_URI =
   "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA==";
 
+let sharedAudioPrimedInSession = false;
+
 /**
- * Unlock iOS/HTML audio playback during a user gesture with inaudible media.
- * Do not use a real word (e.g. "hello") — iOS ignores volume=0 on MP3.
+ * Prime the layout `<audio>` during pointerdown/touchstart (Safari iOS).
+ * Uses only the persistent DOM node — no blob URLs, no async src restore.
  */
-export function primeAudioPipelineInUserGesture(): void {
+export function primeSharedAudioInUserGesture(): void {
   if (typeof window === "undefined") return;
-  try {
-    const silent = new Audio(SILENT_WAV_DATA_URI);
-    silent.volume = 0;
-    void silent.play().catch(() => {});
-  } catch {
-    /* ignore */
-  }
   const audio = getAudioElement();
-  if (!audio) return;
-
-  const prevKey = audio.dataset.wordKey ?? "";
-  const prevSrc = audio.src;
-
-  audio.src = SILENT_WAV_DATA_URI;
-  audio.dataset.wordKey = "__silent__";
-  audio.currentTime = 0;
-  currentAudio = audio;
-
-  const restore = () => {
-    if (audio.dataset.wordKey !== "__silent__") return;
-    audio.pause();
-    audio.currentTime = 0;
-    if (currentAudio === audio) currentAudio = null;
-    const versionToken = `v=${voiceVersionForAccent(getPronounceAccent())}`;
-    if (prevSrc && prevSrc.includes(versionToken)) {
-      audio.src = prevSrc;
-      audio.dataset.wordKey = prevKey;
-    } else {
-      audio.removeAttribute("src");
-      delete audio.dataset.wordKey;
-    }
-  };
-
-  const playPromise = audio.play();
-  if (playPromise && typeof playPromise.then === "function") {
-    playPromise.then(restore).catch(restore);
-  } else {
-    restore();
+  if (!audio) {
+    logPronunciation({ stage: "ios-audio-prime", detail: "no-audio-element" });
+    return;
   }
+  configureAudioElement(audio);
+
+  if (sharedAudioPrimedInSession && isAppleWebKit()) {
+    return;
+  }
+
+  try {
+    audio.pause();
+    audio.src = SILENT_WAV_DATA_URI;
+    audio.dataset.wordKey = "__prime__";
+    const playPromise = audio.play();
+    if (playPromise && typeof playPromise.catch === "function") {
+      playPromise.catch((err) => {
+        logAudioPlayRejection("ios-audio-prime", err);
+      });
+    }
+    sharedAudioPrimedInSession = true;
+    audio.pause();
+    try {
+      audio.currentTime = 0;
+    } catch {
+      /* ignore */
+    }
+  } catch (err) {
+    logAudioPlayRejection("ios-audio-prime-sync", err);
+  }
+}
+
+/** @deprecated Use primeSharedAudioInUserGesture — old async restore raced MP3 playback. */
+export function primeAudioPipelineInUserGesture(): void {
+  primeSharedAudioInUserGesture();
 }
 
 /**
@@ -552,7 +585,7 @@ export function playWordAudioInUserGesture(word: string): boolean {
   audio.src = src;
   // Do not call load() here — it resets the buffer and breaks iOS gesture playback.
 
-  startPlayback(audio, key, epoch);
+  startPlayback(audio, key, epoch, { gesture: true, word });
   return true;
 }
 

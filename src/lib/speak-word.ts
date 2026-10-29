@@ -9,7 +9,7 @@ import {
   playWordAudioInUserGesture,
   playWordAudioWhenReady,
   preloadWordAudioElement,
-  primeAudioPipelineInUserGesture,
+  primeSharedAudioInUserGesture,
   stopWordAudio,
   warmWordAudioBytes,
 } from "@/lib/word-pronunciation-audio";
@@ -37,10 +37,12 @@ function speakMp3InUserGesture(text: string, requestId: number): void {
     }
   }
   if (isAppleWebKit()) {
-    primeAudioPipelineInUserGesture();
+    primeSharedAudioInUserGesture();
   }
   stopWordAudio();
-  void warmWordAudioBytes(text);
+  if (!isAppleWebKit()) {
+    void warmWordAudioBytes(text);
+  }
   const played = playWordAudioInUserGesture(text);
   logPronunciation({
     stage: "mp3-tap",
