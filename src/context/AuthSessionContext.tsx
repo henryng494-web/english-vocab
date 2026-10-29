@@ -66,10 +66,27 @@ export function AuthSessionProvider({ children }: { children: ReactNode }) {
     syncProfileFromUser(data.session?.user ?? null);
     setDisplayName(displayNameFromUser(data.session?.user ?? null) || readLearnerDisplayName());
     setReady(true);
+    if (data.session?.user) {
+      void import("@/lib/review-session").then(({ loadReviewSessionFast }) =>
+        loadReviewSessionFast().catch(() => {}),
+      );
+    }
     if (typeof window !== "undefined") {
       window.dispatchEvent(new Event(AUTH_SESSION_EVENT));
     }
   }, []);
+
+  useEffect(() => {
+    const onPageShow = () => {
+      void refreshSession();
+    };
+    window.addEventListener("pageshow", onPageShow);
+    window.addEventListener("focus", onPageShow);
+    return () => {
+      window.removeEventListener("pageshow", onPageShow);
+      window.removeEventListener("focus", onPageShow);
+    };
+  }, [refreshSession]);
 
   useEffect(() => {
     const supabase = createClientIfConfigured();

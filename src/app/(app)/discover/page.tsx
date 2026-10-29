@@ -9,6 +9,7 @@ import { AppHeader } from "@/components/layout/AppHeader";
 import { HeaderSelect } from "@/components/layout/HeaderSelect";
 import { JungleMascot } from "@/components/mascot/JungleMascot";
 import { useAppBootstrap } from "@/context/AppBootstrapContext";
+import { useAuthSession } from "@/context/AuthSessionContext";
 import {
   findNearestRangeWithWords,
   WORD_RANGES,
@@ -147,8 +148,14 @@ export default function DiscoverPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { t } = useI18n();
-  const { ranges: bootstrapRanges, wordCache: bootstrapWordCache, patchRangeAfterSave } =
-    useAppBootstrap();
+  const {
+    ranges: bootstrapRanges,
+    wordCache: bootstrapWordCache,
+    patchRangeAfterSave,
+    bootstrapComplete,
+    refreshBootstrap,
+  } = useAppBootstrap();
+  const { ready: authReady } = useAuthSession();
   const inSession = pathname.startsWith("/journey");
   const isDailyJourney =
     inSession &&
@@ -276,13 +283,21 @@ export default function DiscoverPage() {
     return lengths;
   }, [bootstrapRanges, rangeId, queue.length]);
 
+  const hasBootstrapData = bootstrapComplete;
+
   const allRangesFinished = useMemo(
     () =>
-      bootstrapRanges
+      hasBootstrapData
         ? WORD_RANGES.every((range) => (queueLengthsByRange[range.id] ?? 0) === 0)
         : false,
-    [bootstrapRanges, queueLengthsByRange],
+    [hasBootstrapData, queueLengthsByRange],
   );
+
+  useEffect(() => {
+    if (!authReady || !rangeReady) return;
+    if (bootstrapComplete) return;
+    void refreshBootstrap();
+  }, [authReady, rangeReady, bootstrapComplete, refreshBootstrap]);
 
   const warmRangeImages = useCallback((items: DiscoverListItem[]) => {
     const batch = items.slice(0, IMAGE_WARM_COUNT).map(listItemImageTarget);
@@ -607,8 +622,15 @@ export default function DiscoverPage() {
 
     const cachedRange = bootstrapRanges?.[rangeId];
     if (cachedRange) {
-      initializedRangeRef.current = rangeId;
       const filtered = filterDiscoverQueue(cachedRange.queue);
+      const cacheLooksFailed =
+        filtered.length === 0 && cachedRange.stats.total === 0;
+      if (cacheLooksFailed) {
+        initializedRangeRef.current = rangeId;
+        void fetchRange();
+        return;
+      }
+      initializedRangeRef.current = rangeId;
       setQueue(filtered);
       setStats({
         total: cachedRange.stats.total,
@@ -957,7 +979,7 @@ export default function DiscoverPage() {
           </p>
         )}
 
-        {loadingList ? (
+        {loadingList || (!bootstrapComplete && !error) ? (
           <div className="journey-main journey-main--center">
             <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary-100 border-t-primary" />
           </div>

@@ -62,7 +62,16 @@ export type AppBootstrapSnapshot = {
   ranges: Record<string, RangeBootstrapData>;
   wordCache: Record<string, DiscoverWordData>;
   review: ReviewSession | null;
+  /** False when splash failsafe fired or no band data loaded — UI must refetch, not show "finished". */
+  complete: boolean;
 };
+
+export function isBootstrapSnapshotUsable(snapshot: AppBootstrapSnapshot | null): boolean {
+  if (!snapshot?.complete) return false;
+  return Object.values(snapshot.ranges).some(
+    (range) => range.queue.length > 0 || range.stats.total > 0,
+  );
+}
 
 function report(
   onProgress: (progress: BootstrapProgress) => void,
@@ -136,7 +145,7 @@ async function fetchWithTimeout<T>(
 
 async function loadBootstrapRange(
   rangeId: string,
-): Promise<RangeBootstrapData> {
+): Promise<RangeBootstrapData | null> {
   try {
     const loaded = await fetchWithTimeout(
       fetchDiscoverRange(rangeId),
@@ -146,7 +155,7 @@ async function loadBootstrapRange(
   } catch {
     /* fall through */
   }
-  return { queue: [], stats: { total: 0, hidden: 0 } };
+  return null;
 }
 
 async function prefetchBootstrapCardContent(
@@ -228,7 +237,8 @@ export async function runAppBootstrap(
 
   await Promise.all(
     bootstrapRanges.map(async (range) => {
-      ranges[range.id] = await loadBootstrapRange(range.id);
+      const loaded = await loadBootstrapRange(range.id);
+      if (loaded) ranges[range.id] = loaded;
       rangesDone += 1;
       report(
         onProgress,
@@ -239,9 +249,8 @@ export async function runAppBootstrap(
   );
 
   void loadBootstrapRange(DEFERRED_BOOTSTRAP_RANGE).then((deferred) => {
-    ranges[DEFERRED_BOOTSTRAP_RANGE] = deferred;
+    if (deferred) ranges[DEFERRED_BOOTSTRAP_RANGE] = deferred;
   });
-  ranges[DEFERRED_BOOTSTRAP_RANGE] = { queue: [], stats: { total: 0, hidden: 0 } };
 
   report(onProgress, 62, "");
 
@@ -309,11 +318,16 @@ export async function runAppBootstrap(
 
   report(onProgress, 100, "");
 
+  const complete = Object.values(ranges).some(
+    (range) => range.queue.length > 0 || range.stats.total > 0,
+  );
+
   return {
     defaultRangeId: DEFAULT_BOOTSTRAP_RANGE,
     ranges,
     wordCache: Object.fromEntries(wordCache.entries()),
     review,
+    complete,
   };
 }
 
