@@ -44,6 +44,8 @@ export const BOOTSTRAP_WORD_TIMEOUT_MS = 8000;
 export const BOOTSTRAP_REVIEW_TIMEOUT_MS = 4000;
 export const BOOTSTRAP_RANGE_TIMEOUT_MS = 12000;
 export const BOOTSTRAP_FAILSAFE_MS = 14000;
+/** Journey UI must never spin longer than this — release even if bands still loading. */
+export const BOOTSTRAP_UI_RELEASE_MS = 5000;
 /** Defer the multi-MB tail band — it can freeze mobile JSON parsing on splash. */
 const DEFERRED_BOOTSTRAP_RANGE = "5001-plus";
 
