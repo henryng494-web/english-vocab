@@ -10,6 +10,8 @@ import { existsSync, mkdirSync, readdirSync, renameSync, rmSync, statSync } from
 import { join } from "node:path";
 
 const root = process.cwd();
+const webOnly =
+  process.argv.includes("--web-only") || process.env.MOBILE_WEB_ONLY === "1";
 const DEFAULT_API_BASE_URL = "https://english-vocab-omega.vercel.app";
 const MAX_OUT_MB = 50;
 function normalizePublicOrigin(raw) {
@@ -110,4 +112,8 @@ if (outMb > MAX_OUT_MB) {
   process.exit(1);
 }
 
-run("npx", ["cap", "sync"]);
+if (webOnly) {
+  console.log("[build:mobile] Skipping cap sync (--web-only)");
+} else {
+  run("npx", ["cap", "sync"]);
+}
