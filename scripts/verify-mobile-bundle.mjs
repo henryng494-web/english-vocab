@@ -37,6 +37,11 @@ if (apiBase && !bundleContains(apiBase.replace(/\/+$/, ""))) {
 if (supabaseUrl && !bundleContains(supabaseUrl.replace(/\/+$/, ""))) {
   errors.push("Client bundle does not contain NEXT_PUBLIC_SUPABASE_URL host");
 }
+if (!bundleContains("jj-supabase-auth-localStorage-v2")) {
+  errors.push(
+    "Mobile bundle missing localStorage auth client (run npm run build:mobile / capawesome:build, not plain next build)",
+  );
+}
 
 if (errors.length) {
   console.error("[verify-mobile-bundle] FAILED\n" + errors.map((e) => `  - ${e}`).join("\n"));

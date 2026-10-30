@@ -8,6 +8,7 @@ import {
 } from "@/lib/auth-errors";
 import { isMobileAuthContext, resolveAuthCallbackUrl } from "@/lib/auth-redirect";
 import { navigateAfterAuth, normalizeMobileAppPath } from "@/lib/auth-navigation";
+import { persistAuthSignedInFlag } from "@/lib/auth-session";
 import { createClientIfConfigured } from "@/lib/supabase/client";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { AppHeader } from "@/components/layout/AppHeader";
@@ -114,6 +115,16 @@ function LoginForm() {
           await supabase.auth.getSession();
         }
         if (isMobileAuthContext()) {
+          const { data: sessionCheck } = await supabase.auth.getSession();
+          if (!sessionCheck.session) {
+            setFeedback({
+              kind: "error",
+              text: t("auth.err.signInFailed"),
+            });
+            setLoading(false);
+            return;
+          }
+          persistAuthSignedInFlag(true);
           navigateAfterAuth(afterAuth);
           return;
         }
@@ -157,6 +168,13 @@ function LoginForm() {
       } else if (data.session) {
         await supabase.auth.getSession();
         if (isMobileAuthContext()) {
+          const { data: sessionCheck } = await supabase.auth.getSession();
+          if (!sessionCheck.session) {
+            setFeedback({ kind: "error", text: t("auth.err.signInFailed") });
+            setLoading(false);
+            return;
+          }
+          persistAuthSignedInFlag(true);
           navigateAfterAuth(afterAuth);
           return;
         }

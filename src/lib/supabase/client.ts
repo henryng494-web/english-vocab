@@ -1,7 +1,12 @@
 import { createBrowserClient } from "@supabase/ssr";
 import { createClient as createSupabaseJsClient, type SupabaseClient } from "@supabase/supabase-js";
 import { logSupabaseAuthError } from "@/lib/auth-errors";
-import { shouldUseLocalStorageAuthPersistence } from "@/lib/supabase/auth-storage-mode";
+import {
+  MOBILE_AUTH_STORAGE_VERIFY_TOKEN,
+  shouldUseLocalStorageAuthPersistence,
+  supabaseAuthPersistenceMode,
+} from "@/lib/supabase/auth-storage-mode";
+import { createCapacitorAuthStorage } from "@/lib/supabase/capacitor-auth-storage";
 import {
   isBrowserOfflineSignal,
   isUnreliableNavigatorOnLine,
@@ -71,15 +76,21 @@ function createCapacitorBrowserClient(url: string, anonKey: string): SupabaseCli
     auth: {
       persistSession: true,
       autoRefreshToken: true,
-      detectSessionInUrl: true,
+      // Static export routes carry no OAuth callback; parsing the URL can clear a valid session.
+      detectSessionInUrl: false,
       flowType: "pkce",
-      storage: typeof window !== "undefined" ? window.localStorage : undefined,
+      storage: createCapacitorAuthStorage(),
     },
   });
 }
 
 function createSharedBrowserClient(url: string, anonKey: string): SupabaseClient {
-  if (shouldUseLocalStorageAuthPersistence()) {
+  if (typeof window !== "undefined" && shouldUseLocalStorageAuthPersistence()) {
+    if (typeof console !== "undefined") {
+      console.info(
+        `[supabase-auth] persistence=${supabaseAuthPersistenceMode()} token=${MOBILE_AUTH_STORAGE_VERIFY_TOKEN}`,
+      );
+    }
     return createCapacitorBrowserClient(url, anonKey);
   }
   return createWebBrowserClient(url, anonKey);
