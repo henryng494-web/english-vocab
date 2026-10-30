@@ -11,6 +11,8 @@ type PurchasesModule = typeof import("@revenuecat/purchases-capacitor");
 export const PRO_ENTITLEMENT_ID =
   process.env.NEXT_PUBLIC_REVENUECAT_ENTITLEMENT?.trim() || "pro";
 
+const OFFERING_ID = process.env.NEXT_PUBLIC_REVENUECAT_OFFERING_ID?.trim() || "";
+
 export const REVENUECAT_MOCK_MODE = process.env.NEXT_PUBLIC_REVENUECAT_MOCK === "1";
 
 export type PlanPackage = {
@@ -85,7 +87,8 @@ export async function initRevenueCat(appUserId?: string | null): Promise<boolean
     configured = true;
     currentUserId = appUserId ?? null;
     return true;
-  } catch {
+  } catch (error) {
+    console.error("[revenuecat] configure failed", error);
     return false;
   }
 }
@@ -172,15 +175,57 @@ const MOCK_PACKAGES: PlanPackage[] = [
   { identifier: "$rc_lifetime", title: "Lifetime", description: "Pay once, keep forever", priceString: "$59.99", price: 59.99, hasFreeTrial: false, packageType: "LIFETIME", raw: null },
 ];
 
+type StorePackage = {
+  identifier: string;
+  packageType: unknown;
+  product: {
+    title: string;
+    description: string;
+    priceString: string;
+    price: number;
+    introPrice?: { price: number } | null;
+  };
+};
+
+type PurchasesOfferings = {
+  current: { identifier: string; availablePackages: StorePackage[] } | null;
+  all: Record<string, { availablePackages: StorePackage[] }>;
+};
+
+function resolveOffering(offerings: PurchasesOfferings) {
+  if (offerings.current?.availablePackages?.length) return offerings.current;
+  if (OFFERING_ID && offerings.all?.[OFFERING_ID]?.availablePackages?.length) {
+    return offerings.all[OFFERING_ID];
+  }
+  const fallback = Object.values(offerings.all ?? {}).find(
+    (entry) => (entry.availablePackages?.length ?? 0) > 0,
+  );
+  return fallback ?? offerings.current ?? null;
+}
+
 /** Packages of the current offering; empty on web unless mock mode is on. */
 export async function getOfferings(): Promise<PlanPackage[]> {
   if (!isNativePlatform()) return REVENUECAT_MOCK_MODE ? MOCK_PACKAGES : [];
-  if (!(await initRevenueCat())) return [];
+  if (!(await initRevenueCat())) {
+    console.error(
+      "[revenuecat] SDK not configured — set NEXT_PUBLIC_REVENUECAT_API_KEY_IOS (or _ANDROID) in Capawesome before capawesome:build",
+    );
+    return [];
+  }
   const sdk = await loadSdk();
   if (!sdk) return [];
   try {
-    const offerings = await sdk.Purchases.getOfferings();
-    return (offerings.current?.availablePackages ?? []).map((pkg) => ({
+    const offerings = (await sdk.Purchases.getOfferings()) as PurchasesOfferings;
+    const offering = resolveOffering(offerings);
+    const packages = offering?.availablePackages ?? [];
+    if (packages.length === 0) {
+      console.error("[revenuecat] No packages in offering", {
+        current: offerings.current?.identifier ?? null,
+        offeringId: OFFERING_ID || null,
+        all: Object.keys(offerings.all ?? {}),
+      });
+    }
+    return packages.map((pkg) => ({
       identifier: pkg.identifier,
       title: pkg.product.title,
       description: pkg.product.description,
@@ -190,7 +235,8 @@ export async function getOfferings(): Promise<PlanPackage[]> {
       packageType: String(pkg.packageType),
       raw: pkg,
     }));
-  } catch {
+  } catch (error) {
+    console.error("[revenuecat] getOfferings failed", error);
     return [];
   }
 }

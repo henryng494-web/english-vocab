@@ -27,6 +27,22 @@ const MOBILE_PUBLIC_ENV_KEYS = [
   "NEXT_PUBLIC_SUPABASE_ANON_KEY",
 ];
 
+const MOBILE_OPTIONAL_PUBLIC_ENV_KEYS = [
+  "NEXT_PUBLIC_REVENUECAT_API_KEY",
+  "NEXT_PUBLIC_REVENUECAT_API_KEY_IOS",
+  "NEXT_PUBLIC_REVENUECAT_API_KEY_ANDROID",
+  "NEXT_PUBLIC_REVENUECAT_ENTITLEMENT",
+  "NEXT_PUBLIC_REVENUECAT_OFFERING_ID",
+];
+
+function optionalPublicEnv() {
+  return Object.fromEntries(
+    MOBILE_OPTIONAL_PUBLIC_ENV_KEYS.map((key) => [key, process.env[key]?.trim()]).filter(
+      ([, value]) => Boolean(value),
+    ),
+  );
+}
+
 function requirePublicEnv(name) {
   const value = process.env[name]?.trim();
   if (!value) {
@@ -107,12 +123,22 @@ try {
   console.log(
     `  NEXT_PUBLIC_SUPABASE_ANON_KEY=${mobilePublicEnv.NEXT_PUBLIC_SUPABASE_ANON_KEY.slice(0, 8)}…`,
   );
+  const revenueCatEnv = optionalPublicEnv();
+  const iosRcKey = revenueCatEnv.NEXT_PUBLIC_REVENUECAT_API_KEY_IOS?.trim();
+  if (iosRcKey) {
+    console.log(`  NEXT_PUBLIC_REVENUECAT_API_KEY_IOS=${iosRcKey.slice(0, 8)}…`);
+  } else {
+    console.warn(
+      "[build:mobile] Missing NEXT_PUBLIC_REVENUECAT_API_KEY_IOS — Pro paywall will show 'Plans not available' on TestFlight.",
+    );
+  }
 
   run("npx", ["next", "build"], {
     MOBILE_BUILD: "1",
     NEXT_PUBLIC_MOBILE_BUILD: "1",
     NEXT_PUBLIC_API_BASE_URL: apiBase,
     ...mobilePublicEnv,
+    ...revenueCatEnv,
     NEXT_DIST_DIR: ".next-mobile",
   });
 } finally {

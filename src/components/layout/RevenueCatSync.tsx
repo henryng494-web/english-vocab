@@ -3,6 +3,7 @@
 import { initRevenueCat, logInRevenueCat, logOutRevenueCat, syncPlacementAttributes } from "@/lib/revenuecat";
 import { PLACEMENT_SAVED_EVENT, readPlacement } from "@/lib/placement";
 import { createClientIfConfigured } from "@/lib/supabase/client";
+import { waitForSupabaseAuthInitialized } from "@/lib/supabase/wait-auth-initialized";
 import { useEffect } from "react";
 
 /** Keeps RevenueCat in step with the Supabase session and the stored placement rank. */
@@ -16,6 +17,8 @@ export function RevenueCatSync() {
     };
 
     void (async () => {
+      await waitForSupabaseAuthInitialized();
+      if (cancelled) return;
       await initRevenueCat();
       if (cancelled) return;
       const supabase = createClientIfConfigured();
