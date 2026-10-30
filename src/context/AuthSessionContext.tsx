@@ -1,6 +1,7 @@
 "use client";
 
 import { createClientIfConfigured } from "@/lib/supabase/client";
+import { waitForSupabaseAuthInitialized } from "@/lib/supabase/wait-auth-initialized";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import {
   displayNameFromUser,
@@ -49,6 +50,24 @@ function syncProfileFromUser(user: User | null): void {
   if (name) persistLearnerDisplayName(name);
 }
 
+function applySessionToState(
+  nextSession: Session | null,
+  setSession: (s: Session | null) => void,
+  setDisplayName: (n: string) => void,
+): void {
+  setSession(nextSession);
+  syncProfileFromUser(nextSession?.user ?? null);
+  setDisplayName(displayNameFromUser(nextSession?.user ?? null) || readLearnerDisplayName());
+  if (nextSession?.user) {
+    void import("@/lib/review-session").then(({ loadReviewSessionFast }) =>
+      loadReviewSessionFast().catch(() => {}),
+    );
+  }
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new Event(AUTH_SESSION_EVENT));
+  }
+}
+
 export function AuthSessionProvider({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(() => !isSupabaseConfigured());
   const [session, setSession] = useState<Session | null>(null);
@@ -61,19 +80,10 @@ export function AuthSessionProvider({ children }: { children: ReactNode }) {
       setReady(true);
       return;
     }
+    await waitForSupabaseAuthInitialized(2000);
     const { data } = await supabase.auth.getSession();
-    setSession(data.session);
-    syncProfileFromUser(data.session?.user ?? null);
-    setDisplayName(displayNameFromUser(data.session?.user ?? null) || readLearnerDisplayName());
+    applySessionToState(data.session, setSession, setDisplayName);
     setReady(true);
-    if (data.session?.user) {
-      void import("@/lib/review-session").then(({ loadReviewSessionFast }) =>
-        loadReviewSessionFast().catch(() => {}),
-      );
-    }
-    if (typeof window !== "undefined") {
-      window.dispatchEvent(new Event(AUTH_SESSION_EVENT));
-    }
   }, []);
 
   useEffect(() => {
@@ -97,30 +107,37 @@ export function AuthSessionProvider({ children }: { children: ReactNode }) {
     }
 
     let cancelled = false;
-    void supabase.auth.getSession().then(({ data }) => {
+    let initialHydrated = false;
+
+    const markReady = () => {
+      if (!initialHydrated) {
+        initialHydrated = true;
+        setReady(true);
+      }
+    };
+
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, nextSession) => {
       if (cancelled) return;
-      setSession(data.session);
-      syncProfileFromUser(data.session?.user ?? null);
-      setDisplayName(
-        displayNameFromUser(data.session?.user ?? null) || readLearnerDisplayName(),
-      );
-      setReady(true);
-      if (typeof window !== "undefined") {
-        window.dispatchEvent(new Event(AUTH_SESSION_EVENT));
+      applySessionToState(nextSession, setSession, setDisplayName);
+      if (_event === "INITIAL_SESSION") {
+        markReady();
+      }
+      if (_event === "SIGNED_OUT") {
+        writeProCache(false);
       }
     });
 
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, nextSession) => {
-      setSession(nextSession);
-      syncProfileFromUser(nextSession?.user ?? null);
-      setDisplayName(
-        displayNameFromUser(nextSession?.user ?? null) || readLearnerDisplayName(),
-      );
-      if (!nextSession) {
-        writeProCache(false);
-      }
-      if (typeof window !== "undefined") {
-        window.dispatchEvent(new Event(AUTH_SESSION_EVENT));
+    const fallback = window.setTimeout(async () => {
+      if (cancelled || initialHydrated) return;
+      const { data } = await supabase.auth.getSession();
+      if (cancelled) return;
+      applySessionToState(data.session, setSession, setDisplayName);
+      markReady();
+    }, 5000);
+
+    void waitForSupabaseAuthInitialized(5000).then(() => {
+      if (!cancelled && !initialHydrated) {
+        markReady();
       }
     });
 
@@ -129,6 +146,7 @@ export function AuthSessionProvider({ children }: { children: ReactNode }) {
 
     return () => {
       cancelled = true;
+      window.clearTimeout(fallback);
       listener.subscription.unsubscribe();
       window.removeEventListener(LEARNER_DISPLAY_NAME_EVENT, onName);
     };
@@ -142,6 +160,7 @@ export function AuthSessionProvider({ children }: { children: ReactNode }) {
     writeProCache(false);
     setSession(null);
     setDisplayName(readLearnerDisplayName());
+    persistAuthSignedInFlag(false);
     if (typeof window !== "undefined") {
       window.dispatchEvent(new Event(AUTH_SESSION_EVENT));
     }

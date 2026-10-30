@@ -1,14 +1,6 @@
-import { createClientIfConfigured } from "@/lib/supabase/client";
+import { waitForSupabaseAuthInitialized } from "@/lib/supabase/wait-auth-initialized";
 
-/** Best-effort session read — never block splash/bootstrap longer than a few seconds. */
-export async function waitForClientAuthReady(timeoutMs = 2500): Promise<void> {
-  const supabase = createClientIfConfigured();
-  if (!supabase || typeof window === "undefined") return;
-
-  await Promise.race([
-    supabase.auth.getSession().catch(() => undefined),
-    new Promise<void>((resolve) => {
-      window.setTimeout(resolve, timeoutMs);
-    }),
-  ]);
+/** Best-effort session hydration — never block splash/bootstrap longer than a few seconds. */
+export async function waitForClientAuthReady(timeoutMs = 4000): Promise<void> {
+  await waitForSupabaseAuthInitialized(timeoutMs);
 }

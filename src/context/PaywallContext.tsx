@@ -3,7 +3,7 @@
 import { PaywallContent } from "@/components/paywall/PaywallContent";
 import { useI18n } from "@/hooks/use-i18n";
 import { AUTH_SESSION_EVENT, useAuthSession } from "@/context/AuthSessionContext";
-import { isGuestUser, loginPathWithReturn, isClientSignedIn } from "@/lib/auth-session";
+import { isGuestUser, loginPathWithReturn } from "@/lib/auth-session";
 import {
   FREE_DAILY_REVIEWS,
   PRO_STATUS_EVENT,
@@ -49,7 +49,7 @@ export function PaywallProvider({ children }: { children: ReactNode }) {
   const { t } = useI18n();
   const router = useRouter();
   const pathname = usePathname();
-  const { isSignedIn } = useAuthSession();
+  const { ready: authReady, isSignedIn } = useAuthSession();
   const guest = isSupabaseConfigured() && !isSignedIn;
   const guestSync = isGuestUser();
 
@@ -106,15 +106,16 @@ export function PaywallProvider({ children }: { children: ReactNode }) {
   }, [open]);
 
   const openPaywall = useCallback(() => {
-    void (async () => {
-      setPrompt(null);
-      if (gating && isSupabaseConfigured() && !(await isClientSignedIn())) {
+    setPrompt(null);
+    if (gating && isSupabaseConfigured()) {
+      if (!authReady) return;
+      if (!isSignedIn) {
         router.push(loginPathWithReturn(pathname || "/discover"));
         return;
       }
-      setOpen(true);
-    })();
-  }, [gating, pathname, router]);
+    }
+    setOpen(true);
+  }, [authReady, gating, isSignedIn, pathname, router]);
   const showUpgradePrompt = useCallback((reason: UpgradeReason) => setPrompt(reason), []);
   const closePaywall = useCallback(() => setOpen(false), []);
   const dismissPromptAndGoBack = useCallback(() => {

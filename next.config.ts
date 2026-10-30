@@ -17,6 +17,15 @@ const nextConfig: NextConfig = {
           NEXT_PUBLIC_API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL ?? "",
           NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
           NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "",
+          NEXT_PUBLIC_REVENUECAT_API_KEY: process.env.NEXT_PUBLIC_REVENUECAT_API_KEY ?? "",
+          NEXT_PUBLIC_REVENUECAT_API_KEY_IOS:
+            process.env.NEXT_PUBLIC_REVENUECAT_API_KEY_IOS ?? "",
+          NEXT_PUBLIC_REVENUECAT_API_KEY_ANDROID:
+            process.env.NEXT_PUBLIC_REVENUECAT_API_KEY_ANDROID ?? "",
+          NEXT_PUBLIC_REVENUECAT_ENTITLEMENT:
+            process.env.NEXT_PUBLIC_REVENUECAT_ENTITLEMENT ?? "",
+          NEXT_PUBLIC_REVENUECAT_OFFERING_ID:
+            process.env.NEXT_PUBLIC_REVENUECAT_OFFERING_ID ?? "",
         }
       : {}),
     ...(process.env.NODE_ENV === "development" &&
