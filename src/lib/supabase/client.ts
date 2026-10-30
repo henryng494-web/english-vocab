@@ -1,6 +1,7 @@
 import { createBrowserClient } from "@supabase/ssr";
-import type { SupabaseClient } from "@supabase/supabase-js";
+import { createClient as createSupabaseJsClient, type SupabaseClient } from "@supabase/supabase-js";
 import { logSupabaseAuthError } from "@/lib/auth-errors";
+import { shouldUseLocalStorageAuthPersistence } from "@/lib/supabase/auth-storage-mode";
 import {
   isBrowserOfflineSignal,
   isUnreliableNavigatorOnLine,
@@ -60,13 +61,37 @@ function browserClientOptions() {
   return { global: { fetch: capacitorAwareFetch } };
 }
 
+function createWebBrowserClient(url: string, anonKey: string): SupabaseClient {
+  return createBrowserClient(url, anonKey, browserClientOptions());
+}
+
+function createCapacitorBrowserClient(url: string, anonKey: string): SupabaseClient {
+  return createSupabaseJsClient(url, anonKey, {
+    ...browserClientOptions(),
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+      flowType: "pkce",
+      storage: typeof window !== "undefined" ? window.localStorage : undefined,
+    },
+  });
+}
+
+function createSharedBrowserClient(url: string, anonKey: string): SupabaseClient {
+  if (shouldUseLocalStorageAuthPersistence()) {
+    return createCapacitorBrowserClient(url, anonKey);
+  }
+  return createWebBrowserClient(url, anonKey);
+}
+
 let sharedBrowserClient: SupabaseClient | null = null;
 
 export function createClientIfConfigured(): SupabaseClient | null {
   const config = getSupabaseConfigOptional();
   if (!config) return null;
   if (!sharedBrowserClient) {
-    sharedBrowserClient = createBrowserClient(config.url, config.anonKey, browserClientOptions());
+    sharedBrowserClient = createSharedBrowserClient(config.url, config.anonKey);
   }
   return sharedBrowserClient;
 }
@@ -75,6 +100,6 @@ export function createClient(): SupabaseClient {
   const configured = createClientIfConfigured();
   if (configured) return configured;
   const { url, anonKey } = getSupabaseConfig();
-  sharedBrowserClient = createBrowserClient(url, anonKey, browserClientOptions());
+  sharedBrowserClient = createSharedBrowserClient(url, anonKey);
   return sharedBrowserClient;
 }
