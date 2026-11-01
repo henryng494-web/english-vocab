@@ -1,6 +1,3 @@
-import { IS_MOBILE_BUILD } from "@/lib/api-base";
-import { isMobileAuthContext } from "@/lib/auth-redirect";
-
 /** Static Capacitor export uses trailing slashes — normalize in-app paths. */
 export function normalizeMobileAppPath(path: string): string {
   if (!path.startsWith("/")) return path;
@@ -12,10 +9,7 @@ export function normalizeMobileAppPath(path: string): string {
   return path.endsWith("/") ? path : `${path}/`;
 }
 
-export function shouldUseHardNavigationAfterAuth(): boolean {
-  return IS_MOBILE_BUILD || isMobileAuthContext();
-}
-
-export function navigateAfterAuth(path: string): void {
-  window.location.assign(normalizeMobileAppPath(path));
+/** Preserve the authenticated React tree; a document reload restarts the splash. */
+export function navigateAfterAuth(path: string, router: { replace: (href: string) => void }): void {
+  router.replace(normalizeMobileAppPath(path));
 }

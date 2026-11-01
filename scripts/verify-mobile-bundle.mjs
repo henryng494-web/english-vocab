@@ -31,6 +31,14 @@ const errors = [];
 if (!existsSync(join(outDir, "index.html"))) {
   errors.push("Missing out/index.html");
 }
+// The native router must have real pages and RSC payloads to serve after auth.
+for (const route of ["account", "auth/login"]) {
+  for (const name of ["index.html", "index.txt"]) {
+    if (!existsSync(join(outDir, route, name))) {
+      errors.push(`Missing out/${route}/${name}`);
+    }
+  }
+}
 if (apiBase && !bundleContains(apiBase.replace(/\/+$/, ""))) {
   errors.push(`Client bundle does not contain API base ${apiBase}`);
 }

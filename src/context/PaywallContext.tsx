@@ -21,6 +21,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -42,6 +43,7 @@ const PaywallContext = createContext<PaywallContextValue | null>(null);
 export function PaywallProvider({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
   const [isPro, setIsPro] = useState(false);
+  const statusGeneration = useRef(0);
 
   const [gating, setGating] = useState(false);
   const [freeTier, setFreeTier] = useState(false);
@@ -60,25 +62,23 @@ export function PaywallProvider({ children }: { children: ReactNode }) {
       setFreeTier(isUsageLimited());
     };
     syncTierFlags();
-    const active = isGatingActive();
 
     const applyProStatus = (status: ProStatus) => {
       if (cancelled) return;
-      if (!status.checked) {
-        if (active) {
-          setIsPro(false);
-          writeProCache(false);
-        }
-        return;
-      }
+      // An unavailable SDK/network is not proof the subscription expired.
+      if (!status.checked) return;
       setIsPro(status.isPro);
       writeProCache(status.isPro);
     };
 
     const refreshPro = (delayMs = 0) => {
-      setIsPro(active ? false : readProCache());
+      const generation = ++statusGeneration.current;
+      setIsPro(readProCache());
       window.setTimeout(() => {
-        void getProStatus().then(applyProStatus);
+        if (cancelled || generation !== statusGeneration.current) return;
+        void getProStatus().then((status) => {
+          if (generation === statusGeneration.current) applyProStatus(status);
+        });
       }, delayMs);
     };
 
@@ -127,6 +127,9 @@ export function PaywallProvider({ children }: { children: ReactNode }) {
     }
   }, [router]);
   const onProChange = useCallback((status: ProStatus) => {
+    // A pre-purchase check may finish after StoreKit returns success.
+    // Do not let that older response overwrite the purchase/restore result.
+    ++statusGeneration.current;
     setIsPro(status.isPro);
     writeProCache(status.isPro);
   }, []);
