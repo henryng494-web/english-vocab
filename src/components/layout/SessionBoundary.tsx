@@ -7,6 +7,6 @@ import { RevenueCatSync } from "@/components/layout/RevenueCatSync";
 /** Keep recovery URL tokens away from the normal browser auth client and SDKs. */
 export function SessionBoundary({ children }: { children: React.ReactNode }) {
   const pathname = usePathname().replace(/\/+$/, "");
-  if (["/auth/reset-password", "/privacy", "/terms", "/delete-account"].includes(pathname)) return children;
+  if (["/auth/reset-password", "/privacy", "/terms", "/delete-account", "/support"].includes(pathname.replace(/\/+$/, ""))) return children;
   return <AuthSessionProvider><RevenueCatSync />{children}</AuthSessionProvider>;
 }

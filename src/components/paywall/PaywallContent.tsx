@@ -20,7 +20,7 @@ type PaywallContentProps = {
   closeIfUnavailable?: boolean;
 };
 
-const BENEFITS = ["paywall.benefit1", "paywall.benefit2", "paywall.benefit3", "paywall.benefit4"] as const;
+const BENEFITS = ["paywall.benefit1", "paywall.benefit2", "paywall.wordForms", "paywall.studyGoals"] as const;
 
 const BRAND = "#7c3aed";
 
@@ -42,7 +42,7 @@ function pickRecurring(packages: PlanPackage[]) {
 }
 
 export function PaywallContent({ onClose, onProChange, closeIfUnavailable }: PaywallContentProps) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const [packages, setPackages] = useState<PlanPackage[] | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -166,7 +166,13 @@ export function PaywallContent({ onClose, onProChange, closeIfUnavailable }: Pay
 
   const loading = packages === null;
   const empty = packages !== null && packages.length === 0;
-  const ctaLabel = selected?.hasFreeTrial ? t("paywall.ctaTrial") : t("paywall.ctaUpgrade");
+  const trialDuration = selected?.trialDuration
+    ? new Intl.NumberFormat(locale, { style: "unit", unit: selected.trialDuration.unit, unitDisplay: "long" }).format(selected.trialDuration.count)
+    : null;
+  const ctaLabel = trialDuration ? t("paywall.ctaEligibleTrial") : t("paywall.ctaUpgrade");
+  const recurringPrice = selected?.packageType === "ANNUAL"
+    ? t("paywall.perYear", { price: selected.priceString })
+    : selected?.packageType === "MONTHLY" ? t("paywall.perMonth", { price: selected.priceString }) : null;
 
   return (
     <div className="mx-auto flex min-h-full w-full max-w-lg flex-col px-5 pb-6 pt-4">
@@ -241,7 +247,11 @@ export function PaywallContent({ onClose, onProChange, closeIfUnavailable }: Pay
         {busy ? "…" : ctaLabel}
       </button>
       <p className="mt-2 text-center text-xs text-foreground/55">
-        {selected?.packageType === "LIFETIME" ? t("paywall.lifetimeNote") : t("paywall.cancelAnytime")}
+        {selected?.packageType === "LIFETIME" ? t("paywall.lifetimeNote") : recurringPrice
+          ? trialDuration
+            ? t("paywall.trialDisclosure", { duration: trialDuration, price: recurringPrice })
+            : t("paywall.renewalDisclosure", { price: recurringPrice })
+          : null}
       </p>
 
       <div className="mt-4 flex flex-col items-center gap-2 text-sm">

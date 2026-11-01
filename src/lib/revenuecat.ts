@@ -1,4 +1,5 @@
 import { Capacitor } from "@capacitor/core";
+import { eligibleFreeTrial, type TrialDuration } from "@/lib/subscription-trial";
 import type { StoredPlacement } from "@/lib/placement";
 import { learnerUserId, learnerScope, isLearnerScopeCurrent } from "@/lib/learner-storage";
 
@@ -26,6 +27,7 @@ export type PlanPackage = {
   price: number;
   packageType: string;
   hasFreeTrial: boolean;
+  trialDuration?: TrialDuration;
   /** Opaque handle passed back to `purchasePackage`. */
   raw: unknown;
 };
@@ -197,11 +199,12 @@ type StorePackage = {
   identifier: string;
   packageType: unknown;
   product: {
+    identifier: string;
     title: string;
     description: string;
     priceString: string;
     price: number;
-    introPrice?: { price: number } | null;
+    introPrice?: { price: number; periodUnit: string; periodNumberOfUnits: number; cycles: number } | null;
   };
 };
 
@@ -223,6 +226,7 @@ function resolveOffering(offerings: PurchasesOfferings) {
 
 /** Packages of the current offering; empty on web unless mock mode is on. */
 export async function getOfferings(): Promise<PlanPackage[]> {
+  const scope = learnerScope();
   if (!isNativePlatform()) return REVENUECAT_MOCK_MODE ? MOCK_PACKAGES : [];
   if (!(await ensureRevenueCatUser(learnerUserId()))) {
     console.error(
@@ -243,16 +247,31 @@ export async function getOfferings(): Promise<PlanPackage[]> {
         all: Object.keys(offerings.all ?? {}),
       });
     }
-    return packages.map((pkg) => ({
-      identifier: pkg.identifier,
-      title: pkg.product.title,
-      description: pkg.product.description,
-      priceString: pkg.product.priceString,
-      price: pkg.product.price,
-      hasFreeTrial: pkg.product.introPrice?.price === 0,
-      packageType: String(pkg.packageType),
-      raw: pkg,
-    }));
+    let eligibility: Record<string, { status: number }> = {};
+    if (Capacitor.getPlatform() === "ios" && packages.some(pkg => pkg.product.introPrice?.price === 0)) {
+      try {
+        eligibility = await sdk.Purchases.checkTrialOrIntroductoryPriceEligibility({
+          productIdentifiers: packages.map(pkg => pkg.product.identifier),
+        });
+      } catch {
+        // Unknown eligibility must show the regular price, never promise a trial.
+      }
+    }
+    if (!isLearnerScopeCurrent(scope)) return [];
+    return packages.map((pkg) => {
+      const trialDuration = eligibleFreeTrial(pkg.product.introPrice, eligibility[pkg.product.identifier]?.status);
+      return {
+        identifier: pkg.identifier,
+        title: pkg.product.title,
+        description: pkg.product.description,
+        priceString: pkg.product.priceString,
+        price: pkg.product.price,
+        hasFreeTrial: Boolean(trialDuration),
+        trialDuration,
+        packageType: String(pkg.packageType),
+        raw: pkg,
+      };
+    });
   } catch (error) {
     console.error("[revenuecat] getOfferings failed", error);
     return [];

@@ -56,7 +56,7 @@ function load(file, mocks, env = {}, globals = {}) {
   const loadedModule = { exports: {} };
   vm.runInNewContext(source, {
     module: loadedModule, exports: loadedModule.exports,
-    require(id) { if (id === '@/lib/learner-storage' && !(id in mocks)) return scopeFixture; if (id in mocks) return mocks[id]; throw new Error(`Unexpected dependency ${id}`); },
+    require(id) { if (id === '@/lib/subscription-trial') return load('src/lib/subscription-trial.ts', {}); if (id === '@/lib/learner-storage' && !(id in mocks)) return scopeFixture; if (id in mocks) return mocks[id]; throw new Error(`Unexpected dependency ${id}`); },
     window: { setTimeout, clearTimeout, addEventListener() {}, removeEventListener() {}, dispatchEvent() {} },
     Event: class {}, console, process: { env }, ...globals,
   }, { filename: file });
