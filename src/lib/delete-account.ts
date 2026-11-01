@@ -1,8 +1,9 @@
 import { apiUrl } from "@/lib/api-base";
 import { createClientIfConfigured } from "@/lib/supabase/client";
+import { clearCurrentLearnerData } from "@/lib/learner-storage";
 
 /**
- * Deletes the server-side account, then wipes every local key and
+ * Deletes the server-side account, then wipes this learner's local records and
  * returns to the start of the app. Throws without touching local data if the server
  * refuses, so the user can retry.
  */
@@ -21,6 +22,8 @@ export async function deleteAccountAndData(): Promise<void> {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!response.ok) throw new Error("account-delete-failed");
+    // Clear before signOut switches the active scope to guest.
+    try { clearCurrentLearnerData(); } catch { /* storage may be blocked */ }
     try {
       await supabase?.auth.signOut({ scope: "local" });
     } catch {
@@ -29,7 +32,6 @@ export async function deleteAccountAndData(): Promise<void> {
   }
 
   try {
-    localStorage.clear();
     sessionStorage.clear();
   } catch {
     /* storage unavailable */

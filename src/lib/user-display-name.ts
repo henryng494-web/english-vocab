@@ -1,3 +1,4 @@
+import { learnerStorage } from "@/lib/learner-storage";
 import type { User } from "@supabase/supabase-js";
 
 export const LEARNER_DISPLAY_NAME_KEY = "vocab-learner-display-name";
@@ -21,7 +22,7 @@ export function persistLearnerDisplayName(name: string): void {
   const trimmed = name.trim();
   if (!trimmed || typeof window === "undefined") return;
   try {
-    localStorage.setItem(LEARNER_DISPLAY_NAME_KEY, trimmed);
+    learnerStorage.setItem(LEARNER_DISPLAY_NAME_KEY, trimmed);
     window.dispatchEvent(new Event(LEARNER_DISPLAY_NAME_EVENT));
   } catch {
     /* private mode */
@@ -31,7 +32,7 @@ export function persistLearnerDisplayName(name: string): void {
 export function readLearnerDisplayName(): string {
   if (typeof window === "undefined") return "";
   try {
-    return localStorage.getItem(LEARNER_DISPLAY_NAME_KEY)?.trim() ?? "";
+    return learnerStorage.getItem(LEARNER_DISPLAY_NAME_KEY)?.trim() ?? "";
   } catch {
     return "";
   }

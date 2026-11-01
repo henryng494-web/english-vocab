@@ -1,5 +1,6 @@
 import { Capacitor } from "@capacitor/core";
 import type { StoredPlacement } from "@/lib/placement";
+import { learnerUserId, learnerScope, isLearnerScopeCurrent } from "@/lib/learner-storage";
 
 /**
  * RevenueCat wrapper. Native (Capacitor iOS/Android) uses the real SDK; the web build runs in a
@@ -42,6 +43,8 @@ const FREE_STATUS: ProStatus = { isPro: false, expiresAt: null, willRenew: false
 let sdkPromise: Promise<PurchasesModule | null> | null = null;
 let configured = false;
 let currentUserId: string | null = null;
+let configurePromise: Promise<boolean> | null = null;
+let identityQueue: Promise<unknown> = Promise.resolve();
 
 export function isNativePlatform(): boolean {
   try {
@@ -76,6 +79,12 @@ export function isRevenueCatAvailable(): boolean {
 /** Idempotent. Resolves true when the native SDK is configured. */
 export async function initRevenueCat(appUserId?: string | null): Promise<boolean> {
   if (configured) return true;
+  if (configurePromise) return configurePromise;
+  configurePromise = configureRevenueCat(appUserId).finally(() => { configurePromise = null; });
+  return configurePromise;
+}
+
+async function configureRevenueCat(appUserId?: string | null): Promise<boolean> {
   const apiKey = apiKeyForPlatform();
   if (!apiKey) return false;
   const sdk = await loadSdk();
@@ -85,8 +94,9 @@ export async function initRevenueCat(appUserId?: string | null): Promise<boolean
       apiKey,
       ...(appUserId ? { appUserID: appUserId } : {}),
     });
+    const sdkId = appUserId ?? (await sdk.Purchases.getAppUserID()).appUserID;
+    currentUserId = sdkId.startsWith("$RCAnonymousID:") ? null : sdkId;
     configured = true;
-    currentUserId = appUserId ?? null;
     return true;
   } catch (error) {
     console.error("[revenuecat] configure failed", error);
@@ -94,39 +104,39 @@ export async function initRevenueCat(appUserId?: string | null): Promise<boolean
   }
 }
 
+/** Serialize identity transitions before reading or changing paid access. */
+export function ensureRevenueCatUser(userId: string | null): Promise<boolean> {
+  const task = identityQueue.then(async () => {
+    if (!(await initRevenueCat(userId))) return false;
+    if (currentUserId === userId) return true;
+    const sdk = await loadSdk();
+    if (!sdk) return false;
+    try {
+      if (userId) await sdk.Purchases.logIn({ appUserID: userId });
+      else await sdk.Purchases.logOut();
+      currentUserId = userId;
+      return true;
+    } catch { return false; }
+  });
+  identityQueue = task.catch(() => false);
+  return task;
+}
+
 /** Links the Supabase user id to RevenueCat so entitlements follow the account across devices. */
 export async function logInRevenueCat(userId: string): Promise<void> {
-  if (!userId) return;
-  if (!(await initRevenueCat(userId))) return;
-  if (currentUserId === userId) return;
-  const sdk = await loadSdk();
-  if (!sdk) return;
-  try {
-    await sdk.Purchases.logIn({ appUserID: userId });
-    currentUserId = userId;
-  } catch {
-    /* network/offline: retried on next auth event */
-  }
+  if (userId) await ensureRevenueCatUser(userId);
 }
 
 export async function logOutRevenueCat(): Promise<void> {
-  if (!configured || currentUserId === null) return;
-  const sdk = await loadSdk();
-  if (!sdk) return;
-  try {
-    await sdk.Purchases.logOut();
-  } catch {
-    /* already anonymous */
-  } finally {
-    currentUserId = null;
-  }
+  await ensureRevenueCatUser(null);
 }
 
 /** Stores placement-test results as RevenueCat subscriber attributes. */
 export async function syncPlacementAttributes(
   placement: Pick<StoredPlacement, "tier" | "rangeId" | "level" | "source">,
 ): Promise<void> {
-  if (!(await initRevenueCat())) return;
+  const scope = learnerScope();
+  if (!learnerUserId() || !(await ensureRevenueCatUser(learnerUserId())) || !isLearnerScopeCurrent(scope)) return;
   const sdk = await loadSdk();
   if (!sdk) return;
   try {
@@ -160,11 +170,13 @@ function toStatus(
 }
 
 export async function getProStatus(): Promise<ProStatus> {
-  if (!(await initRevenueCat())) return FREE_STATUS;
+  const scope = learnerScope();
+  if (!(await ensureRevenueCatUser(learnerUserId())) || !isLearnerScopeCurrent(scope)) return FREE_STATUS;
   const sdk = await loadSdk();
   if (!sdk) return FREE_STATUS;
   try {
     const { customerInfo } = await sdk.Purchases.getCustomerInfo();
+    if (!isLearnerScopeCurrent(scope)) return FREE_STATUS;
     return toStatus(customerInfo);
   } catch {
     return FREE_STATUS;
@@ -212,7 +224,7 @@ function resolveOffering(offerings: PurchasesOfferings) {
 /** Packages of the current offering; empty on web unless mock mode is on. */
 export async function getOfferings(): Promise<PlanPackage[]> {
   if (!isNativePlatform()) return REVENUECAT_MOCK_MODE ? MOCK_PACKAGES : [];
-  if (!(await initRevenueCat())) {
+  if (!(await ensureRevenueCatUser(learnerUserId()))) {
     console.error(
       "[revenuecat] SDK not configured — set NEXT_PUBLIC_REVENUECAT_API_KEY_IOS (or _ANDROID) in Capawesome before capawesome:build",
     );
@@ -252,6 +264,10 @@ export type PurchaseResult =
   | { ok: false; cancelled: boolean; error?: string };
 
 export async function purchasePackage(plan: PlanPackage): Promise<PurchaseResult> {
+  const scope = learnerScope();
+  if (!learnerUserId() || !(await ensureRevenueCatUser(learnerUserId())) || !isLearnerScopeCurrent(scope)) {
+    return { ok: false, cancelled: false, error: "Sign in again before purchasing." };
+  }
   const sdk = await loadSdk();
   if (!sdk || !configured || !plan.raw) {
     return { ok: false, cancelled: false, error: "unavailable" };
@@ -260,6 +276,7 @@ export async function purchasePackage(plan: PlanPackage): Promise<PurchaseResult
     const { customerInfo } = await sdk.Purchases.purchasePackage({
       aPackage: plan.raw as Parameters<typeof sdk.Purchases.purchasePackage>[0]["aPackage"],
     });
+    if (!isLearnerScopeCurrent(scope)) return { ok: false, cancelled: false, error: "Account changed. Restore purchases after signing in again." };
     return { ok: true, status: toStatus(customerInfo) };
   } catch (error) {
     const err = error as { userCancelled?: boolean; message?: string };
@@ -268,10 +285,13 @@ export async function purchasePackage(plan: PlanPackage): Promise<PurchaseResult
 }
 
 export async function restorePurchases(): Promise<ProStatus> {
+  const scope = learnerScope();
+  if (!learnerUserId() || !(await ensureRevenueCatUser(learnerUserId())) || !isLearnerScopeCurrent(scope)) return FREE_STATUS;
   const sdk = await loadSdk();
   if (!sdk || !configured) return FREE_STATUS;
   try {
     const { customerInfo } = await sdk.Purchases.restorePurchases();
+    if (!isLearnerScopeCurrent(scope)) return FREE_STATUS;
     return toStatus(customerInfo);
   } catch {
     return FREE_STATUS;

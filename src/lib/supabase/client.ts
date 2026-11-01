@@ -114,3 +114,17 @@ export function createClient(): SupabaseClient {
   sharedBrowserClient = createSharedBrowserClient(url, anonKey);
   return sharedBrowserClient;
 }
+
+/** Email recovery may open outside the WebView: never depend on its PKCE verifier
+ * or mix recovery tokens with the application's ordinary persisted session. */
+export function createPasswordRecoveryClient(): SupabaseClient | null {
+  const config = getSupabaseConfigOptional();
+  if (!config) return null;
+  return createSupabaseJsClient(config.url, config.anonKey, {
+    ...browserClientOptions(),
+    auth: {
+      flowType: "implicit", persistSession: false, autoRefreshToken: false,
+      detectSessionInUrl: false, storageKey: "jj-password-recovery",
+    },
+  });
+}

@@ -44,6 +44,11 @@ for (const delivered of [false, true]) {
 }
 
 function load(file, mocks, env = {}, globals = {}) {
+  const scopeFixture = {
+    learnerScope: () => 'fixture:0', isLearnerScopeCurrent: () => true,
+    learnerUserId: () => 'fixture-user', activateLearnerScope() {}, clearCurrentLearnerData() {},
+    learnerStorage: globals.localStorage ?? { getItem: () => null, setItem() {}, removeItem() {} },
+  };
   const source = ts.transpileModule(fs.readFileSync(file, 'utf8'), {
     compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX },
     fileName: file,
@@ -51,7 +56,7 @@ function load(file, mocks, env = {}, globals = {}) {
   const loadedModule = { exports: {} };
   vm.runInNewContext(source, {
     module: loadedModule, exports: loadedModule.exports,
-    require(id) { if (id in mocks) return mocks[id]; throw new Error(`Unexpected dependency ${id}`); },
+    require(id) { if (id === '@/lib/learner-storage' && !(id in mocks)) return scopeFixture; if (id in mocks) return mocks[id]; throw new Error(`Unexpected dependency ${id}`); },
     window: { setTimeout, clearTimeout, addEventListener() {}, removeEventListener() {}, dispatchEvent() {} },
     Event: class {}, console, process: { env }, ...globals,
   }, { filename: file });
@@ -133,6 +138,7 @@ function loadAccess({ mobile = false, native = false, host = 'localhost', pro = 
   const source = ts.transpileModule(fs.readFileSync(file, 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText;
   const result = { exports: {} };
   const mocks = {
+    '@/lib/learner-storage': { learnerStorage: localStorage },
     '@/lib/auth-session': { isGuestUser: () => !signedIn, isAuthSignedInSync: () => signedIn },
     '@/lib/supabase/env': { isSupabaseConfigured: () => true },
     '@/lib/api-base': { IS_MOBILE_BUILD: mobile },
@@ -243,4 +249,176 @@ test('unavailable entitlement check preserves confirmed cached Pro access', asyn
     assert.equal(harness.render().props.value.isPro, true);
     assert.equal(harness.cache(), true);
   } finally { harness.cleanup(); }
+});
+
+function scopedHarness(seed = {}) {
+  const values = new Map(Object.entries(seed));
+  const localStorage = {
+    getItem: key => values.get(key) ?? null,
+    setItem: (key, value) => values.set(key, value),
+    removeItem: key => values.delete(key),
+  };
+  return { ...load('src/lib/learner-storage.ts', {}, {}, { localStorage }), values, localStorage };
+}
+
+test('upgrade migrates progress once; A → guest → B → A isolates every personal key', () => {
+  const scope = scopedHarness({ 'english-vocab-learning': 'legacy progress', 'jj-pro-status-v1': '1' });
+  scope.activateLearnerScope('A');
+  assert.equal(scope.learnerStorage.getItem('english-vocab-learning'), 'legacy progress');
+  assert.equal(scope.learnerStorage.getItem('jj-pro-status-v1'), null, 'legacy Pro must be rechecked');
+  for (const key of scope.PERSONAL_STORAGE_KEYS) scope.learnerStorage.setItem(key, `A:${key}`);
+  const oldRun = scope.learnerScope();
+  scope.activateLearnerScope(null);
+  for (const key of scope.PERSONAL_STORAGE_KEYS) assert.equal(scope.learnerStorage.getItem(key), null);
+  scope.learnerStorage.setItem('english-vocab-learning', 'guest progress');
+  scope.activateLearnerScope('B');
+  for (const key of scope.PERSONAL_STORAGE_KEYS) {
+    assert.equal(scope.learnerStorage.getItem(key), null);
+    scope.learnerStorage.setItem(key, `B:${key}`);
+  }
+  scope.activateLearnerScope('A');
+  assert.equal(scope.isLearnerScopeCurrent(oldRun), false, 'old A requests must remain stale after returning to A');
+  for (const key of scope.PERSONAL_STORAGE_KEYS) assert.equal(scope.learnerStorage.getItem(key), `A:${key}`);
+  scope.clearCurrentLearnerData();
+  scope.activateLearnerScope('B');
+  for (const key of scope.PERSONAL_STORAGE_KEYS) assert.equal(scope.learnerStorage.getItem(key), `B:${key}`);
+  scope.activateLearnerScope(null);
+  assert.equal(scope.learnerStorage.getItem('english-vocab-learning'), 'guest progress');
+});
+
+test('guest upgrade preserves guest progress without assigning it to a later account', () => {
+  const scope = scopedHarness({ 'english-vocab-learning': 'guest progress' });
+  scope.activateLearnerScope(null);
+  assert.equal(scope.learnerStorage.getItem('english-vocab-learning'), 'guest progress');
+  scope.activateLearnerScope('B');
+  assert.equal(scope.learnerStorage.getItem('english-vocab-learning'), null);
+  scope.activateLearnerScope(null);
+  assert.equal(scope.learnerStorage.getItem('english-vocab-learning'), 'guest progress');
+});
+
+test('unattributed legacy signed-in records stay backed up and cannot leak into the next account', () => {
+  const scope = scopedHarness({ 'english-vocab-learning': 'private progress', 'jj-auth-signed-in-v1': '1' });
+  scope.activateLearnerScope(null);
+  assert.equal(scope.learnerStorage.getItem('english-vocab-learning'), null);
+  scope.activateLearnerScope('B');
+  assert.equal(scope.learnerStorage.getItem('english-vocab-learning'), null);
+  assert.equal(scope.values.get('english-vocab-learning'), 'private progress');
+});
+
+test('review summary ignores a response from a previous account, including after A → B → A', async () => {
+  const scope = scopedHarness();
+  scope.activateLearnerScope('A');
+  let resolve;
+  const store = load('src/lib/review-due-store.ts', {
+    '@/lib/learner-storage': scope,
+    '@/lib/review-schedule': { getReviewBadgeDueCount: rows => rows.length, countDueReviewWordKeys: rows => rows.length },
+    '@/lib/review-session': { fetchLearningSummary: () => new Promise(done => { resolve = done; }) },
+  });
+  const pending = store.refreshReviewDueSummary();
+  scope.activateLearnerScope('B');
+  scope.activateLearnerScope('A');
+  resolve([{ word: 'private' }]);
+  assert.equal(await pending, 0);
+  assert.equal(store.getCachedLearningSummary().length, 0);
+});
+
+test('RevenueCat serializes account switches, configures once and rejects a stale entitlement response', async () => {
+  const scope = scopedHarness();
+  scope.activateLearnerScope('A');
+  let configured = 0, sdkUser, resolveInfo;
+  const rc = load('src/lib/revenuecat.ts', {
+    '@/lib/learner-storage': scope,
+    '@capacitor/core': { Capacitor: { isNativePlatform: () => true, getPlatform: () => 'ios' } },
+    '@revenuecat/purchases-capacitor': { Purchases: {
+      configure: async options => { configured++; sdkUser = options.appUserID; },
+      logIn: async options => { sdkUser = options.appUserID; },
+      logOut: async () => { sdkUser = null; },
+      getCustomerInfo: () => new Promise(done => { resolveInfo = done; }),
+    } },
+  }, { NEXT_PUBLIC_REVENUECAT_API_KEY_IOS: 'appl_fixture' });
+  await Promise.all([rc.ensureRevenueCatUser('A'), rc.ensureRevenueCatUser('A')]);
+  assert.equal(configured, 1);
+  const pending = rc.getProStatus();
+  await new Promise(resolve => setTimeout(resolve, 0));
+  scope.activateLearnerScope('B');
+  await rc.ensureRevenueCatUser('B');
+  resolveInfo({ customerInfo: { entitlements: { active: { jungle_jokers_pro: {} } } } });
+  assert.equal((await pending).checked, false);
+  assert.equal(sdkUser, 'B');
+  await rc.ensureRevenueCatUser(null);
+  assert.equal(sdkUser, null);
+});
+
+test('password recovery rejects ordinary sessions, expired links and mismatched passwords', async () => {
+  const recovery = load('src/lib/password-recovery.ts', {}, {}, { URLSearchParams, URL });
+  let sessionSets = 0;
+  const client = { auth: { setSession: async () => { sessionSets++; return { data: { session: {} }, error: null }; } } };
+  await assert.rejects(recovery.initializePasswordRecovery(client, 'https://example.invalid/auth/reset-password'));
+  await assert.rejects(recovery.initializePasswordRecovery(client, 'https://example.invalid/#type=signup&access_token=a&refresh_token=r'));
+  await recovery.initializePasswordRecovery(client, 'https://example.invalid/#type=recovery&access_token=a&refresh_token=r');
+  assert.equal(sessionSets, 1);
+  client.auth.setSession = async () => ({ data: { session: null }, error: { message: 'expired' } });
+  await assert.rejects(recovery.initializePasswordRecovery(client, 'https://example.invalid/#type=recovery&access_token=a&refresh_token=r'));
+  assert.equal(recovery.validRecoveryPassword('abcdefgh', 'abcdefgh'), true);
+  assert.equal(recovery.validRecoveryPassword('short', 'short'), false);
+  assert.equal(recovery.validRecoveryPassword('abcdefgh', 'different'), false);
+});
+
+test('email recovery callback reaches the public password page without a PKCE exchange', async () => {
+  const callback = load('src/app/auth/callback/route.ts', {
+    '@/lib/supabase/server': { createClient: () => { throw new Error('must not exchange an implicit recovery link'); } },
+    'next/server': { NextResponse: { redirect: location => ({ location }) } },
+  }, {}, { URL });
+  const response = await callback.GET({ url: 'https://www.junglejokers.com/auth/callback?next=/auth/reset-password' });
+  assert.equal(response.location, 'https://www.junglejokers.com/auth/reset-password');
+});
+
+test('feedback without a configured receiver reports email fallback instead of false delivery', async () => {
+  const route = load('src/app/api/feedback/route.ts', {
+    'next/server': { NextResponse: { json: (body, options) => ({ body, status: options?.status ?? 200 }) } },
+  }, {}, { File: class {} });
+  const result = await route.POST({ formData: async () => new Map([['message', 'Example report']]), headers: { get: () => null } });
+  assert.equal(result.status, 503);
+  assert.match(result.body.error, /support@junglejokers.com/);
+});
+
+test('cold-start guest clears a persisted identified RevenueCat user instead of trusting an anonymous assumption', async () => {
+  let loggedOut = 0;
+  const rc = load('src/lib/revenuecat.ts', {
+    '@capacitor/core': { Capacitor: { isNativePlatform: () => true, getPlatform: () => 'ios' } },
+    '@revenuecat/purchases-capacitor': { Purchases: {
+      configure: async () => {},
+      getAppUserID: async () => ({ appUserID: 'previous-account' }),
+      logOut: async () => { loggedOut++; },
+    } },
+  }, { NEXT_PUBLIC_REVENUECAT_API_KEY_IOS: 'appl_fixture' });
+  assert.equal(await rc.ensureRevenueCatUser(null), true);
+  assert.equal(loggedOut, 1);
+  assert.equal(await rc.ensureRevenueCatUser(null), true);
+  assert.equal(loggedOut, 1);
+});
+
+test('actual Supabase recovery email request uses implicit flow without a WebView PKCE verifier', async () => {
+  const requests = [];
+  const lib = load('src/lib/supabase/client.ts', {
+    '@supabase/ssr': {},
+    '@supabase/supabase-js': require('@supabase/supabase-js'),
+    '@/lib/auth-errors': { logSupabaseAuthError() {} },
+    '@/lib/supabase/auth-storage-mode': {},
+    '@/lib/supabase/capacitor-auth-storage': {},
+    '@/lib/network-status': { isBrowserOfflineSignal: () => false, isUnreliableNavigatorOnLine: () => false },
+    '@/lib/supabase/env': { getSupabaseConfigOptional: () => ({ url: 'https://fixture.supabase.co', anonKey: 'fixture-key' }) },
+    '@/lib/supabase/mobile-auth-proxy': { shouldProxySupabaseAuthFetch: () => false },
+  }, {}, {
+    URL, Request,
+    fetch: async (url, init) => { requests.push({ url, body: JSON.parse(init.body) }); return new Response('{}', { headers: { 'Content-Type': 'application/json' } }); },
+  });
+  const recovery = lib.createPasswordRecoveryClient();
+  const redirectTo = 'https://www.junglejokers.com/auth/callback?next=/auth/reset-password';
+  const result = await recovery.auth.resetPasswordForEmail('test@example.invalid', { redirectTo });
+  assert.equal(result.error, null);
+  assert.equal(requests.length, 1);
+  assert.equal(new URL(requests[0].url).searchParams.get('redirect_to'), redirectTo);
+  assert.ok(requests[0].body.code_challenge == null, 'recovery must not require a stored verifier');
+  assert.equal(requests[0].body.email, 'test@example.invalid');
 });

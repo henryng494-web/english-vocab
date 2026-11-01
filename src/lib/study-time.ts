@@ -1,3 +1,4 @@
+import { learnerStorage } from "@/lib/learner-storage";
 import { localDateKey } from "@/lib/local-date";
 
 const STORAGE_KEY = "vocab-study-time-v1";
@@ -12,7 +13,7 @@ function readState(): StudyTimeState {
     return { date: localDateKey(), seconds: 0 };
   }
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = learnerStorage.getItem(STORAGE_KEY);
     if (!raw) return { date: localDateKey(), seconds: 0 };
     const parsed = JSON.parse(raw) as StudyTimeState;
     if (parsed.date !== localDateKey()) return { date: localDateKey(), seconds: 0 };
@@ -27,7 +28,7 @@ function readState(): StudyTimeState {
 
 function writeState(state: StudyTimeState): void {
   if (typeof window === "undefined") return;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  learnerStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   window.dispatchEvent(
     new CustomEvent("study-time-changed", { detail: state }),
   );

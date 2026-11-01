@@ -1,3 +1,4 @@
+import { learnerStorage } from "@/lib/learner-storage";
 import { isDailyGoalMet } from "@/lib/goal-progress";
 import { localDateKey } from "@/lib/local-date";
 
@@ -19,7 +20,7 @@ function todayKey(): string {
 function readWeeklyMet(): Record<string, boolean> {
   if (typeof window === "undefined") return {};
   try {
-    const raw = localStorage.getItem(WEEKLY_KEY);
+    const raw = learnerStorage.getItem(WEEKLY_KEY);
     if (!raw) return {};
     const parsed = JSON.parse(raw) as Record<string, unknown>;
     const out: Record<string, boolean> = {};
@@ -34,7 +35,7 @@ function readWeeklyMet(): Record<string, boolean> {
 
 function writeWeeklyMet(map: Record<string, boolean>): void {
   if (typeof window === "undefined") return;
-  localStorage.setItem(WEEKLY_KEY, JSON.stringify(map));
+  learnerStorage.setItem(WEEKLY_KEY, JSON.stringify(map));
   window.dispatchEvent(new CustomEvent("weekly-streak-changed"));
 }
 

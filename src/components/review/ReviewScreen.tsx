@@ -1,5 +1,7 @@
 "use client";
 
+import { learnerScope, isLearnerScopeCurrent } from "@/lib/learner-storage";
+
 import { AppHeader } from "@/components/layout/AppHeader";
 import { ReviewQuestion } from "@/components/review/ReviewQuestion";
 import { ReviewRecallQuestion } from "@/components/review/ReviewRecallQuestion";
@@ -1192,6 +1194,7 @@ export function ReviewScreen() {
   }
 
   async function confirmReview() {
+    const scope = learnerScope();
     if (!currentWord || confirming) return;
     setConfirming(true);
     try {
@@ -1234,6 +1237,7 @@ export function ReviewScreen() {
         }
       }
 
+      if (!isLearnerScopeCurrent(scope)) return;
       const nextStep = sessionStep + 1;
       let remaining = queue.slice(index + 1);
       if (!markMastered && grade !== "correct") {

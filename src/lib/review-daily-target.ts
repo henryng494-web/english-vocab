@@ -1,3 +1,4 @@
+import { learnerStorage } from "@/lib/learner-storage";
 import { readAppSettings } from "@/lib/app-settings";
 import { getDailyReviewPlan } from "@/lib/daily-goal";
 import { localDateKey } from "@/lib/local-date";
@@ -13,7 +14,7 @@ type DailyWordTargetState = {
 function readState(): DailyWordTargetState | null {
   if (typeof window === "undefined") return null;
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = learnerStorage.getItem(STORAGE_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as DailyWordTargetState;
     if (!parsed || parsed.date !== localDateKey() || !Number.isFinite(parsed.target)) {
@@ -27,7 +28,7 @@ function readState(): DailyWordTargetState | null {
 
 function writeState(state: DailyWordTargetState): void {
   if (typeof window === "undefined") return;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  learnerStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 }
 
 /**

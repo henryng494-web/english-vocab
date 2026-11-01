@@ -1,8 +1,7 @@
 import type { Metadata, Viewport } from "next";
-import { RevenueCatSync } from "@/components/layout/RevenueCatSync";
+import { SessionBoundary } from "@/components/layout/SessionBoundary";
 import { ApiBaseInstaller } from "@/components/layout/ApiBaseInstaller";
 import { ThemeRoot } from "@/components/theme/ThemeRoot";
-import { AuthSessionProvider } from "@/context/AuthSessionContext";
 import { viewportBootstrapScript } from "@/lib/viewport-bootstrap-script";
 import "./globals.css";
 
@@ -54,10 +53,9 @@ export default function RootLayout({
       </head>
       <body className="antialiased">
         <ApiBaseInstaller />
-        <AuthSessionProvider>
-          <RevenueCatSync />
+        <SessionBoundary>
           <ThemeRoot>{children}</ThemeRoot>
-        </AuthSessionProvider>
+        </SessionBoundary>
       </body>
     </html>
   );

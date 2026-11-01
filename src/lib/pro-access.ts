@@ -1,3 +1,4 @@
+import { learnerStorage } from "@/lib/learner-storage";
 import { isAuthSignedInSync, isGuestUser } from "@/lib/auth-session";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { IS_MOBILE_BUILD } from "@/lib/api-base";
@@ -62,7 +63,7 @@ export function isGatingActive(): boolean {
 export function readProCache(): boolean {
   if (typeof window === "undefined") return false;
   try {
-    return localStorage.getItem(CACHE_KEY) === "1";
+    return learnerStorage.getItem(CACHE_KEY) === "1";
   } catch {
     return false;
   }
@@ -71,7 +72,7 @@ export function readProCache(): boolean {
 export function writeProCache(isPro: boolean): void {
   if (typeof window === "undefined") return;
   try {
-    localStorage.setItem(CACHE_KEY, isPro ? "1" : "0");
+    learnerStorage.setItem(CACHE_KEY, isPro ? "1" : "0");
   } catch {
     /* private mode */
   }

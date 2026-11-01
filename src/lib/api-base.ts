@@ -1,3 +1,4 @@
+import { learnerScope, isLearnerScopeCurrent } from "@/lib/learner-storage";
 import { createClientIfConfigured } from "@/lib/supabase/client";
 
 /** Strip markdown/wrapper text from dashboard env values (e.g. `[https://x](https://x)`). */
@@ -80,7 +81,9 @@ export function installApiBase(): void {
     const url = resolveRemote(input);
     if (url === input || !input.startsWith("/api/")) return nativeFetch(url, init);
 
+    const scope = learnerScope();
     const token = await accessToken();
+    if (!isLearnerScopeCurrent(scope)) throw new DOMException("Account changed", "AbortError");
     if (!token) return nativeFetch(url, init);
     const headers = new Headers(init?.headers);
     if (!headers.has("Authorization")) headers.set("Authorization", `Bearer ${token}`);

@@ -1,3 +1,4 @@
+import { learnerScope, isLearnerScopeCurrent } from "@/lib/learner-storage";
 import { createClientIfConfigured } from "@/lib/supabase/client";
 import {
   LEARNER_DISPLAY_NAME_EVENT,
@@ -26,10 +27,12 @@ export async function saveLearnerNickname(raw: string): Promise<string | null> {
 }
 
 export async function syncLearnerNicknameToSupabase(nickname: string): Promise<void> {
+  const scope = learnerScope();
   const supabase = createClientIfConfigured();
   if (!supabase) return;
   try {
     const { data } = await supabase.auth.getSession();
+    if (!isLearnerScopeCurrent(scope)) return;
     if (!data.session?.user) return;
     // updateUser emits USER_UPDATED, which triggers the auth provider again.
     // Avoid an endless profile-update loop when the server already has this name.

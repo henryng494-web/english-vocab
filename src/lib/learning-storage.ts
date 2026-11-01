@@ -1,3 +1,4 @@
+import { learnerStorage } from "@/lib/learner-storage";
 import { getPresetRankLite as getPresetRank } from "@/data/preset-rank-map";
 import type { LearningStatus } from "@/types/database";
 import { isExcludedVocabWord } from "@/lib/proper-noun";
@@ -48,7 +49,7 @@ function mergeLearningEntry(
 export function readLocalLearning(): LocalLearningMap {
   if (typeof window === "undefined") return {};
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = learnerStorage.getItem(STORAGE_KEY);
     if (!raw) return {};
     const parsed = JSON.parse(raw) as LocalLearningMap;
     const normalized: LocalLearningMap = {};
@@ -64,7 +65,7 @@ export function readLocalLearning(): LocalLearningMap {
       normalized[word] = existing ? mergeLearningEntry(existing, entry) : entry;
     }
     if (changed) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(normalized));
+      learnerStorage.setItem(STORAGE_KEY, JSON.stringify(normalized));
     }
     return normalized;
   } catch {
@@ -110,7 +111,7 @@ export function hydrateLocalLearningFromApi(
   }
 
   if (!changed) return;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(map));
+  learnerStorage.setItem(STORAGE_KEY, JSON.stringify(map));
   if (options?.notify !== false) {
     window.dispatchEvent(new Event("vocab-learning-changed"));
   }
@@ -128,7 +129,7 @@ export function writeLocalLearning(word: string, status: LearningStatus) {
     last_reviewed_at: now,
     added_at: existing?.added_at ?? now,
   };
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(map));
+  learnerStorage.setItem(STORAGE_KEY, JSON.stringify(map));
   window.dispatchEvent(new Event("vocab-learning-changed"));
 }
 
@@ -146,7 +147,7 @@ export function restoreLocalLearningEntry(
   } else {
     delete map[key];
   }
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(map));
+  learnerStorage.setItem(STORAGE_KEY, JSON.stringify(map));
   window.dispatchEvent(new Event("vocab-learning-changed"));
 }
 

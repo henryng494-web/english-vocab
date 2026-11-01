@@ -1,3 +1,4 @@
+import { learnerStorage } from "@/lib/learner-storage";
 import { localDateKey } from "@/lib/local-date";
 import { isUsageLimited } from "@/lib/pro-access";
 
@@ -22,7 +23,7 @@ function readState(): FreeNewWordState {
     return { lifetime: 0, date: today, daily: 0 };
   }
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = learnerStorage.getItem(STORAGE_KEY);
     if (!raw) return { lifetime: 0, date: today, daily: 0 };
     const parsed = JSON.parse(raw) as Partial<FreeNewWordState>;
     const lifetime = typeof parsed.lifetime === "number" ? Math.max(0, parsed.lifetime) : 0;
@@ -38,7 +39,7 @@ function readState(): FreeNewWordState {
 function writeState(state: FreeNewWordState): void {
   if (typeof window === "undefined") return;
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    learnerStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     window.dispatchEvent(new Event(FREE_NEW_WORDS_CHANGED_EVENT));
   } catch {
     /* private mode */

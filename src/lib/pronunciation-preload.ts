@@ -1,3 +1,4 @@
+import { learnerScope } from "@/lib/learner-storage";
 import {
   DEFAULT_BOOTSTRAP_RANGE,
   type RangeBootstrapData,
@@ -22,6 +23,13 @@ const AHEAD_PRONUNCIATION_STAGGER_MS = 80;
 
 let journeyRangesCache: Record<string, RangeBootstrapData> | null = null;
 let journeyCurrentWord: string | null = null;
+let cacheScope = "";
+function ensureScope(): void {
+  if (cacheScope === learnerScope()) return;
+  cacheScope = learnerScope();
+  journeyRangesCache = null;
+  journeyCurrentWord = null;
+}
 
 /** Browser-fetch MP3 bytes so the next card play hits cache. */
 export function warmWordPronunciation(word: string): void {
@@ -67,17 +75,20 @@ export function preloadWordPronunciations(words: string[]): void {
 export function seedJourneyBootstrapRanges(
   ranges: Record<string, RangeBootstrapData> | null,
 ): void {
+  ensureScope();
   journeyRangesCache = ranges;
 }
 
 /** Track the visible Journey card for tab-bar prewarm. */
 export function seedJourneyCurrentWord(word: string | null | undefined): void {
+  ensureScope();
   journeyCurrentWord = word?.trim() || null;
 }
 
 function resolveJourneyPriorityWords(
   count = PRONUNCIATION_PRIORITY_COUNT,
 ): string[] {
+  ensureScope();
   const words: string[] = [];
   const seen = new Set<string>();
 

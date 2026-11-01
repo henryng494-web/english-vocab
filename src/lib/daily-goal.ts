@@ -1,3 +1,4 @@
+import { learnerStorage } from "@/lib/learner-storage";
 import { getTodayReviewsCompleted } from "@/lib/daily-reviews";
 import { countLearningWords } from "@/lib/learning-storage";
 import { localDateKey } from "@/lib/local-date";
@@ -23,7 +24,7 @@ function readState(): DailyGoalState {
     return { date: localDateKey(), count: 0 };
   }
   try {
-    const raw = localStorage.getItem(DAILY_GOAL_KEY);
+    const raw = learnerStorage.getItem(DAILY_GOAL_KEY);
     if (!raw) return { date: localDateKey(), count: 0 };
     const parsed = JSON.parse(raw) as DailyGoalState;
     if (parsed.date !== localDateKey()) return { date: localDateKey(), count: 0 };
@@ -103,7 +104,7 @@ export function canLearnNewWordToday(
 export function incrementTodayWordsLearned(): number {
   if (typeof window === "undefined") return 0;
   const next = { date: localDateKey(), count: readState().count + 1 };
-  localStorage.setItem(DAILY_GOAL_KEY, JSON.stringify(next));
+  learnerStorage.setItem(DAILY_GOAL_KEY, JSON.stringify(next));
   window.dispatchEvent(new CustomEvent("daily-words-changed", { detail: next }));
   return next.count;
 }
@@ -111,7 +112,7 @@ export function incrementTodayWordsLearned(): number {
 export function setTodayWordsLearned(count: number): number {
   if (typeof window === "undefined") return 0;
   const next = { date: localDateKey(), count: Math.max(0, count) };
-  localStorage.setItem(DAILY_GOAL_KEY, JSON.stringify(next));
+  learnerStorage.setItem(DAILY_GOAL_KEY, JSON.stringify(next));
   window.dispatchEvent(new CustomEvent("daily-words-changed", { detail: next }));
   return next.count;
 }

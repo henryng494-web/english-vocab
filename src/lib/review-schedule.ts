@@ -1,3 +1,4 @@
+import { learnerStorage } from "@/lib/learner-storage";
 import { readLocalLearning } from "@/lib/learning-storage";
 import { resolveLearnableWordKey } from "@/data/vocab-abbreviations";
 import { isExcludedVocabWord } from "@/lib/proper-noun";
@@ -82,7 +83,7 @@ export function intervalLevelIndex(days: ReviewIntervalDays): number {
 export function readReviewSchedule(): ScheduleMap {
   if (typeof window === "undefined") return {};
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = learnerStorage.getItem(STORAGE_KEY);
     if (!raw) return {};
     const parsed = JSON.parse(raw) as ScheduleMap;
     if (!parsed || typeof parsed !== "object") return {};
@@ -106,7 +107,7 @@ export function readReviewSchedule(): ScheduleMap {
       }
     }
     if (changed) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(normalized));
+      learnerStorage.setItem(STORAGE_KEY, JSON.stringify(normalized));
     }
     return normalized;
   } catch {
@@ -421,7 +422,7 @@ export function writeReviewScheduleEntry(
     ),
   });
   map[key] = normalized;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(map));
+  learnerStorage.setItem(STORAGE_KEY, JSON.stringify(map));
   window.dispatchEvent(new Event("vocab-learning-changed"));
   return normalized;
 }

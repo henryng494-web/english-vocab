@@ -1,3 +1,4 @@
+import { learnerStorage } from "@/lib/learner-storage";
 import { localDateKey } from "@/lib/local-date";
 
 const STORAGE_KEY = "vocab-daily-reviews-v1";
@@ -12,7 +13,7 @@ function readState(): DailyReviewsState {
     return { date: localDateKey(), count: 0 };
   }
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = learnerStorage.getItem(STORAGE_KEY);
     if (!raw) return { date: localDateKey(), count: 0 };
     const parsed = JSON.parse(raw) as DailyReviewsState;
     if (parsed.date !== localDateKey()) return { date: localDateKey(), count: 0 };
@@ -24,7 +25,7 @@ function readState(): DailyReviewsState {
 
 function writeState(state: DailyReviewsState): void {
   if (typeof window === "undefined") return;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  learnerStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   window.dispatchEvent(new CustomEvent("daily-reviews-changed", { detail: state }));
 }
 
