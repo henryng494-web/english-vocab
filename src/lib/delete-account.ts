@@ -2,7 +2,7 @@ import { apiUrl } from "@/lib/api-base";
 import { createClientIfConfigured } from "@/lib/supabase/client";
 
 /**
- * Deletes the server-side account (when signed in), then wipes every local key and
+ * Deletes the server-side account, then wipes every local key and
  * returns to the start of the app. Throws without touching local data if the server
  * refuses, so the user can retry.
  */
@@ -10,6 +10,10 @@ export async function deleteAccountAndData(): Promise<void> {
   const supabase = createClientIfConfigured();
   const { data } = supabase ? await supabase.auth.getSession() : { data: { session: null } };
   const token = data.session?.access_token;
+
+  // A missing/expired local session must never look like successful account deletion.
+  // Keep local data intact so the user can sign in again and retry.
+  if (!token) throw new Error("account-delete-auth-required");
 
   if (token) {
     const response = await fetch(apiUrl("/api/account/delete"), {

@@ -59,7 +59,13 @@ export async function POST(request: NextRequest) {
       if (image instanceof File && image.size > 0) {
         body.set("image", image, image.name);
       }
-      await fetch(webhook, { method: "POST", body });
+      const response = await fetch(webhook, { method: "POST", body });
+      if (!response.ok) {
+        return NextResponse.json(
+          { error: "Could not submit report. Please try again." },
+          { status: 502 },
+        );
+      }
     } else {
       console.info("[feedback]", JSON.stringify(payload));
     }
