@@ -31,6 +31,10 @@ export async function syncLearnerNicknameToSupabase(nickname: string): Promise<v
   try {
     const { data } = await supabase.auth.getSession();
     if (!data.session?.user) return;
+    // updateUser emits USER_UPDATED, which triggers the auth provider again.
+    // Avoid an endless profile-update loop when the server already has this name.
+    const metadata = data.session.user.user_metadata ?? {};
+    if (metadata.display_name === nickname && metadata.nickname === nickname) return;
     await supabase.auth.updateUser({
       data: {
         display_name: nickname,

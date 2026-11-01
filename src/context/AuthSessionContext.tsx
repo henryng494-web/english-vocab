@@ -1,7 +1,6 @@
 "use client";
 
 import { createClientIfConfigured } from "@/lib/supabase/client";
-import { waitForSupabaseAuthInitialized } from "@/lib/supabase/wait-auth-initialized";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import {
   displayNameFromUser,
@@ -80,7 +79,6 @@ export function AuthSessionProvider({ children }: { children: ReactNode }) {
       setReady(true);
       return;
     }
-    await waitForSupabaseAuthInitialized(2000);
     const { data } = await supabase.auth.getSession();
     applySessionToState(data.session, setSession, setDisplayName);
     setReady(true);
@@ -116,29 +114,28 @@ export function AuthSessionProvider({ children }: { children: ReactNode }) {
       }
     };
 
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, nextSession) => {
-      if (cancelled) return;
-      applySessionToState(nextSession, setSession, setDisplayName);
-      if (_event === "INITIAL_SESSION") {
+    const pendingEvents = new Set<number>();
+    const { data: listener } = supabase.auth.onAuthStateChange((event, nextSession) => {
+      // Session application starts profile sync and dispatches events whose listeners
+      // call Supabase. Run it outside the auth callback/lock.
+      const timer = window.setTimeout(() => {
+        pendingEvents.delete(timer);
+        if (cancelled) return;
+        applySessionToState(nextSession, setSession, setDisplayName);
         markReady();
-      }
-      if (_event === "SIGNED_OUT") {
-        writeProCache(false);
-      }
+        if (event === "SIGNED_OUT") writeProCache(false);
+      }, 0);
+      pendingEvents.add(timer);
     });
 
-    const fallback = window.setTimeout(async () => {
+    // INITIAL_SESSION may already have fired. Read and APPLY the persisted session
+    // before releasing the auth gate; waiting for initialization alone loses it.
+    void supabase.auth.getSession().then(({ data }) => {
       if (cancelled || initialHydrated) return;
-      const { data } = await supabase.auth.getSession();
-      if (cancelled) return;
       applySessionToState(data.session, setSession, setDisplayName);
       markReady();
-    }, 5000);
-
-    void waitForSupabaseAuthInitialized(5000).then(() => {
-      if (!cancelled && !initialHydrated) {
-        markReady();
-      }
+    }).catch(() => {
+      if (!cancelled) markReady();
     });
 
     const onName = () => setDisplayName(readLearnerDisplayName());
@@ -146,7 +143,7 @@ export function AuthSessionProvider({ children }: { children: ReactNode }) {
 
     return () => {
       cancelled = true;
-      window.clearTimeout(fallback);
+      pendingEvents.forEach((timer) => window.clearTimeout(timer));
       listener.subscription.unsubscribe();
       window.removeEventListener(LEARNER_DISPLAY_NAME_EVENT, onName);
     };
