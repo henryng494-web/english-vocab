@@ -634,7 +634,6 @@ body {
 }
 
 .card-details__hint--grace {
-  pointer-events: none;
   opacity: 0.45;
 }
 

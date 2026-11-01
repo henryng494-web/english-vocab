@@ -134,6 +134,7 @@ export function WordCardDetails({
   const examplesScrollingRef = useRef(false);
   const scrollIdleTimerRef = useRef<number | null>(null);
   const hintTapStartRef = useRef<{ x: number; y: number } | null>(null);
+  const suppressHintClickRef = useRef(false);
   const hintGraceTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
@@ -192,6 +193,8 @@ export function WordCardDetails({
   }
 
   function handleHintPointerDown(event: React.PointerEvent<HTMLButtonElement>) {
+    event.stopPropagation();
+    suppressHintClickRef.current = false;
     if (!hintReady) return;
     hintTapStartRef.current = { x: event.clientX, y: event.clientY };
   }
@@ -200,15 +203,22 @@ export function WordCardDetails({
     event.stopPropagation();
     const start = hintTapStartRef.current;
     hintTapStartRef.current = null;
-    if (!start || !canFlip || !hintReady || examplesScrollingRef.current) return;
-    if (Math.hypot(event.clientX - start.x, event.clientY - start.y) > HINT_TAP_SLOP_PX) {
-      return;
-    }
-    toggle();
+    suppressHintClickRef.current = Boolean(
+      examplesScrollingRef.current ||
+      (start && Math.hypot(event.clientX - start.x, event.clientY - start.y) > HINT_TAP_SLOP_PX),
+    );
   }
 
-  function handleHintPointerCancel() {
+  function handleHintPointerCancel(event: React.PointerEvent<HTMLButtonElement>) {
+    event.stopPropagation();
     hintTapStartRef.current = null;
+    suppressHintClickRef.current = true;
+  }
+
+  function handleHintClick(event: React.MouseEvent<HTMLButtonElement>) {
+    event.stopPropagation();
+    if (suppressHintClickRef.current || examplesScrollingRef.current) return;
+    toggle();
   }
 
   return (
@@ -299,6 +309,14 @@ export function WordCardDetails({
           onPointerDown={handleHintPointerDown}
           onPointerUp={handleHintPointerUp}
           onPointerCancel={handleHintPointerCancel}
+          onClick={handleHintClick}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.stopPropagation();
+              suppressHintClickRef.current = false;
+            }
+          }}
+          disabled={!hintReady}
           aria-disabled={!hintReady}
           aria-label={showFamily ? t("card.showExamples") : t("card.showFamily")}
         >
