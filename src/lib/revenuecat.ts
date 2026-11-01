@@ -8,8 +8,9 @@ import type { StoredPlacement } from "@/lib/placement";
 
 type PurchasesModule = typeof import("@revenuecat/purchases-capacitor");
 
+const DEFAULT_PRO_ENTITLEMENT_ID = "jungle_jokers_pro";
 export const PRO_ENTITLEMENT_ID =
-  process.env.NEXT_PUBLIC_REVENUECAT_ENTITLEMENT?.trim() || "pro";
+  process.env.NEXT_PUBLIC_REVENUECAT_ENTITLEMENT?.trim() || DEFAULT_PRO_ENTITLEMENT_ID;
 
 const OFFERING_ID = process.env.NEXT_PUBLIC_REVENUECAT_OFFERING_ID?.trim() || "";
 
@@ -143,7 +144,12 @@ export async function syncPlacementAttributes(
 function toStatus(
   info: { entitlements: { active: Record<string, { expirationDate?: string | null; willRenew?: boolean }> } },
 ): ProStatus {
-  const entitlement = info.entitlements.active[PRO_ENTITLEMENT_ID];
+  // Older mobile build environments explicitly set "pro". Keep that identifier
+  // working while recognizing the existing Jungle Jokers dashboard entitlement.
+  const entitlement = info.entitlements.active[PRO_ENTITLEMENT_ID] ??
+    (PRO_ENTITLEMENT_ID === "pro"
+      ? info.entitlements.active[DEFAULT_PRO_ENTITLEMENT_ID]
+      : undefined);
   if (!entitlement) return { ...FREE_STATUS, checked: true };
   return {
     checked: true,
