@@ -56,10 +56,10 @@ import {
   warmWordPronunciation,
 } from "@/lib/pronunciation-preload";
 import {
-  consumeGestureAutoSpeak,
   speakWordInUserGesture,
   unlockSpeechFromUserGesture,
 } from "@/lib/speak-word";
+import { handleJourneyCardPointerDown } from "@/lib/journey-card-gesture";
 import { getGoalProgressSnapshot, subscribeGoalProgress } from "@/lib/goal-progress";
 import { getCurrentStreak, subscribeStreak, syncStreak } from "@/lib/streak";
 import {
@@ -1008,11 +1008,7 @@ export default function DiscoverPage() {
           <div
             className="journey-main"
             onPointerDownCapture={(event) => {
-              const target = event.target;
-              if (!(target instanceof Element)) return;
-              if (target.closest(".journey-actions")) return;
-              if (target.closest("[data-pronounce-speak]")) return;
-              consumeGestureAutoSpeak();
+              handleJourneyCardPointerDown(event.target, currentItem.word);
             }}
           >
             <VocabWordCard

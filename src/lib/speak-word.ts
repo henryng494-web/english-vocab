@@ -96,10 +96,11 @@ export function queueGestureAutoSpeak(word: string): void {
 }
 
 /** Speak a queued Journey word inside pointerdown (iOS auto-speak fallback). */
-export function consumeGestureAutoSpeak(): boolean {
+export function consumeGestureAutoSpeak(expectedWord?: string): boolean {
   const trimmed = pendingGestureAutoSpeak;
   if (!trimmed) return false;
   pendingGestureAutoSpeak = null;
+  if (expectedWord !== undefined && trimmed.trim().toLowerCase() !== expectedWord.trim().toLowerCase()) return false;
   if (wasRecentlySpokenInGesture(trimmed)) return true;
   speakWordInUserGesture(trimmed);
   return true;
