@@ -30,6 +30,10 @@ export function isBrowserFreeGatingHost(): boolean {
  * `NEXT_PUBLIC_QA_AS_PRO=1`. Also honors localStorage `jj-force-free-gating=1`.
  */
 export function isWebFreeLimitQaMode(): boolean {
+  // Capacitor's production WebView is capacitor://localhost (iOS) or
+  // https://localhost (Android). Hostname and web QA flags must never override
+  // a real native subscriber's entitlement, including before the bridge is ready.
+  if (IS_MOBILE_BUILD || isNativePlatform()) return false;
   if (DEV_OR_FORCED_GATING) return true;
   if (isBrowserFreeGatingHost()) return true;
   if (typeof window !== "undefined") {

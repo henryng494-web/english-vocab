@@ -11,6 +11,7 @@ import { navigateAfterAuth, normalizeMobileAppPath } from "@/lib/auth-navigation
 import { persistAuthSignedInFlag } from "@/lib/auth-session";
 import { createClientIfConfigured } from "@/lib/supabase/client";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
+import { useAuthSession } from "@/context/AuthSessionContext";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { useI18n } from "@/hooks/use-i18n";
 import { displayFontClass } from "@/lib/fonts";
@@ -59,6 +60,7 @@ const inputClass =
 
 function LoginForm() {
   const router = useRouter();
+  const { refreshSession } = useAuthSession();
   const searchParams = useSearchParams();
   const afterAuth = safeReturnPath(searchParams.get("next"));
   const { t } = useI18n();
@@ -125,7 +127,8 @@ function LoginForm() {
             return;
           }
           persistAuthSignedInFlag(true);
-          navigateAfterAuth(afterAuth);
+          await refreshSession();
+          navigateAfterAuth(afterAuth, router);
           return;
         }
         router.replace(normalizeMobileAppPath(afterAuth));
@@ -175,7 +178,8 @@ function LoginForm() {
             return;
           }
           persistAuthSignedInFlag(true);
-          navigateAfterAuth(afterAuth);
+          await refreshSession();
+          navigateAfterAuth(afterAuth, router);
           return;
         }
         router.replace(normalizeMobileAppPath(afterAuth));
