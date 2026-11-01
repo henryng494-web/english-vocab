@@ -36,6 +36,10 @@ export default function BugReportPage() {
         body: form,
       });
       const data = (await response.json()) as { ok?: boolean; id?: string };
+      if (response.status === 503) {
+        setError(t("reportBug.emailFallback"));
+        return;
+      }
       if (!response.ok || !data.ok) {
         throw new Error("submit_failed");
       }
@@ -102,7 +106,12 @@ export default function BugReportPage() {
             ) : null}
           </div>
 
-          {error ? <p className="settings-page__error">{error}</p> : null}
+          {error ? (
+            <div role="alert" className="settings-page__error">
+              <p>{error}</p>
+              <a className="underline" href="mailto:support@junglejokers.com">support@junglejokers.com</a>
+            </div>
+          ) : null}
           {successId ? (
             <p className="settings-page__success">
               {t("reportBug.success", { id: successId })}

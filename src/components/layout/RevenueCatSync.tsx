@@ -1,51 +1,29 @@
 "use client";
 
-import { initRevenueCat, logInRevenueCat, logOutRevenueCat, syncPlacementAttributes } from "@/lib/revenuecat";
+import { ensureRevenueCatUser, syncPlacementAttributes } from "@/lib/revenuecat";
 import { PLACEMENT_SAVED_EVENT, readPlacement } from "@/lib/placement";
-import { createClientIfConfigured } from "@/lib/supabase/client";
-import { waitForSupabaseAuthInitialized } from "@/lib/supabase/wait-auth-initialized";
+import { useAuthSession } from "@/context/AuthSessionContext";
 import { useEffect } from "react";
 
-/** Keeps RevenueCat in step with the Supabase session and the stored placement rank. */
+/** Identity changes run outside Supabase's auth callback and are serialized by the SDK wrapper. */
 export function RevenueCatSync() {
+  const { ready, user } = useAuthSession();
+  const userId = user?.id ?? null;
   useEffect(() => {
+    if (!ready) return;
     let cancelled = false;
-
-    const pushPlacement = () => {
+    const pushPlacement = async () => {
+      if (!(await ensureRevenueCatUser(userId)) || cancelled) return;
       const placement = readPlacement();
-      if (placement) void syncPlacementAttributes(placement);
+      if (placement && userId) await syncPlacementAttributes(placement);
     };
-
-    void (async () => {
-      await waitForSupabaseAuthInitialized();
-      if (cancelled) return;
-      await initRevenueCat();
-      if (cancelled) return;
-      const supabase = createClientIfConfigured();
-      const userId = supabase ? (await supabase.auth.getSession()).data.session?.user.id : null;
-      if (cancelled) return;
-      if (userId) await logInRevenueCat(userId);
-      pushPlacement();
-    })();
-
-    const supabase = createClientIfConfigured();
-    const { data } = supabase
-      ? supabase.auth.onAuthStateChange((_event, session) => {
-          if (session?.user) {
-            void logInRevenueCat(session.user.id).then(pushPlacement);
-          } else {
-            void logOutRevenueCat();
-          }
-        })
-      : { data: null };
-
-    window.addEventListener(PLACEMENT_SAVED_EVENT, pushPlacement);
+    void pushPlacement();
+    const onPlacement = () => { void pushPlacement(); };
+    window.addEventListener(PLACEMENT_SAVED_EVENT, onPlacement);
     return () => {
       cancelled = true;
-      data?.subscription.unsubscribe();
-      window.removeEventListener(PLACEMENT_SAVED_EVENT, pushPlacement);
+      window.removeEventListener(PLACEMENT_SAVED_EVENT, onPlacement);
     };
-  }, []);
-
+  }, [ready, userId]);
   return null;
 }

@@ -19,7 +19,7 @@ import {
   useAppBootstrap,
 } from "@/context/AppBootstrapContext";
 import { MIN_WELCOME_MS, type BootstrapProgress } from "@/lib/app-bootstrap";
-import { markStartupSplashCompleted } from "@/lib/startup-splash-session";
+import { hasDismissedSplashInDocument, markStartupSplashCompleted } from "@/lib/startup-splash-session";
 import { useCallback, useEffect, useState } from "react";
 
 function StartupSplash({ progress }: { progress: BootstrapProgress }) {
@@ -40,7 +40,7 @@ function MobileShellInner({ children }: { children: React.ReactNode }) {
   const [nicknameReady, setNicknameReady] = useState(false);
   const [minSplashElapsed, setMinSplashElapsed] = useState(false);
   /** Welcome splash on every cold start / full reload — never skip. */
-  const [startupSplashDone, setStartupSplashDone] = useState(false);
+  const [startupSplashDone, setStartupSplashDone] = useState(hasDismissedSplashInDocument);
 
   const syncNicknameGate = useCallback(() => {
     setNicknameReady(!needsLearnerNicknamePrompt());

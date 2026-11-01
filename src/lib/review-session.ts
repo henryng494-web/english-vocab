@@ -1,3 +1,4 @@
+import { learnerScope, isLearnerScopeCurrent } from "@/lib/learner-storage";
 import { getPresetRankLite as getPresetRank } from "@/data/preset-rank-map";
 import { resolveLearnableWordKey } from "@/data/vocab-abbreviations";
 import { enrichReviewQueueClues } from "@/lib/review-word-hydrate";
@@ -79,16 +80,19 @@ function stubVocabWord(
 }
 
 export async function fetchLearningSummary(): Promise<LearningSummaryRow[]> {
+  const scope = learnerScope();
   for (let attempt = 0; attempt < SUMMARY_RETRY_DELAYS_MS.length; attempt++) {
     const delay = SUMMARY_RETRY_DELAYS_MS[attempt] ?? 0;
     if (delay > 0) {
       await new Promise((resolve) => window.setTimeout(resolve, delay));
     }
+    if (!isLearnerScopeCurrent(scope)) return [];
     try {
       const res = await fetch("/api/words?summary=learning", {
         cache: "no-store",
       });
       const data = (await res.json()) as { words?: LearningSummaryRow[] };
+      if (!isLearnerScopeCurrent(scope)) return [];
       if (res.ok) {
         const words = data.words ?? [];
         if (words.length > 0 || attempt === SUMMARY_RETRY_DELAYS_MS.length - 1) {
@@ -268,6 +272,7 @@ async function enrichDueWordsOnly(
   extraWords: LearningSummaryRow[],
   queue: VocabWord[],
 ): Promise<{ queue: VocabWord[]; pool: VocabWord[] }> {
+  const scope = learnerScope();
   if (queue.length === 0) {
     return { queue: [], pool: [] };
   }
@@ -275,6 +280,7 @@ async function enrichDueWordsOnly(
   const dueKeys = queue.map((word) => word.word.trim().toLowerCase());
   const dueDetails = await fetchWordDetailsBatch(dueKeys);
   const pool = mergeLocalLearning(dueDetails.map(normalizeVocabWord));
+  if (!isLearnerScopeCurrent(scope)) return { queue: [], pool: [] };
   const enrichedQueue = applySnapshot(
     buildQueueFromKeys(dueKeys, pool, extraWords),
   );
@@ -301,6 +307,7 @@ async function enrichQueue(
   extraWords: LearningSummaryRow[],
   queue: VocabWord[],
 ): Promise<{ queue: VocabWord[]; pool: VocabWord[] }> {
+  const scope = learnerScope();
   if (queue.length === 0) {
     return { queue: [], pool: [] };
   }
@@ -321,6 +328,7 @@ async function enrichQueue(
     }
   }
 
+  if (!isLearnerScopeCurrent(scope)) return { queue: [], pool: [] };
   const enrichedQueue = applySnapshot(
     buildQueueFromKeys(dueKeys, allWords, extraWords),
   );
@@ -341,7 +349,9 @@ async function enrichQueue(
 
 /** Load review session: sync resolve first, then enrich pool. */
 export async function loadReviewSession(): Promise<ReviewSession> {
+  const scope = learnerScope();
   const summary = await fetchLearningSummary();
+  if (!isLearnerScopeCurrent(scope)) return { dueCount: 0, queue: [], pool: [] };
   const base = resolveReviewSession(summary);
   if (base.queue.length === 0) {
     return base;
@@ -390,10 +400,13 @@ export function resolveReviewSessionFast(): ReviewSession {
 }
 
 export async function loadReviewSessionFast(): Promise<ReviewSession> {
+  const scope = learnerScope();
   try {
     const summary = await fetchLearningSummary();
+    if (!isLearnerScopeCurrent(scope)) return { dueCount: 0, queue: [], pool: [] };
     if (typeof window !== "undefined") {
       const { seedCachedLearningSummary } = await import("@/lib/review-due-store");
+      if (!isLearnerScopeCurrent(scope)) return { dueCount: 0, queue: [], pool: [] };
       seedCachedLearningSummary(summary);
     }
     return resolveReviewSession(summary);

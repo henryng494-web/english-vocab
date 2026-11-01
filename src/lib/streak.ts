@@ -1,3 +1,4 @@
+import { learnerStorage } from "@/lib/learner-storage";
 import { isDailyGoalMet } from "@/lib/goal-progress";
 import { localDateKey } from "@/lib/local-date";
 import { markWeeklyGoalMetToday } from "@/lib/weekly-streak";
@@ -22,7 +23,7 @@ function readState(): StreakState {
     return { currentStreak: 0, lastGoalMetDate: null, longestStreak: 0 };
   }
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = learnerStorage.getItem(STORAGE_KEY);
     if (!raw) {
       return { currentStreak: 0, lastGoalMetDate: null, longestStreak: 0 };
     }
@@ -46,7 +47,7 @@ function readState(): StreakState {
 
 function writeState(state: StreakState): void {
   if (typeof window === "undefined") return;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  learnerStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   window.dispatchEvent(new CustomEvent("streak-changed", { detail: state }));
 }
 

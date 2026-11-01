@@ -1,3 +1,5 @@
+import { learnerScope, isLearnerScopeCurrent } from "@/lib/learner-storage";
+import { learnerStorage } from "@/lib/learner-storage";
 import {
   PLACEMENT_LEVEL_DIFFICULTY,
   PLACEMENT_QUESTIONS_PER_DIFFICULTY,
@@ -118,7 +120,7 @@ export const SELECTED_RANK_KEY = "user_selected_rank";
 function readRankKey(key: string): string | null {
   if (typeof window === "undefined") return null;
   try {
-    const value = localStorage.getItem(key)?.trim();
+    const value = learnerStorage.getItem(key)?.trim();
     return value || null;
   } catch {
     return null;
@@ -127,7 +129,7 @@ function readRankKey(key: string): string | null {
 
 function writeRankKey(key: string, rangeId: string): void {
   try {
-    localStorage.setItem(key, rangeId);
+    learnerStorage.setItem(key, rangeId);
   } catch {
     /* private mode */
   }
@@ -164,7 +166,7 @@ export type StoredPlacement = {
 export function readPlacement(): StoredPlacement | null {
   if (typeof window === "undefined") return null;
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = learnerStorage.getItem(STORAGE_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as Partial<StoredPlacement>;
     if (typeof parsed.rangeId !== "string" || !parsed.rangeId) return null;
@@ -179,7 +181,7 @@ export function savePlacement(placement: Omit<StoredPlacement, "savedAt">): Stor
   const stored: StoredPlacement = { ...placement, savedAt: Date.now() };
   if (typeof window === "undefined") return stored;
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
+    learnerStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
   } catch {
     /* private mode */
   }
@@ -195,10 +197,12 @@ export function tierForRange(rangeId: string): PlacementTierInfo | null {
 }
 
 export async function syncPlacementToAccount(placement: StoredPlacement): Promise<void> {
+  const scope = learnerScope();
   try {
     const supabase = createClientIfConfigured();
     if (!supabase) return;
     const { data } = await supabase.auth.getSession();
+    if (!isLearnerScopeCurrent(scope)) return;
     if (!data.session) return;
     await supabase.auth.updateUser({
       data: {

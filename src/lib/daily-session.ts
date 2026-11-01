@@ -1,3 +1,4 @@
+import { learnerStorage } from "@/lib/learner-storage";
 import { getDailyGoalTarget, getDailyReviewPlan } from "@/lib/daily-goal";
 import { localDateKey } from "@/lib/local-date";
 
@@ -31,7 +32,7 @@ function defaultSession(reviewsDue: number): DailySession {
 function readRaw(): DailySession | null {
   if (typeof window === "undefined") return null;
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = learnerStorage.getItem(STORAGE_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as DailySession;
     if (parsed.date !== localDateKey() || parsed.active !== true) return null;
@@ -51,9 +52,9 @@ function readRaw(): DailySession | null {
 function write(session: DailySession | null): void {
   if (typeof window === "undefined") return;
   if (!session) {
-    localStorage.removeItem(STORAGE_KEY);
+    learnerStorage.removeItem(STORAGE_KEY);
   } else {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
+    learnerStorage.setItem(STORAGE_KEY, JSON.stringify(session));
   }
   window.dispatchEvent(new Event("daily-session-changed"));
 }

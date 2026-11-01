@@ -9,7 +9,7 @@ import {
 import { isMobileAuthContext, resolveAuthCallbackUrl } from "@/lib/auth-redirect";
 import { navigateAfterAuth, normalizeMobileAppPath } from "@/lib/auth-navigation";
 import { persistAuthSignedInFlag } from "@/lib/auth-session";
-import { createClientIfConfigured } from "@/lib/supabase/client";
+import { createClientIfConfigured, createPasswordRecoveryClient } from "@/lib/supabase/client";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { useAuthSession } from "@/context/AuthSessionContext";
 import { AppHeader } from "@/components/layout/AppHeader";
@@ -60,7 +60,7 @@ const inputClass =
 
 function LoginForm() {
   const router = useRouter();
-  const { refreshSession } = useAuthSession();
+  const { ready: authReady, isSignedIn, refreshSession } = useAuthSession();
   const searchParams = useSearchParams();
   const afterAuth = safeReturnPath(searchParams.get("next"));
   const { t } = useI18n();
@@ -73,6 +73,12 @@ function LoginForm() {
   const [feedback, setFeedback] = useState<Feedback>(null);
   const [supabaseReady] = useState(() => isSupabaseConfigured());
   const mountedRef = useRef(true);
+
+  // Switching from guest to an account remounts personal-data providers. The new
+  // form must finish navigation even if the old form's sign-in request just ended.
+  useEffect(() => {
+    if (authReady && isSignedIn) navigateAfterAuth(afterAuth, router);
+  }, [authReady, isSignedIn, afterAuth, router]);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -213,7 +219,7 @@ function LoginForm() {
       });
       return;
     }
-    const supabase = createClientIfConfigured();
+    const supabase = createPasswordRecoveryClient();
     if (!supabase) {
       setFeedback({ kind: "error", text: t("auth.err.supabase") });
       return;
@@ -233,7 +239,7 @@ function LoginForm() {
         setLoading(false);
         return;
       }
-      const redirectTo = `${resetRedirect.url}?next=/account`;
+      const redirectTo = `${resetRedirect.url}?next=/auth/reset-password`;
       logAuthRedirect("resetPasswordForEmail", redirectTo);
       const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
         redirectTo,

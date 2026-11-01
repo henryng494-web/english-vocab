@@ -1,3 +1,4 @@
+import { learnerStorage } from "@/lib/learner-storage";
 import { localDateKey } from "@/lib/local-date";
 import type { ReviewIntervalDays } from "@/lib/review-schedule";
 
@@ -36,7 +37,7 @@ export type ReviewSessionSnapshot = {
 export function readReviewSessionSnapshot(): ReviewSessionSnapshot | null {
   if (typeof window === "undefined") return null;
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = learnerStorage.getItem(STORAGE_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as ReviewSessionSnapshot;
     if (!parsed || parsed.date !== localDateKey()) return null;
@@ -59,7 +60,7 @@ export function writeReviewSessionSnapshot(
   options?: { notify?: boolean },
 ): void {
   if (typeof window === "undefined") return;
-  localStorage.setItem(
+  learnerStorage.setItem(
     STORAGE_KEY,
     JSON.stringify({
       ...snapshot,
@@ -77,7 +78,7 @@ function readCompletedTodayState(): CompletedTodayState {
     return { date: localDateKey(), words: [] };
   }
   try {
-    const raw = localStorage.getItem(COMPLETED_TODAY_KEY);
+    const raw = learnerStorage.getItem(COMPLETED_TODAY_KEY);
     if (!raw) return { date: localDateKey(), words: [] };
     const parsed = JSON.parse(raw) as CompletedTodayState;
     if (!parsed || parsed.date !== localDateKey() || !Array.isArray(parsed.words)) {
@@ -109,7 +110,7 @@ function persistTodayCompletedReviewWord(word: string): void {
   if (!key) return;
   const words = new Set(readCompletedTodayState().words);
   words.add(key);
-  localStorage.setItem(
+  learnerStorage.setItem(
     COMPLETED_TODAY_KEY,
     JSON.stringify({ date: today, words: [...words] }),
   );
@@ -117,7 +118,7 @@ function persistTodayCompletedReviewWord(word: string): void {
 
 export function clearReviewSessionSnapshot(): void {
   if (typeof window === "undefined") return;
-  localStorage.removeItem(STORAGE_KEY);
+  learnerStorage.removeItem(STORAGE_KEY);
   window.dispatchEvent(new Event("vocab-learning-changed"));
 }
 

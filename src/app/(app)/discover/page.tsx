@@ -1,5 +1,7 @@
 "use client";
 
+import { learnerScope, isLearnerScopeCurrent } from "@/lib/learner-storage";
+
 import { VocabWordCard } from "@/components/discover/VocabWordCard";
 import type { DiscoverWordData } from "@/components/discover/DiscoverCard";
 import {
@@ -722,6 +724,7 @@ export default function DiscoverPage() {
   }
 
   function updateStatus(status: "mastered" | "new") {
+    const scope = learnerScope();
     if (!currentItem) return;
 
     if (status === "new") {
@@ -810,6 +813,7 @@ export default function DiscoverPage() {
           }
         }
 
+        if (!isLearnerScopeCurrent(scope)) return;
         const statusRes = await fetch("/api/words/status", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -818,6 +822,7 @@ export default function DiscoverPage() {
             status: status === "mastered" ? "mastered" : "new",
           }),
         });
+        if (!isLearnerScopeCurrent(scope)) return;
         if (!statusRes.ok) {
           const statusData = await statusRes.json();
           if (statusData.local_only) {
@@ -844,7 +849,7 @@ export default function DiscoverPage() {
           router.push("/discover");
         }
       } catch (err) {
-        if (saveId < lastCompletedSaveRef.current) return;
+        if (!isLearnerScopeCurrent(scope) || saveId < lastCompletedSaveRef.current) return;
         restoreLocalLearningEntry(saveWord, snapshot.prevLearning);
         restoreDailySession(snapshot.prevDailySession);
         if (status === "new") {

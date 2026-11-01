@@ -1,19 +1,19 @@
 "use client";
 
 import { createClientIfConfigured } from "@/lib/supabase/client";
-import { isSupabaseConfigured } from "@/lib/supabase/env";
 import {
   displayNameFromUser,
   LEARNER_DISPLAY_NAME_EVENT,
   persistLearnerDisplayName,
   readLearnerDisplayName,
 } from "@/lib/user-display-name";
-import { syncLearnerNicknameToSupabase } from "@/lib/learner-nickname";
+import { activateLearnerScope, learnerScope, isLearnerScopeCurrent } from "@/lib/learner-storage";
 import { persistAuthSignedInFlag } from "@/lib/auth-session";
 import { writeProCache } from "@/lib/pro-access";
 import type { Session, User } from "@supabase/supabase-js";
 import {
   createContext,
+  Fragment,
   useCallback,
   useContext,
   useEffect,
@@ -41,10 +41,9 @@ function syncProfileFromUser(user: User | null): void {
   persistAuthSignedInFlag(Boolean(user));
   if (!user) return;
   const local = readLearnerDisplayName();
-  if (local) {
-    void syncLearnerNicknameToSupabase(local);
-    return;
-  }
+  // Auth synchronization must not push an old device nickname into a new account.
+  // Explicit nickname edits are synchronized by saveLearnerNickname instead.
+  if (local) return;
   const name = displayNameFromUser(user);
   if (name) persistLearnerDisplayName(name);
 }
@@ -54,32 +53,31 @@ function applySessionToState(
   setSession: (s: Session | null) => void,
   setDisplayName: (n: string) => void,
 ): void {
+  activateLearnerScope(nextSession?.user.id ?? null);
   setSession(nextSession);
   syncProfileFromUser(nextSession?.user ?? null);
   setDisplayName(displayNameFromUser(nextSession?.user ?? null) || readLearnerDisplayName());
-  if (nextSession?.user) {
-    void import("@/lib/review-session").then(({ loadReviewSessionFast }) =>
-      loadReviewSessionFast().catch(() => {}),
-    );
-  }
   if (typeof window !== "undefined") {
     window.dispatchEvent(new Event(AUTH_SESSION_EVENT));
   }
 }
 
 export function AuthSessionProvider({ children }: { children: ReactNode }) {
-  const [ready, setReady] = useState(() => !isSupabaseConfigured());
+  const [ready, setReady] = useState(false);
   const [session, setSession] = useState<Session | null>(null);
   const [displayName, setDisplayName] = useState(() => readLearnerDisplayName());
 
   const refreshSession = useCallback(async () => {
+    const scope = learnerScope();
     const supabase = createClientIfConfigured();
     if (!supabase) {
+      activateLearnerScope(null);
       setSession(null);
       setReady(true);
       return;
     }
     const { data } = await supabase.auth.getSession();
+    if (!isLearnerScopeCurrent(scope)) return;
     applySessionToState(data.session, setSession, setDisplayName);
     setReady(true);
   }, []);
@@ -99,6 +97,7 @@ export function AuthSessionProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const supabase = createClientIfConfigured();
     if (!supabase) {
+      activateLearnerScope(null);
       persistAuthSignedInFlag(false);
       setReady(true);
       return;
@@ -135,7 +134,10 @@ export function AuthSessionProvider({ children }: { children: ReactNode }) {
       applySessionToState(data.session, setSession, setDisplayName);
       markReady();
     }).catch(() => {
-      if (!cancelled) markReady();
+      if (!cancelled) {
+        applySessionToState(null, setSession, setDisplayName);
+        markReady();
+      }
     });
 
     const onName = () => setDisplayName(readLearnerDisplayName());
@@ -152,15 +154,11 @@ export function AuthSessionProvider({ children }: { children: ReactNode }) {
   const signOut = useCallback(async () => {
     const supabase = createClientIfConfigured();
     if (supabase) {
-      await supabase.auth.signOut({ scope: "local" });
+      const { error } = await supabase.auth.signOut({ scope: "local" });
+      if (error) throw error;
     }
+    applySessionToState(null, setSession, setDisplayName);
     writeProCache(false);
-    setSession(null);
-    setDisplayName(readLearnerDisplayName());
-    persistAuthSignedInFlag(false);
-    if (typeof window !== "undefined") {
-      window.dispatchEvent(new Event(AUTH_SESSION_EVENT));
-    }
   }, []);
 
   const user = session?.user ?? null;
@@ -178,7 +176,13 @@ export function AuthSessionProvider({ children }: { children: ReactNode }) {
     [ready, session, user, displayName, signOut, refreshSession],
   );
 
-  return <AuthSessionContext.Provider value={value}>{children}</AuthSessionContext.Provider>;
+  return (
+    <AuthSessionContext.Provider value={value}>
+      {ready ? <Fragment key={user?.id ?? "guest"}>{children}</Fragment> : (
+        <div role="status" className="flex min-h-dvh items-center justify-center text-foreground">Loading Jungle Jokers…</div>
+      )}
+    </AuthSessionContext.Provider>
+  );
 }
 
 const FALLBACK: AuthSessionContextValue = {

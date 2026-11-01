@@ -1,5 +1,7 @@
 "use client";
 
+import { learnerScope, isLearnerScopeCurrent } from "@/lib/learner-storage";
+
 import { PaywallContent } from "@/components/paywall/PaywallContent";
 import { useI18n } from "@/hooks/use-i18n";
 import { AUTH_SESSION_EVENT, useAuthSession } from "@/context/AuthSessionContext";
@@ -44,6 +46,7 @@ export function PaywallProvider({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
   const [isPro, setIsPro] = useState(false);
   const statusGeneration = useRef(0);
+  const ownerScope = useRef(learnerScope());
 
   const [gating, setGating] = useState(false);
   const [freeTier, setFreeTier] = useState(false);
@@ -129,6 +132,7 @@ export function PaywallProvider({ children }: { children: ReactNode }) {
   const onProChange = useCallback((status: ProStatus) => {
     // A pre-purchase check may finish after StoreKit returns success.
     // Do not let that older response overwrite the purchase/restore result.
+    if (!isLearnerScopeCurrent(ownerScope.current) || !status.checked) return;
     ++statusGeneration.current;
     setIsPro(status.isPro);
     writeProCache(status.isPro);

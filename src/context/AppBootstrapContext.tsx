@@ -11,6 +11,7 @@ import {
   type ReactNode,
 } from "react";
 import { AUTH_SESSION_EVENT } from "@/context/AuthSessionContext";
+import { learnerScope, isLearnerScopeCurrent } from "@/lib/learner-storage";
 import {
   runAppBootstrap,
   waitForWelcomeMinimum,
@@ -72,8 +73,13 @@ const FAILSAFE_SNAPSHOT: AppBootstrapSnapshot = {
 
 /** In-memory snapshot for same-tab navigation. */
 let completedSnapshot: AppBootstrapSnapshot | null = null;
+let snapshotScope = "";
 
 function resolveInitialSnapshot(): AppBootstrapSnapshot | null {
+  if (snapshotScope !== learnerScope()) {
+    completedSnapshot = null;
+    snapshotScope = learnerScope();
+  }
   if (completedSnapshot && isBootstrapSnapshotUsable(completedSnapshot)) {
     return completedSnapshot;
   }
@@ -108,6 +114,7 @@ export function AppBootstrapProvider({ children }: { children: ReactNode }) {
   const [uiReleased, setUiReleased] = useState(hadInstantCache);
   const bootstrapRunRef = useRef(0);
   const backgroundSyncStarted = useRef(false);
+  useEffect(() => () => { ++bootstrapRunRef.current; }, []);
 
   const releaseUi = useCallback(() => {
     setUiReleased(true);
@@ -144,6 +151,7 @@ export function AppBootstrapProvider({ children }: { children: ReactNode }) {
   const syncBootstrapFromNetwork = useCallback(
     async (options?: { awaitWelcomeMinimum?: boolean }) => {
       const runId = ++bootstrapRunRef.current;
+      const scope = learnerScope();
       const startedAt = Date.now();
       const instantCache = isBootstrapSnapshotUsable(snapshot ?? initialSnapshot);
 
@@ -154,7 +162,7 @@ export function AppBootstrapProvider({ children }: { children: ReactNode }) {
 
       try {
         await waitForClientAuthReady();
-        if (runId !== bootstrapRunRef.current) return;
+        if (runId !== bootstrapRunRef.current || !isLearnerScopeCurrent(scope)) return;
 
         const loaded = await Promise.race([
           runAppBootstrap((next) => {
@@ -171,7 +179,7 @@ export function AppBootstrapProvider({ children }: { children: ReactNode }) {
         if (options?.awaitWelcomeMinimum && !instantCache) {
           await waitForWelcomeMinimum(startedAt);
         }
-        if (runId !== bootstrapRunRef.current) return;
+        if (runId !== bootstrapRunRef.current || !isLearnerScopeCurrent(scope)) return;
 
         if (isBootstrapSnapshotUsable(loaded)) {
           commitSnapshot(loaded);
@@ -197,7 +205,7 @@ export function AppBootstrapProvider({ children }: { children: ReactNode }) {
         if (!instantCache) {
           await waitForWelcomeMinimum(startedAt);
         }
-        if (runId !== bootstrapRunRef.current) return;
+        if (runId !== bootstrapRunRef.current || !isLearnerScopeCurrent(scope)) return;
         if (completedSnapshot && isBootstrapSnapshotUsable(completedSnapshot)) {
           setSnapshot(completedSnapshot);
         }

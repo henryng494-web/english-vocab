@@ -67,7 +67,11 @@ export async function POST(request: NextRequest) {
         );
       }
     } else {
-      console.info("[feedback]", JSON.stringify(payload));
+      // Logs do not retain the attachment. Never claim delivery without a receiver.
+      return NextResponse.json(
+        { error: "Please email your report and screenshot to support@junglejokers.com." },
+        { status: 503 },
+      );
     }
 
     return NextResponse.json({ ok: true, id: referenceId });

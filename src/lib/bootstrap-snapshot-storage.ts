@@ -1,3 +1,4 @@
+import { learnerStorage } from "@/lib/learner-storage";
 import {
   DEFAULT_BOOTSTRAP_RANGE,
   isBootstrapSnapshotUsable,
@@ -35,11 +36,11 @@ function toAppSnapshot(persisted: PersistedBootstrapSnapshot): AppBootstrapSnaps
 export function readPersistedBootstrapSnapshot(): AppBootstrapSnapshot | null {
   if (typeof window === "undefined") return null;
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = learnerStorage.getItem(STORAGE_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as PersistedBootstrapSnapshot;
     if (parsed.schema !== DISCOVER_WORD_CACHE_VERSION) {
-      localStorage.removeItem(STORAGE_KEY);
+      learnerStorage.removeItem(STORAGE_KEY);
       return null;
     }
     if (!parsed.ranges || typeof parsed.ranges !== "object") return null;
@@ -60,7 +61,7 @@ export function persistBootstrapSnapshot(snapshot: AppBootstrapSnapshot | null):
       ranges: snapshot.ranges,
       savedAt: Date.now(),
     };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+    learnerStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
   } catch {
     /* quota — keep in-memory snapshot only */
   }

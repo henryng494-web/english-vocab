@@ -3,6 +3,9 @@ const STARTUP_SPLASH_DONE_KEY = "ev-startup-splash-done-v2";
 /** In-memory flag survives client-side tab changes without full document reload. */
 let startupSplashDismissedInMemory = false;
 
+/** Same document account switches should not replay the cold-start welcome. */
+export function hasDismissedSplashInDocument(): boolean { return startupSplashDismissedInMemory; }
+
 /** Capacitor static export reloads HTML per route — persist splash dismissal in localStorage. */
 export function hasCompletedStartupSplash(): boolean {
   if (startupSplashDismissedInMemory) return true;

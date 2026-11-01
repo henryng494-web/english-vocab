@@ -3,7 +3,7 @@
 import { AppHeader } from "@/components/layout/AppHeader";
 import { useI18n } from "@/hooks/use-i18n";
 
-const SECTIONS = [1, 2, 3, 4, 5] as const;
+const SECTIONS = [1, 2, 3, 4, 5, 6] as const;
 
 export default function TermsPage() {
   const { t } = useI18n();
