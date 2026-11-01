@@ -5,6 +5,44 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const ts = require('typescript');
 
+for (const scenario of ['missing session', 'server rejects deletion']) {
+  test(`account deletion preserves local data when ${scenario}`, async () => {
+    let cleared = false, navigated = false, requested = false;
+    const lib = load('src/lib/delete-account.ts', {
+      '@/lib/api-base': { apiUrl: path => path },
+      '@/lib/supabase/client': { createClientIfConfigured: () => ({ auth: {
+        getSession: async () => ({ data: { session: scenario === 'missing session' ? null : { access_token: 'fixture' } } }),
+      } }) },
+    }, {}, {
+      localStorage: { clear() { cleared = true; } },
+      sessionStorage: { clear() { cleared = true; } },
+      window: { location: { replace() { navigated = true; } } },
+      fetch: async () => { requested = true; return { ok: false }; },
+    });
+    await assert.rejects(lib.deleteAccountAndData());
+    assert.equal(cleared, false);
+    assert.equal(navigated, false);
+    assert.equal(requested, scenario !== 'missing session');
+  });
+}
+
+for (const delivered of [false, true]) {
+  test(`feedback reports delivery ${delivered ? 'success' : 'failure'} from webhook`, async () => {
+    const route = load('src/app/api/feedback/route.ts', {
+      'next/server': { NextResponse: { json: (body, options) => ({ body, status: options?.status ?? 200 }) } },
+    }, { FEEDBACK_WEBHOOK_URL: 'https://example.invalid/feedback' }, {
+      File: class {}, FormData,
+      fetch: async () => ({ ok: delivered }),
+    });
+    const result = await route.POST({
+      formData: async () => new Map([['message', 'Example report']]),
+      headers: { get: () => null },
+    });
+    assert.equal(result.status, delivered ? 200 : 502);
+    assert.equal(result.body.ok, delivered ? true : undefined);
+  });
+}
+
 function load(file, mocks, env = {}, globals = {}) {
   const source = ts.transpileModule(fs.readFileSync(file, 'utf8'), {
     compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX },
