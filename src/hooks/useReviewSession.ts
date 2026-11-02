@@ -170,6 +170,18 @@ export function useReviewSession() {
           ? enrichDueReviewWords(getCachedLearningSummary(), instantQueue)
           : Promise.resolve<{ dueCount: number; queue: VocabWord[]; pool: VocabWord[] } | null>(null);
 
+      // Word content and learning-summary refresh are independent. Publish ready
+      // card details immediately even when the account summary is still slow.
+      void dueEnrichedPromise.then((result) => {
+        if (!result?.queue.length || !mountedRef.current || enrichGenRef.current !== enrichGen) return;
+        apply(result.dueCount || instant.dueCount, result.queue, result.pool, null, {
+          loading: false,
+          enriching: true,
+          dueReady: firstCardDueReady(result.queue),
+          mergeQueue: true,
+        });
+      }).catch(() => {});
+
       await summaryPromise;
       if (!mountedRef.current || enrichGenRef.current !== enrichGen) return;
 

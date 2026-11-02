@@ -1,7 +1,6 @@
 import { learnerScope, isLearnerScopeCurrent } from "@/lib/learner-storage";
 import { getPresetRankLite as getPresetRank } from "@/data/preset-rank-map";
 import { resolveLearnableWordKey } from "@/data/vocab-abbreviations";
-import { enrichReviewQueueClues } from "@/lib/review-word-hydrate";
 import {
   hydrateLocalLearningFromApi,
   mergeLocalLearning,
@@ -39,6 +38,7 @@ export type ReviewSession = {
 
 const SUMMARY_RETRY_DELAYS_MS = [0, 400, 900];
 const DETAILS_BATCH = 100;
+const INITIAL_REVIEW_DETAILS = 8;
 
 function normalizeVocabWord(word: VocabWord): VocabWord {
   const key = normalizeReviewWordKey(word.word);
@@ -278,16 +278,15 @@ async function enrichDueWordsOnly(
   }
 
   const dueKeys = queue.map((word) => word.word.trim().toLowerCase());
-  const dueDetails = await fetchWordDetailsBatch(dueKeys);
+  // Publish the first screenful without waiting for every due word or Gemini.
+  // The full pool loads separately; active missing clues have their own loader.
+  const dueDetails = await fetchWordDetailsBatch(dueKeys.slice(0, INITIAL_REVIEW_DETAILS));
   const pool = mergeLocalLearning(dueDetails.map(normalizeVocabWord));
   if (!isLearnerScopeCurrent(scope)) return { queue: [], pool: [] };
   const enrichedQueue = applySnapshot(
     buildQueueFromKeys(dueKeys, pool, extraWords),
   );
-  const withClues = await enrichReviewQueueClues(
-    enrichedQueue.length > 0 ? enrichedQueue : queue,
-    12,
-  );
+  const withClues = enrichedQueue.length > 0 ? enrichedQueue : queue;
 
   void prefetchReviewQuestionRange(
     withClues,
