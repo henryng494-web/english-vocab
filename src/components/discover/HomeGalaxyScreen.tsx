@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { useAppMenu } from "@/context/AppMenuContext";
+import { getTotalDueReviewCount, subscribeReviewDueCount } from "@/lib/review-due-store";
 import { displayFontClass } from "@/lib/fonts";
 import type { GoalType } from "@/lib/app-settings";
 import {
@@ -25,7 +27,7 @@ import {
 import { AppMenuButton } from "@/components/layout/AppMenuButton";
 import { JungleMascot } from "@/components/mascot/JungleMascot";
 import { StreakBadge } from "@/components/discover/DiscoverDashboard";
-import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import { useMemo, useSyncExternalStore } from "react";
 
 export type HomeGalaxyScreenProps = {
   rangeLabel: string;
@@ -61,42 +63,11 @@ function StatRing({
   value: number;
   max: number;
 }) {
-  const pctRaw = max > 0 ? Math.min(100, (value / max) * 100) : 0;
-  const pctRounded = Math.round(pctRaw);
-  const dashPct =
-    pctRounded === 0 && max > 0 ? 1.5 : pctRounded >= 100 ? 100 : pctRounded;
-  const dash = `${dashPct} 100`;
-  const statClass =
-    variant === "due"
-      ? `home-galaxy-stat home-galaxy-stat--due${complete ? " is-complete" : ""}`
-      : "home-galaxy-stat home-galaxy-stat--goal";
-
+  const percent = max > 0 ? Math.max(0, Math.min(100, value / max * 100)) : 0;
   return (
-    <div
-      className={statClass}
-      role="progressbar"
-      aria-valuenow={pctRounded}
-      aria-valuemin={0}
-      aria-valuemax={100}
-      aria-label={`${sublabel}: ${displayValue}`}
-    >
-      <div className="home-galaxy-stat__ring" aria-hidden>
-        <svg viewBox="0 0 36 36">
-          <path
-            className="home-galaxy-stat__track"
-            d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-          />
-          <path
-            className={`home-galaxy-stat__fill home-galaxy-stat__fill--${variant}`}
-            strokeDasharray={dash}
-            d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-          />
-        </svg>
-        <span className="home-galaxy-stat__center text-xs font-bold text-slate-500">
-          {displayValue}
-        </span>
-      </div>
-      <p className="home-galaxy-stat__label">{sublabel}</p>
+    <div className={`home-focus-goal home-focus-goal--${variant}${complete ? " is-complete" : ""}`}>
+      <div className="home-focus-goal__label"><span>{sublabel}</span><strong>{displayValue}</strong></div>
+      <progress max={100} value={percent} aria-label={sublabel} />
     </div>
   );
 }
@@ -166,7 +137,7 @@ function WeekDayCell({
 
   const showTodayRing = day.isToday && !day.met && goalTarget > 0;
   const goalComplete = goalTarget > 0 && goalCurrent >= goalTarget;
-  const bubbleLabel = day.met ? null : day.isFuture ? "+" : "·";
+  const bubbleLabel = day.met ? null : "·";
 
   return (
     <div className={`home-galaxy-weekday ${stateClass}`}>
@@ -213,6 +184,8 @@ function WordsLeftProgressBar({ learned, total }: { learned: number; total: numb
 export function HomeGalaxyScreen(props: HomeGalaxyScreenProps) {
   const { t, goalTypeLabel } = useI18n();
   const { isPro } = usePaywall();
+  const { openMenu } = useAppMenu();
+  const dueCount = useSyncExternalStore(subscribeReviewDueCount, getTotalDueReviewCount, () => 0);
   const { displayName: authDisplayName, ready: authReady } = useAuthSession();
   const storedNickname = useSyncExternalStore(
     (onStoreChange) => {
@@ -272,7 +245,7 @@ export function HomeGalaxyScreen(props: HomeGalaxyScreenProps) {
   const weekTitle = t("home.galaxyWeekTitle", { count: weeklyMet });
 
   return (
-    <div className="home-galaxy">
+    <div className="home-galaxy home-focus">
       <div className="home-galaxy__sheet">
         <header className="home-galaxy__topbar">
           <div className="home-galaxy__topbar-left">
@@ -282,6 +255,7 @@ export function HomeGalaxyScreen(props: HomeGalaxyScreenProps) {
             </Link>
             <p className={`home-galaxy__topbar-greeting ${displayFontClass}`}>
               {t("home.greeting", { name: greetingName })}
+              <span className="home-focus-greeting-sub">{t("home.greetingSub")}</span>
             </p>
           </div>
           <div className="home-galaxy__topbar-right">
@@ -298,20 +272,49 @@ export function HomeGalaxyScreen(props: HomeGalaxyScreenProps) {
               className="home-galaxy__topbar-icon"
               aria-label={t("home.searchAria")}
             >
-              🔍
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden><circle cx="10.5" cy="10.5" r="6.5" /><path d="m16 16 5 5" /></svg>
             </Link>
             <StreakBadge days={props.streakDays} />
           </div>
         </header>
 
-        <section className="home-galaxy__stats-card home-galaxy-card">
-          <p className="home-galaxy__daily-hub">
-            {t("home.dailyHub", {
-              newWords: props.todayWordsLearned,
-              minutes: props.todayStudyMinutes,
-              learning: props.wordsReviewing.toLocaleString(),
+        <section className="home-galaxy__lesson home-galaxy-card home-galaxy-card--hero">
+          <div className="home-galaxy__lesson-head">
+            <h2 className={`home-galaxy__lesson-title ${displayFontClass}`}>
+              {t("home.continueLearning")}
+            </h2>
+            <JungleMascot
+              character="tigerHero"
+              size={64}
+              className="home-galaxy__lesson-mascot"
+              priority
+            />
+          </div>
+          <p className="home-galaxy__lesson-subtitle">
+            {t("home.bannerSubtitle", {
+              count: props.queueLength,
+              range: props.rangeLabel,
             })}
           </p>
+          <button
+            type="button"
+            className="home-galaxy__lesson-cta"
+            disabled={props.queueLength === 0}
+            onPointerDown={props.onStartJourneyPointerDown}
+            onClick={props.onStartJourney}
+          >
+            <span className="home-galaxy__lesson-cta-label font-extrabold">{t("home.continueCta")}</span>
+            <span className="home-galaxy__lesson-cta-icon" aria-hidden>⚡</span>
+          </button>
+          <WordsLeftProgressBar learned={wordsLearnedInBand} total={bandTotal} />
+        </section>
+        <button type="button" className="home-focus-review home-galaxy-card" onClick={props.onStartReview}>
+          <span className="home-focus-review__icon" aria-hidden>↻</span>
+          <span><strong>{t("home.flowReview")}</strong><span className="home-focus-review__detail">{dueCount > 0 ? t("home.flowReviewDue", {count: dueCount}) : t("home.flowReviewNone")}</span></span>
+          <span className="home-focus-review__arrow" aria-hidden>→</span>
+        </button>
+        <section className="home-galaxy__stats-card home-galaxy-card">
+          <div className="home-focus-section-heading"><h2>{t("home.todayGoals")}</h2><button type="button" onClick={openMenu}>{t("home.editGoals")}</button></div>
           <div className="home-galaxy__stats">
             <StatRing
               value={props.goalCurrent}
@@ -346,67 +349,12 @@ export function HomeGalaxyScreen(props: HomeGalaxyScreenProps) {
           </div>
         </section>
 
-        <section className="home-galaxy__lesson home-galaxy-card home-galaxy-card--hero">
-          <div className="home-galaxy__lesson-head">
-            <h2 className={`home-galaxy__lesson-title ${displayFontClass}`}>
-              {t("home.bannerTitle")}
-            </h2>
-            <JungleMascot
-              character="tigerHero"
-              size={64}
-              className="home-galaxy__lesson-mascot"
-              priority
-            />
-          </div>
-          <p className="home-galaxy__lesson-subtitle">
-            {t("home.bannerSubtitle", {
-              count: props.queueLength,
-              range: props.rangeLabel,
-            })}
-          </p>
-          <button
-            type="button"
-            className="home-galaxy__lesson-cta"
-            disabled={props.queueLength === 0}
-            onPointerDown={props.onStartJourneyPointerDown}
-            onClick={props.onStartJourney}
-          >
-            <span className="home-galaxy__lesson-cta-label text-[#6D28D9] font-extrabold">{t("home.bannerCta")}</span>
-            <span className="home-galaxy__lesson-cta-icon" aria-hidden>⚡</span>
-          </button>
-          <WordsLeftProgressBar learned={wordsLearnedInBand} total={bandTotal} />
-          <div className="home-galaxy__lesson-meta">
-            <div>
-              <span className="home-galaxy__lesson-meta-label">{t("home.galaxyMetaToday")}</span>
-              <span className="home-galaxy__lesson-meta-value">{props.todayWordsLearned}</span>
-            </div>
-            <div>
-              <span className="home-galaxy__lesson-meta-label">{t("home.galaxyMetaLearning")}</span>
-              <span className="home-galaxy__lesson-meta-value">
-                {props.wordsReviewing.toLocaleString()}
-              </span>
-            </div>
-            <div>
-              <span className="home-galaxy__lesson-meta-label">{t("home.masteredShort")}</span>
-              <span className="home-galaxy__lesson-meta-value">
-                {props.wordsKnown.toLocaleString()}
-              </span>
-            </div>
-          </div>
-        </section>
-
-        <button
-          type="button"
-          className="home-galaxy__challenge home-galaxy__challenge--clean"
-          onClick={props.onStartReview}
-        >
-          <span className="home-galaxy__challenge-trophy" aria-hidden>🏆</span>
-          <span className="home-galaxy__challenge-copy">
-            <span className="home-galaxy__challenge-title">{t("home.dailyChallengeTitle")}</span>
-            <span className="home-galaxy__challenge-desc">{t("home.dailyChallengeDesc")}</span>
-          </span>
-          <span className="home-galaxy__challenge-cta" aria-hidden>→</span>
+        <button className="home-focus-summary" type="button" onClick={props.onOpenLibrary}>
+          <span>{t("home.galaxyMetaLearning")} <strong>{props.wordsReviewing.toLocaleString()}</strong></span>
+          <span>{t("home.masteredShort")} <strong>{props.wordsKnown.toLocaleString()}</strong></span>
+          <span aria-hidden>→</span>
         </button>
+
       </div>
     </div>
   );

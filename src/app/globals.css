@@ -5614,3 +5614,43 @@ body.app-menu-open {
   }
   .journey-panel { gap: 0.375rem; }
 }
+
+/* Focused Home: learning first, compact progress second. */
+.home-focus .home-galaxy__sheet { gap: 0.875rem; padding-bottom: 1rem; }
+.home-focus .home-galaxy-card { border: 1px solid var(--card-border); border-radius: 1.25rem; box-shadow: 0 2px 10px rgb(15 23 42 / 0.035); }
+.home-focus .home-galaxy-card--hero { background: #f0eaff; border-color: #e5d8ff; box-shadow: none; }
+.home-focus .home-galaxy__lesson { gap: 0.625rem; padding: 1.125rem; }
+.home-focus .home-galaxy__lesson-title { color: #39206b; font-size: 1.375rem; }
+.home-focus .home-galaxy__lesson-subtitle { color: #635377; margin: 0; }
+.home-focus .home-galaxy__lesson-mascot { filter: none; }
+.home-focus .home-galaxy__lesson-cta { background: #7132df; border: 0; border-radius: 0.875rem; box-shadow: none; min-height: 48px; padding: 0.75rem; }
+.home-focus .home-galaxy__lesson-cta-label { color: white; }
+.home-focus .home-galaxy__lesson-cta-icon { display: none; }
+.home-focus .home-galaxy__lesson-cta:not(:disabled):active { transform: scale(0.99); border: 0; }
+.home-focus .home-galaxy__lesson-cta:disabled { opacity: 0.5; }
+.home-focus-review { display: flex; width: 100%; align-items: center; gap: 0.875rem; padding: 1rem; text-align: left; color: var(--foreground); background: var(--card); cursor: pointer; }
+.home-focus-review strong { font-size: 1rem; }
+.home-focus-review__icon { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 14px; color: #7132df; background: #f1ebff; font-size: 1.75rem; }
+.home-focus-review__detail { display: block; color: var(--header-muted); font-size: 0.8125rem; margin-top: 0.25rem; }
+.home-focus-review__arrow { margin-left: auto; color: #7132df; font-size: 1.5rem; }
+.home-focus-section-heading { display: flex; gap: 0.5rem; justify-content: space-between; align-items: center; margin-bottom: 0.875rem; }
+.home-focus-section-heading h2 { margin: 0; font-size: 0.9375rem; font-weight: 750; }
+.home-focus-section-heading button { color: #7132df; background: none; border: 0; font-size: 0.75rem; min-height: 44px; }
+.home-focus .home-galaxy__stats { display: grid; grid-template-columns: 1fr; gap: 1rem; }
+.home-focus-goal__label { display: flex; justify-content: space-between; gap: 0.5rem; font-size: 0.8125rem; color: var(--header-muted); }
+.home-focus-goal__label strong { color: var(--foreground); font-variant-numeric: tabular-nums; }
+.home-focus-goal progress { display: block; width: 100%; height: 6px; border: 0; border-radius: 999px; overflow: hidden; margin-top: 0.5rem; background: #e9edf3; accent-color: #7132df; }
+.home-focus-goal progress::-webkit-progress-bar { background: #e9edf3; }
+.home-focus-goal progress::-webkit-progress-value { background: #7132df; border-radius: 999px; }
+.home-focus .home-galaxy__week { padding: 1rem; }
+.home-focus .home-galaxy-weekday__date { display: none; }
+.home-focus .home-galaxy-weekday__bubble { width: 1.875rem; height: 1.875rem; }
+.home-focus-summary { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; border: 0; background: none; padding: 0.5rem 0.25rem; color: var(--header-muted); font-size: 0.75rem; min-height: 44px; }
+.home-focus-summary strong { color: var(--foreground); margin-left: 0.25rem; }
+.home-focus .home-galaxy__avatar { width: 2rem; height: 2rem; }
+.home-focus .home-galaxy__topbar-greeting { font-size: 1rem; }
+.home-focus button:focus-visible, .home-focus a:focus-visible { outline: 2px solid #7132df; outline-offset: 3px; }
+
+.home-focus-greeting-sub { display: block; font-family: var(--font-sans); font-weight: 400; font-size: 0.6875rem; color: var(--header-muted); margin-top: 0.2rem; }
+.home-focus .home-galaxy__words-progress-track { background: #ded2f5; }
+.home-focus .home-galaxy__words-progress-fill { background: #65a30d; }
