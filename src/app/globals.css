@@ -1497,6 +1497,10 @@ body {
 }
 
 .header-select__menu {
+  max-height: min(24rem, calc(100dvh - var(--header-select-top, 8rem) - 1rem));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
   position: fixed;
   z-index: 80;
   min-width: 7.75rem;
