@@ -1,0 +1,7 @@
+/* Give form controls the available visual viewport while the keyboard is open. */
+:root[data-keyboard-open="true"] .bottom-tab-bar {
+  display: none;
+}
+.page-scroll {
+  scroll-padding-block: 1rem;
+}
