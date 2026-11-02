@@ -476,7 +476,7 @@ const viMessages = {
     "auth.err.mismatch": "Mật khẩu xác nhận không khớp. Vui lòng nhập lại.",
     "auth.err.mismatchInline": "Mật khẩu xác nhận không khớp.",
     "auth.err.enterEmailFirst": "Hãy nhập email của bạn ở trên, rồi bấm \"Quên mật khẩu?\" lần nữa.",
-    "auth.signUpSuccess": "Đăng ký thành công! Vui lòng kiểm tra email để xác nhận tài khoản.",
+    "auth.signUpSuccess": "Kiểm tra Hộp thư đến và Thư rác để tìm liên kết xác nhận cho tài khoản mới. Nếu email này đã được đăng ký, hãy đăng nhập hoặc chọn Quên mật khẩu.",
     "auth.resetSent": "Nếu email đã được đăng ký, bạn sẽ nhận được liên kết đặt lại mật khẩu. Mở liên kết để đặt mật khẩu mới, rồi quay lại app đăng nhập.",
 
     "nickname.promptTitle": "Bạn tên gì?",
@@ -973,7 +973,7 @@ export const enFallbackMessages = {
     "auth.err.mismatch": "Passwords do not match. Please re-enter.",
     "auth.err.mismatchInline": "Passwords do not match.",
     "auth.err.enterEmailFirst": "Enter your email above, then tap \"Forgot password?\" again.",
-    "auth.signUpSuccess": "Sign-up successful! Please check your email to confirm your account.",
+    "auth.signUpSuccess": "Check your inbox and spam for a confirmation link for a new account. If this email is already registered, sign in or use Forgot password.",
     "auth.resetSent": "If this email is registered, you will receive a reset link. Open it to set a new password, then return to the app to sign in.",
 
     "nickname.promptTitle": "What should we call you?",
