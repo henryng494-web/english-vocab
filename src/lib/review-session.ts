@@ -1,4 +1,4 @@
-import { learnerScope, isLearnerScopeCurrent } from "@/lib/learner-storage";
+import { learnerScope, learnerUserId, isLearnerScopeCurrent } from "@/lib/learner-storage";
 import { getPresetRankLite as getPresetRank } from "@/data/preset-rank-map";
 import { resolveLearnableWordKey } from "@/data/vocab-abbreviations";
 import {
@@ -9,6 +9,7 @@ import {
 import { isExcludedVocabWord } from "@/lib/proper-noun";
 import { prefetchReviewQuestionRange } from "@/lib/review-image-preload";
 import {
+  restoreMissingReviewSchedules,
   getActionableDueReviewKeys,
   getReviewBadgeDueCount,
 } from "@/lib/review-schedule";
@@ -25,6 +26,8 @@ import { getImportanceTier } from "@/lib/word-rank";
 import type { LearningStatus, VocabWord } from "@/types/database";
 
 export type LearningSummaryRow = {
+  next_review_at?: string | null;
+  interval_days?: number | null;
   word: string;
   status?: LearningStatus | string;
   last_reviewed_at?: string | null;
@@ -91,10 +94,14 @@ export async function fetchLearningSummary(): Promise<LearningSummaryRow[]> {
       const res = await fetch("/api/words?summary=learning", {
         cache: "no-store",
       });
-      const data = (await res.json()) as { words?: LearningSummaryRow[] };
+      const data = (await res.json()) as { words?: LearningSummaryRow[]; accountId?: string | null };
       if (!isLearnerScopeCurrent(scope)) return [];
       if (res.ok) {
         const words = data.words ?? [];
+        if (data.accountId && data.accountId === learnerUserId()) {
+          restoreMissingReviewSchedules(words);
+          hydrateLocalLearningFromApi(words, { restoreMissing: true, notify: false });
+        }
         if (words.length > 0 || attempt === SUMMARY_RETRY_DELAYS_MS.length - 1) {
           return words;
         }

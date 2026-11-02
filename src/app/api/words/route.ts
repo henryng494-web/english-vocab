@@ -79,17 +79,15 @@ export async function GET(request: Request) {
     const supabase = await createClient();
 
     if (searchParams.get("summary") === "learning") {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return NextResponse.json({ words: [], accountId: null });
       const { data, error } = await supabase
         .from("user_learning")
-        .select("word, status, last_reviewed_at");
-      if (error) {
-        return NextResponse.json({ words: [] });
-      }
-      const words = (data ?? []).filter(
-        (row) =>
-          row.status !== "mastered" && !isExcludedVocabWord(row.word),
-      );
-      return NextResponse.json({ words });
+        .select("word, status, last_reviewed_at, next_review_at, interval_days")
+        .eq("user_id", user.id);
+      if (error) throw error;
+      const words = (data ?? []).filter(row => !isExcludedVocabWord(row.word));
+      return NextResponse.json({ words, accountId: user.id });
     }
 
     /** Word details for explicit word lists (local review hydration). */

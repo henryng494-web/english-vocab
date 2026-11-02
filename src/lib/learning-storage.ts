@@ -75,7 +75,7 @@ export function readLocalLearning(): LocalLearningMap {
 
 /**
  * Merge server learning rows into words already saved locally (Journey / Review).
- * Does not import DB-only rows — those must not enter Review before Journey.
+ * Only authenticated account restoration may import missing server rows.
  */
 export function hydrateLocalLearningFromApi(
   rows: Array<{
@@ -83,7 +83,7 @@ export function hydrateLocalLearningFromApi(
     status?: LearningStatus | string;
     last_reviewed_at?: string | null;
   }>,
-  options?: { notify?: boolean },
+  options?: { notify?: boolean; restoreMissing?: boolean },
 ): void {
   if (typeof window === "undefined" || rows.length === 0) return;
   const map = readLocalLearning();
@@ -93,7 +93,14 @@ export function hydrateLocalLearningFromApi(
     const key = resolveLearnableWordKey(row.word);
     if (!key || !isCountableWord(key)) continue;
     const existing = map[key];
-    if (!existing) continue;
+    if (!existing) {
+      if (options?.restoreMissing && ["new", "learning", "need_review", "mastered"].includes(row.status ?? "")) {
+        const savedAt = row.last_reviewed_at ?? new Date().toISOString();
+        map[key] = { status: row.status as LearningStatus, last_reviewed_at: savedAt, added_at: savedAt };
+        changed = true;
+      }
+      continue;
+    }
     if (row.status === "mastered") continue;
     const next: LocalLearningEntry = {
       status: (row.status as LearningStatus) ?? existing.status,
