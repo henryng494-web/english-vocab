@@ -134,14 +134,12 @@ function applyCuratedReviewFields(word: VocabWord): VocabWord | null {
 /** Instant clue/meaning from discover cache, curated vocab, or preset JSON. */
 export function hydrateReviewWordLocal(word: VocabWord): VocabWord {
   const curated = applyCuratedReviewFields(word);
-  if (curated) return curated;
-
-  if (hasReviewClueFields(word)) return word;
+  let hydrated = curated ?? word;
 
   const key = word.word.trim().toLowerCase();
   const cached = getDiscoverCache().get(key);
   if (cached && hasReviewClueFields(cached)) {
-    return mergeHydratedFields(word, {
+    hydrated = mergeHydratedFields(hydrated, {
       phonetic: cached.phonetic ?? "",
       word_type: cached.word_type ?? "",
       vietnamese_meaning: cached.vietnamese_meaning ?? "",
@@ -152,12 +150,18 @@ export function hydrateReviewWordLocal(word: VocabWord): VocabWord {
       meanings: cached.meanings,
       example_translations: cached.example_translations,
       phrase_translations: cached.phrase_translations,
+      word_family: cached.word_family ?? undefined,
+      similar_words: cached.similar_words ?? undefined,
     });
   }
 
+  // A meaning alone is enough for a question, but not for the answer card.
+  // Reuse cached examples/IPA before considering another network request.
+  if (hydrated.examples?.trim() && hydrated.phonetic?.trim() && hydrated.word_type?.trim() && hasReviewClueFields(hydrated)) return hydrated;
+
   const standard = standardToDiscoverFieldsWithRank(key, getPresetRank(key));
   if (standard && hasReviewClueFields(standard)) {
-    return mergeHydratedFields(word, {
+    hydrated = mergeHydratedFields(hydrated, {
       phonetic: standard.phonetic,
       word_type: standard.word_type,
       vietnamese_meaning: standard.vietnamese_meaning,
@@ -169,7 +173,7 @@ export function hydrateReviewWordLocal(word: VocabWord): VocabWord {
 
   const preset = getStaticWordDetail(key);
   if (preset) {
-    return mergeHydratedFields(word, {
+    return mergeHydratedFields(hydrated, {
       phonetic: preset.ipa,
       word_type: preset.pos,
       vietnamese_meaning: preset.vietnamese,
@@ -183,7 +187,7 @@ export function hydrateReviewWordLocal(word: VocabWord): VocabWord {
     });
   }
 
-  return word;
+  return hydrated;
 }
 
 /** Gemini enrich via discover API when DB/local cache has no clue text. */
