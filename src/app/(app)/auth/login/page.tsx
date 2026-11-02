@@ -276,7 +276,7 @@ function LoginForm() {
       <AppHeader title={headerTitle} />
 
       <div className="page-scroll flex justify-center px-4 pb-6 pt-2">
-        <div className="w-full max-w-md rounded-2xl border border-primary-200 bg-surface p-6 shadow-sm sm:p-8">
+        <div className="w-full max-w-md shrink-0 self-start rounded-2xl border border-primary-200 bg-surface p-6 shadow-sm sm:p-8">
           <div className="flex flex-col items-center text-center">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
