@@ -13,7 +13,8 @@ const config: CapacitorConfig = {
   },
   ios: {
     path: "ios",
-    contentInset: "always",
+    // CSS owns safe-area padding; native auto-insets would add it twice.
+    contentInset: "never",
   },
 };
 
