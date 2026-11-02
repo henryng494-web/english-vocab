@@ -21,7 +21,7 @@ export function SpeechVoiceWarmup() {
     const onFirstTouch = (event: Event) => {
       // Family/Examples is an explicit card control. Even the document capture
       // listener must leave it alone instead of replaying pending pronunciation.
-      if (event.target instanceof Element && event.target.closest(".card-details__hint")) return;
+      if (event.target instanceof Element && (event.target.closest(".card-details__hint") || event.target.closest("[data-header-select-overlay]"))) return;
       if (primed && !hasPendingAutoSpeak()) return;
       primed = true;
       unlockSpeechFromUserGesture();

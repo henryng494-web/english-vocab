@@ -26,7 +26,7 @@ jobs:
         run: |
           mkdir -p quality-results
           set -o pipefail
-          node --test scripts/test-auth-regressions.cjs scripts/test-account-learning.cjs scripts/test-family-card.cjs scripts/test-review-loading.cjs scripts/test-subscription-trial.cjs 2>&1 | tee quality-results/regressions.txt
+          node --test scripts/test-auth-regressions.cjs scripts/test-account-learning.cjs scripts/test-family-card.cjs scripts/test-review-loading.cjs scripts/test-subscription-trial.cjs scripts/test-rank-overlay.cjs 2>&1 | tee quality-results/regressions.txt
       - name: TypeScript
         if: always()
         run: |

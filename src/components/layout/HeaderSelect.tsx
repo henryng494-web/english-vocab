@@ -79,6 +79,15 @@ export function HeaderSelect({
       </button>
       {open && menuBox
         ? createPortal(
+            <div
+              className="header-select__overlay"
+              data-header-select-overlay
+              onPointerDown={(event) => {
+                event.stopPropagation();
+                if (event.target === event.currentTarget) setOpen(false);
+              }}
+              onClick={(event) => event.stopPropagation()}
+            >
             <ul
               ref={menuRef}
               id={listId}
@@ -113,7 +122,8 @@ export function HeaderSelect({
                   </li>
                 );
               })}
-            </ul>,
+            </ul>
+            </div>,
             document.body,
           )
         : null}
