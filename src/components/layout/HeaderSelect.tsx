@@ -84,7 +84,7 @@ export function HeaderSelect({
               id={listId}
               role="listbox"
               className="header-select__menu"
-              style={{ top: menuBox.top, right: menuBox.right }}
+              style={{ top: menuBox.top, right: menuBox.right, maxHeight: `min(24rem, calc(100dvh - ${menuBox.top}px - 1rem))` }}
             >
               {options.map((option) => {
                 const active = option.id === value;
