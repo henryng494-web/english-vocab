@@ -115,6 +115,19 @@ export function readReviewSchedule(): ScheduleMap {
   }
 }
 
+/** Restore persisted account dates only when this device has no schedule. */
+export function restoreMissingReviewSchedules(rows: Array<{word:string; next_review_at?:string|null; interval_days?:number|null}>): void {
+  const schedule = readReviewSchedule();
+  let changed = false;
+  for (const row of rows) {
+    const key = resolveLearnableWordKey(row.word);
+    if (!key || schedule[key] || !row.next_review_at || !Number.isFinite(Date.parse(row.next_review_at))) continue;
+    schedule[key] = parseScheduleEntry({intervalDays: normalizeIntervalDays(row.interval_days ?? 1), nextReviewAt: row.next_review_at, timesReviewed: 0});
+    changed = true;
+  }
+  if (changed) learnerStorage.setItem(STORAGE_KEY, JSON.stringify(schedule));
+}
+
 function parseScheduleEntry(stored: ReviewScheduleEntry | undefined): ReviewScheduleEntry {
   if (
     stored &&
