@@ -1,0 +1,60 @@
+name: App quality
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 18 * * *'
+permissions:
+  contents: read
+concurrency:
+  group: quality-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  regressions:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: Regression suite
+        run: |
+          mkdir -p quality-results
+          set -o pipefail
+          node --test scripts/test-auth-regressions.cjs scripts/test-account-learning.cjs scripts/test-family-card.cjs scripts/test-review-loading.cjs scripts/test-subscription-trial.cjs 2>&1 | tee quality-results/regressions.txt
+      - name: TypeScript
+        if: always()
+        run: |
+          mkdir -p quality-results
+          set -o pipefail
+          npm run typecheck 2>&1 | tee quality-results/typescript.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: quality-${{ github.sha }}
+          path: quality-results
+          retention-days: 14
+  report:
+    needs: regressions
+    if: always() && github.ref == 'refs/heads/main' && needs.regressions.result == 'failure'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const title = '[Quality] Automated regression failure';
+            const {owner, repo} = context.repo;
+            const issues = await github.paginate(github.rest.issues.listForRepo, {owner, repo, state:'open', per_page:100});
+            const url = `https://github.com/${owner}/${repo}/actions/runs/${context.runId}`;
+            const body = `Automated checks failed on commit ${context.sha}.\n\nRun and diagnostic artifacts: ${url}\n\nReproduce: npm ci, then the Regression suite command in .github/workflows/quality.yml and npm run typecheck.\n\nInvestigate evidence before changing code. Do not suppress failing checks. Native TestFlight, StoreKit and device-only state are not covered by this suite.`;
+            const existing = issues.find(i => !i.pull_request && i.title === title && i.user?.login === 'github-actions[bot]');
+            if (existing) await github.rest.issues.update({owner, repo, issue_number:existing.number, body});
+            else await github.rest.issues.create({owner, repo, title, body});
