@@ -5,6 +5,41 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const ts = require('typescript');
 
+for (const scenario of ['verified', 'expired', 'unconfirmed', 'unavailable', 'missing token']) {
+  test(`email confirmation result: ${scenario}`, async () => {
+    let verified = 0;
+    const route = load('src/app/auth/callback/route.ts', {
+      '@/lib/supabase/server': { createClient: async () => ({ auth: {
+        verifyOtp: async input => {
+          verified++;
+          assert.equal(input.type, 'email');
+          assert.equal(input.token_hash, 'fixture-token');
+          if (scenario === 'unavailable') throw new Error('network unavailable');
+          return { data: { user: scenario === 'unconfirmed' ? null : { email_confirmed_at: '2026-11-02' } }, error: scenario === 'expired' ? { message: 'expired' } : null };
+        },
+        exchangeCodeForSession() { throw new Error('PKCE must not be needed for email confirmation'); },
+      } }) },
+      'next/server': { NextResponse: { redirect() { throw new Error('Confirmation must stay on result page'); } } },
+    }, {}, { URL, Response });
+    const response = await route.GET(new Request(`https://example.invalid/auth/callback?type=email${scenario === 'missing token' ? '' : '&token_hash=fixture-token'}&next=https://untrusted.invalid`));
+    const html = await response.text();
+    assert.equal(response.status, scenario === 'verified' ? 200 : 400);
+    assert.equal(html.includes('Email verified successfully'), scenario === 'verified');
+    assert.equal(verified, scenario === 'missing token' ? 0 : 1);
+    assert.ok(!html.includes('fixture-token') && !html.includes('untrusted.invalid'));
+    assert.equal(response.headers.get('cache-control'), 'no-store, private');
+    assert.equal(response.headers.get('referrer-policy'), 'no-referrer');
+  });
+}
+
+test('existing password recovery callback still redirects to isolated reset page', async () => {
+  const route = load('src/app/auth/callback/route.ts', {
+    '@/lib/supabase/server': { createClient() { throw new Error('Recovery must not exchange a code'); } },
+    'next/server': { NextResponse: { redirect: url => url } },
+  }, {}, { URL, Response });
+  assert.equal(await route.GET(new Request('https://example.invalid/auth/callback?next=/auth/reset-password')), 'https://example.invalid/auth/reset-password');
+});
+
 for (const scenario of ['missing session', 'server rejects deletion']) {
   test(`account deletion preserves local data when ${scenario}`, async () => {
     let cleared = false, navigated = false, requested = false;
