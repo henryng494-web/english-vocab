@@ -1496,6 +1496,14 @@ body {
   flex-shrink: 0;
 }
 
+.header-select__overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  isolation: isolate;
+  pointer-events: auto;
+}
+
 .header-select__menu {
   max-height: min(24rem, calc(100dvh - var(--header-select-top, 8rem) - 1rem));
   overflow-y: auto;
